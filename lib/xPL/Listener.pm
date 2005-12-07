@@ -1,0 +1,772 @@
+package xPL::Listener;
+
+# $Id: Listener.pm,v 1.26 2005/12/06 22:17:41 beanz Exp $
+
+=head1 NAME
+
+xPL::Listener - Perl extension for an xPL Listener
+
+=head1 SYNOPSIS
+
+  use xPL::Listener;
+
+  my $xpl = xPL::Listener->new(ip => $ip, broadcast => $broadcast) or
+      die "Failed to create xPL::Client\n";
+
+  $xpl->add_timer(id => 'tick',
+                  timeout => 1,
+                  callback => sub { $xpl->tick(@_) },
+                 );
+
+  $xpl->main_loop();
+
+=head1 DESCRIPTION
+
+This is a module for creating xPL listeners.  Typically, the
+subclasses xPL::Client and xPL::Hub would be used rather than this
+module.  It provides a main loop and allows callbacks to be registered
+for events that occur.
+
+The listener does not fork.  Therefore all callbacks must either be
+short or they should fork.  For example, a callback that needed to
+make an HTTP request could connect and send the request then add the
+socket handle to receive the response to the listener event loop with a
+suitable callback to handle the reply.
+
+=head1 METHODS
+
+=cut
+
+use 5.006;
+use strict;
+use warnings;
+
+use List::Util qw/min/;
+use Socket;
+use IO::Select;
+use Time::HiRes;
+
+use xPL::Message;
+
+use xPL::Base;
+use AutoLoader qw(AUTOLOAD);
+
+our @ISA = qw(xPL::Base);
+our %EXPORT_TAGS = ( 'all' => [ qw() ] );
+our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
+our @EXPORT = qw();
+our $VERSION = qw/$Revision: 1.26 $/[1];
+
+__PACKAGE__->make_collection(input => [qw/callback_count handle/],
+                             timer => [qw/next timeout callback_count/],
+                             xpl_callback => [qw/callback_count/],
+                            );
+__PACKAGE__->make_readonly_accessor(qw/ip broadcast listen_port port/);
+
+=head2 C<new(%params)>
+
+The constructor creates a new xPL::Listener object.  The constructor
+takes a parameter hash as arguments.  Valid parameters in the hash
+are:
+
+=over 4
+
+=item interface
+
+  The interface to use.  The default is to use the first active
+  interface that isn't the loopback interface if there is one, or the
+  loopback interface if that is the only one.  (Not yet implemented.)
+
+=item ip
+
+  The IP address to bind to.  This can be used instead of the
+  'interface' parameter and will take precedent over the 'interface'
+  parameter if they are in conflict.
+
+=item broadcast
+
+  The broadcast address to use.  This is required if the 'ip'
+  parameter has been given.
+
+=item xpl_port
+
+  The port to use for xPL broadcast messages to use.  This is required
+  if the 'ip' parameter has been given.
+
+=back
+
+It returns a blessed reference when successful or undef otherwise.
+
+=cut
+
+sub new {
+  my $pkg = shift;
+  $pkg = ref($pkg) if (ref($pkg));
+
+  my $self = {};
+  bless $self, $pkg;
+
+  my %p = @_;
+  $self->verbose($p{verbose}||0);
+
+  exists $p{port} or $p{port} = 0;
+  $p{port} =~ /^(\d+)$/ or $self->argh('port invalid');
+
+  foreach (qw/ip broadcast/) {
+    exists $p{$_} or $self->argh("requires '$_' parameter");
+    $p{$_} =~ /^(\d+\.){3}\d+$/ or $self->argh("$_ invalid");
+  }
+
+  foreach (qw/ip broadcast port verbose/) {
+    $self->{'_'.$_} = $p{$_};
+  }
+
+  $self->init_timers();
+  $self->init_inputs();
+  $self->init_xpl_callbacks();
+
+  undef $self->{_select};
+
+  my $listen = $self->create_listen_socket();
+  my $send = $self->create_send_socket();
+
+  return $self;
+}
+
+=head1 ATTRIBUTE METHODS
+
+=head2 C<ip()>
+
+Returns the IP address of this source.
+
+=head2 C<broadcast()>
+
+Returns the broadcast address for this source.
+
+=head2 C<port()>
+
+Returns the port that this client will try to listen on.  This is distinct
+from L<listen_port> in that it might be 0 and L<listen_port> would be the
+port that was allocated by the OS at bind time.
+
+=head2 C<listen_port()>
+
+Returns the listen port for this source.
+
+=head2 C<listen_addr()>
+
+Returns the listen port for this source.
+
+=cut
+
+sub listen_addr {
+  my $self = shift;
+  $self->ouch('called with an argument, but listen_addr is readonly') if (@_);
+  return $self->ip;
+}
+
+=head1 SOCKET METHODS
+
+=head2 C<create_listen_socket()>
+
+This method creates the socket to listen for incoming messages.
+
+=cut
+
+sub create_listen_socket {
+  my $self = shift;
+  my $ip = $self->listen_addr;
+  my $port = $self->port || 0;
+
+  my $listen;
+  socket($listen, PF_INET, SOCK_DGRAM, getprotobyname('udp'));
+  setsockopt $listen, SOL_SOCKET, SO_BROADCAST, 1;
+  binmode $listen;
+  bind($listen, sockaddr_in($port, inet_aton($ip))) or
+    $self->argh("Failed to bind listen socket: $!\n");
+
+  $self->{_listen_sock} = $listen;
+  my $addr;
+  ($self->{_listen_port}, $addr) = sockaddr_in(getsockname($listen));
+  $self->{_listen_addr} = inet_ntoa($addr);
+# print STDERR 'Using ', $self->{_listen_addr}.':'.$self->{_listen_port}, "\n";
+
+  $self->add_input(handle => $listen,
+                   callback => sub { $self->xpl_message(@_) });
+
+  return $listen;
+}
+
+=head2 C<create_send_socket()>
+
+This method creates the socket used to send outgoing messages.
+
+=cut
+
+sub create_send_socket {
+  my $self = shift;
+  my $send;
+  socket($send, PF_INET, SOCK_DGRAM, getprotobyname('udp'));
+  setsockopt $send, SOL_SOCKET, SO_BROADCAST, 1;
+  binmode $send;
+  $self->{_send_sock} = $send;
+  $self->{_send_sin} = sockaddr_in(3865, inet_aton($self->{_broadcast}));
+  return 1;
+}
+
+=head2 C<send_aux($sin, $msg | %params )>
+
+This method sends a message using the given C<sockaddr_in> structure.
+The L<xPL::Message> is either passed directly or constructed from the
+given parameters.  The advantage of passing parameters is that the
+C<source> value will be filled in for objects for which it is defined.
+
+=cut
+
+sub send_aux {
+  my $self = shift;
+  my $sin = shift;
+  my $msg;
+
+  if (scalar @_ == 1) {
+    $msg = shift;
+  } else {
+    eval {
+      my %p = @_;
+      $p{head}->{source} = $self->id if ($self->can('id') &&
+                                         !exists $p{head}->{source});
+      $msg = xPL::Message->new(%p);
+      # don't think this can happen: return undef unless ($msg);
+    };
+    $self->argh(" message error: $@") if ($@);
+  }
+  if (ref($msg)) {
+    $msg = $msg->string;
+  }
+
+  my $sock = $self->{_send_sock};
+  my $s = $msg;
+  $s =~ s/\n/\\n/g;
+  return send($sock, $msg, 0, $sin);
+}
+
+=head2 C<send( $msg | %params )>
+
+This method sends a message using the default sending socket.  The
+L<xPL::Message> is either passed directly or constructed from the
+given parameters.  The advantage of passing parameters is that the
+C<source> value will be filled in for objects for which it is defined.
+
+=cut
+
+sub send {
+  my $self = shift;
+  my $sin = $self->{_send_sin};
+  return $self->send_aux($sin, @_);
+}
+
+=head1 MESSAGE CALLBACK METHODS
+
+=head2 C<add_xpl_callback(%params)>
+
+This method defines a callback that should receive xPL messages.
+This method takes a parameter hash as arguments.  Valid parameters in
+the hash are:
+
+=over 4
+
+=item id
+
+  A unique id for this message callback - used to identify the
+  callback, for instance to remove it.  This parameter is required.
+
+=item callback
+
+  A code reference to be executed with incoming xPL messages.
+  The default is the emtpy code reference.
+
+=item arguments
+
+  An array reference of arguments to be passed to the callback.  The
+  default is the empty array reference.
+
+=item filter
+
+  Not implemented yet.
+
+=back
+
+=cut
+
+sub add_xpl_callback {
+  my $self = shift;
+  my %p = @_;
+  exists $p{id} or $self->argh("requires 'id' argument");
+  exists $p{self_skip} or $p{self_skip} = 1;
+  return $self->add_callback_item('xpl_callback', $p{id}, \%p);
+}
+
+=head2 C<exists_xpl_callback($id)>
+
+This method returns true if an xPL message callback with the given id
+is registered.
+
+=head2 C<remove_xpl_callback($id)>
+
+This method removes the registered xPL message callback for the given
+id.
+
+=head2 C<xpl_callback_attrib($id, $attrib)>
+
+This method returns the value of the attribute of the callback with
+the given id.
+
+=head2 C<xpl_callback_callback_count($id)>
+
+This method returns the callback count of the xPL callback with
+the given id.
+
+=head2 C<xpl_callbacks()>
+
+This method returns a list of the registered xPL callbacks.
+
+=head2 C<xpl_message($file_handle)>
+
+This method is called when another xPL message has arrived.  It handles
+the dispatch of the message to any registered xpl_callbacks.
+
+=cut
+
+sub xpl_message {
+  my $self = shift;
+  my $sock = $self->{_listen_sock};
+  my $buf = '';
+  my $addr = recv($sock, $buf, 1500, 0);
+  my ($peerport, $peeraddr) = sockaddr_in($addr);
+  $peeraddr = inet_ntoa($peeraddr);
+  my $msg;
+  eval {
+    $msg = xPL::Message->new_from_payload($buf);
+  };
+  if ($@) {
+    warn "Invalid message from $peeraddr:$peerport: $@";
+    return 1;
+  }
+
+  foreach my $id (sort $self->xpl_callbacks()) {
+    my $rec = $self->{_col}->{xpl_callback}->{$id};
+    next if ($rec->{self_skip} &&
+             $self->can('id') && $msg->source eq $self->id);
+    &{$rec->{callback}}(message => $msg,
+                        peeraddr => $peeraddr,
+                        peerport => $peerport,
+                        xpl => $self,
+                        id => $id,
+                        arguments => $rec->{arguments},
+                        );
+    $rec->{callback_count}++;
+  }
+
+  return 1;
+}
+
+=head1 EVENT LOOP METHODS
+
+=head2 C<main_loop( [ $count ] )>
+
+This is the main event loop.  This method handles waiting on the
+registered input handles and subsequent dispatch of callbacks.  It
+also handles the dispatch of timer events.  Normally the main loop
+should be run forever, but an optional count can be passed to
+force the loop to exit after that number of iterations.
+
+=cut
+
+sub main_loop {
+  my $self = shift;
+  my $count = shift;
+
+  my $select = $self->{_select} = IO::Select->new();
+  $select->add($_) foreach ($self->inputs);
+
+  while (!defined $count || $count-- > 0) {
+    my $timeout = $self->timer_minimum_timeout();
+    my @ready = $select->can_read($timeout);
+    foreach my $handle (@ready) {
+      $self->dispatch_input($handle);
+    }
+    $self->dispatch_timers();
+  }
+  return 1;
+}
+
+=head1 TIMER METHODS
+
+=head2 C<add_timer(%params)>
+
+This method registers a timer with the event loop.  It takes a parameter
+hash as arguments.  The valid keys are:
+
+=over 4
+
+=item id
+
+This is a unique identifier used to manage this timer record.
+
+=item timeout
+
+The interval in seconds between dispatch of this timer.  Negative
+values mean that the timer should be triggered for the first time as
+soon as possible rather than after the given interval.  Timeouts
+beginning with "C " have these characters removed and then the
+remaining string is passed to a L<DateTime::Event::Cron> object for
+processing.
+
+=item callback
+
+This is the callback to executed when the timer is dispatched.
+It must return true if it is to be dispatched again otherwise
+it will be removed from the event loop.
+
+=item arguments
+
+These arguments are passed to the callback when it is executed.
+
+=item count
+
+This argument is optional.  It is a count of the number of times
+that the timer should be dispatched before being removed from the event
+loop.
+
+=back
+
+=cut
+
+sub add_timer {
+  my $self = shift;
+  my %p = @_;
+  exists $p{id} or $self->argh("requires 'id' parameter");
+  exists $p{timeout} or $self->argh("requires 'timeout' parameter");
+  $self->exists_timer($p{id}) and
+    $self->argh("timer '".$p{id}."' already exists");
+
+  my $next_fn;
+  my $next;
+
+  my $timeout = $p{timeout};
+
+  if ($timeout =~ /^C (.*)$/) {
+    # crontab-like syntax spotted
+    $self->module_available('DateTime::Event::Cron') or
+      return $self->ouch("DateTime::Event::Cron modules is required\n".
+                         'in order to support crontab-like timer syntax');
+    my $set = DateTime::Event::Cron->from_cron($1);
+    $next_fn = sub {
+      my $t = shift;
+      $t = Time::HiRes::time unless ($t);
+      $set->next(DateTime->from_epoch(epoch => $t))->epoch;
+    };
+    $next = &{$next_fn}();
+  } elsif ($timeout =~ /^[0-9\.]+$/) {
+    $next_fn = sub {
+      my $t = shift;
+      $t = Time::HiRes::time unless ($t);
+      $t + $timeout
+    };
+    $next = &{$next_fn}();
+  } elsif ($timeout =~ /^-[0-9\.]+$/) {
+    my $real_timeout = abs($timeout);
+    $next_fn = sub {
+      my $t = shift;
+      $t = Time::HiRes::time unless ($t);
+      $t + $real_timeout
+    };
+    $next = Time::HiRes::time;
+  } else {
+    $self->argh("invalid timeout, '$timeout'");
+  }
+
+  $p{next} = $next;
+  $p{next_fn} = $next_fn;
+  $self->add_callback_item('timer', $p{id}, \%p);
+
+  return 1;
+}
+
+=head2 C<exists_timer($id)>
+
+This method returns true if the timer with the given id is registered
+with the event loop.
+
+=cut
+
+=head2 C<remove_timer($id)>
+
+This method drops the timer with the given id from the event loop.
+
+=cut
+
+=head2 C<timers()>
+
+This method returns the ids of all the registered timers.
+
+=cut
+
+=head2 C<timer_attrib($id, $attrib)>
+
+This method returns the value of the attribute of the timer with the
+given id.
+
+=cut
+
+=head2 C<timer_next($id)>
+
+This method returns the time that the timer with the given id is next
+due to expire.
+
+=cut
+
+=head2 C<timer_callback_count($id)>
+
+This method returns the callback count of the timer with the given id.
+
+=cut
+
+=head2 C<timer_timeout($id)>
+
+This method returns the timeout of the timer with the given id.
+
+=cut
+
+=head2 C<timer_next_ticks()>
+
+This method returns the times of the next dispatch of the all the
+timers registered with the event loop.
+
+=cut
+
+sub timer_next_ticks {
+  my $self = shift;
+  my @t = map { $self->timer_attrib($_, 'next') } $self->timers();
+  return wantarray ? @t : \@t;
+}
+
+=head2 C<timer_minimum_timeout()>
+
+This method returns the amount of time remaining before the next timer
+is due to be dispatched.
+
+=cut
+
+sub timer_minimum_timeout {
+  my $self = shift;
+  my $t = Time::HiRes::time;
+  my $min = min($self->timer_next_ticks);
+  return $min ? $min-$t : undef;
+}
+
+=head2 C<dispatch_timer($id)>
+
+This method dispatches the callback for the given timer.
+
+=cut
+
+sub dispatch_timer {
+  my $self = shift;
+  my $id = shift;
+  $self->exists_timer($id) or
+    return $self->ouch("timer '$id' is not registered");
+
+  my $r = $self->{_col}->{timer}->{$id};
+  my $res = &{$r->{callback}}(id => $id, arguments => $r->{arguments});
+  $r->{callback_count}++;
+  if (!defined $res) {
+    $self->remove_timer($id);
+    return;
+  } elsif ($res == -1) {
+    return;
+  } elsif (exists $r->{count}) {
+    $r->{count}--;
+    unless ($r->{count} > 0) {
+      $self->remove_timer($id);
+      return;
+    }
+  }
+  $r->{next} = &{$r->{next_fn}}();
+  return $res;
+}
+
+=head2 C<dispatch_timers()>
+
+This method dispatches any timers that have expired.
+
+=cut
+
+sub dispatch_timers {
+  my $self = shift;
+  my $t = Time::HiRes::time;
+  foreach my $id ($self->timers) {
+    next unless ($self->timer_next($id) <= $t);
+    $self->dispatch_timer($id);
+  }
+  return 1;
+}
+
+=head1 INPUT MONITORING METHODS
+
+=head2 C<add_input(%params)>
+
+This method registers an input file handle (often a socket) with the
+event loop.  It takes a parameter hash as arguments.  The valid keys
+are:
+
+=over 4
+
+=item handle
+
+This is file handle of the input to be monitored.  The handle is
+used to uniquely identify the callback and is required to manipulate
+the record of this input.  (Strictly speaking it is actually the
+string representation of the handle which is used but typically
+you don't need to worry about this distinction.)
+
+=item callback
+
+This is the callback to executed when the handle has input to be read.
+It should return true.  It will be passed the handle as the first
+argument and the arguments below as an array reference as an array
+reference as the second.
+
+=item arguments
+
+These arguments are passed to the callback when it is executed.  These
+arguments are passed as an array reference after the mandatory
+arguments mentioned above.
+
+=back
+
+=cut
+
+sub add_input {
+  my $self = shift;
+  my %p = @_;
+  exists $p{handle} or $self->argh("requires 'handle' argument");
+  $self->add_callback_item('input', $p{handle}, \%p);
+
+  if ($self->{_select}) {
+    $self->{_select}->add($p{handle});
+  }
+  return 1;
+}
+
+=head2 C<inputs()>
+
+This method returns a list of the registered input handles.  Note,
+this method returns the real file handles and not the strings that
+are used as the keys internally.
+
+=cut
+
+sub inputs {
+  my $self = shift;
+  return map { $self->input_attrib($_, 'handle') } $self->items('input');
+}
+
+=head2 C<exists_input($handle)>
+
+This method returns true if the given handle is registered with the
+event loop.
+
+=head2 C<remove_input($handle)>
+
+This method drops the given handle from the event loop.
+
+=cut
+
+sub remove_input {
+  my $self = shift;
+  my $handle = shift;
+  $self->exists_input($handle) or
+    return $self->ouch("input '$handle' is not registered");
+
+  if ($self->{_select}) {
+    # make sure we have the real thing not just a string
+    my $real = $self->input_handle($handle);
+    $self->{_select}->remove($real);
+  }
+
+  $self->remove_item('input', $handle);
+  return 1;
+}
+
+=head2 C<input_attrib($handle, $attrib)>
+
+This method returns the value of the attribute of the registered input with
+the given handle.
+
+=cut
+
+=head2 C<input_callback_count($handle)>
+
+This method returns the callback count of the registered input with
+the given handle.
+
+=cut
+
+=head2 C<dispatch_input($handle)>
+
+This method dispatches the callback for the given input handle.
+
+=cut
+
+sub dispatch_input {
+  my $self = shift;
+  my $handle = shift;
+  $self->exists_input($handle) or
+    return $self->ouch("input '$handle' is not registered");
+
+  my $r = $self->{_col}->{input}->{$handle};
+  my $res = &{$r->{callback}}($r->{handle}, $r->{arguments});
+  $r->{callback_count}++;
+  return $res;
+}
+
+1;
+__END__
+
+=head1 TODO
+
+There are some 'todo' items for this module:
+
+=over 4
+
+=item Interface binding
+
+Support for binding to a named interface and using a simple heuristic
+to pick a sensible default.  Probably using Net::Ifconfig::Wrapper
+and, if it is not available, falling back to using ifconfig and/or "ip
+addr show" directly.
+
+=back
+
+=head1 EXPORT
+
+None by default.
+
+=head1 SEE ALSO
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

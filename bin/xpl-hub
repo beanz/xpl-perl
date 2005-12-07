@@ -1,0 +1,85 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-hub,v 1.6 2005/12/06 17:27:11 beanz Exp $
+
+=head1 NAME
+
+xpl-hub - Perl script for an xPL hub application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-hub -h
+
+  # start the hub listening and broadcasting on the loopback interface
+  xpl-hub -i 127.0.0.1 -b 127.255.255.255
+
+=head1 DESCRIPTION
+
+This script is an simple xPL hub that routes incoming xPL messages to
+local clients.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use Socket;
+use xPL::Hub;
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+and valid options are (default shown in brackets):
+  -i ip  - the IP address the clock should listen on (127.0.0.1)
+  -b ip  - the broadcast address for clock messages (127.255.255.255)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hi:b:', \%opt);
+if (exists $opt{'h'}) { HELP_MESSAGE() }
+my $ip = $opt{'i'} || '127.0.0.1';
+my $broadcast = $opt{'b'} || '127.255.255.255';
+
+# Create an xPL Hub object
+my $xpl = xPL::Hub->new(vendor_id => 'bnz', device_id => 'hub',
+                        ip => $ip, broadcast => $broadcast) or
+  die "Failed to create xPL::Hub\n";
+
+sub sigusr1 {
+  foreach my $client ($xpl->clients) {
+    print STDERR $xpl->client_info($client),"\n";
+  }
+}
+
+$SIG{USR1} = \&sigusr1;
+
+# Run the main loop
+$xpl->main_loop();
+
+=head1 SEE ALSO
+
+xPL::Hub(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+Hub Spec.: http://wiki.xplproject.org.uk/index.php/XPL_hubs_specification
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

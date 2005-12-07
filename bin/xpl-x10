@@ -1,0 +1,215 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-x10,v 1.3 2005/12/07 17:58:36 beanz Exp $
+
+=head1 NAME
+
+xpl-x10 - Perl script for an xPL X10 application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-x10 -h
+
+  # start the x10 application
+  xpl-x10 -i 127.0.0.1 -b 127.255.255.255
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with an X10 controller.
+At the moment, this script uses heyu (version 1 not version 2) to
+communicate with the controller.  This is a temporary measure and I
+anticipate moving to something else ... possibly the x10dev kernel
+modules.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Std;
+use xPL::Client;
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+  -q - quiet mode - don't output actions
+and valid options are (default shown in brackets):
+  -i ip  - the IP address the logger should listen on (127.0.0.1)
+  -b ip  - the broadcast address for logger hbeat messages (127.255.255.255)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hqi:b:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $ip = $opt{'i'} || '127.0.0.1';
+my $broadcast = $opt{'b'} || '127.255.255.255';
+my $quiet = exists $opt{'q'};
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(vendor_id => 'bnz', device_id => 'x10heyu',
+                           ip => $ip, broadcast => $broadcast) or
+  die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'x10', callback => \&xpl_in);
+
+my $buf = q{};
+my %unit = ();
+
+my $fh = new FileHandle;
+$fh->open('heyu monitor|') || die "heyu: $ERRNO\n";
+$xpl->add_input(handle => $fh, callback => \&heyu_reader);
+
+# Run the main loop
+$xpl->main_loop();
+
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+a limited subset of the full x10.basic schema but could easily be
+extended.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  if ($msg->message_type ne 'xpl-cmnd' ||
+      $msg->class ne 'x10' ||
+      $msg->class_type ne 'basic') {
+    return 1;
+  }
+  my @devices;
+  if ($msg->device) {
+    push @devices, split /,/, $msg->device;
+  }
+  if ($msg->house) {
+    push @devices, map { $_.'1' } split //, $msg->house;
+  }
+  my @args = ($msg->command);
+  if ($msg->command =~ /^bright|dim$/ && $msg->level) {
+    push @args, int $msg->level*22/100;
+  }
+  foreach my $device (@devices) {
+    unless ($quiet) {
+      print STDERR "Executing 'heyu turn $device @args'\n";
+    }
+    system('heyu', 'turn', $device, @args) == 0 or next;
+    send_xpl_confirm($device, @args);
+  }
+  return 1;
+};
+
+=head2 C<heyu_reader()>
+
+This is the callback that processes output from the "heyu monitor"
+command.  It is responsible for sending out x10.basic xpl-trig
+messages.
+
+=cut
+
+sub heyu_reader {
+  my $bytes = $fh->sysread($buf, 512, length($buf));
+  while ($buf =~ s/^(.*?)\n//) {
+    $_ = $LAST_PAREN_MATCH;
+    # TOFIX: process timestamps
+    if (m!function\s+(\S+)\s+:\s+housecode\s+(\w+)(.*\s+by\s+%(\d+))?!) {
+      my $f = lc($1);
+      my $h = $2;
+      my $level = $4;
+      my $u = $unit{$h} || 'X';
+      send_xpl($h.$u, $f, $level);
+    } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
+      $unit{$2} = $1;
+    }
+  }
+  return 1;
+}
+
+=head2 C<send_xpl( $device, $command, [ $level ] )>
+
+This functions is used to send out x10.basic xpl-trig messages as a
+result of messages from "heyu monitor".
+
+=cut
+
+sub send_xpl {
+  return send_xpl_aux('x10.basic', @_);
+}
+
+=head2 C<send_xpl_confirm( $device, $command, [ $level ] )>
+
+This functions is used to send out x10.confirm xpl-trig messages in
+response to incoming xpl-cmnd messages.
+
+=cut
+
+sub send_xpl_confirm {
+  return send_xpl_aux('x10.confirm', @_);
+}
+
+=head2 C<send_xpl_aux( $message_type, $device, $command, [ $level ] )>
+
+This functions is used by the other two send functions to construct the
+parameters to send the actual xPL message.
+
+=cut
+
+sub send_xpl_aux {
+  my $class = shift;
+  my $device = shift;
+  my $command = shift;
+  my $level = shift;
+  my %args =
+    (
+     message_type => 'xpl-trig',
+     class => $class,
+     body => { command => $command, device => $device },
+    );
+  if ($level) {
+    # convert level from 0-22 range for heyu to 0-100 range for xPL
+    $args{body}->{level} = int $level*100/22;
+  }
+  unless ($quiet) {
+    print STDERR
+      "Sending $class $device $command", ($level ? " ".$level : ""), "\n";
+  }
+
+  $xpl->send(%args);
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), heyu(1)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

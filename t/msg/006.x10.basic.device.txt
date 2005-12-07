@@ -1,0 +1,78 @@
+$args =
+  {
+   message_type => "xpl-cmnd",
+   head =>
+   {
+    hop => 1,
+    source => "acme-doorbell.porch",
+    target => "*",
+   },
+   class => "x10.basic",
+   body =>
+   {
+    command => "on",
+    device => "a10,a13",
+   },
+  };
+
+xpl-cmnd
+{
+hop=1
+source=acme-doorbell.porch
+target=*
+}
+x10.basic
+{
+command=on
+device=a10,a13
+}
+
+message_type=xpl-cmnd
+
+hop=1
+
+source=acme-doorbell.porch
+
+target=*
+
+class=x10
+
+class_type=basic
+
+summary=xpl-cmnd/x10.basic: acme-doorbell.porch -> * - on a10,a13
+
+command=on
+
+device=a10,a13
+
+house[afg]=afg
+
+level[100]=100
+
+data1[240]=240
+
+data2[0]=0
+
+device[a17]=a17
+xPL::Message::x10::basic->device: device, a17, is invalid.
+It should be a comma-separated list of devices - e.g. 'A1,F12,G9'.
+
+device[r10]=r10
+xPL::Message::x10::basic->device: device, r10, is invalid.
+It should be a comma-separated list of devices - e.g. 'A1,F12,G9'.
+
+house[afq]=afq
+xPL::Message::x10::basic->house: house, afq, is invalid.
+It should be a list of house codes - e.g. 'AFG'.
+
+level[101]=101
+xPL::Message::x10::basic->level: level, 101, is invalid.
+It should be an integer between 0 and 100.
+
+data1[-1]=-1
+xPL::Message::x10::basic->data1: data1, -1, is invalid.
+It should be an integer between 0 and 255.
+
+data2[256]=256
+xPL::Message::x10::basic->data2: data2, 256, is invalid.
+It should be an integer between 0 and 255.

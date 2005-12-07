@@ -1,0 +1,103 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-bridge,v 1.7 2005/12/06 17:27:11 beanz Exp $
+
+=head1 NAME
+
+xpl-bridge - Perl script for a simple xPL bridge application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-bridge -h
+
+  # start the bridge in listen mode waiting for clients on 10.0.0.1
+  xpl-bridge -i 127.0.0.1 -b 127.255.255.255 -l 10.0.0.1
+
+  # start a client bridge connecting to the remote bridge on 10.0.0.1
+  xpl-bridge -i 127.0.0.1 -b 127.255.255.255 -r 10.0.0.1
+
+=head1 DESCRIPTION
+
+This script is an xPL bridge.  It has two modes.  If the '-l' option
+is given it acts as a server ("listen mode").  If the '-r' option is
+given, it acts as a client ("client/remote mode").  Listen mode causes
+the bridge to listen on the specified address waiting for client mode
+bridges to connect.  Once a client connects the bridge forwards local
+messages to the client and the client forwards its local messages
+back.
+
+Currently, the bridge in listen mode does not redistribute messages it
+receives from one remote client to another however this functionality
+will be added shortly.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use xPL::Bridge;
+
+sub HELP_MESSAGE {
+  my $msg = shift || '';
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+  -H - dump the head of all xPL messages
+  -B - dump the body of all xPL messages
+and valid options are (default shown in brackets):
+  -i ip  - the IP address the bridge should listen on (127.0.0.1)
+  -b ip  - the broadcast address for bridge hbeat messages (127.255.255.255)
+  -l ip  - the bridge should go in to listen mode listening on this
+           local address
+  -r ip  - the bridge should go in to client mode connecting to this
+           remote address
+$msg
+};
+}
+
+my %opt = ();
+getopts('hi:b:Pr:l:', \%opt);
+exists $opt{'h'} and HELP_MESSAGE();
+my $ip = $opt{'i'} || '127.0.0.1';
+my $broadcast = $opt{'b'} || '127.255.255.255';
+my %args = ();
+exists $opt{'P'} and $args{bridge_port} = $opt{'P'};
+unless (exists $opt{'l'} or exists $opt{'r'}) {
+  HELP_MESSAGE('One of -l or -r is required.');
+}
+exists $opt{'l'} and $args{local_ip} = $opt{'l'};
+exists $opt{'r'} and $args{remote_ip} = $opt{'r'};
+
+# Create an xPL Client object
+my $xpl = xPL::Bridge->new(vendor_id => 'bnz', device_id => 'bridge',
+                           ip => $ip, broadcast => $broadcast,
+                           %args) or
+  die "Failed to create xPL::Bridge\n";
+
+# Run the main loop
+$xpl->main_loop();
+
+=head1 SEE ALSO
+
+xPL::Bridge(3), xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+Notes about xPL bridges:
+http://wiki.xplproject.org.uk/index.php/Notes_On_Bridge_Implementation
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

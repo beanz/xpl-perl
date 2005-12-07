@@ -1,0 +1,109 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-clock,v 1.7 2005/12/06 17:27:11 beanz Exp $
+
+=head1 NAME
+
+xpl-clock - Perl script for an example xPL clock application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-clock -h
+
+  # start the clock application with "tick" interval of 60 seconds
+  xpl-clock -s 60
+
+  # start the clock listening and broadcasting on the loopback interface
+  # using the default "tick" interval of 10 seconds
+  xpl-clock -i 127.0.0.1 -b 127.255.255.255
+
+=head1 DESCRIPTION
+
+This script is an xPL client that periodically sends out
+"clock.update" messages.  There doesn't seem to be an official
+schema for these messages but this example client was created
+to use, with the L<xpl-logger>, for testing purposes.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use POSIX qw/strftime/;
+use xPL::Client;
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+and valid options are (default shown in brackets):
+  -s nn  - number of seconds the xPL clock should wait between messages (10)
+  -i ip  - the IP address the clock should listen on (127.0.0.1)
+  -b ip  - the broadcast address for clock messages (127.255.255.255)
+  -f str - time format string ("%Y%m%d%H%M%S") - see the man page for
+           strftime(3) or date(1) for details.
+$msg
+};
+}
+
+my %opt = ();
+getopts('hs:i:b:f:', \%opt);
+if (exists $opt{'h'}) { HELP_MESSAGE() }
+my $tick_interval = $opt{'s'} || 10;
+my $ip = $opt{'i'} || '127.0.0.1';
+my $broadcast = $opt{'b'} || '127.255.255.255';
+my $time_format = $opt{'f'} || '%Y%m%d%H%M%S';
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(vendor_id => 'bnz', device_id => 'clock',
+                           ip => $ip, broadcast => $broadcast) or
+  die "Failed to create xPL::Client\n";
+
+# Add a timer to the xPL Client event loop to generate the
+# "clock.update" messages.  The negative interval causes the timer to
+# trigger immediately rather than waiting for the first interval.
+$xpl->add_timer(id => 'tick',
+                timeout => -$tick_interval,
+                callback => \&tick,
+                arguments => [$xpl]);
+
+$SIG{TERM} = \&end;
+$SIG{QUIT} = \&end;
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to send the "clock.update" messages
+sub tick {
+  my %p = @_;
+  my $xpl = $p{arguments}->[0];
+  $xpl->send(message_type => 'xpl-stat', class => 'clock.update',
+             body => { 'time' => strftime($time_format, (localtime time)) });
+  return 1;
+};
+
+# send a "hbeat.end" message on exit
+sub end { defined $xpl && undef $xpl;exit; }#->send_hbeat_end(); exit; }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), strftime(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

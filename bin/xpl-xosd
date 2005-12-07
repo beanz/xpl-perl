@@ -1,0 +1,143 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-xosd,v 1.6 2005/12/06 17:27:11 beanz Exp $
+
+=head1 NAME
+
+xpl-xosd - Perl script for an xPL X OSD application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-xosd -h
+
+  # start the xosd listening and broadcasting on the loopback interface
+  xpl-xosd -i 127.0.0.1 -b 127.255.255.255
+
+=head1 DESCRIPTION
+
+This script is an xPL client that displays OSD messages using the X OSD
+library.  This script requires:
+
+=over 4
+
+=item the X OSD library
+
+Most Linux distributions will probably provide a package for this.
+
+=item the X OSD Perl module
+
+Most Linux distributions probably don't provide a package for this.  It
+can be installed from CPAN using:
+
+  perl -MCPAN -e 'install X::Osd'
+
+This may require an X OSD library development package in order to build
+correctly.
+
+=back
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use xPL::Client;
+use X::Osd;
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+and valid options are (default shown in brackets):
+  -i ip  - the IP address the X OSD should listen on (127.0.0.1)
+  -b ip  - the broadcast address for X OSD hbeat messages (127.255.255.255)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hi:b:', \%opt);
+if (exists $opt{'h'}) { HELP_MESSAGE() }
+my $ip = $opt{'i'} || '127.0.0.1';
+my $broadcast = $opt{'b'} || '127.255.255.255';
+my $max_delay = 10;
+my $rows = 4;
+
+my $xosd = X::Osd->new($rows);
+$xosd->set_font('-adobe-courier-bold-r-normal--72-0-0-0-p-0-iso8859-1');
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(vendor_id => 'bnz', device_id => 'osd',
+                           ip => $ip, broadcast => $broadcast) or
+  die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'xosd', self_skip => 0, callback => \&osd);
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to display the X OSD messages
+sub osd {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  unless ($msg->message_type eq 'xpl-cmnd') {
+    return 1;
+  }
+  unless ($msg->class eq 'osd') {
+    return 1;
+  }
+
+  my $row = $msg->row;
+  unless ($row && $row >= 1 && $row <= $rows) {
+    $row = 1;
+  }
+  if ((lc $msg->command) eq 'clear') {
+    clear_screen();
+  }
+  unless ($msg->text) {
+    return;
+  }
+
+  $xosd->set_timeout($msg->delay || $max_delay);
+  $xosd->string($row-1, $msg->text);
+  return 1;
+}
+
+sub clear_screen {
+  $xosd->set_timeout(0);
+  foreach my $r (0..$rows-1) {
+    $xosd->string($r, q{});
+  }
+}
+
+# send a "hbeat.end" message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+X OSD website: http://www.ignavus.net/software.html
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

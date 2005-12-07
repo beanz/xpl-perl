@@ -1,0 +1,61 @@
+$args =
+  {
+   message_type => "xpl-stat",
+   head =>
+   {
+    hop => 2,
+    source => "acme-lamp.livingroom",
+    target => "*",
+   },
+   class => "hbeat.basic",
+   body =>
+   {
+    interval => 10,
+    extra => "test of extra field",
+   },
+   verbose => 1,
+  };
+
+xpl-stat
+{
+hop=2
+source=acme-lamp.livingroom
+target=*
+}
+hbeat.basic
+{
+interval=10
+extra=test of extra field
+}
+
+message_type=xpl-stat
+
+hop=2
+
+source=acme-lamp.livingroom
+
+target=*
+
+class=hbeat
+
+class_type=basic
+
+interval=10
+
+extra_field[extra]=test of extra field
+
+interval[8]=8
+
+interval[1]=1
+xPL::Message::hbeat::basic->interval: interval, 1, is invalid.
+It should be an integer between 5 and 30.
+
+interval[31]=31
+xPL::Message::hbeat::basic->interval: interval, 31, is invalid.
+It should be an integer between 5 and 30.
+
+interval[nine]=nine
+xPL::Message::hbeat::basic->interval: interval, nine, is invalid.
+It should be an integer between 5 and 30.
+
+verbose=1

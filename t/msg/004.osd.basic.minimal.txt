@@ -1,0 +1,47 @@
+$args =
+  {
+   head =>
+   {
+    source => "acme-phone.livingroom",
+   },
+   class => "osd.basic",
+   body =>
+   {
+    command => "clear",
+   },
+  };
+
+xpl-cmnd
+{
+hop=1
+source=acme-phone.livingroom
+target=*
+}
+osd.basic
+{
+command=clear
+}
+
+message_type=xpl-cmnd
+
+hop=1
+
+source=acme-phone.livingroom
+
+target=*
+
+class=osd
+
+class_type=basic
+
+command=clear
+
+text=undef
+
+row=undef
+
+column=undef
+
+delay=undef
+
+summary=xpl-cmnd/osd.basic: acme-phone.livingroom -> * - clear

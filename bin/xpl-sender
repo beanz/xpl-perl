@@ -1,0 +1,96 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-sender,v 1.4 2005/12/06 17:27:11 beanz Exp $
+
+=head1 NAME
+
+xpl-sender - Perl script for an xPL message sender application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-sender -h
+
+  # start the send listening and broadcasting on the loopback interface
+  xpl-sender -i 127.0.0.1 -b 127.255.255.255 -c osd.basic \
+             command=clear text=Boo
+
+  # something to go in /etc/apcupsd/mainsback perhaps:
+  xpl-sender -i 127.0.0.1 -b 127.255.255.255 \
+             -t xpl-trig -c ups.basic status=mains event=onmains
+
+  # something to go in /etc/apcupsd/onbattery perhaps:
+  xpl-sender -i 127.0.0.1 -b 127.255.255.255 \
+             -t xpl-trig -c ups.basic status=battery event=onbattery
+
+=head1 DESCRIPTION
+
+This script is an xPL client that sends an xPL message based on
+command line arguments.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use xPL::Client;
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] -t <msg.type> -c <class.type> [param=value ... ]
+where valid flags are:
+  -h - show this help text
+and valid options are (default shown in brackets):
+  -i ip         - the IP address the sender should listen on (127.0.0.1)
+  -b ip         - the broadcast address for sender messages (127.255.255.255)
+  -t xpl-type   - the xPL message type (xpl-cmnd, xpl-stat, or xpl-trig)
+  -c class.type - the schema type
+$msg
+};
+}
+
+my %opt = ();
+getopts('hi:b:t:c:T:', \%opt);
+
+if (exists $opt{'h'}) { HELP_MESSAGE() }
+
+my $ip = $opt{'i'} || '127.0.0.1';
+my $broadcast = $opt{'b'} || '127.255.255.255';
+
+exists $opt{'c'} or HELP_MESSAGE(q{Requires '-c' class type parameter});
+my %args = ();
+if (exists $opt{'t'}) {
+  $args{message_type} = $opt{'t'}
+}
+
+$args{class} = $opt{'c'};
+
+my %body = map { split /=/, $_, 2 } @ARGV;
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(vendor_id => 'bnz', device_id => 'sender',
+                           ip => $ip, broadcast => $broadcast) or
+  die "Failed to create xPL::Client\n";
+
+$xpl->send(%args, body => \%body);
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
