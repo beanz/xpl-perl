@@ -1,6 +1,6 @@
 $args =
   {
-   message_type => "xpl-stat",
+   message_type => "xpl-cmnd",
    head =>
    {
     hop => 1,
@@ -15,7 +15,7 @@ $args =
    },
   };
 
-xpl-stat
+xpl-cmnd
 {
 hop=1
 source=acme-dawndusk.porch
@@ -27,7 +27,7 @@ command=all_lights_on
 house=jkl
 }
 
-message_type=xpl-stat
+message_type=xpl-cmnd
 
 hop=1
 
@@ -39,7 +39,7 @@ class=x10
 
 class_type=basic
 
-summary=xpl-stat/x10.basic: acme-dawndusk.porch -> * - all_lights_on jkl
+summary=xpl-cmnd/x10.basic: acme-dawndusk.porch -> * - all_lights_on jkl
 
 command=all_lights_on
 
