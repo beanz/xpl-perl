@@ -24,6 +24,7 @@ use 5.006;
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
+use FileHandle;
 
 use Exporter;
 use AutoLoader qw(AUTOLOAD);
@@ -310,6 +311,120 @@ sub make_readonly_accessor {
 }
 
 =head1 HELPERS
+
+=head2 C<default_interface_info()>
+
+This method returns a hash reference containing keys for 'device',
+'address', 'broadcast', and 'netmask' for the interface that the
+simple heuristic thinks would be a good default.  The heuristic
+is currently first interface that isn't loopback.
+
+=cut
+
+sub default_interface_info {
+  my $self = shift;
+  my $res = $self->interfaces() || return;
+  foreach my $if (@$res) {
+    next if ($if->{device} eq "lo");
+    return $if;
+  }
+  return undef;
+}
+
+=head2 C<interface_info( $if )>
+
+This method returns a hash reference containing keys for 'device',
+'address', 'broadcast', and 'netmask' for the named interface.
+
+=cut
+
+sub interface_info {
+  my $self = shift;
+  my $ifname = shift;
+  my $res = $self->interfaces() || return;
+  foreach my $if (@$res) {
+    return $if if ($if->{device} eq $ifname);
+  }
+  return undef;
+}
+
+=head2 C<interfaces()>
+
+This method returns a list reference of network interfaces.  Each
+element of the list is a hash reference containing keys for
+'device', 'address', 'broadcast', and 'netmask'.
+
+=cut
+
+sub interfaces {
+  my $self = shift;
+  my @res;
+  # cache the results of interface lookups
+  unless (exists $self->{_interfaces}) {
+    # I was going to use Net::Ifconfig::Wrapper but it appears to hide
+    # the order of interfaces.  This is important since I wanted to make
+    # the first non-loopback interface the default
+    $self->{_interfaces} =
+      $self->interfaces_ifconfig() || $self->interfaces_ip() ||
+        $self->interfaces_ifconfig('/sbin/ifconfig') || [];
+  }
+  return $self->{_interfaces};
+}
+
+=head2 C<interfaces_ip()>
+
+This method returns a list reference of network interfaces.  Each
+element of the list is a hash reference containing keys for
+'device', 'address', 'broadcast', and 'netmask'.  It is implemented
+using the modern C<ip> command.
+
+=cut
+
+sub interfaces_ip {
+  my $self = shift;
+  my @res;
+  my $fh = FileHandle->new('ip addr show|') || return;
+  my $if;
+  while (<$fh>) {
+    if (/^\d+:\s+([a-zA-Z0-9:]+):/) {
+      $if = $1;
+    } elsif (/inet (\d+\.\d+\.\d+\.\d+)\/\d+\s+brd\s+(\d+\.\d+\.\d+\.\d+)/) {
+      push @res,
+        { device => $if, ip => $1, broadcast => $2, src => 'ip' };
+    }
+  }
+  return \@res;
+}
+
+=head2 C<interfaces_ifconfig()>
+
+This method returns a list reference of network interfaces.  Each
+element of the list is a hash reference containing keys for
+'device', 'address', 'broadcast', and 'netmask'.  It is implemented
+using the traditional C<ifconfig> command.
+
+=cut
+
+sub interfaces_ifconfig {
+  my $self = shift;
+  my $command = shift || 'ifconfig';
+  my @res;
+  my $fh = FileHandle->new($command.' -a|') || return;
+  {
+    local $/;
+    $/ = "\n\n";
+    while (<$fh>) {
+      if (/^([a-zA-Z0-9:]+) .*
+           inet\s+addr:(\d+\.\d+\.\d+\.\d+)\s+
+           bcast:(\d+\.\d+\.\d+\.\d+)/six) {
+        push @res,
+          { device => $1, ip => $2, broadcast => $3, src => 'ifconfig' };
+      }
+    }
+    $fh->close;
+  }
+  return \@res;
+}
 
 =head2 C<module_available( $module, [ @import_arguments ])>
 
