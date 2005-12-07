@@ -1,0 +1,46 @@
+$args =
+  {
+   message_type => "xpl-trig",
+   head =>
+   {
+    hop => 1,
+    source => "acme-dawndusk.porch",
+    target => "*",
+   },
+   class => "x10.confirm",
+   body =>
+   {
+    command => "all_lights_on",
+    house => "jkl",
+   },
+  };
+
+xpl-trig
+{
+hop=1
+source=acme-dawndusk.porch
+target=*
+}
+x10.confirm
+{
+command=all_lights_on
+house=jkl
+}
+
+message_type=xpl-trig
+
+hop=1
+
+source=acme-dawndusk.porch
+
+target=*
+
+class=x10
+
+class_type=confirm
+
+summary=xpl-trig/x10.confirm: acme-dawndusk.porch -> * - all_lights_on jkl
+
+command=all_lights_on
+
+house=jkl
