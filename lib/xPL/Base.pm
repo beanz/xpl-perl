@@ -25,6 +25,7 @@ use strict;
 use warnings;
 use English qw/-no_match_vars/;
 use FileHandle;
+use Socket;
 
 use Exporter;
 use AutoLoader qw(AUTOLOAD);
@@ -331,7 +332,32 @@ sub default_interface_info {
   return undef;
 }
 
-=head2 C<interface_info( $if )>
+=head2 C<interface_ip($if)>
+
+This method returns the ip address associated with the named interface.
+
+=cut
+
+sub interface_ip {
+  my $self = shift;
+  my $res = $self->interface_info(@_);
+  return $res ? $res->{ip} : undef;
+}
+
+=head2 C<interface_broadcast($if)>
+
+This method returns the broadcast address associated with the named
+interface.
+
+=cut
+
+sub interface_broadcast {
+  my $self = shift;
+  my $res = $self->interface_info(@_);
+  return $res ? $res->{broadcast} : undef;
+}
+
+=head2 C<interface_info($if)>
 
 This method returns a hash reference containing keys for 'device',
 'address', 'broadcast', and 'netmask' for the named interface.
@@ -388,9 +414,16 @@ sub interfaces_ip {
   while (<$fh>) {
     if (/^\d+:\s+([a-zA-Z0-9:]+):/) {
       $if = $1;
-    } elsif (/inet (\d+\.\d+\.\d+\.\d+)\/\d+\s+brd\s+(\d+\.\d+\.\d+\.\d+)/) {
+    } elsif (/inet (\d+\.\d+\.\d+\.\d+)\/\d+\s+brd\s+(\d+\.\d+\.\d+\.\d+)/i) {
+      push @res, { device => $if, ip => $1, broadcast => $2, src => 'ip' };
+    } elsif ($if =~ /^lo/ && /inet (\d+\.\d+\.\d+\.\d+)\/(\d+)/) {
       push @res,
-        { device => $if, ip => $1, broadcast => $2, src => 'ip' };
+        {
+         device => $if,
+         ip => $1,
+         broadcast => broadcast_from_class($1,$2),
+         src => 'ip',
+        };
     }
   }
   return \@res;
@@ -418,12 +451,73 @@ sub interfaces_ifconfig {
            inet\s+addr:(\d+\.\d+\.\d+\.\d+)\s+
            bcast:(\d+\.\d+\.\d+\.\d+)/six) {
         push @res,
-          { device => $1, ip => $2, broadcast => $3, src => 'ifconfig' };
+          {
+           device => $1,
+           ip => $2,
+           broadcast => $3,
+           src => 'ifconfig',
+          };
+      } elsif (/^(lo[a-zA-Z0-9:]*) .*
+           inet\s+addr:(\d+\.\d+\.\d+\.\d+)\s+
+           mask:(\d+\.\d+\.\d+\.\d+)/six) {
+        # special case to cope with loopback even though it isn't
+        # strictly a broadcast interface
+        push @res,
+          {
+           device => $1,
+           ip => $2,
+           broadcast => broadcast_from_mask($2,$3),
+           src => 'ifconfig'
+          };
+      } else {
+        print STDERR $_;
       }
     }
     $fh->close;
   }
   return \@res;
+}
+
+=head2 C<broadcast_from_mask( $ip, $mask )>
+
+This function returns the broadcast address based on a given ip address
+and netmask.
+
+=cut
+
+sub broadcast_from_mask {
+  my $ip = shift;
+  my $mask = shift;
+  my @ip = unpack("C4", inet_aton($ip));
+  my @m = unpack("C4",inet_aton($mask));
+  my @b;
+  foreach (0..3) {
+    push @b, $ip[$_] | 255-$m[$_];
+  }
+  return join ".",@b;
+}
+
+=head2 C<broadcast_class( $ip, $class )>
+
+This function returns the broadcast address based on a given ip address
+and an number of bits representing the address class.
+
+=cut
+
+sub broadcast_from_class {
+  my $ip = shift;
+  my $class = shift;
+  my @m;
+  foreach (0..3) {
+    if ($class > 8) {
+      $m[$_] = 255;
+      $class-=8;
+    } else {
+      $m[$_] = 255-(2**(8-$class)-1);
+      $class=0
+    }
+  }
+  return broadcast_from_mask($ip, join(".",@m));
 }
 
 =head2 C<module_available( $module, [ @import_arguments ])>

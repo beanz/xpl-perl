@@ -1,11 +1,11 @@
 #!/bin/sh
 /bin/cat <<EOF
-1: lo: <LOOPBACK,UP> mtu 16436 qdisc noqueue 
-    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
-    inet 127.0.0.1/8 scope host lo
-2: eth0: <BROADCAST,MULTICAST,UP> mtu 1300 qdisc pfifo_fast qlen 1000
+1: eth0: <BROADCAST,MULTICAST,UP> mtu 1300 qdisc pfifo_fast qlen 1000
     link/ether 00:0d:60:77:63:5b brd ff:ff:ff:ff:ff:ff
     inet 192.168.3.13/24 brd 192.168.3.255 scope global eth0
+2: lo: <LOOPBACK,UP> mtu 16436 qdisc noqueue 
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet 127.0.0.1/8 scope host lo
 3: vmnet8: <BROADCAST,MULTICAST,UP> mtu 1500 qdisc pfifo_fast qlen 1000
     link/ether 00:50:56:c0:00:08 brd ff:ff:ff:ff:ff:ff
     inet 192.168.165.1/24 brd 192.168.165.255 scope global vmnet8

@@ -18,7 +18,7 @@ BEGIN {
   }
   $dh->close;
   require Test::More;
-  import Test::More tests => 13 + 7 * scalar @paths;
+  import Test::More tests => 15 + 11 * scalar @paths;
 }
 
 {
@@ -41,11 +41,21 @@ foreach my $path (@paths) {
   my $method = 'interfaces_'.$src;
   my $list = $test->$method();
   ok($list, "interfaces - $path");
-  is(@$list, 2, "interfaces length - $path");
+  is(@$list, 3, "interfaces length - $path");
   is($list->[0]->{device}, 'eth0', "interfaces device - $path");
   is($list->[0]->{src}, $src, "interfaces src - $path");
   is($list->[0]->{ip}, '192.168.3.13', "interfaces ip - $path");
   is($list->[0]->{broadcast}, '192.168.3.255', "interfaces broadcast - $path");
+
+  is($test->interface_ip('eth0'), '192.168.3.13',
+     "interface ip eth0 - $path");
+  is($test->interface_broadcast('eth0'), '192.168.3.255',
+     "interface broadcast eth0 - $path");
+
+  is($test->interface_ip('lo'), '127.0.0.1',
+     "interface ip lo - $path");
+  is($test->interface_broadcast('lo'), '127.255.255.255',
+     "interface broadcast lo - $path");
 }
 
 # finally test the higher level methods with one of the paths
@@ -67,6 +77,8 @@ is($info->{ip}, '192.168.165.1', 'specific interface ip');
 is($info->{broadcast}, '192.168.165.255', 'specific interface broadcast');
 
 ok(!$test->interface_info('ppp0'), 'non-existent interface');
+ok(!$test->interface_ip('ppp0'), 'non-existent interface - ip');
+ok(!$test->interface_broadcast('ppp0'), 'non-existent interface - broadcast');
 
 # let's fake the interfaces list and test the failure case
 $test->{_interfaces} =
