@@ -33,22 +33,25 @@ sub HELP_MESSAGE {
 qq{Usage: $0 [flags] [options]
 where valid flags are:
   -h - show this help text
+  -v - verbose mode
 and valid options are (default shown in brackets):
-  -i ip  - the IP address the clock should listen on (127.0.0.1)
-  -b ip  - the broadcast address for clock messages (127.255.255.255)
+  -i ip  - the IP address the hub should listen on (127.0.0.1)
+  -b ip  - the broadcast address for hub messages (127.255.255.255)
 $msg
 };
 }
 
 my %opt = ();
-getopts('hi:b:', \%opt);
+getopts('hvi:b:', \%opt);
 if (exists $opt{'h'}) { HELP_MESSAGE() }
 my $ip = $opt{'i'} || '127.0.0.1';
 my $broadcast = $opt{'b'} || '127.255.255.255';
+my $verbose = exists $opt{'v'};
 
 # Create an xPL Hub object
 my $xpl = xPL::Hub->new(vendor_id => 'bnz', device_id => 'hub',
-                        ip => $ip, broadcast => $broadcast) or
+                        ip => $ip, broadcast => $broadcast,
+                        verbose => $verbose) or
   die "Failed to create xPL::Hub\n";
 
 sub sigusr1 {
