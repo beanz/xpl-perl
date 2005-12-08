@@ -4,6 +4,7 @@ use DirHandle;
 use FileHandle;
 use English qw/-no_match_vars/;
 use xPL::Base;
+$| = 0;
 
 my @paths;
 
@@ -18,7 +19,7 @@ BEGIN {
   }
   $dh->close;
   require Test::More;
-  import Test::More tests => 15 + 11 * scalar @paths;
+  import Test::More tests => 17 + 11 * scalar @paths;
 }
 
 {
@@ -46,6 +47,9 @@ foreach my $path (@paths) {
   is($list->[0]->{src}, $src, "interfaces src - $path");
   is($list->[0]->{ip}, '192.168.3.13', "interfaces ip - $path");
   is($list->[0]->{broadcast}, '192.168.3.255', "interfaces broadcast - $path");
+
+  # hack the cache because we didn't use the API properly
+  $test->{_interfaces} = $list;
 
   is($test->interface_ip('eth0'), '192.168.3.13',
      "interface ip eth0 - $path");
@@ -79,6 +83,14 @@ is($info->{broadcast}, '192.168.165.255', 'specific interface broadcast');
 ok(!$test->interface_info('ppp0'), 'non-existent interface');
 ok(!$test->interface_ip('ppp0'), 'non-existent interface - ip');
 ok(!$test->interface_broadcast('ppp0'), 'non-existent interface - broadcast');
+
+# test a trivial broadcast_from_class usage
+is(xPL::Base::broadcast_from_class('10.0.0.1', '32'), '10.0.0.1',
+   'broadcast_from_class trivial');
+
+# test a non-trivial broadcast_from_class usage
+is(xPL::Base::broadcast_from_class('10.0.0.1', '30'), '10.0.0.3',
+   'broadcast_from_class non-trivial');
 
 # let's fake the interfaces list and test the failure case
 $test->{_interfaces} =
