@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 114;
+use Test::More tests => 113;
 use t::Helpers qw/test_error test_warn/;
 use Socket;
 use Time::HiRes;
@@ -305,16 +305,6 @@ is(test_error(sub {
   }),
    "xPL::Listener->new: port invalid",
    "xPL::Listener invalid port");
-
-is(test_error(sub {
-    my $xpl = xPL::Listener->new(vendor_id => 'acme',
-                                 device_id => 'dingus',
-                                 #ip => "127.0.0.1",
-                                 broadcast => "127.255.255.255",
-                                );
-  }),
-   "xPL::Listener->new: requires 'ip' parameter",
-   "xPL::Listener missing ip");
 
 is(test_error(sub {
     my $xpl = xPL::Listener->new(vendor_id => 'acme',

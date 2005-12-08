@@ -35,24 +35,30 @@ where valid flags are:
   -h - show this help text
   -v - verbose mode
 and valid options are (default shown in brackets):
-  -i ip  - the IP address the hub should listen on (127.0.0.1)
-  -b ip  - the broadcast address for hub messages (127.255.255.255)
+  -i if0 - the interface for xPL messages (first non-loopback or loopback)
 $msg
 };
 }
 
 my %opt = ();
-getopts('hvi:b:', \%opt);
+getopts('hvi:', \%opt);
 if (exists $opt{'h'}) { HELP_MESSAGE() }
-my $ip = $opt{'i'} || '127.0.0.1';
-my $broadcast = $opt{'b'} || '127.255.255.255';
-my $verbose = exists $opt{'v'};
+getopts('hvi:BH', \%opt);
+HELP_MESSAGE() if (exists $opt{'h'});
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "hub",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
 
 # Create an xPL Hub object
-my $xpl = xPL::Hub->new(vendor_id => 'bnz', device_id => 'hub',
-                        ip => $ip, broadcast => $broadcast,
-                        verbose => $verbose) or
-  die "Failed to create xPL::Hub\n";
+my $xpl = xPL::Hub->new(%args) or die "Failed to create xPL::Hub\n";
 
 sub sigusr1 {
   foreach my $client ($xpl->clients) {

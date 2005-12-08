@@ -61,7 +61,8 @@ __PACKAGE__->make_collection(input => [qw/callback_count handle/],
                              timer => [qw/next timeout callback_count/],
                              xpl_callback => [qw/callback_count/],
                             );
-__PACKAGE__->make_readonly_accessor(qw/ip broadcast listen_port port/);
+__PACKAGE__->make_readonly_accessor(qw/ip broadcast interface
+                                       listen_port port/);
 
 =head2 C<new(%params)>
 
@@ -112,12 +113,27 @@ sub new {
   exists $p{port} or $p{port} = 0;
   $p{port} =~ /^(\d+)$/ or $self->argh('port invalid');
 
-  foreach (qw/ip broadcast/) {
-    exists $p{$_} or $self->argh("requires '$_' parameter");
-    $p{$_} =~ /^(\d+\.){3}\d+$/ or $self->argh("$_ invalid");
+  if (exists $p{interface}) {
+    $self->{_interface_info} = $self->interface_info($p{interface}) or
+      $self->argh("Unable to detect interface ".$p{interface});
+  } else {
+    $self->{_interface_info} =
+      $self->default_interface_info() || $self->interface_info('lo');
   }
 
-  foreach (qw/ip broadcast port verbose/) {
+  if ($self->{_interface_info}) {
+    $self->{_interface} = $self->{_interface_info}->{device};
+    $self->{_ip} = $self->{_interface_info}->{ip};
+    $self->{_broadcast} = $self->{_interface_info}->{broadcast};
+  }
+
+  foreach (qw/ip broadcast/) {
+    next unless (exists $p{$_});
+    $p{$_} =~ /^(\d+\.){3}\d+$/ or $self->argh("$_ invalid");
+    $self->{'_'.$_} = $p{$_};
+  }
+
+  foreach (qw/port verbose/) {
     $self->{'_'.$_} = $p{$_};
   }
 

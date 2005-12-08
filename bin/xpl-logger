@@ -35,26 +35,31 @@ where valid flags are:
   -B - dump the body of all xPL messages
   -v - verbose client mode
 and valid options are (default shown in brackets):
-  -i ip  - the IP address the logger should listen on (127.0.0.1)
-  -b ip  - the broadcast address for logger hbeat messages (127.255.255.255)
+  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
 $msg
 };
 }
 
 my %opt = ();
-getopts('hvi:b:BH', \%opt);
+getopts('hvi:BH', \%opt);
 HELP_MESSAGE() if (exists $opt{'h'});
-my $ip = $opt{'i'} || "127.0.0.1";
-my $broadcast = $opt{'b'} || "127.255.255.255";
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "listener",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
 my $verbose_head = exists $opt{'H'};
 my $verbose_body = exists $opt{'B'};
-my $verbose = exists $opt{'v'};
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(vendor_id => "bnz", device_id => "listener",
-                           ip => $ip, broadcast => $broadcast,
-                           verbose => $verbose) or
-  die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => "logger", self_skip => 0, callback => \&log);

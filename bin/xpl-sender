@@ -41,9 +41,10 @@ sub HELP_MESSAGE {
 qq{Usage: $0 [flags] [options] -t <msg.type> -c <class.type> [param=value ... ]
 where valid flags are:
   -h - show this help text
+  -v - verbose mode
 and valid options are (default shown in brackets):
-  -i ip         - the IP address the sender should listen on (127.0.0.1)
-  -b ip         - the broadcast address for sender messages (127.255.255.255)
+  -i if0        - the inferface for xPL messages
+                  (first non-loopback or loopback)
   -t xpl-type   - the xPL message type (xpl-cmnd, xpl-stat, or xpl-trig)
   -c class.type - the schema type
 $msg
@@ -51,29 +52,36 @@ $msg
 }
 
 my %opt = ();
-getopts('hi:b:t:c:T:', \%opt);
+getopts('hvi:t:c:T:', \%opt);
 
 if (exists $opt{'h'}) { HELP_MESSAGE() }
 
-my $ip = $opt{'i'} || '127.0.0.1';
-my $broadcast = $opt{'b'} || '127.255.255.255';
-
-exists $opt{'c'} or HELP_MESSAGE(q{Requires '-c' class type parameter});
-my %args = ();
-if (exists $opt{'t'}) {
-  $args{message_type} = $opt{'t'}
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "sender",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
 }
 
-$args{class} = $opt{'c'};
+exists $opt{'c'} or HELP_MESSAGE(q{Requires '-c' class type parameter});
+my %msg_args = ();
+if (exists $opt{'t'}) {
+  $msg_args{message_type} = $opt{'t'}
+}
+
+$msg_args{class} = $opt{'c'};
 
 my %body = map { split /=/, $_, 2 } @ARGV;
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(vendor_id => 'bnz', device_id => 'sender',
-                           ip => $ip, broadcast => $broadcast) or
-  die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
-$xpl->send(%args, body => \%body);
+$xpl->send(%msg_args, body => \%body);
 
 =head1 SEE ALSO
 

@@ -37,27 +37,33 @@ sub HELP_MESSAGE {
 qq{Usage: $0 [flags] [options]
 where valid flags are:
   -h - show this help text
-  -q - quiet mode - don't output actions
+  -v - verbose mode
 and valid options are (default shown in brackets):
-  -i ip  - the IP address the x10 client should listen on (127.0.0.1)
-  -b ip  - the broadcast address for x10 client hbeat messages (127.255.255.255)
+  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
 $msg
 };
 }
 
 my %opt = ();
-getopts('hqi:b:', \%opt);
+getopts('hvi:b:', \%opt);
 if (exists $opt{'h'}) {
   HELP_MESSAGE()
 }
-my $ip = $opt{'i'} || '127.0.0.1';
-my $broadcast = $opt{'b'} || '127.255.255.255';
-my $quiet = exists $opt{'q'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "x10heyu",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(vendor_id => 'bnz', device_id => 'x10heyu',
-                           ip => $ip, broadcast => $broadcast) or
-  die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'x10', callback => \&xpl_in);
@@ -104,7 +110,7 @@ sub xpl_in {
     push @args, int $msg->level*22/100;
   }
   foreach my $device (@devices) {
-    unless ($quiet) {
+    if ($opt{'v'}) {
       print STDERR "Executing 'heyu turn $device @args'\n";
     }
     system('heyu', 'turn', $device, @args) == 0 or next;
@@ -183,7 +189,7 @@ sub send_xpl_aux {
     # convert level from 0-22 range for heyu to 0-100 range for xPL
     $args{body}->{level} = int $level*100/22;
   }
-  unless ($quiet) {
+  if ($opt{'v'}) {
     print STDERR
       "Sending $class $device $command", ($level ? " ".$level : ""), "\n";
   }

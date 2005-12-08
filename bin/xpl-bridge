@@ -58,23 +58,35 @@ $msg
 }
 
 my %opt = ();
-getopts('hi:b:Pr:l:', \%opt);
+getopts('hvi:Pr:l:', \%opt);
 exists $opt{'h'} and HELP_MESSAGE();
-my $ip = $opt{'i'} || '127.0.0.1';
-my $broadcast = $opt{'b'} || '127.255.255.255';
-my %args = ();
-exists $opt{'P'} and $args{bridge_port} = $opt{'P'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "bridge",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+if (exists $opt{'P'}) {
+  $args{bridge_port} = $opt{'P'};
+}
 unless (exists $opt{'l'} or exists $opt{'r'}) {
   HELP_MESSAGE('One of -l or -r is required.');
 }
-exists $opt{'l'} and $args{local_ip} = $opt{'l'};
-exists $opt{'r'} and $args{remote_ip} = $opt{'r'};
+if (exists $opt{'l'}) {
+  $args{local_ip} = $opt{'l'};
+}
+if (exists $opt{'r'}) {
+  $args{remote_ip} = $opt{'r'};
+}
 
 # Create an xPL Client object
-my $xpl = xPL::Bridge->new(vendor_id => 'bnz', device_id => 'bridge',
-                           ip => $ip, broadcast => $broadcast,
-                           %args) or
-  die "Failed to create xPL::Bridge\n";
+my $xpl = xPL::Bridge->new(%args) or die "Failed to create xPL::Bridge\n";
 
 # Run the main loop
 $xpl->main_loop();

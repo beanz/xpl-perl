@@ -52,27 +52,34 @@ qq{Usage: $0 [flags] [options]
 where valid flags are:
   -h - show this help text
 and valid options are (default shown in brackets):
-  -i ip  - the IP address the X OSD should listen on (127.0.0.1)
-  -b ip  - the broadcast address for X OSD hbeat messages (127.255.255.255)
+  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
 $msg
 };
 }
 
 my %opt = ();
-getopts('hi:b:', \%opt);
+getopts('hvi:b:', \%opt);
 if (exists $opt{'h'}) { HELP_MESSAGE() }
-my $ip = $opt{'i'} || '127.0.0.1';
-my $broadcast = $opt{'b'} || '127.255.255.255';
 my $max_delay = 10;
 my $rows = 4;
 
-my $xosd = X::Osd->new($rows);
-$xosd->set_font('-adobe-courier-bold-r-normal--72-0-0-0-p-0-iso8859-1');
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "osd",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(vendor_id => 'bnz', device_id => 'osd',
-                           ip => $ip, broadcast => $broadcast) or
-  die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+my $xosd = X::Osd->new($rows);
+$xosd->set_font('-adobe-courier-bold-r-normal--72-0-0-0-p-0-iso8859-1');
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'xosd', self_skip => 0, callback => \&osd);
