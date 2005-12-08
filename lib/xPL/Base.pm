@@ -469,8 +469,6 @@ sub interfaces_ifconfig {
            broadcast => broadcast_from_mask($2,$3),
            src => 'ifconfig'
           };
-      } else {
-        print STDERR $_;
       }
     }
     $fh->close;
@@ -497,7 +495,7 @@ sub broadcast_from_mask {
   return join ".",@b;
 }
 
-=head2 C<broadcast_class( $ip, $class )>
+=head2 C<broadcast_from_class( $ip, $class )>
 
 This function returns the broadcast address based on a given ip address
 and an number of bits representing the address class.
