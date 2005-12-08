@@ -33,6 +33,7 @@ where valid flags are:
   -h - show this help text
   -H - dump the head of all xPL messages
   -B - dump the body of all xPL messages
+  -v - verbose client mode
 and valid options are (default shown in brackets):
   -i ip  - the IP address the logger should listen on (127.0.0.1)
   -b ip  - the broadcast address for logger hbeat messages (127.255.255.255)
@@ -41,16 +42,18 @@ $msg
 }
 
 my %opt = ();
-getopts('hi:b:BH', \%opt);
+getopts('hvi:b:BH', \%opt);
 HELP_MESSAGE() if (exists $opt{'h'});
 my $ip = $opt{'i'} || "127.0.0.1";
 my $broadcast = $opt{'b'} || "127.255.255.255";
 my $verbose_head = exists $opt{'H'};
 my $verbose_body = exists $opt{'B'};
+my $verbose = exists $opt{'v'};
 
 # Create an xPL Client object
 my $xpl = xPL::Client->new(vendor_id => "bnz", device_id => "listener",
-                           ip => $ip, broadcast => $broadcast) or
+                           ip => $ip, broadcast => $broadcast,
+                           verbose => $verbose) or
   die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
