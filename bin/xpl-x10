@@ -39,8 +39,8 @@ where valid flags are:
   -h - show this help text
   -q - quiet mode - don't output actions
 and valid options are (default shown in brackets):
-  -i ip  - the IP address the logger should listen on (127.0.0.1)
-  -b ip  - the broadcast address for logger hbeat messages (127.255.255.255)
+  -i ip  - the IP address the x10 client should listen on (127.0.0.1)
+  -b ip  - the broadcast address for x10 client hbeat messages (127.255.255.255)
 $msg
 };
 }
