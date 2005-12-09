@@ -41,9 +41,10 @@ use 5.006;
 use strict;
 use warnings;
 
+use IO::Select;
 use List::Util qw/min/;
 use Socket;
-use IO::Select;
+use Text::Balanced qw/extract_quotelike/;
 use Time::HiRes;
 
 use xPL::Message;
@@ -282,6 +283,131 @@ sub send {
   my $self = shift;
   my $sin = $self->{_send_sin};
   return $self->send_aux($sin, @_);
+}
+
+=head2 C<send_from_string( $simple_string )>
+
+This method takes a simple string representing details of a message
+and tries to send an xPL message from using a message constructed
+from those details.  For instance, the string:
+
+  -t xpl-cmnd -c x10.basic command=on device=e3
+
+would try create and 'xpl-cmnd'-type message with a schema/class of
+'x10.basic' with 'command' set to 'on' and 'device' set to 'e3' in the
+body.  It tries to correctly handle balanced quotes such as:
+
+  -t xpl-cmnd -c osd.basic command=write text="This is a 'test'!"
+
+and even:
+
+  -t xpl-cmnd -c osd.basic command=write text="This is a \"test\"!"
+
+It is intended to be used to construct messages from simple string
+based input sources such as instant messages.
+
+=cut
+
+sub send_from_string {
+  my $self = shift;
+  my $simple_string = shift;
+  my @t = simple_tokenizer($simple_string);
+  return $self->send_from_list(@t);
+}
+
+=head2 C<send_from_arg_list( @argv_style_list )>
+
+This method takes a list representing details of a message
+and tries to send an xPL message from using a message constructed
+from those details.  For instance, the list:
+
+  '-t', 'xpl-cmnd', '-c','x10.basic', 'command=on', 'device=e3'
+
+would try create and 'xpl-cmnd'-type message with a schema/class of
+'x10.basic' with 'command' set to 'on' and 'device' set to 'e3' in the
+body.  It is intended to be used to construct messages from lists
+such as C<@ARGV>.
+
+=cut
+
+sub send_from_arg_list {
+  my $self = shift;
+  my @t =  map { split /=/, $_, 2 } @_;
+  return $self->send_from_list(@t);
+}
+
+=head2 C<send_from_list( @list_of_tokens )>
+
+This method takes a simple list representing details of a message
+and tries to send an xPL message from using a message constructed
+from those details.  For instance, the list of the form:
+
+  '-t', 'xpl-cmnd', '-c', 'x10.basic', 'command', 'on', 'device', 'e3'
+
+would try create and 'xpl-cmnd'-type message with a schema/class of
+'x10.basic' with 'command=on' and 'device=e3' in the body.
+
+This method is used by L<send_from_string()> and
+L<send_from_arg_list()>.
+
+=cut
+
+sub send_from_list {
+  my $self = shift;
+  my %body = @_;
+  my %args = ();
+  if (exists $body{'-s'}) {
+    $args{head}->{source} = $body{'-s'};
+    delete $body{'-s'};
+  }
+  if (exists $body{'-c'}) {
+    $args{class} = $body{'-c'};
+    delete $body{'-c'};
+  }
+  if (exists $body{'-t'}) {
+    $args{message_type} = $body{'-t'};
+    delete $body{'-t'};
+  }
+  return $self->send(%args, body => \%body);
+}
+
+=head2 C<simple_tokenizer( $string )>
+
+This function takes a string of the form:
+
+  "-a setting1 -b setting2 key1=val1 key2=val2"
+
+and returns a list like:
+
+  '-a', 'setting1', '-b', 'setting2', 'key1', 'val1', 'key2', 'val2'
+
+It attempts to handle quoted values.  It is expected that the list
+will be cast in to a hash.
+
+=cut
+
+sub simple_tokenizer {
+  my $str = $_[0];
+  my @r = ();
+  my $w = '[-\._a-zA-Z0-9]';
+  my $s = '[= \t]';
+  my $q = q{["']};
+  while ($str) {
+    my $t = extract_quotelike($str);
+    if ($t) {
+      $t =~ s/^$q//o;
+      $t =~ s/$q$//o;
+      $t =~ s/\\($q)/$1/go;
+      push @r, $t;
+      $str =~s/^$s+//o;
+    } elsif ($str =~ s/^($w+)$s*//o) {
+      push @r, $1;
+    } else {
+      push @r, $str;
+      $str="";
+    }
+  }
+  return @r;
 }
 
 =head1 MESSAGE CALLBACK METHODS
