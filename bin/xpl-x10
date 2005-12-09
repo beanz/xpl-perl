@@ -98,6 +98,9 @@ sub xpl_in {
       $msg->class_type ne 'basic') {
     return 1;
   }
+  my $heyu_command = xpl_to_heyu($msg->command);
+  return 1 unless ($heyu_command);
+
   my @devices;
   if ($msg->device) {
     push @devices, split /,/, $msg->device;
@@ -105,16 +108,17 @@ sub xpl_in {
   if ($msg->house) {
     push @devices, map { $_.'1' } split //, $msg->house;
   }
-  my @args = ($msg->command);
-  if ($msg->command =~ /^bright|dim$/ && $msg->level) {
+  my @args = ();
+  if ($heyu_command =~ /^bright|dim$/ && $msg->level) {
     push @args, int $msg->level*22/100;
   }
   foreach my $device (@devices) {
     if ($opt{'v'}) {
-      print STDERR "Executing 'heyu turn $device @args'\n";
+      print STDERR "Executing 'heyu turn $device $heyu_command".
+        (@args ? " @args" : "")."'\n";
     }
-    system('heyu', 'turn', $device, @args) == 0 or next;
-    send_xpl_confirm($device, @args);
+    system('heyu', 'turn', $device, $heyu_command, @args) == 0 or next;
+    send_xpl_confirm($device, $msg->command, @args);
   }
   return 1;
 };
@@ -137,7 +141,9 @@ sub heyu_reader {
       my $h = $2;
       my $level = $4;
       my $u = $unit{$h} || 'X';
-      send_xpl($h.$u, $f, $level);
+      my $xpl_command = heyu_to_xpl($f);
+      next unless ($xpl_command);
+      send_xpl($h.$u, $xpl_command, $level);
     } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
       $unit{$2} = $1;
     }
@@ -195,6 +201,26 @@ sub send_xpl_aux {
   }
 
   $xpl->send(%args);
+}
+
+sub xpl_to_heyu {
+  my $command = shift;
+  return {
+          all_units_off => "alloff", all_units_on => "allon",
+          all_lights_off=> "lightsoff",  all_lights_on => "lightson",
+          on => "on", off => "off",
+          dim => "dim", bright => "bright",
+         }->{$command};
+}
+
+sub heyu_to_xpl {
+  my $command = shift;
+  return {
+          alloff => "all_units_off", allon => "all_units_on",
+          lightsoff=> "all_lights_off",  lightson => "all_lights_on",
+          on => "on", off => "off",
+          dim => "dim", bright => "bright",
+         }->{$command};
 }
 
 # send a 'hbeat.end' message on exit
