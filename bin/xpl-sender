@@ -68,20 +68,19 @@ if (exists $opt{'v'}) {
   $args{verbose} = $opt{'v'};
 }
 
-exists $opt{'c'} or HELP_MESSAGE(q{Requires '-c' class type parameter});
 my %msg_args = ();
+
+exists $opt{'c'} or HELP_MESSAGE(q{Requires '-c' class type parameter});
+$msg_args{'-c'} = $opt{'c'};
+
 if (exists $opt{'t'}) {
-  $msg_args{message_type} = $opt{'t'}
+  $msg_args{'-t'} = $opt{'t'}
 }
-
-$msg_args{class} = $opt{'c'};
-
-my %body = map { split /=/, $_, 2 } @ARGV;
 
 # Create an xPL Client object
 my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
-$xpl->send(%msg_args, body => \%body);
+$xpl->send_from_arg_list(%msg_args, @ARGV);
 
 =head1 SEE ALSO
 
