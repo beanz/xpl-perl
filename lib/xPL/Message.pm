@@ -186,6 +186,7 @@ sub new {
     next unless (exists $p{body}->{$_});
     $self->extra_field($_, $p{body}->{$_});
   }
+  $self->{_head_order} = $p{head_order} || [qw/hop source target/];
 
   return $self;
 }
@@ -235,7 +236,7 @@ sub new_from_payload {
     my ($k, $v) = split /=/, $_, 2;
     $k =~ s/-/_/g;
     $r{body}->{$k} = $v;
-    push @{$r{body_order}}, $k; 
+    push @{$r{body_order}}, $k;
  }
   return $pkg->new(strict => 0, %r);
 }
@@ -377,11 +378,7 @@ message.
 sub head_string {
   my $self = shift;
   my $h = $self->message_type."$LF\{$LF";
-  my @o = qw/hop source target/;
-  if ($self->{_head_order}) {
-    @o = @{$self->{_head_order}};
-  }
-  foreach (@o) {
+  foreach (@{$self->{_head_order}}) {
     $h .= $_.$EQUALS.$self->$_().$LF;
   }
   $h .= "}$LF";
