@@ -1,26 +1,10 @@
 #!/usr/bin/perl -w
 use strict;
-use DirHandle;
-use FileHandle;
 use English qw/-no_match_vars/;
 use xPL::Base;
+use Test::More tests => 46;
+use t::Helpers qw/test_error/;
 $| = 0;
-
-my @paths;
-
-BEGIN {
-  my $dir = 't/interfaces';
-  my $dh = DirHandle->new($dir) or die "Failed to open $dir: ".$ERRNO;
-  foreach my $d ($dh->read) {
-    next if ($d =~ /^\./);
-    my $fp = $dir.'/'.$d;
-    next unless (-d $fp);
-    push @paths, $fp;
-  }
-  $dh->close;
-  require Test::More;
-  import Test::More tests => 17 + 11 * scalar @paths;
-}
 
 {
   package xPL::Test;
@@ -34,7 +18,8 @@ BEGIN {
 }
 
 # test the parsing by abusing the PATH variable to run some wrappers
-foreach my $path (@paths) {
+foreach my $path (qw{t/interfaces/ifconfig.linux
+                     t/interfaces/ip.addr.show.linux}) {
   $ENV{PATH} = $path;
   my $test = xPL::Test->new();
   ok($test, "test object - $path");
@@ -100,3 +85,27 @@ $test->{_interfaces} =
   ];
 
 ok(!$test->default_interface_info(), "failure case - nothing but loopback");
+
+
+use_ok('xPL::Listener');
+my $path = 't/interfaces/ifconfig.loopback.only';
+$ENV{PATH} = $path;
+my $xpl = xPL::Listener->new();
+ok($xpl, "xPL object - $path");
+is($xpl->ip, '127.0.0.1', "xPL ip - $path");
+is($xpl->broadcast, '127.255.255.255', "xPL broadcast - $path");
+
+$path = 't/interfaces/failure.case';
+$ENV{PATH} = $path;
+is(test_error(sub { $xpl = xPL::Listener->new() }),
+   'xPL::Listener->new: Unable to determine broadcast address.
+An interface or broadcast address should be specified.',
+   'xPL broadcast failure');
+is(test_error(sub { $xpl = xPL::Listener->new(broadcast=>"127.255.255.255") }),
+   'xPL::Listener->new: Unable to determine ip address.
+An interface or ip address should be specified.',
+   'xPL ip failure');
+
+is(test_error(sub { $xpl = xPL::Listener->new(interface => 'eth0') }),
+   'xPL::Listener->new: Unable to detect interface eth0',
+   'xPL interface failure');

@@ -134,6 +134,15 @@ sub new {
     $self->{'_'.$_} = $p{$_};
   }
 
+  unless ($self->{_broadcast}) {
+    $self->argh("Unable to determine broadcast address.\n".
+                'An interface or broadcast address should be specified.');
+  }
+  unless ($self->{_ip}) {
+    $self->argh("Unable to determine ip address.\n".
+                'An interface or ip address should be specified.');
+  }
+
   foreach (qw/port verbose/) {
     $self->{'_'.$_} = $p{$_};
   }
