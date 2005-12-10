@@ -324,12 +324,12 @@ is currently first interface that isn't loopback.
 
 sub default_interface_info {
   my $self = shift;
-  my $res = $self->interfaces() || return;
+  my $res = $self->interfaces() or return;
   foreach my $if (@$res) {
     next if ($if->{device} eq "lo");
     return $if;
   }
-  return undef;
+  return;
 }
 
 =head2 C<interface_ip($if)>
@@ -367,11 +367,11 @@ This method returns a hash reference containing keys for 'device',
 sub interface_info {
   my $self = shift;
   my $ifname = shift;
-  my $res = $self->interfaces() || return;
+  my $res = $self->interfaces() or return;
   foreach my $if (@$res) {
     return $if if ($if->{device} eq $ifname);
   }
-  return undef;
+  return;
 }
 
 =head2 C<interfaces()>
@@ -391,8 +391,7 @@ sub interfaces {
     # the order of interfaces.  This is important since I wanted to make
     # the first non-loopback interface the default
     $self->{_interfaces} =
-      $self->interfaces_ifconfig() || $self->interfaces_ip() ||
-        $self->interfaces_ifconfig('/sbin/ifconfig') || [];
+      $self->interfaces_ifconfig() || $self->interfaces_ip() || [];
   }
   return $self->{_interfaces};
 }
@@ -408,8 +407,9 @@ using the modern C<ip> command.
 
 sub interfaces_ip {
   my $self = shift;
+  my $command = $self->find_in_path("ip") or return;
   my @res;
-  my $fh = FileHandle->new('ip addr show|') || return;
+  my $fh = FileHandle->new($command.' addr show|') or return;
   my $if;
   while (<$fh>) {
     if (/^\d+:\s+([a-zA-Z0-9:]+):/) {
@@ -426,6 +426,7 @@ sub interfaces_ip {
         };
     }
   }
+  $fh->close;
   return \@res;
 }
 
@@ -440,9 +441,9 @@ using the traditional C<ifconfig> command.
 
 sub interfaces_ifconfig {
   my $self = shift;
-  my $command = shift || 'ifconfig';
+  my $command = $self->find_in_path("ifconfig") or return;
   my @res;
-  my $fh = FileHandle->new($command.' -a|') || return;
+  my $fh = FileHandle->new($command.' -a|') or return;
   {
     local $/;
     $/ = "\n\n";
@@ -516,6 +517,29 @@ sub broadcast_from_class {
     }
   }
   return broadcast_from_mask($ip, join(".",@m));
+}
+
+=head2 C<find_in_path( $command )>
+
+This method is use to find commands in the PATH.  It is mostly
+here to avoid the error messages that might appear if you try
+to execute something that isn't in the PATH.
+
+=cut
+
+sub find_in_path {
+  my $self = shift;
+  my $command = shift;
+  my @path = split /:/, $ENV{PATH};
+  # be sure to check /sbin unless we are in the Test::Harness
+  push @path, '/sbin' unless ($ENV{HARNESS_ACTIVE});
+  foreach my $path (@path) {
+    my $f = $path.'/'.$command;
+    if (-x $f) {
+      return $f;
+    }
+  }
+  return;
 }
 
 =head2 C<module_available( $module, [ @import_arguments ])>
