@@ -286,7 +286,7 @@ is($xpl->input_callback_count($handle), 1, "input callback count");
 ok($xpl->remove_input($handle), "remove input");
 
 is(test_error(sub { $xpl->send(invalid => 'messagedata'); }),
-   "MY::Listener->send_aux:  message error: ".
+   "MY::Listener->send_aux: message error: ".
      "xPL::Message->new: requires 'class' parameter",
    "send with invalid message data");
 

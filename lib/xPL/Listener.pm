@@ -63,7 +63,8 @@ __PACKAGE__->make_collection(input => [qw/callback_count handle/],
                              xpl_callback => [qw/callback_count/],
                             );
 __PACKAGE__->make_readonly_accessor(qw/ip broadcast interface
-                                       listen_port port/);
+                                       listen_port port
+                                       last_sent_message/);
 
 =head2 C<new(%params)>
 
@@ -266,15 +267,14 @@ sub send_aux {
       $msg = xPL::Message->new(%p);
       # don't think this can happen: return undef unless ($msg);
     };
-    $self->argh(" message error: $@") if ($@);
+    $self->argh("message error: $@") if ($@);
   }
   if (ref($msg)) {
     $msg = $msg->string;
   }
 
+  $self->{_last_sent_message} = $msg;
   my $sock = $self->{_send_sock};
-  my $s = $msg;
-  $s =~ s/\n/\\n/g;
   return send($sock, $msg, 0, $sin);
 }
 
