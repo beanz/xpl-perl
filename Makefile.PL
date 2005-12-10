@@ -28,7 +28,7 @@ coverclean:
 	$(COVER) -delete
 
 testcover: pure_all coverclean
-	HARNESS_PERL_SWITCHES=-MDevel::Cover=+ignore,5\.8\.7 PERL_DL_NONLAZY=1 $(FULLPERLRUN) "-MExtUtils::Command::MM" "-e" "test_harness($(TEST_VERBOSE), '$(INST_LIB)', '$(INST_ARCHLIB)')" $(TEST_FILES)
+	HARNESS_PERL_SWITCHES=-MDevel::Cover PERL_DL_NONLAZY=1 $(FULLPERLRUN) "-MExtUtils::Command::MM" "-e" "test_harness($(TEST_VERBOSE), '$(INST_LIB)', '$(INST_ARCHLIB)')" $(TEST_FILES)
 	$(COVER)
 	ln -s coverage.html cover_db/index.html
 
