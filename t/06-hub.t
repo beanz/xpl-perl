@@ -8,10 +8,7 @@ $|=1;
 
 use_ok("xPL::Hub");
 
-my $hub = xPL::Hub->new(ip => "127.0.0.1",
-                        broadcast => "127.255.255.255",
-                        port => 0,
-                       );
+my $hub = xPL::Hub->new(interface => 'lo', port => 0);
 
 my @methods =
   (
