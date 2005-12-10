@@ -37,6 +37,7 @@ use strict;
 use warnings;
 use Getopt::Std;
 use xPL::Bridge;
+$|=1; # autoflush helps debugging
 
 sub HELP_MESSAGE {
   my $msg = shift || '';

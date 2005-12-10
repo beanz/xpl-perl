@@ -32,6 +32,7 @@ use warnings;
 use Getopt::Std;
 use POSIX qw/strftime/;
 use xPL::Client;
+$|=1; # autoflush helps debugging
 
 sub HELP_MESSAGE {
   my $msg = shift || q{};

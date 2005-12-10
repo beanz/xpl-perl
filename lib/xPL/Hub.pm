@@ -219,7 +219,7 @@ sub add_client {
     return $self->ouch("adding already registered client: $client");
   }
 
-  print STDERR "Adding client: ",$client, " \"", $msg->source, "\"\n"
+  print "Adding client: ",$client, " \"", $msg->source, "\"\n"
     if ($self->verbose);
 
   my $ip = $msg->remote_ip;
@@ -252,8 +252,7 @@ sub clean_client_list {
     my $interval = $self->client_interval($client);
     if (time > ($last + 60*(1+($interval*2)))) {
       my $id = $self->client_identity($client);
-      print STDERR "Removing client: ",$client, " \"", $id, "\"\n"
-        if ($self->verbose);
+      print "Removing client: ",$client," \"",$id,"\"\n" if ($self->verbose);
       $self->remove_client($client);
     }
   }

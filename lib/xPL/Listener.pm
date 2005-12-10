@@ -215,8 +215,7 @@ sub create_listen_socket {
   my $addr;
   ($self->{_listen_port}, $addr) = sockaddr_in(getsockname($listen));
   $self->{_listen_addr} = inet_ntoa($addr);
-  print STDERR
-    'Listening on ', $self->{_listen_addr}.':'.$self->{_listen_port}, "\n"
+  print 'Listening on ', $self->{_listen_addr}.':'.$self->{_listen_port}, "\n"
       if ($self->verbose);
 
   $self->add_input(handle => $listen,
@@ -239,7 +238,7 @@ sub create_send_socket {
   binmode $send;
   $self->{_send_sock} = $send;
   $self->{_send_sin} = sockaddr_in(3865, inet_aton($self->{_broadcast}));
-  print STDERR 'Sending on ', $self->{_broadcast}, "\n" if ($self->verbose);
+  print 'Sending on ', $self->{_broadcast}, "\n" if ($self->verbose);
   return 1;
 }
 

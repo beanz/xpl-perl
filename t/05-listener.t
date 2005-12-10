@@ -19,6 +19,7 @@ use_ok("xPL::Listener");
 
 my $xpl = MY::Listener->new(ip => "127.0.0.1",
                             broadcast => "127.255.255.255",
+                            verbose => 1,
                            );
 
 my @methods =

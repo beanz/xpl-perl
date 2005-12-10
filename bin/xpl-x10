@@ -30,6 +30,7 @@ use English qw/-no_match_vars/;
 use FileHandle;
 use Getopt::Std;
 use xPL::Client;
+$|=1; # autoflush helps debugging
 
 sub HELP_MESSAGE {
   my $msg = shift || q{};
