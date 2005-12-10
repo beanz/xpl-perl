@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 113;
+use Test::More tests => 114;
 use t::Helpers qw/test_error test_warn/;
 use Socket;
 use Time::HiRes;
@@ -113,8 +113,12 @@ foreach my $c (3,2,1) {
 }
 
 my $tn = $xpl->timer_next('null');
-$xpl->main_loop(1) while (Time::HiRes::time < $tn);
-ok(!$xpl->exists_timer('null'), "timer removed when count reaches zero");
+is(test_warn(sub {
+     $xpl->main_loop(1) while ($xpl->timer_attrib('null', 'count'));
+   }),
+   "MY::Listener->item_attrib: timer item 'null' not registered",
+   'timer removed when count reaches zero');
+ok(!$xpl->exists_timer('null'), 'timer removed when count reaches zero');
 
 $xpl->add_timer(id => "no-dec-count", timeout => -1, count => 1,
                 callback => sub { -1; });
