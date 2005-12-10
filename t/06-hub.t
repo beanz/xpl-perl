@@ -2,7 +2,7 @@
 use strict;
 use POSIX qw/uname/;
 use Socket;
-use Test::More tests => 64;
+use Test::More tests => 67;
 use t::Helpers qw/test_error test_warn/;
 $|=1;
 
@@ -120,6 +120,30 @@ $hub->main_loop(1);
 
 is(scalar $hub->clients, 0, "no clients again");
 ok(!$hub->exists_client($client), "the client doesn't exists");
+
+# fake a client
+use_ok('xPL::Message');
+my $id = 'bnz-client.test';
+my $fake = '127.0.0.1:9999';
+my $msg = xPL::Message->new(class => 'hbeat.app',
+                            head => { source => $id },
+                            body =>
+                            {
+                             remote_ip => '127.0.0.1',
+                             port => '9999',
+                            },
+                            );
+$hub->add_client($fake, $msg);
+$hub->client_last($fake, time - 3*5*60); # make it old
+$hub->client_interval($fake, 5);
+$hub->client_identity($fake, $id);
+is(scalar $hub->clients, 1, "one fake client");
+
+# trigger client clean up job to timeout a second ago
+$hub->timer_next('!clean', time-1);
+
+$hub->main_loop(1);
+is(scalar $hub->clients, 0, "fake client cleaned up");
 
 
 my ($port, $addr) = sockaddr_in(getsockname($xpl->{_send_sock}));
