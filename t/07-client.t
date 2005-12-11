@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 use strict;
 use Socket;
-use Test::More tests => 34;
+use Test::More tests => 36;
 $|=1;
 
 use_ok("xPL::Client");
@@ -173,6 +173,15 @@ wait_for_tick($xpl, "!hbeat");
 is($xpl->hbeat_count, 4, "hbeat count");
 
 is($errors, undef, "no unexpected errors");
+
+delete $ENV{XPL_HOSTNAME};
+no strict qw/refs/;
+*{"xPL::Client::uname"} = sub { return };
+use strict qw/refs/;
+$xpl = xPL::Client->new(ip => "127.0.0.1", broadcast => "127.255.255.255",
+                        vendor_id => 'acme', device_id => 'dingus');
+ok($xpl, 'client w/o uname');
+ok($xpl->id, 'acme-dingus.default');
 
 sub wait_for_tick {
   my $xpl = shift;
