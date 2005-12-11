@@ -2,7 +2,7 @@
 use strict;
 use English qw/-no_match_vars/;
 use xPL::Base;
-use Test::More tests => 46;
+use Test::More tests => 48;
 use t::Helpers qw/test_error/;
 $| = 0;
 
@@ -68,6 +68,9 @@ is($info->{broadcast}, '192.168.165.255', 'specific interface broadcast');
 ok(!$test->interface_info('ppp0'), 'non-existent interface');
 ok(!$test->interface_ip('ppp0'), 'non-existent interface - ip');
 ok(!$test->interface_broadcast('ppp0'), 'non-existent interface - broadcast');
+
+ok($test->is_local_address('127.0.0.1'), 'our_address - loopback');
+ok(!$test->is_local_address('127.0.0.2'), 'our_address - failure');
 
 # test a trivial broadcast_from_class usage
 is(xPL::Base::broadcast_from_class('10.0.0.1', '32'), '10.0.0.1',
