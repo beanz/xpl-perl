@@ -299,17 +299,17 @@ This method takes a simple string representing details of a message
 and tries to send an xPL message from using a message constructed
 from those details.  For instance, the string:
 
-  -t xpl-cmnd -c x10.basic command=on device=e3
+  -m xpl-cmnd -c x10.basic command=on device=e3
 
 would try create and 'xpl-cmnd'-type message with a schema/class of
 'x10.basic' with 'command' set to 'on' and 'device' set to 'e3' in the
 body.  It tries to correctly handle balanced quotes such as:
 
-  -t xpl-cmnd -c osd.basic command=write text="This is a 'test'!"
+  -m xpl-cmnd -c osd.basic command=write text="This is a 'test'!"
 
 and even:
 
-  -t xpl-cmnd -c osd.basic command=write text="This is a \"test\"!"
+  -m xpl-cmnd -c osd.basic command=write text="This is a \"test\"!"
 
 It is intended to be used to construct messages from simple string
 based input sources such as instant messages.
@@ -329,7 +329,7 @@ This method takes a list representing details of a message
 and tries to send an xPL message from using a message constructed
 from those details.  For instance, the list:
 
-  '-t', 'xpl-cmnd', '-c','x10.basic', 'command=on', 'device=e3'
+  '-m', 'xpl-cmnd', '-c','x10.basic', 'command=on', 'device=e3'
 
 would try create and 'xpl-cmnd'-type message with a schema/class of
 'x10.basic' with 'command' set to 'on' and 'device' set to 'e3' in the
@@ -350,7 +350,7 @@ This method takes a simple list representing details of a message
 and tries to send an xPL message from using a message constructed
 from those details.  For instance, the list of the form:
 
-  '-t', 'xpl-cmnd', '-c', 'x10.basic', 'command', 'on', 'device', 'e3'
+  '-m', 'xpl-cmnd', '-c', 'x10.basic', 'command', 'on', 'device', 'e3'
 
 would try create and 'xpl-cmnd'-type message with a schema/class of
 'x10.basic' with 'command=on' and 'device=e3' in the body.
@@ -364,16 +364,20 @@ sub send_from_list {
   my $self = shift;
   my %body = @_;
   my %args = ();
-  if (exists $body{'-s'}) {
-    $args{head}->{source} = $body{'-s'};
-    delete $body{'-s'};
+  if (exists $body{'-m'}) {
+    $args{message_type} = $body{'-m'};
+    delete $body{'-m'};
   }
   if (exists $body{'-c'}) {
     $args{class} = $body{'-c'};
     delete $body{'-c'};
   }
+  if (exists $body{'-s'}) {
+    $args{head}->{source} = $body{'-s'};
+    delete $body{'-s'};
+  }
   if (exists $body{'-t'}) {
-    $args{message_type} = $body{'-t'};
+    $args{head}->{target} = $body{'-t'};
     delete $body{'-t'};
   }
   return $self->send(%args, body => \%body);
@@ -456,6 +460,7 @@ sub add_xpl_callback {
   my %p = @_;
   exists $p{id} or $self->argh("requires 'id' argument");
   exists $p{self_skip} or $p{self_skip} = 1;
+  exists $p{targetted} or $p{targetted} = 1;
   return $self->add_callback_item('xpl_callback', $p{id}, \%p);
 }
 
@@ -508,8 +513,11 @@ sub xpl_message {
 
   foreach my $id (sort $self->xpl_callbacks()) {
     my $rec = $self->{_col}->{xpl_callback}->{$id};
-    next if ($rec->{self_skip} &&
-             $self->can('id') && $msg->source eq $self->id);
+    if ($self->can('id')) {
+      next if ($rec->{self_skip} && $msg->source eq $self->id);
+      next if ($rec->{targetted} &&
+               $msg->target ne '*' && $msg->target ne $self->id);
+    }
     &{$rec->{callback}}(message => $msg,
                         peeraddr => $peeraddr,
                         peerport => $peerport,

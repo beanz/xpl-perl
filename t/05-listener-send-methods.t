@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 9;
+use Test::More tests => 11;
 use t::Helpers qw/test_error test_warn/;
 use Socket;
 use Time::HiRes;
@@ -33,14 +33,24 @@ is($xpl->last_sent_message(),
    $expected_message,
    'send_from_string - content');
 
-ok($xpl->send_from_arg_list('-t', 'xpl-cmnd',
+ok($xpl->send_from_arg_list('-m', 'xpl-cmnd',
                             '-c', 'osd.basic', '-s', 'bnz-tester.default',
                             'command=write', 'text=This is a test'),
    'send_from_arg_list');
 
 is($xpl->last_sent_message(),
    $expected_message,
-   'send_from_string - content');
+   'send_from_arg_list - content');
+
+$expected_message =~ s/\*/bnz-tester.test1/;
+ok($xpl->send_from_arg_list('-m', 'xpl-cmnd', '-t', 'bnz-tester.test1',
+                            '-c', 'osd.basic', '-s', 'bnz-tester.default',
+                            'command=write', 'text=This is a test'),
+   'send_from_arg_list w/target');
+
+is($xpl->last_sent_message(),
+   $expected_message,
+   'send_from_arg_list w/target - content');
 
 is(test_error(sub {
      $xpl->send_from_string('-c osd.basic command=write text="This is a test"')

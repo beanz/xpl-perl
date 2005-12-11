@@ -17,11 +17,11 @@ xpl-sender - Perl script for an xPL message sender application
 
   # something to go in /etc/apcupsd/mainsback perhaps:
   xpl-sender -i 127.0.0.1 -b 127.255.255.255 \
-             -t xpl-trig -c ups.basic status=mains event=onmains
+             -m xpl-trig -c ups.basic status=mains event=onmains
 
   # something to go in /etc/apcupsd/onbattery perhaps:
   xpl-sender -i 127.0.0.1 -b 127.255.255.255 \
-             -t xpl-trig -c ups.basic status=battery event=onbattery
+             -m xpl-trig -c ups.basic status=battery event=onbattery
 
 =head1 DESCRIPTION
 
@@ -46,14 +46,16 @@ where valid flags are:
 and valid options are (default shown in brackets):
   -i if0        - the inferface for xPL messages
                   (first non-loopback or loopback)
-  -t xpl-type   - the xPL message type (xpl-cmnd, xpl-stat, or xpl-trig)
+  -m xpl-type   - the xPL message type (xpl-cmnd, xpl-stat, or xpl-trig)
   -c class.type - the schema type
+  -s source     - the source type
+  -t target     - the target type
 $msg
 };
 }
 
 my %opt = ();
-getopts('hvi:t:c:T:', \%opt);
+getopts('hvi:m:c:s:t:', \%opt);
 
 if (exists $opt{'h'}) { HELP_MESSAGE() }
 
@@ -72,10 +74,11 @@ if (exists $opt{'v'}) {
 my %msg_args = ();
 
 exists $opt{'c'} or HELP_MESSAGE(q{Requires '-c' class type parameter});
-$msg_args{'-c'} = $opt{'c'};
 
-if (exists $opt{'t'}) {
-  $msg_args{'-t'} = $opt{'t'}
+foreach (qw/m c s t/) {
+  if (exists $opt{$_}) {
+    $msg_args{$_} = $opt{$_};
+  }
 }
 
 # Create an xPL Client object

@@ -235,6 +235,10 @@ sub new_from_payload {
   foreach (split /\n/, $2) {
     my ($k, $v) = split /=/, $_, 2;
     $k =~ s/-/_/g;
+    if (exists $r{body}->{$k}) {
+      xPL::Message->ouch('Repeated body field: '.$k);
+      next;
+    }
     $r{body}->{$k} = $v;
     push @{$r{body_order}}, $k;
  }
@@ -558,9 +562,7 @@ sub extra_field {
   my $self = shift;
   my $key = shift;
   if (@_) {
-    unless (exists $self->{_extra}->{$key}) {
-      push @{$self->{_extra_order}}, $key;
-    }
+    push @{$self->{_extra_order}}, $key;
     $self->{_extra}->{$key} = $_[0];
   }
   return $self->{_extra}->{$key};
