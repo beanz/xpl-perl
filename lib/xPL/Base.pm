@@ -226,7 +226,7 @@ sub make_collection_method {
   my $method_template = shift or $pkg->argh('BUG: missing method template');
   my $new = $method_template;
   $new =~ s/X/$collection_type/;
-  $new = __PACKAGE__.q{::}.$new;
+  $new = $pkg.q{::}.$new;
   return if (defined &{"$new"});
   my $parent = $method_template;
   $parent =~ s/X/item/;
@@ -262,7 +262,7 @@ sub make_item_attribute_method {
   my $pkg = shift;
   my $collection_type = shift or $pkg->argh('BUG: missing collection type');
   my $attribute_name = shift or $pkg->argh('BUG: missing attribute name');
-  my $new = __PACKAGE__.q{::}.$collection_type.q{_}.$attribute_name;
+  my $new = $pkg.q{::}.$collection_type.q{_}.$attribute_name;
   return if (defined &{"$new"});
   #print STDERR "  $new => item_attrib\n";
   no strict 'refs';
@@ -293,7 +293,7 @@ sub make_readonly_accessor {
   my $pkg = shift;
   unless (@_) { $pkg->argh('BUG: missing attribute name'); }
   foreach my $attribute_name (@_) {
-    my $new = __PACKAGE__.q{::}.$attribute_name;
+    my $new = $pkg.q{::}.$attribute_name;
     return if (defined &{"$new"});
     #print STDERR "  $new => readonly_accessor\n";
     no strict 'refs';

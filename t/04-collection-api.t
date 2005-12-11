@@ -1,7 +1,8 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 30;
+use Test::More tests => 33;
 use t::Helpers qw/test_error test_warn/;
+$|=1;
 
 use_ok('xPL::Listener');
 
@@ -80,5 +81,18 @@ ok(xPL::Listener->make_item_attribute_method('pling', 'springy'),
 ok(!xPL::Listener->make_item_attribute_method('pling', 'springy'),
   "not making duplicate attribute method");
 
+{
+ package MyTest;
+ use xPL::Listener;
+ our @ISA = qw/xPL::Listener/;
+ sub attrib { return 'accessor not overriden' }
+ __PACKAGE__->make_readonly_accessor("attrib");
+ sub add_whatsit { return 'collection method not overriden' };
+ __PACKAGE__->make_collection(whatsit => [qw/name/]);
+}
 
-
+$xpl = MyTest->new(ip => '127.0.0.1', broadcast => '127.255.255.255');
+ok($xpl, 'method maker override test object');
+is($xpl->attrib, 'accessor not overriden', 'accessor not overriden');
+is($xpl->add_whatsit, 'collection method not overriden',
+   'collection method not overriden');
