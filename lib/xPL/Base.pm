@@ -332,6 +332,23 @@ sub default_interface_info {
   return;
 }
 
+=head2 C<is_local_address( $ip )>
+
+This method returns true if the given IP address is one of the
+addresses of our interfaces.
+
+=cut
+
+sub is_local_address {
+  my $self = shift;
+  my $ip = shift;
+  my $res = $self->interfaces() or return;
+  foreach my $if (@$res) {
+    return 1 if ($if->{ip} eq $ip);
+  }
+  return;
+}
+
 =head2 C<interface_ip($if)>
 
 This method returns the ip address associated with the named interface.

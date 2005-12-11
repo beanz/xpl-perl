@@ -122,7 +122,7 @@ sub hub {
 
   if ($msg->class eq 'hbeat' &&
       ($msg->class_type eq 'app' or $msg->class_type eq 'end') &&
-      ($msg->remote_ip eq "127.0.0.1" or $msg->remote_ip eq $self->ip)) {
+      $self->is_local_address($msg->remote_ip)) {
     my $client = $msg->remote_ip.':'.$msg->port;
     if ($msg->class_type eq 'app') {
       $self->update_client($client, $msg);
