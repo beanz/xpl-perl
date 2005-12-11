@@ -77,7 +77,7 @@ exists $opt{'c'} or HELP_MESSAGE(q{Requires '-c' class type parameter});
 
 foreach (qw/m c s t/) {
   if (exists $opt{$_}) {
-    $msg_args{$_} = $opt{$_};
+    $msg_args{'-'.$_} = $opt{$_};
   }
 }
 
