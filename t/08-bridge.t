@@ -4,7 +4,9 @@ use Socket;
 use Time::HiRes;
 use IO::Select;
 use IO::Socket;
-use Test::More tests => 31;
+use Test::More tests => 48;
+use t::Helpers qw/test_error test_warn/;
+
 $|=1;
 
 use_ok("xPL::Bridge");
@@ -31,7 +33,9 @@ my $bridge = xPL::Bridge->new(ip => "127.0.0.1",
                               vendor_id => 'acme',
                               device_id => 'bridge',
                               bridge_port => 19_999);
-
+is($bridge->timeout, 120, 'default timeout');
+is($bridge->bridge_mode, 'server', 'bridge mode');
+is($bridge->local_ip, '0.0.0.0', 'check default local ip address');
 
 is(join(",",$bridge->peers), "", "no client bridges initially");
 
@@ -80,6 +84,7 @@ my $md5 = xPL::Bridge::msg_hash($msg_str);
 
 ok(exists $bridge->{_bridge}->{seen}->{$md5}, "message in cache");
 
+$bridge->verbose(1);
 fake_hub_message($bridge, $msg_str);
 $bridge->main_loop(1);
 ok(!$sel->can_read(0.2), "client has no message to read");
@@ -93,6 +98,48 @@ ok(!exists $bridge->{_bridge}->{seen}->{$md5}, "message not in cache");
 fake_hub_message($bridge, $msg_str);
 $bridge->main_loop(1);
 ok($sel->can_read(0.2), "client has message to read");
+
+$msg = xPL::Message->new(head => { source => 'acme-clock.clepsydra', hop => 9 },
+                         class => "hbeat.basic");
+ok($msg, "prepared message to send from client");
+$msg_str = $msg->string;
+ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)),
+   "client sent message w/hop=9");
+
+is(test_warn(sub { $bridge->main_loop(1); }),
+   "Dropping msg from $cstr: xpl-stat/hbeat.basic: acme-clock.clepsydra -> *\n",
+   'dropping message warning - remote');
+
+ok($cs->syswrite(xPL::Bridge::pack_message("xpl-cmnd\n{}")),
+   "client sent invalid message");
+
+is(test_warn(sub { $bridge->main_loop(1); }),
+   'xPL::Bridge->sock_read: Invalid message from  '.$cstr.
+     ' :   xPL::Message->new_from_payload: '.
+     'Message badly formed: failed to split head and body',
+   'invalid message warning');
+
+fake_hub_message($bridge,
+                 head => { source => 'acme-clock.cuckoo', hop => 9 },
+                 class => "hbeat.basic");
+is(test_warn(sub { $bridge->main_loop(1); }),
+   "Dropping local msg: xpl-stat/hbeat.basic: acme-clock.cuckoo -> *\n",
+   'dropping message warning - local');
+
+ok($cs->close, "fake client closed");
+$bridge->main_loop(1);
+is(join(",",$bridge->peers), "", "client bridges closed");
+
+$cs = IO::Socket::INET->new(PeerHost => '127.0.0.1', PeerPort => 19_999);
+ok($cs, "created fake client bridge");
+$cstr = $cs->sockhost.':'.$cs->sockport;
+$sel = IO::Select->new($cs);
+
+# run main loop for client to be accepted
+$bridge->main_loop(1);
+
+is(join(",",map { $bridge->peer_name($_) } $bridge->peers),
+   $cstr, "fake client accepted");
 
 ok($cs->close, "fake client closed");
 $bridge->main_loop(1);
@@ -123,6 +170,24 @@ is($cache->{'thisiswontbetouchedatall'}->[0], $not_so_old_time,
 ok(!$bridge->seen_cache_remove("non-existent-entry"),
    "non-existent entry is ignored");
 
+is(test_error(sub {
+     my $bridge = xPL::Bridge->new(ip => "127.0.0.1",
+                                   broadcast => "127.255.255.255",
+                                   vendor_id => 'acme',
+                                   device_id => 'bridge',
+                                   timeout => 1,
+                                   bridge_port => 19_999);
+   }),
+   'xPL::Bridge->setup_server_mode: '.
+     'bind to listen socket failed: Address already in use',
+   'bind failure');
+
+$bridge = $bridge->new(ip => "127.0.0.1", broadcast => "127.255.255.255",
+                       vendor_id => 'acme', device_id => 'bridge',
+                       local_ip => '127.0.0.1', timeout => 1);
+is($bridge->timeout, 1, 'check timeout parameter');
+is($bridge->bridge_port, 3_866, 'check default port');
+is($bridge->local_ip, '127.0.0.1', 'check local ip address');
 
 sub fake_hub_message {
   my $xpl = shift;

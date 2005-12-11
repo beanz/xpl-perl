@@ -54,6 +54,8 @@ our @EXPORT = qw();
 our $VERSION = qw/$Revision: 1.16 $/[1];
 
 __PACKAGE__->make_collection(peer => [qw/name handle buffer/]);
+__PACKAGE__->make_readonly_accessor(qw/timeout bridge_port bridge_mode
+                                       remote_ip local_ip/);
 
 =head2 C<new(%params)>
 
@@ -98,10 +100,10 @@ sub new {
 
   my %p = @_;
   exists $p{timeout} or $p{timeout} = 120;
-  $self->{_bridge}->{timeout} = $p{timeout};
+  $self->{_timeout} = $p{timeout};
 
   exists $p{bridge_port} or $p{bridge_port} = 3_866;
-  $self->{_bridge}->{port} = $p{bridge_port};
+  $self->{_bridge_port} = $p{bridge_port};
 
   $self->init_peers();
 
@@ -134,8 +136,8 @@ wait for incoming messages.
 sub setup_client_mode {
   my $self = shift;
   my $p = shift;
-  $self->{_bridge}->{mode} = 'client';
-  $self->{_bridge}->{remote_ip} = $p->{remote_ip};
+  $self->{_bridge_mode} = 'client';
+  $self->{_remote_ip} = $p->{remote_ip};
   my $s = $self->{_bridge}->{sock} =
     IO::Socket::INET->new(PeerAddr => $p->{remote_ip},
                           PeerPort => $p->{bridge_port},
@@ -164,9 +166,9 @@ for incoming connections from client mode bridges.
 sub setup_server_mode {
   my $self = shift;
   my $p = shift;
-  $self->{_bridge}->{mode} = 'server';
+  $self->{_bridge_mode} = 'server';
   exists $p->{local_ip} or $p->{local_ip} = '0.0.0.0';
-  $self->{_bridge}->{local_ip} = $p->{local_ip};
+  $self->{_local_ip} = $p->{local_ip};
   my $s = $self->{_bridge}->{listen_sock} =
     IO::Socket::INET->new(LocalAddr => $p->{local_ip},
                           LocalPort => $p->{bridge_port},
@@ -262,7 +264,7 @@ sub sock_read {
     print 'Connection to ', $peer, " closed\n" if ($self->verbose);
     $peer->close;
     $self->remove_peer($peer);
-    if ($self->{_bridge}->{mode} eq 'client') {
+    if ($self->bridge_mode eq 'client') {
       $self->argh('No one to talk to quitting.');
     }
     return 1;
@@ -280,7 +282,8 @@ sub sock_read {
     $self->mark_seen($msg->string);
     my $hop = $msg->hop;
     if ($hop >= 9) {
-      warn "Dropping msg from $peer: ", $msg->summary, "\n";
+      warn 'Dropping msg from ', $self->peer_name($peer), ': ',
+        $msg->summary, "\n";
       next;
     }
     $msg->hop($hop+1);
