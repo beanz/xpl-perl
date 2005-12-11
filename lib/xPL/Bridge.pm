@@ -1,6 +1,6 @@
 package xPL::Bridge;
 
-# $Id: Bridge.pm,v 1.16 2005/12/06 22:17:41 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -51,7 +51,7 @@ our @ISA = qw(xPL::Client);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 1.16 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_collection(peer => [qw/name handle buffer/]);
 __PACKAGE__->make_readonly_accessor(qw/timeout bridge_port bridge_mode

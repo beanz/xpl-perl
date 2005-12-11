@@ -1,6 +1,6 @@
 package xPL::Listener;
 
-# $Id: Listener.pm,v 1.26 2005/12/06 22:17:41 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -56,7 +56,7 @@ our @ISA = qw(xPL::Base);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 1.26 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_collection(input => [qw/callback_count handle/],
                              timer => [qw/next timeout callback_count/],

@@ -1,6 +1,6 @@
 package xPL::Message::osd::basic;
 
-# $Id: basic.pm,v 1.15 2005/12/07 17:48:36 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -32,7 +32,7 @@ our @ISA = qw(xPL::Message);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 1.15 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 =head2 C<field_spec()>
 

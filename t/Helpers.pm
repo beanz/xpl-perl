@@ -1,6 +1,6 @@
 package t::Helpers;
 
-# $Id: Helpers.pm,v 1.3 2005/12/06 17:27:11 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -41,7 +41,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
 ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 1.3 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 # Preloaded methods go here.
 

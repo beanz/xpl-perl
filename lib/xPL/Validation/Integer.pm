@@ -1,6 +1,6 @@
 package xPL::Validation::Integer;
 
-# $Id: Integer.pm,v 1.3 2005/12/06 15:00:49 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -34,7 +34,7 @@ our @ISA = qw(xPL::Validation::Any);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 1.3 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 =head2 C<new(%parameter_hash)>
 

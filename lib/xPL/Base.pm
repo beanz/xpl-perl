@@ -1,6 +1,6 @@
 package xPL::Base;
 
-# $Id: Base.pm,v 1.8 2005/12/06 17:27:11 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -35,7 +35,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = '0.01';
-our $CVSVERSION = qw/$Revision: 1.8 $/[1];
+our $SVNVERSION = qw/$Revision$/[1];
 
 =head1 COLLECTION STRUCTURE API
 

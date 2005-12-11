@@ -1,6 +1,6 @@
 package xPL::Message::x10::confirm;
 
-# $Id: confirm.pm,v 1.1 2005/12/07 17:14:07 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -39,7 +39,7 @@ our @ISA = qw(xPL::Message);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 1.1 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 =head2 C<field_spec()>
 

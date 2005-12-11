@@ -1,6 +1,6 @@
 package xPL::Validation::Any;
 
-# $Id: Any.pm,v 1.4 2005/12/06 15:00:49 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -34,7 +34,7 @@ our @ISA = qw(xPL::Validation);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 1.4 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 1;
 __END__

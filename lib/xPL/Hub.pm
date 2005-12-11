@@ -1,6 +1,6 @@
 package xPL::Hub;
 
-# $Id: Hub.pm,v 1.18 2005/12/06 22:17:41 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -41,7 +41,7 @@ our @ISA = qw(xPL::Listener);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 1.18 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_collection(client => [qw/identity ip port sin
                                            interval last/]);

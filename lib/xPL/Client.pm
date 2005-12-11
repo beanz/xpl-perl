@@ -1,6 +1,6 @@
 package xPL::Client;
 
-# $Id: Client.pm,v 1.15 2005/12/06 22:17:41 beanz Exp $
+# $Id$
 
 =head1 NAME
 
@@ -44,7 +44,7 @@ our @ISA = qw(xPL::Listener);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 1.15 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 our @attributes =
   qw/hbeat_mode vendor_id device_id
