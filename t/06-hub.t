@@ -2,7 +2,7 @@
 use strict;
 use POSIX qw/uname/;
 use Socket;
-use Test::More tests => 69;
+use Test::More tests => 70;
 use t::Helpers qw/test_error test_warn/;
 $|=1;
 
@@ -156,6 +156,11 @@ $hub->timer_next('!clean', time-1);
 
 $hub->main_loop(1);
 is(scalar $hub->clients, 1, "fake client not cleaned up");
+
+$hub->client_last($fake, time - 3*5*60); # make it old
+$hub->verbose(1);
+$hub->main_loop(1);
+is(scalar $hub->clients, 0, "fake client cleaned up - verbose mode");
 
 
 my ($port, $addr) = sockaddr_in(getsockname($xpl->{_send_sock}));
