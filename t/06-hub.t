@@ -2,7 +2,7 @@
 use strict;
 use POSIX qw/uname/;
 use Socket;
-use Test::More tests => 67;
+use Test::More tests => 69;
 use t::Helpers qw/test_error test_warn/;
 $|=1;
 
@@ -144,6 +144,18 @@ $hub->timer_next('!clean', time-1);
 
 $hub->main_loop(1);
 is(scalar $hub->clients, 0, "fake client cleaned up");
+
+$hub->add_client($fake, $msg);
+$hub->client_last($fake, time - 2*5*60); # make it recent
+$hub->client_interval($fake, 5);
+$hub->client_identity($fake, $id);
+is(scalar $hub->clients, 1, "one fake client");
+
+# trigger client clean up job to timeout a second ago
+$hub->timer_next('!clean', time-1);
+
+$hub->main_loop(1);
+is(scalar $hub->clients, 1, "fake client not cleaned up");
 
 
 my ($port, $addr) = sockaddr_in(getsockname($xpl->{_send_sock}));
