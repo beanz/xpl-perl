@@ -2,7 +2,7 @@
 use strict;
 use English qw/-no_match_vars/;
 use xPL::Base;
-use Test::More tests => 48;
+use Test::More tests => 49;
 use t::Helpers qw/test_error/;
 $| = 0;
 
@@ -24,8 +24,7 @@ foreach my $path (qw{t/interfaces/ifconfig.linux
   my $test = xPL::Test->new();
   ok($test, "test object - $path");
   my $src = -f $path.'/ifconfig' ? 'ifconfig' : 'ip';
-  my $method = 'interfaces_'.$src;
-  my $list = $test->$method();
+  my $list = $test->interfaces();
   ok($list, "interfaces - $path");
   is(@$list, 3, "interfaces length - $path");
   is($list->[0]->{device}, 'eth0', "interfaces device - $path");
@@ -112,3 +111,8 @@ An interface or ip address should be specified.',
 is(test_error(sub { $xpl = xPL::Listener->new(interface => 'eth0') }),
    'xPL::Listener->new: Unable to detect interface eth0',
    'xPL interface failure');
+
+
+# finally unset HARNESS_ACTIVE to check that find_in_path also checks /sbin
+delete $ENV{HARNESS_ACTIVE};
+is($xpl->find_in_path("init"), '/sbin/init', 'find_in_path checks /sbin');

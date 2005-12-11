@@ -324,7 +324,7 @@ is currently first interface that isn't loopback.
 
 sub default_interface_info {
   my $self = shift;
-  my $res = $self->interfaces() or return;
+  my $res = $self->interfaces();
   foreach my $if (@$res) {
     next if ($if->{device} eq "lo");
     return $if;
@@ -342,7 +342,7 @@ addresses of our interfaces.
 sub is_local_address {
   my $self = shift;
   my $ip = shift;
-  my $res = $self->interfaces() or return;
+  my $res = $self->interfaces();
   foreach my $if (@$res) {
     return 1 if ($if->{ip} eq $ip);
   }
@@ -384,7 +384,7 @@ This method returns a hash reference containing keys for 'device',
 sub interface_info {
   my $self = shift;
   my $ifname = shift;
-  my $res = $self->interfaces() or return;
+  my $res = $self->interfaces();
   foreach my $if (@$res) {
     return $if if ($if->{device} eq $ifname);
   }
@@ -426,7 +426,7 @@ sub interfaces_ip {
   my $self = shift;
   my $command = $self->find_in_path("ip") or return;
   my @res;
-  my $fh = FileHandle->new($command.' addr show|') or return;
+  my $fh = FileHandle->new($command.' addr show|');
   my $if;
   while (<$fh>) {
     if (/^\d+:\s+([a-zA-Z0-9:]+):/) {
@@ -460,7 +460,7 @@ sub interfaces_ifconfig {
   my $self = shift;
   my $command = $self->find_in_path("ifconfig") or return;
   my @res;
-  my $fh = FileHandle->new($command.' -a|') or return;
+  my $fh = FileHandle->new($command.' -a|');
   {
     local $/;
     $/ = "\n\n";

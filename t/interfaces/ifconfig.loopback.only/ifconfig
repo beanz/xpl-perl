@@ -7,4 +7,7 @@ lo        Link encap:Local Loopback
           TX packets:129 errors:0 dropped:0 overruns:0 carrier:0
           collisions:0 txqueuelen:0 
           RX bytes:13750 (13.4 KiB)  TX bytes:13750 (13.4 KiB)
+
+dummy     Link encap:Ethernet  HWaddr 00:00:00:00:00:00  
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
 EOF
