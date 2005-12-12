@@ -42,14 +42,14 @@ is(join(",",$bridge->peers), "", "no client bridges initially");
 # fake a client bridge
 my $cs = IO::Socket::INET->new(PeerHost => '127.0.0.1', PeerPort => 19_999);
 ok($cs, "created fake client bridge");
-my $cstr = $cs->sockhost.':'.$cs->sockport;
+my $cport = $cs->sockport;
+my $cstr = $cs->sockhost.':'.$cport;
 my $sel = IO::Select->new($cs);
 
 # run main loop for client to be accepted
 $bridge->main_loop(1);
 
-is(join(",",map { $bridge->peer_name($_) } $bridge->peers),
-   $cstr, "fake client accepted");
+is(scalar $bridge->peers, 1, "fake client accepted");
 
 fake_hub_message($bridge,
                  head => { source => 'acme-clock.cuckoo' },
@@ -106,15 +106,20 @@ $msg_str = $msg->string;
 ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)),
    "client sent message w/hop=9");
 
-is(test_warn(sub { $bridge->main_loop(1); }),
-   "Dropping msg from $cstr: xpl-stat/hbeat.basic: acme-clock.clepsydra -> *\n",
+my $w = test_warn(sub { $bridge->main_loop(1); });
+$w=~s/\d+\.\d+\.\d+\.\d+/127.0.0.1/;
+is($w,
+   "Dropping msg from 127.0.0.1:$cport: xpl-stat/hbeat.basic: ".
+     "acme-clock.clepsydra -> *\n",
    'dropping message warning - remote');
 
 ok($cs->syswrite(xPL::Bridge::pack_message("xpl-cmnd\n{}")),
    "client sent invalid message");
 
-is(test_warn(sub { $bridge->main_loop(1); }),
-   'xPL::Bridge->sock_read: Invalid message from  '.$cstr.
+$w = test_warn(sub { $bridge->main_loop(1); });
+$w=~s/\d+\.\d+\.\d+\.\d+/127.0.0.1/;
+is($w,
+   'xPL::Bridge->sock_read: Invalid message from  127.0.0.1:'.$cport.
      ' :   xPL::Message->new_from_payload: '.
      'Message badly formed: failed to split head and body',
    'invalid message warning');
@@ -138,8 +143,7 @@ $sel = IO::Select->new($cs);
 # run main loop for client to be accepted
 $bridge->main_loop(1);
 
-is(join(",",map { $bridge->peer_name($_) } $bridge->peers),
-   $cstr, "fake client accepted");
+is(scalar $bridge->peers, 1, "fake client accepted");
 
 ok($cs->close, "fake client closed");
 $bridge->main_loop(1);
