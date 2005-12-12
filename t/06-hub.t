@@ -159,6 +159,7 @@ is(scalar $hub->clients, 1, "fake client not cleaned up");
 
 $hub->client_last($fake, time - 3*5*60); # make it old
 $hub->verbose(1);
+$hub->timer_next('!clean', time-1);
 $hub->main_loop(1);
 is(scalar $hub->clients, 0, "fake client cleaned up - verbose mode");
 
