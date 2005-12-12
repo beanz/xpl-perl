@@ -167,10 +167,12 @@ is(scalar $hub->clients, 0, "fake client cleaned up - verbose mode");
 my ($port, $addr) = sockaddr_in(getsockname($xpl->{_send_sock}));
 
 $xpl->send("junk message\n");
-is(test_warn(sub { $hub->main_loop(1); }),
-   "Invalid message from ".$xpl->ip.":$port: ".
-     "xPL::Message->new_from_payload: ".
-     "Message badly formed: failed to split head and body",
+my $w = test_warn(sub { $hub->main_loop(1); });
+$w=~s/\d+\.\d+\.\d+\.\d+/127.0.0.1/;
+is($w,
+   "Invalid message from 127.0.0.1:$port: ".
+     "xPL::Message->new_from_payload: Message badly formed: ".
+     "failed to split head and body",
    "hub handles duff message");
 
 is(test_error(sub {
