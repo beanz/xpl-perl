@@ -1,4 +1,12 @@
 Revision history for Perl extension xPL.
 
+0.01  Tue Dec 13 19:39:48 GMT 2005
+        - Some API changes:
+          * 'xpl-*' - '-i' now specifies and interface.
+          * 'xpl-sender' - message type is now the '-m' option.
+        - Wrote more tests for better coverage.
+        - Files for RPM and Debian packaging added.
+        - Better support for targetted messages.
+
 0.01  Tue Dec  6 17:46:50 2005
 	- original version
