@@ -63,4 +63,4 @@ t/msg/006.x10.basic.device.txt
 t/msg/006.x10.basic.house.txt
 t/msg/007.ups.basic.minimal.txt
 t/msg/007.ups.basic.txt
-TODO
+xpl-perl.spec

@@ -3,7 +3,7 @@
 name:         xPL-Perl
 version:      0.01
 version_from: lib/xPL/Base.pm
-installdirs:  site
+installdirs:  vendor
 requires:
 
 distribution_type: module
