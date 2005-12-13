@@ -65,7 +65,7 @@ sub test_error {
   return $error;
 }
 
-=head2 C<test_error($code_ref)>
+=head2 C<test_warn($code_ref)>
 
 This method runs the code with eval and returns the warning.  It strips
 off any "at <file> line <number>" specific part(s) from the end.
