@@ -15,11 +15,13 @@ lib/xPL/Bridge.pm
 lib/xPL/Client.pm
 lib/xPL/Hub.pm
 lib/xPL/Message.pm
+lib/xPL/Message/cid/basic.pm
 lib/xPL/Message/clock/update.pm
 lib/xPL/Message/hbeat/app.pm
 lib/xPL/Message/hbeat/basic.pm
 lib/xPL/Message/hbeat/end.pm
 lib/xPL/Message/osd/basic.pm
+lib/xPL/Message/tts/basic.pm
 lib/xPL/Message/ups/basic.pm
 lib/xPL/Message/x10/basic.pm
 lib/xPL/Message/x10/confirm.pm
