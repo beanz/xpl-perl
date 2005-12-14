@@ -63,7 +63,9 @@ my $verbose_body = exists $opt{'B'};
 my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => "logger", self_skip => 0, callback => \&log);
+$xpl->add_xpl_callback(id => "logger",
+                       self_skip => 0, targetted => 0,
+                       callback => \&log);
 
 # Run the main loop
 $xpl->main_loop();
