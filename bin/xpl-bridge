@@ -12,10 +12,10 @@ xpl-bridge - Perl script for a simple xPL bridge application
   xpl-bridge -h
 
   # start the bridge in listen mode waiting for clients on 10.0.0.1
-  xpl-bridge -i 127.0.0.1 -b 127.255.255.255 -l 10.0.0.1
+  xpl-bridge -i eth0 -v -l 10.0.0.1
 
   # start a client bridge connecting to the remote bridge on 10.0.0.1
-  xpl-bridge -i 127.0.0.1 -b 127.255.255.255 -r 10.0.0.1
+  xpl-bridge -i eth0 -v -r 10.0.0.1
 
 =head1 DESCRIPTION
 

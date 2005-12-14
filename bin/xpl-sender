@@ -12,16 +12,13 @@ xpl-sender - Perl script for an xPL message sender application
   xpl-sender -h
 
   # start the send listening and broadcasting on the loopback interface
-  xpl-sender -i 127.0.0.1 -b 127.255.255.255 -c osd.basic \
-             command=clear text=Boo
+  xpl-sender -i eth0 -c osd.basic command=clear text=Boo
 
   # something to go in /etc/apcupsd/mainsback perhaps:
-  xpl-sender -i 127.0.0.1 -b 127.255.255.255 \
-             -m xpl-trig -c ups.basic status=mains event=onmains
+  xpl-sender -i eth0 -m xpl-trig -c ups.basic status=mains event=onmains
 
   # something to go in /etc/apcupsd/onbattery perhaps:
-  xpl-sender -i 127.0.0.1 -b 127.255.255.255 \
-             -m xpl-trig -c ups.basic status=battery event=onbattery
+  xpl-sender -i eth0 -m xpl-trig -c ups.basic status=battery event=onbattery
 
 =head1 DESCRIPTION
 

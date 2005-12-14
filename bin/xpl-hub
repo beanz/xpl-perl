@@ -11,8 +11,9 @@ xpl-hub - Perl script for an xPL hub application
   # show usage message
   xpl-hub -h
 
-  # start the hub listening and broadcasting on the loopback interface
-  xpl-hub -i 127.0.0.1 -b 127.255.255.255
+  # start the hub listening and broadcasting on first ethernet
+  # interface in verbose mode
+  xpl-hub -i eth0 -v
 
 =head1 DESCRIPTION
 
