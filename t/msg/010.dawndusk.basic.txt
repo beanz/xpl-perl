@@ -1,0 +1,62 @@
+$args =
+  {
+   message_type => 'xpl-trig',
+   head =>
+   {
+    hop => 1,
+    source => 'acme-sensor.garden',
+    target => '*',
+   },
+   class => 'dawndusk.basic',
+   body =>
+   {
+    type => 'dawndusk',
+    status => 'dawn',
+   },
+  };
+
+xpl-trig
+{
+hop=1
+source=acme-sensor.garden
+target=*
+}
+dawndusk.basic
+{
+type=dawndusk
+status=dawn
+}
+
+message_type=xpl-trig
+
+hop=1
+
+source=acme-sensor.garden
+
+target=*
+
+class=dawndusk
+
+class_type=basic
+
+summary=xpl-trig/dawndusk.basic: acme-sensor.garden -> * - dawndusk/dawn
+
+type=dawndusk
+
+status=dawn
+
+type[daynight]=daynight
+
+status[dusk]=dusk
+
+status[day]=day
+
+status[night]=night
+
+type[unknown]=undef
+xPL::Message::dawndusk::basic->type: type, unknown, is invalid.
+It should be one of 'dawndusk' or 'daynight'.
+
+status[11thhour]=undef
+xPL::Message::dawndusk::basic->status: status, 11thhour, is invalid.
+It should be one of 'dawn', 'dusk', 'day' or 'night'.
