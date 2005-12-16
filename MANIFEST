@@ -1,5 +1,6 @@
 bin/xpl-bridge
 bin/xpl-clock
+bin/xpl-dawndusk
 bin/xpl-hub
 bin/xpl-logger
 bin/xpl-sender

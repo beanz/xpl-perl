@@ -1,0 +1,455 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-dawndusk 56 2005-12-14 08:36:22Z beanz $
+
+=head1 NAME
+
+xpl-dawndusk - Perl script for an xPL dawndusk application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-dawndusk -h
+
+  # start the dawndusk application with "tick" interval of 60 seconds
+  xpl-dawndusk -s 60
+
+  # start the dawndusk listening and broadcasting on first ethernet
+  # interface in verbose mode using the default "tick" interval of 10
+  # seconds
+  xpl-dawndusk -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that implements the dawn/dusk schema.
+Currently, it only implements sending of dawn and dusk 'xpl-trig'
+messages.  Support for 'dawndusk.request' message for 'daynight'
+will be implemented shortly.
+
+The dawn/dusk calculation algorithm was ported from the C code that
+comes with heyu2 from:
+
+  http://heyu.tanj.com/heyu2/
+
+It contains the following notice:
+
+  Sunrise/Sunset functions for Heyu.
+
+  The solar computation functions below were programmed by Charles W.
+  Sullivan utilizing the techniques and astronomical constants
+  published by Roger W. Sinnott in the August 1994 issue of Sky &
+  Telescope Magazine, Page 84.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use POSIX qw/floor atan fmod strftime/;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] latitude longitude
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:', \%opt);
+if (exists $opt{'h'}) { HELP_MESSAGE() }
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "dawndusk",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+my $latitude = shift  || 51.03;
+my $longitude = shift || -1.33;
+my $state = "day";
+
+my $PI = 3.14159265;
+my $D2R = $PI / 180;
+
+# Ratio, Mean Solar Day / Mean Siderial Day
+my $MSSR = 1.0027379;
+my $KS15 = (15. * $D2R * $MSSR);
+
+my $NORMAL_SUN   = 0;
+my $DOWN_ALL_DAY = 1;
+my $UP_ALL_DAY   = 2;
+my $NO_SUNRISE   = 3;
+my $NO_SUNSET    = 4;
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# set up each new day at midnight
+$xpl->add_timer(id => 'new-day',
+                timeout => "C 0 0 * * *",
+                callback => sub { setup_timers($xpl); 1; });
+
+# set up timers and state now
+setup_timers($xpl);
+
+# Run the main loop
+$xpl->main_loop();
+
+exit;
+
+sub send_dawndusk {
+  my $status = shift;
+  return $xpl->send(message_type => 'xpl-trig',
+                    class => 'dawndusk.basic',
+                    body => { type => 'dawndusk', status => $status },
+                   );
+}
+
+sub dawn {
+  $state = "day";
+  print "Dawn\n" if ($opt{'v'});
+  send_dawndusk('dawn');
+  return 1;
+}
+
+sub dusk {
+  $state = "night";
+  print "Dusk\n" if ($opt{'v'});
+  send_dawndusk('dusk');
+  return 1;
+}
+
+sub dawn_timer {
+  my $xpl = shift;
+  my $timeout = shift;
+  $xpl->remove_timer("dawn") if ($xpl->exists_timer("dawn"));
+  print "Adding dawn timer in $timeout seconds\n" if ($opt{'v'});
+  $xpl->add_timer(id => "dawn", timeout => $timeout,
+                  callback => sub { dawn($xpl); },
+                  count => 1);
+  return 1;
+}
+
+sub dusk_timer {
+  my $xpl = shift;
+  my $timeout = shift;
+  $xpl->remove_timer("dusk") if ($xpl->exists_timer("dusk"));
+  print "Adding dusk timer in $timeout seconds\n" if ($opt{'v'});
+  $xpl->add_timer(id => "dusk", timeout => $timeout,
+                  callback => sub { dusk($xpl); },
+                  count => 1);
+  return 1;
+}
+
+sub setup_timers {
+  my $xpl = shift;
+  my $off = shift;
+
+  my ($min, $hour, $mday, $mon, $year) = (localtime(time))[1..5];
+  $year+=1900; $mon++;
+  my $min_since_midnight = $min+$hour*60;
+  my $julian_day = greg2jd($year,$mon,$mday);
+  my $timezone = 0;
+  my ($code, $sunrise, $sunset) =
+    suntimes($latitude, $longitude, $timezone, $julian_day);
+  printf "Calculating new dawn/dusk min=%d sunrise=%d sunset=%d\n",
+    $min_since_midnight, $sunrise, $sunset if ($opt{'v'});
+
+  my $state;
+  if ($code == $DOWN_ALL_DAY) {
+    $state = "night";
+  } elsif ($code == $UP_ALL_DAY) {
+    $state = "day";
+  } elsif ($code == $NO_SUNRISE) {
+    if ($min_since_midnight < $sunset) {
+      # add_timer for sunset
+      dusk_timer($xpl, 60*($sunset-$min_since_midnight));
+      $state = "day";
+    } else {
+      $state = "night";
+    }
+  } elsif ($code == $NO_SUNSET) {
+    if ($min_since_midnight < $sunrise) {
+      # add_timer for sunrise
+      dawn_timer($xpl, 60*($sunrise-$min_since_midnight));
+      $state = "night";
+    } else {
+      $state = "day";
+    }
+  } else {
+    if ($min_since_midnight < $sunrise) {
+      # add_timer for sunrise
+      dawn_timer($xpl, 60*($sunrise-$min_since_midnight));
+      # add_timer for sunset
+      dusk_timer($xpl, 60*($sunset-$min_since_midnight));
+      $state = "night";
+    } elsif ($min_since_midnight < $sunset) {
+      # add_timer for sunset
+      dusk_timer($xpl, 60*($sunset-$min_since_midnight));
+      $state = "day";
+    } else {
+      $state = "night";
+    }
+  }
+  print "Current state = $state\n" if ($opt{'v'});
+  return 1;
+}
+
+#
+# Calculate local times and Azimuths of Sunrise and
+# Sunset on a specified date.
+# Input:
+#    latitude and longitude in degrees are positive for
+#      North and East of Greenwich respectively.
+#    JulianDay is the Julian Day number at Greenwich Noon.
+#    timezone in seconds from Greenwich, positive for
+#      localities west of Greenwich.
+#  Return:
+#    sunrise and sunset times are in minutes after local
+#      midnight.
+#    azimuths at rise and set are in degrees (0 - 360).
+#    return code (defined in sun.h):
+#      NORMAL_SUN    Sun rises and sets on this day.
+#      DOWN_ALL_DAY  Sun below horizon all day.
+#      UP_ALL_DAY    Sun above horizon all day.
+#      NO_SUNRISE    Sun does not rise on this day.
+#      NO_SUNSET     Sun does not set on this day.
+#
+
+sub suntimes {
+  my ($latitude, $longitude, $timezone, $julian_day, $azrise, $azset) = @_;
+  my $retcode = $NORMAL_SUN;
+
+  my @rasc;
+  my @decl;
+  my %h;
+
+  # Elapsed days from 1 Jan 2000 at 00:00 hours UTC0
+  my $tdays = ($julian_day - 2451545) - 0.5;
+
+  # Determine Local Siderial Time.
+  my $lst = local_sidereal_time( $tdays, $timezone, $longitude );
+
+  $tdays += $timezone / (3600. * 24.);
+
+  # Get sun's position
+  for (my $j = 0; $j < 2; $j++ ) {
+#    sun_position ( tdays, &rasc[j], &decl[j] );
+    ($rasc[$j], $decl[$j]) = sun_position( $tdays );
+    $tdays += 1.0;
+  }
+
+  if ($rasc[1] < $rasc[0] ) {
+    $rasc[1] += 2.*$PI;
+  }
+
+  # sunrise and sunset are defined when the sun is
+  # 50 minutes below the horizon (at sea level).
+  my $zendist = $D2R * (90. + 50./60.) ;
+
+  my $slat = sin($D2R * $latitude);
+  my $clat = cos($D2R * $latitude);
+  my $cozend = cos($zendist);
+
+  my $flag_rise = my $flag_set = 0;
+
+  my $a0 = $rasc[0];
+  my $d0 = $decl[0];
+  my $v0 = 0.0;
+  my $v2;
+  my $dela = $rasc[1] - $rasc[0];
+  my $deld = $decl[1] - $decl[0];
+
+  for (my $j = 0; $j < 24; $j++ ) {
+    my $p = (1.0 + $j) / 24. ;
+
+    my $a2 = $rasc[0] + $p * $dela;
+    my $d2 = $decl[0] + $p * $deld;
+
+    # Test an hour for an event
+    my $el0 = $lst + $j * $KS15;
+    my $el2 = $el0 + $KS15;
+    my $h0 = $el0 - $a0;
+    my $h2 = $el2 - $a2;
+    my $h1 = 0.5 * ($h2 + $h0);
+    my $d1 = 0.5 * ($d2 + $d0);
+
+    if ($j == 0 ) {
+      $v0 = $slat * sin($d0) + $clat * cos($d0) * cos($h0) - $cozend ;
+    }
+    $v2 = $slat * sin($d2) + $clat * cos($d2) * cos($h2) - $cozend ;
+    my $v1;
+    my $type;
+    if ( $v0 * $v2 < 0. ) {
+      $v1 = $slat * sin($d1) + $clat * cos($d1) * cos($h1) - $cozend ;
+      $a = 2. * $v2 - 4. * $v1 + 2. * $v0 ;
+      $b = 4. * $v1 - 3. * $v0 - $v2 ;
+      my $d = $b * $b - 4. * $a * $v0 ;
+      if ( $d >= 0. ) {
+        $d = sqrt($d);
+        if ( $v0 < 0. && $v2 > 0. ) {
+          # Event is Sunrise
+          $type = 'sunrise';
+          $flag_rise = 1 ;
+        }
+        if ( $v0 > 0. && $v2 < 0. ) {
+          # Event is Sunset
+          $type = 'sunset';
+          $flag_set = 1;
+        }
+        my $e = (-$b + $d) / (2. * $a);
+        if ( $e > 1. || $e < 0. ) {
+          $e = (-$b -$d) / (2. * $a) ;
+        }
+        my $t3 = $j + $e ;
+        $h{$type} = int(60.* $t3 + 0.5) ;  # Round off
+
+        my $h7 = $h0 + $e * ($h2 -$h0);
+        my $n7 = - cos($d1) * sin($h7);
+        my $d7 = $clat * sin($d1) - $slat * cos($d1) * cos($h7);
+
+#        my $az = fmod(((atan2($n7, $d7) / $D2R) + 360.), 360.) ;
+#        if ( defined $azptr ) {
+#          $azptr = $az;
+#        }
+      }
+    }
+    last if ( $flag_rise && $flag_set );
+
+    $a0 = $a2;
+    $d0 = $d2;
+    $v0 = $v2;
+  }
+  if ( !($flag_rise | $flag_set) ) {
+    if ( $v2 < 0. ) {
+      # Sun down all day
+      $retcode = $DOWN_ALL_DAY;
+    } elsif ( $v2 >= 0. ) {
+      # Sun up all day
+      $retcode = $UP_ALL_DAY ;
+    }
+  } elsif ( !$flag_rise ) {
+    # No sunrise this date */
+    $retcode = $NO_SUNRISE ;
+  } elsif ( !$flag_set ) {
+    # No sunset this date */
+    $retcode = $NO_SUNSET ;
+  }
+
+  return $retcode, $h{sunrise}, $h{sunset};
+}
+
+
+# Calculate local sidereal time.
+# Input:
+#   tday - number of days from 2000 Jan 1 at 00:00 hours at Greenwich (UTC0).
+
+sub local_sidereal_time {
+  my ($tday, $timezone, $longitude) = @_;
+
+  my $s = 24110.5 + 8640184.812999999*$tday/36525 ;
+  $s += 86636.6*$timezone/(3600.*24.) + 86400.*$longitude/360. ;
+  $s = $s/86400. ;
+  $s = $s - floor($s) ;
+  return  ($s * 360. * $D2R);
+}
+
+# Calculate sun's Right Ascention and Declination.
+
+sub sun_position {
+  my $tday = shift;
+
+  # Julian centuries from 1900.0
+  my $tcent = $tday / 36525. + 1.0 ;
+
+  # Fundamental arguments (Van Flandern & Pulkinnen, 1979)
+
+  my $l = .779072 + .00273790931 * $tday ;
+  my $g = .993126 + .0027377785 * $tday ;
+  $l = 2. * $PI * ($l - floor($l)) ;
+  $g = 2. * $PI * ($g - floor($g)) ;
+
+  my $v = .39785 * sin($l) - .01 * sin($l - $g) +
+       .00333 * sin($l + $g) - .00021 * sin($l) * $tcent ;
+  my $u = 1.0 - .03349 * cos($g) - .00014 * cos(2. * $l) +
+      .00008 * cos ($l) ;
+  my $w = - .0001 - .04129 * sin(2. * $l) +
+       .03211 * sin($g) + .00104 * sin(2. * $l - $g) -
+       .00035 * sin( 2. * $l + $g) - .00008 * sin($g) * $tcent ;
+  my $s = $w / sqrt($u - $v * $v);
+  my $rasc = $l + atan($s / sqrt(1.0 - $s * $s));
+  $s = $v / sqrt($u);
+  my $decl = atan($s / sqrt(1.0 - $s * $s));
+  return ($rasc, $decl);
+}
+
+#
+# Gregorian calendar day to Julian Day number.
+# Returns the Julian Day number at Greenwich Noon
+# (UTC0 12:00) for the year, month, and day arguments.
+#
+# The Julian Day number is the count of whole days from
+# Noon on 1 Jan 4713 B.C.E. in the Julian Proleptic
+# Calendar.  This calculation is historically valid from
+# 15 Oct 1582 onward, however any year, month, and day
+# greater than zero are acceptable as arguments and will
+# yield the logically correct result.
+
+sub greg2jd {
+  my ($year, $month, $day) = @_;
+
+  if ( $month > 12 ) {
+    $year += int( ( $month - 1 ) / 12 );
+    $month = ( $month - 1 ) % 12 + 1 ;
+  }
+
+  my $count;
+  if ( $month > 2 ) {
+    $count = int(- ( 4 * $month + 23 ) / 10 );
+  }  else  {
+    $count = 365 ;
+    $year-- ;
+  }
+
+  $count = $count + int($year / 4)
+           - 3 * int(int(( $year / 100) + 1 ) / 4)
+           + 31 * ( $month - 1 ) + $day ;
+
+  return $count + 365*$year + 1721060;
+}
+
+
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), strftime(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
