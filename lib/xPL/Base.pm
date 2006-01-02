@@ -26,12 +26,13 @@ use warnings;
 use English qw/-no_match_vars/;
 use FileHandle;
 use Socket;
+use Text::Balanced qw/extract_quotelike/;
 
 use Exporter;
 use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(Exporter);
-our %EXPORT_TAGS = ( 'all' => [ qw() ] );
+our %EXPORT_TAGS = ( 'all' => [ qw(simple_tokenizer) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = '0.02';
@@ -577,6 +578,45 @@ sub module_available {
   return $self->{_mod}->{$module} = 1 if (exists $INC{$file});
   eval "require $module; import $module \@_;";
   return $self->{_mod}->{$module} = $EVAL_ERROR ? 0 : 1;
+}
+
+=head2 C<simple_tokenizer( $string )>
+
+This function takes a string of the form:
+
+  "-a setting1 -b setting2 key1=val1 key2=val2"
+
+and returns a list like:
+
+  '-a', 'setting1', '-b', 'setting2', 'key1', 'val1', 'key2', 'val2'
+
+It attempts to handle quoted values.  It is expected that the list
+will be cast in to a hash.
+
+=cut
+
+sub simple_tokenizer {
+  my $str = $_[0];
+  my @r = ();
+  my $w = '[-\._a-zA-Z0-9]';
+  my $s = '[= \t]';
+  my $q = q{["']};
+  while ($str) {
+    my $t = extract_quotelike($str);
+    if ($t) {
+      $t =~ s/^$q//o;
+      $t =~ s/$q$//o;
+      $t =~ s/\\($q)/$1/go;
+      push @r, $t;
+      $str =~s/^$s+//o;
+    } elsif ($str =~ s/^($w+)$s*//o) {
+      push @r, $1;
+    } else {
+      push @r, $str;
+      $str="";
+    }
+  }
+  return @r;
 }
 
 =head2 C<verbose( [ $new_verbose_setting ] )>

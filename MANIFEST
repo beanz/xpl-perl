@@ -26,6 +26,11 @@ lib/xPL/Message/tts/basic.pm
 lib/xPL/Message/ups/basic.pm
 lib/xPL/Message/x10/basic.pm
 lib/xPL/Message/x10/confirm.pm
+lib/xPL/Timer.pm
+lib/xPL/Timer/cron.pm
+lib/xPL/Timer/simple.pm
+lib/xPL/Timer/sunrise.pm
+lib/xPL/Timer/sunset.pm
 lib/xPL/Validation.pm
 lib/xPL/Validation/Any.pm
 lib/xPL/Validation/Integer.pm

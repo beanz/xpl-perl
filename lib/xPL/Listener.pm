@@ -44,12 +44,12 @@ use warnings;
 use IO::Select;
 use List::Util qw/min/;
 use Socket;
-use Text::Balanced qw/extract_quotelike/;
 use Time::HiRes;
 
 use xPL::Message;
+use xPL::Timer;
 
-use xPL::Base;
+use xPL::Base qw/simple_tokenizer/;
 use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(xPL::Base);
@@ -383,45 +383,6 @@ sub send_from_list {
   return $self->send(%args, body => \%body);
 }
 
-=head2 C<simple_tokenizer( $string )>
-
-This function takes a string of the form:
-
-  "-a setting1 -b setting2 key1=val1 key2=val2"
-
-and returns a list like:
-
-  '-a', 'setting1', '-b', 'setting2', 'key1', 'val1', 'key2', 'val2'
-
-It attempts to handle quoted values.  It is expected that the list
-will be cast in to a hash.
-
-=cut
-
-sub simple_tokenizer {
-  my $str = $_[0];
-  my @r = ();
-  my $w = '[-\._a-zA-Z0-9]';
-  my $s = '[= \t]';
-  my $q = q{["']};
-  while ($str) {
-    my $t = extract_quotelike($str);
-    if ($t) {
-      $t =~ s/^$q//o;
-      $t =~ s/$q$//o;
-      $t =~ s/\\($q)/$1/go;
-      push @r, $t;
-      $str =~s/^$s+//o;
-    } elsif ($str =~ s/^($w+)$s*//o) {
-      push @r, $1;
-    } else {
-      push @r, $str;
-      $str="";
-    }
-  }
-  return @r;
-}
-
 =head1 MESSAGE CALLBACK METHODS
 
 =head2 C<add_xpl_callback(%params)>
@@ -611,44 +572,19 @@ sub add_timer {
   $self->exists_timer($p{id}) and
     $self->argh("timer '".$p{id}."' already exists");
 
-  my $next_fn;
-  my $next;
-
   my $timeout = $p{timeout};
-
-  if ($timeout =~ /^C (.*)$/) {
-    # crontab-like syntax spotted
-    $self->module_available('DateTime::Event::Cron') or
-      return $self->ouch("DateTime::Event::Cron modules is required\n".
-                         'in order to support crontab-like timer syntax');
-    my $set = DateTime::Event::Cron->from_cron($1);
-    $next_fn = sub {
-      my $t = shift;
-      $t = Time::HiRes::time unless ($t);
-      $set->next(DateTime->from_epoch(epoch => $t))->epoch;
-    };
-    $next = &{$next_fn}();
-  } elsif ($timeout =~ /^[0-9\.]+$/) {
-    $next_fn = sub {
-      my $t = shift;
-      $t = Time::HiRes::time unless ($t);
-      $t + $timeout
-    };
-    $next = &{$next_fn}();
-  } elsif ($timeout =~ /^-[0-9\.]+$/) {
-    my $real_timeout = abs($timeout);
-    $next_fn = sub {
-      my $t = shift;
-      $t = Time::HiRes::time unless ($t);
-      $t + $real_timeout
-    };
+  my $timer = xPL::Timer->new_from_string($timeout);
+  my $next_fn = sub { $timer->next(@_) };
+  my $next;
+  if ($timeout =~ /^-[0-9\.]+$/) {
     $next = Time::HiRes::time;
   } else {
-    $self->argh("invalid timeout, '$timeout'");
+    $next = $next_fn->(Time::HiRes::time);
   }
 
   $p{next} = $next;
   $p{next_fn} = $next_fn;
+  $p{timer} = $timer;
   $self->add_callback_item('timer', $p{id}, \%p);
 
   return 1;

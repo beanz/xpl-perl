@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 114;
+use Test::More tests => 113;
 use t::Helpers qw/test_error test_warn/;
 use Socket;
 use Time::HiRes;
@@ -141,8 +141,8 @@ is(test_error(sub { $xpl->add_timer(timeout => -1) }),
    ref($xpl)."->add_timer: requires 'id' parameter",
    "adding existing timer");
 
-is(test_error(sub { $xpl->add_timer(id => 'null', timeout => 'tommorow') }),
-   ref($xpl)."->add_timer: invalid timeout, 'tommorow'",
+is(test_error(sub { $xpl->add_timer(id => 'null', timeout => 'tomorrow') }),
+   q{xPL::Timer->new_from_string: unknown timeout, 'tomorrow'},
    "adding existing timer");
 
 is(test_error(sub { $xpl->add_timer(id => 'null') }),
@@ -396,12 +396,12 @@ SKIP: {
 }
 
 # hack to ensure module isn't available to cause error
-$xpl->{_mod}->{"DateTime::Event::Cron"} = 0;
-is(test_warn(sub { $xpl->add_timer(id => 'every5m',
-                                   timeout => "C */5 * * * *"); }),
-   ref($xpl)."->add_timer: DateTime::Event::Cron modules is required
-in order to support crontab-like timer syntax",
-   "graceful crontab-like behaviour failure");
+#$xpl->{_mod}->{"DateTime::Event::Cron"} = 0;
+#is(test_warn(sub { $xpl->add_timer(id => 'every5m',
+#                                   timeout => "C */5 * * * *"); }),
+#   ref($xpl)."->add_timer: DateTime::Event::Cron modules is required
+#in order to support crontab-like timer syntax",
+#   "graceful crontab-like behaviour failure");
 
 $xpl = $xpl->new(ip => "127.0.0.2",
                  broadcast => "127.255.255.255",
