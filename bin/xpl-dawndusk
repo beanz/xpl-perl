@@ -11,12 +11,8 @@ xpl-dawndusk - Perl script for an xPL dawndusk application
   # show usage message
   xpl-dawndusk -h
 
-  # start the dawndusk application with "tick" interval of 60 seconds
-  xpl-dawndusk -s 60
-
-  # start the dawndusk listening and broadcasting on first ethernet
-  # interface in verbose mode using the default "tick" interval of 10
-  # seconds
+  # start the dawndusk application listening and broadcasting on first
+  # ethernet interface in verbose mode
   xpl-dawndusk -i eth0 -v
 
 =head1 DESCRIPTION
