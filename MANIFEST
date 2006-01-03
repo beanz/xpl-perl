@@ -22,6 +22,7 @@ lib/xPL/Message/hbeat/app.pm
 lib/xPL/Message/hbeat/basic.pm
 lib/xPL/Message/hbeat/end.pm
 lib/xPL/Message/osd/basic.pm
+lib/xPL/Message/sensor/basic.pm
 lib/xPL/Message/tts/basic.pm
 lib/xPL/Message/ups/basic.pm
 lib/xPL/Message/x10/basic.pm
@@ -71,4 +72,9 @@ t/msg/006.x10.basic.device.txt
 t/msg/006.x10.basic.house.txt
 t/msg/007.ups.basic.minimal.txt
 t/msg/007.ups.basic.txt
+t/msg/008.cid.basic.minimal.txt
+t/msg/008.cid.basic.txt
+t/msg/009.tts.basic.txt
+t/msg/010.dawndusk.basic.txt
+t/msg/011.sensor.basic.txt
 xpl-perl.spec
