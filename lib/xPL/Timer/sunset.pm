@@ -11,7 +11,7 @@ xPL::Timer::sunset - Perl extension for xPL sunset timer
   use xPL::Timer;
 
   my $timer = xPL::Timer->new(type => 'sunset',
-                              latitude => 51.04, longitude => -1.35);
+                              latitude => 51, longitude => -1);
 
 =head1 DESCRIPTION
 
@@ -96,7 +96,7 @@ sub init {
     return $self->argh("requires 'longitude' parameter\n".
                        'or LONGITUDE environment variable');
   exists $p->{altitude} or $p->{altitude} = -0.833;
-  exists $p->{iteration} or $p->{iteration} = 1;
+  exists $p->{iteration} or $p->{iteration} = 0;
 
   my %args;
   foreach (qw/latitude longitude altitude iteration/) {

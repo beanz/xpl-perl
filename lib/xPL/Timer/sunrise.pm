@@ -11,7 +11,7 @@ xPL::Timer::sunrise - Perl extension for xPL sunrise timer
   use xPL::Timer;
 
   my $timer = xPL::Timer->new(type => 'sunrise',
-                              latitude => 51.04, longitude => -1.35);
+                              latitude => 51, longitude => -1);
 
 =head1 DESCRIPTION
 

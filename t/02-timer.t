@@ -59,19 +59,19 @@ SKIP_SUN: {
   eval { require DateTime::Event::Sunrise; };
   skip "DateTime::Event::Sunrise is not available", 42 if $@;
 
-  foreach ([ sunrise => 29240 ], [ sunset => 58098 ]) {
+  foreach ([ sunrise => 29243 ], [ sunset => 58057 ]) {
     my ($type, $time) = @$_;
 
     $t = xPL::Timer->new(type => $type,
                          latitude => 51, longitude => -1,
-                         altitude => -0.833, iteration => 1,
+                         altitude => -0.833, iteration => 0,
                          tz => 'Europe/London');
     ok($t, 'create timer - '.$type);
     isa_ok($t, 'xPL::Timer::'.$type, 'timer type - '.$type);
     is($t->next(23), $time, 'timer next value - '.$type);
 
     $t = xPL::Timer->new_from_string($type.' latitude=51 longitude=-1 '.
-                                     'altitude=-0.833 iteration=1 '.
+                                     'altitude=-0.833 iteration=0 '.
                                      'tz="Europe/London"');
     ok($t, 'create timer from string - '.$type);
     isa_ok($t, 'xPL::Timer::'.$type, 'timer type from string - '.$type);
@@ -79,7 +79,7 @@ SKIP_SUN: {
 
     my $set =
       DateTime::Event::Sunrise->$type(latitude => 51, longitude => -1,
-                                      altitude => -0.833, iteration => 1);
+                                      altitude => -0.833, iteration => 0);
     my $next = $set->next(DateTime->now());
     is($t->next(), $next->epoch, 'timer next value from now - '.$type);
 
