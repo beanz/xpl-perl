@@ -1,0 +1,65 @@
+$args =
+  {
+   head =>
+   {
+    hop => 1,
+    source => 'acme-viom.node0',
+    target => '*',
+   },
+   class => 'control.basic',
+   body =>
+   {
+    device => '1',
+    type => 'output',
+    current => 'pulse',
+   },
+  };
+
+xpl-cmnd
+{
+hop=1
+source=acme-viom.node0
+target=*
+}
+control.basic
+{
+device=1
+type=output
+current=pulse
+}
+
+message_type=xpl-cmnd
+
+hop=1
+
+source=acme-viom.node0
+
+target=*
+
+class=control
+
+class_type=basic
+
+summary=xpl-cmnd/control.basic: acme-viom.node0 -> * - 1=pulse
+
+device=1
+
+device=1
+
+type=output
+
+current=pulse
+
+device[2]=2
+
+data1=undef
+
+name=undef
+
+type[variable]=variable
+
+current[inc]=inc
+
+type[scent]=scent
+xPL::Message::control::basic->type: type, scent, is invalid.
+It should be one of 'balance', 'flag', 'infrared', 'input', 'macro', 'mute', 'output', 'variable', 'periodic', 'scheduled', 'slider' or 'timer'.

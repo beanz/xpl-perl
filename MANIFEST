@@ -18,6 +18,7 @@ lib/xPL/Hub.pm
 lib/xPL/Message.pm
 lib/xPL/Message/cid/basic.pm
 lib/xPL/Message/clock/update.pm
+lib/xPL/Message/control/basic.pm
 lib/xPL/Message/hbeat/app.pm
 lib/xPL/Message/hbeat/basic.pm
 lib/xPL/Message/hbeat/end.pm
