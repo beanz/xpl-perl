@@ -262,8 +262,8 @@ sub sock_read {
   my $bytes = $peer->sysread($buffer, 1_536, length $buffer);
   unless ($bytes) {
     print 'Connection to ', $peer, " closed\n" if ($self->verbose);
-    $peer->close;
     $self->remove_peer($peer);
+    $peer->close;
     if ($self->bridge_mode eq 'client') {
       $self->argh('No one to talk to quitting.');
     }
@@ -317,8 +317,8 @@ This method removes a peer from the registered list.
 sub remove_peer {
   my $self = shift;
   my $sock = shift;
+  $self->remove_input($self->peer_handle($sock));
   $self->remove_item('peer', $sock);
-  $self->remove_input($sock);
   return 1;
 }
 
