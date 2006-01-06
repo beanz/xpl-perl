@@ -54,14 +54,16 @@ where valid flags are:
   -h - show this help text
 and valid options are (default shown in brackets):
   -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+  -d nnn - the maximum delay in seconds that a message is allowed to remain
+           on screen for (10)
 $msg
 };
 }
 
 my %opt = ();
-getopts('hvi:b:', \%opt);
+getopts('hvi:b:d:', \%opt);
 if (exists $opt{'h'}) { HELP_MESSAGE() }
-my $max_delay = 10;
+my $max_delay = exists $opt{'d'} ? $opt{'d'} : 10;
 my $rows = 4;
 
 my %args =
@@ -113,7 +115,9 @@ sub osd {
     return;
   }
 
-  $xosd->set_timeout($msg->delay || $max_delay);
+  my $delay = $msg->delay;
+  $delay = $max_delay if (!defined $delay || $delay > $max_delay);
+  $xosd->set_timeout($delay);
   $xosd->string($row-1, $msg->text);
   return 1;
 }
