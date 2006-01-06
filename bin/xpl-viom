@@ -146,7 +146,6 @@ sub viom_reader {
   my $bytes = $fh->sysread($buf, 512, length($buf));
   while ($buf =~ s/^(.*?)\r?\n//) {
     my $line = $LAST_PAREN_MATCH;
-    print STDERR "L: $line\n";
     my $time = time;
     if ($line =~ /[01]{16}/) {
       foreach my $index (0..15) {
