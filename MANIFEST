@@ -4,6 +4,7 @@ bin/xpl-dawndusk
 bin/xpl-hub
 bin/xpl-logger
 bin/xpl-sender
+bin/xpl-viom
 bin/xpl-x10
 bin/xpl-xosd
 Changes

@@ -1,0 +1,224 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-viom 56 2005-12-14 08:36:22Z beanz $
+
+=head1 NAME
+
+xpl-viom - Perl script for an xPL VIOM IO controller application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-viom -h
+
+  # start the viom application on first ethernet interface in verbose mode
+  xpl-viom -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a VIOM IO
+controller.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Std;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] <device>
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+  -B baud - the baud rate (9600)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:b:B:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $dev = shift or die HELP_MESSAGE("The device parameter is required");
+my $baud = exists $opt{'B'} ? $opt{'B'} : 9600;
+my $verbose = exists $opt{'v'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "viom",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in);
+
+my $buf = q{};
+my %state;
+
+# TODO: use Device::SerialPort?
+system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+  die "Setting serial port with stty failed: $!\n";
+my $fh = FileHandle->new;
+sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+  or die "Cannot open serial connection on device '$dev'\n";
+$fh->autoflush(1);
+binmode($fh);
+$xpl->add_input(handle => $fh, callback => \&viom_reader);
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming control.basic schema messages.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  if ($msg->message_type ne 'xpl-cmnd' ||
+      $msg->class ne 'control' ||
+      $msg->class_type ne 'basic') {
+    return 1;
+  }
+
+  return 1 unless ($msg->type eq "output");
+  return 1 unless ($msg->device =~ /^o(\d+)$/);
+  my $num = $LAST_PAREN_MATCH;
+  my $id = sprintf("o%02d", $num);
+  my $command = lc $msg->current;
+  if ($command eq "high") {
+    send_viom(sprintf("XA%d", $num));
+    $state{$id} = 'high:'.time;
+  } elsif ($command eq "low") {
+    send_viom(sprintf("XB%d", $num));
+    $state{$id} = 'low:'.time;
+  } elsif ($command eq "pulse") {
+    send_viom(sprintf("XA%d", $num));
+    select(undef,undef,undef,0.15);
+    send_viom(sprintf("XB%d", $num));
+    $state{$id} = 'low:'.time;
+  } elsif ($command eq "toggle") {
+    my ($old,$prev_time) = split(/:/,$state{$id}||"");
+    # assume low
+    if ($old eq "high") {
+      send_viom(sprintf("XB%d", $num));
+      $state{$id} = 'low:'.time;
+    } else {
+      send_viom(sprintf("XA%d", $num));
+      $state{$id} = 'high:'.time;
+    }
+  }
+  return 1;
+}
+
+=head2 C<viom_reader()>
+
+This is the callback that processes output from the VIOM.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+=cut
+
+sub viom_reader {
+  my $bytes = $fh->sysread($buf, 512, length($buf));
+  while ($buf =~ s/^(.*?)\r?\n//) {
+    my $line = $LAST_PAREN_MATCH;
+    print STDERR "L: $line\n";
+    my $time = time;
+    if ($line =~ /[01]{16}/) {
+      foreach my $index (0..15) {
+        my $id = sprintf("i%02d",$index);
+        my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
+        my $new = substr($line, $index, 1) ? "high" : "low";
+        if ($new ne $old) {
+          $state{$id} = $new.":".$time;
+          send_xpl($id, $new);
+        }
+      }
+    }
+    print $line,"\n" if ($verbose);
+  }
+  return 1;
+}
+
+=head2 C<send_xpl( $device, $level )>
+
+This functions is used to send out sensor.basic xpl-trig messages as a
+result of changes to the VIOM inputs.
+
+=cut
+
+sub send_xpl {
+  my $device = shift;
+  my $level = shift;
+  my %args =
+    (
+     message_type => 'xpl-trig',
+     class => 'sensor.basic',
+     body => { device => $device, type => 'input', current => $level },
+    );
+  print STDERR "Sending $device $level\n" if ($verbose);
+  return $xpl->send(%args);
+}
+
+=head2 C<send_viom( $message )>
+
+This functions is used to send text commands to the VIOM.
+
+=cut
+
+sub send_viom {
+  my $msg = shift;
+  print "Sending '$msg' to viom\n" if ($verbose);
+  $msg .= "\r\n";
+  syswrite($fh, $msg, length($msg));
+  $fh->flush();
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+VIOM website: http://www.phaedrusltd.com/pages/html/viom.html
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
