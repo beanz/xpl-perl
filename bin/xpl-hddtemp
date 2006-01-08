@@ -104,7 +104,7 @@ sub read_hddtemp {
     $xpl->remove_input($sock);
     $sock->close;
   }
-  while ($buf =~ s/^\|([^\|]+)\|([^\|]+)\|([^\|]+)\|([^\|]+)\|\|/\|/) {
+  while ($buf =~ s/^\|([^\|]+)\|([^\|]+)\|([^\|]+)\|([^\|]+)\|//) {
     my $device = $1;
     my $temp = $3;
     my $unit = $4;
