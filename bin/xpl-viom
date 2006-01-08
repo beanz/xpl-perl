@@ -72,14 +72,14 @@ $xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in);
 
 # sanity check the inputs immediately and periodically so we keep
 # the current state sane even when viom is unplugged, etc.
-$xpl->add_timer(id => 'input-check', timeout => -3671,
+$xpl->add_timer(id => 'input-check', timeout => -631,
                 callback => sub { send_viom("CIN"); 1; });
 
 # sanity check the outputs immediately and periodically so we keep
 # the current state sane even when viom is unplugged, etc.
 $xpl->add_timer(id => "temp", timeout => "1", count => 1,
                 callback => sub {
-                  $xpl->add_timer(id => 'output-check', timeout => -3691,
+                  $xpl->add_timer(id => 'output-check', timeout => -641,
                                   callback => sub { send_viom("COR"); 1; });
                   return;
                 });
@@ -181,6 +181,9 @@ sub viom_reader {
       my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
       if ($new ne $old) {
         $state{$id} = $new.":".$time;
+      } else {
+        # only print these if something has changed
+        next;
       }
     } elsif ($line =~ /^Output (\d+) (Inactive|Active)$/) {
       my $id = sprintf("o%02d",$1);
@@ -188,6 +191,9 @@ sub viom_reader {
       my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
       if ($new ne $old) {
         $state{$id} = $new.":".$time;
+      } else {
+        # only print these if something has changed
+        next;
       }
     }
     print $line,"\n" if ($verbose);
