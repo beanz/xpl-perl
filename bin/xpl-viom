@@ -167,7 +167,7 @@ sub viom_reader {
     my $time = time;
     if ($line =~ /[01]{16}/) {
       foreach my $index (0..15) {
-        my $id = sprintf("i%02d",$index);
+        my $id = sprintf("i%02d",$index+1);
         my $new = substr($line, $index, 1) ? "high" : "low";
         my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
         if ($new ne $old) {
