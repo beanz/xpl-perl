@@ -70,6 +70,16 @@ my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in);
 
+# sanity check the inputs immediately and periodically so we keep
+# the current state sane even when viom is unplugged, etc.
+$xpl->add_timer(id => 'input-check', timeout => -337,
+                callback => sub { send_viom("CIN") });
+
+# sanity check the outputs immediately and periodically so we keep
+# the current state sane even when viom is unplugged, etc.
+$xpl->add_timer(id => 'input-check', timeout => -313,
+                callback => sub { send_viom("COR") });
+
 my $buf = q{};
 my %state;
 
@@ -106,6 +116,10 @@ sub xpl_in {
   }
 
   return 1 unless ($msg->type eq "output");
+  if ($msg->device =~ /debug/) { # hack to aid debug
+    send_viom($msg->current);
+    return 1;
+  }
   return 1 unless ($msg->device =~ /^o(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
   my $id = sprintf("o%02d", $num);
@@ -150,12 +164,26 @@ sub viom_reader {
     if ($line =~ /[01]{16}/) {
       foreach my $index (0..15) {
         my $id = sprintf("i%02d",$index);
-        my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
         my $new = substr($line, $index, 1) ? "high" : "low";
+        my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
         if ($new ne $old) {
           $state{$id} = $new.":".$time;
           send_xpl($id, $new);
         }
+      }
+    } elsif ($line =~ /^Input (\d+) (Inactive|Active)$/) {
+      my $id = sprintf("i%02d",$1);
+      my $new = $2 eq "Active" ? "high" : "low";
+      my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
+      if ($new ne $old) {
+        $state{$id} = $new.":".$time;
+      }
+    } elsif ($line =~ /^Output (\d+) (Inactive|Active)$/) {
+      my $id = sprintf("o%02d",$1);
+      my $new = $2 eq "Active" ? "high" : "low";
+      my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
+      if ($new ne $old) {
+        $state{$id} = $new.":".$time;
       }
     }
     print $line,"\n" if ($verbose);
