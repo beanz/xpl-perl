@@ -1,0 +1,149 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-clock 56 2005-12-14 08:36:22Z beanz $
+
+=head1 NAME
+
+xpl-hddtemp - Perl script for an xPL hddtemp monitor
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-hddtemp -h
+
+  # start the hddtemp application with poll interval of 120 seconds
+  xpl-hddtemp -s 120
+
+  # start the hddtemp listening and broadcasting on first ethernet
+  # interface in verbose mode using poll interval of 120 seconds
+  xpl-hddtemp -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that polls the hddtemp daemon (listening
+on the loopback interface) to check for temperature changes of hard
+disks.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use POSIX qw/strftime/;
+use xPL::Client;
+use IO::Socket;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+  -s nn  - number of seconds between polling the hddtemp daemon (120)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvs:i:', \%opt);
+if (exists $opt{'h'}) { HELP_MESSAGE() }
+my $interval = $opt{'s'} || 120;
+my $verbose = exists $opt{'v'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "hddtemp",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $state = {};
+my $buf = "";
+
+# Add a timer to the xPL Client event loop to generate the
+# "hddtemp.update" messages.  The negative interval causes the timer to
+# trigger immediately rather than waiting for the first interval.
+$xpl->add_timer(id => 'poll',
+                timeout => -$interval,
+                callback => \&poll_hddtemp);
+
+$SIG{TERM} = \&end;
+$SIG{QUIT} = \&end;
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to connect to hddtemp
+sub poll_hddtemp {
+  my $sock = IO::Socket::INET->new('127.0.0.1:7634');
+  unless ($sock) {
+    warn "Failed to contact hddtemp daemon: $!\n";
+    return 1;
+  }
+  $xpl->add_input(handle => $sock, callback => \&read_hddtemp);
+  return 1;
+}
+
+# The callback to read hddtemp response and send the "sensor.basic" messages
+sub read_hddtemp {
+  my $sock = shift;
+  my $bytes = $sock->sysread($buf, 512, length($buf));
+  unless ($bytes) {
+    $buf = "";
+    $xpl->remove_input($sock);
+    $sock->close;
+  }
+  while ($buf =~ s/^\|([^\|]+)\|([^\|]+)\|([^\|]+)\|([^\|]+)\|\|/\|/) {
+    my $device = $1;
+    my $temp = $3;
+    my $unit = $4;
+    $device =~ s!/dev/!!;
+    $device = $xpl->instance_id."-".$device;
+    my $old = $state->{$device};
+    $state->{$device} = $temp;
+    my $type;
+    if (!defined $old || $temp != $old) {
+      $type = 'xpl-trig';
+      print "$device $temp $unit\n" if ($verbose);
+    } else {
+      $type = 'xpl-stat';
+    }
+    $xpl->send(message_type => $type, class => 'sensor.basic',
+               body => { device => $device, type => 'temp', current => $temp });
+  }
+  return 1;
+}
+
+# send a "hbeat.end" message on exit
+sub end { defined $xpl && undef $xpl;exit; }#->send_hbeat_end(); exit; }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), hddtemp(8)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
