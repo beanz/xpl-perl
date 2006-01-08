@@ -77,11 +77,11 @@ $xpl->add_timer(id => 'input-check', timeout => -337,
 
 # sanity check the outputs immediately and periodically so we keep
 # the current state sane even when viom is unplugged, etc.
-$xpl->add_timer(id => "temp", timeout => 1,
+$xpl->add_timer(id => "temp", timeout => "once 1",
                 callback => sub {
                   $xpl->add_timer(id => 'output-check', timeout => -313,
                                   callback => sub { send_viom("COR"); 1; });
-                  0;
+                  return;
                 });
 
 my $buf = q{};
