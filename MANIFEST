@@ -4,7 +4,10 @@ bin/xpl-dawndusk
 bin/xpl-hddtemp
 bin/xpl-hub
 bin/xpl-logger
+bin/xpl-owfs
+bin/xpl-rrd
 bin/xpl-sender
+bin/xpl-sql-logger
 bin/xpl-viom
 bin/xpl-x10
 bin/xpl-xosd
