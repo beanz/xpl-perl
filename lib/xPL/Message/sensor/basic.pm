@@ -79,7 +79,8 @@ This method returns a summary of the xPL message.
 
 sub summary {
   my $self = shift;
-  return $self->SUPER::summary(@_).' - '.$self->device.'='.$self->current;
+  return $self->SUPER::summary(@_).
+    ' - '.$self->device.'['.$self->type.']='.$self->current;
 }
 
 =head2 C<device( [ $new_device ] )>
