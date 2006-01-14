@@ -1,0 +1,125 @@
+#!/usr/bin/perl -w
+
+# $Id$
+
+=head1 NAME
+
+xpl-sql-logger - Perl script for an xPL log to database application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-sql-logger -h
+
+  # start the logger listening and broadcasting on first ethernet
+  # interface in verbose mode
+  xpl-sql-logger -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that logs all xPL incoming messages to an
+SQL database.  Currently, it requires a database configuration file to
+be specified with the C<XPL_DB_CONFIG>, see L<xPL::SQL> for more
+information.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use Time::HiRes qw/gettimeofday/;
+use xPL::Client;
+use xPL::SQL;
+
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || "";
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+  -v - verbose client mode
+and valid options are (default shown in brackets):
+  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:', \%opt);
+HELP_MESSAGE() if (exists $opt{'h'});
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "dblogger",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => "logger",
+                       self_skip => 0, targetted => 0,
+                       callback => \&log);
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to log the incoming messages
+sub log {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  # Use of usec is not for accuracy but to help preserve ordering for data
+  my ($time, $usec) = gettimeofday;
+  my $m =
+    xPL::SQL::Msg->create({
+                           time => $time,
+                           usec => $usec,
+                           type => $msg->message_type,
+                           class => $msg->class.'.'.$msg->class_type,
+                           source => $msg->source,
+                           target => $msg->target,
+                           incomplete => 0,
+                          });
+  foreach my $field ($msg->body_fields) {
+    $m->add_to_msgelts({elt =>
+                        xPL::SQL::Elt->find_or_create({
+                                                       name => $field,
+                                                       value => $msg->$field,
+                                                      })});
+  }
+  return 1;
+};
+
+# send a "hbeat.end" message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
