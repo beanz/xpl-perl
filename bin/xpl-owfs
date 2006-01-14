@@ -1,0 +1,224 @@
+#!/usr/bin/perl -w
+
+# $Id$
+
+=head1 NAME
+
+xpl-owfs - Perl script for an xPL interface to the one-wire filesystem
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-owfs -h
+
+  # start the owfs application on first ethernet interface in verbose mode
+  xpl-owfs -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with the one-wire filesystem.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use DirHandle;
+use FileHandle;
+use Getopt::Std;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] <owfs-mountpoint>
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:b:B:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $ow_dir = shift or die HELP_MESSAGE("The owfs mount parameter is required");
+my $verbose = exists $opt{'v'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "owfs",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'owfs', callback => \&xpl_in);
+
+# sanity check the inputs immediately and periodically so we keep
+# the current state sane even when owfs is unplugged, etc.
+$xpl->add_timer(id => 'owfs-read', timeout => -120,
+                callback => sub { owfs_reader(); 1; });
+
+my %state;
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming control.basic schema messages.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  if ($msg->message_type ne 'xpl-cmnd' ||
+      $msg->class ne 'control' ||
+      $msg->class_type ne 'basic') {
+    return 1;
+  }
+
+  return 1 unless ($msg->type eq "output");
+  if ($msg->device =~ /debug/) { # hack to aid debug
+    # don't have any debug actions yet
+    return 1;
+  }
+  return 1;
+}
+
+=head2 C<owfs_reader()>
+
+This is the callback that processes output from the OWFS.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+=cut
+
+sub owfs_reader {
+  my $devices = find_ow_devices($ow_dir);
+  my $found;
+  foreach my $dev (@$devices) {
+    foreach my $rec ([ "temperature", "temp" ]) {
+      my ($filebase, $type) = @$rec;
+      my $file = $dev.'/'.$filebase;
+      next unless (-f $file);
+      my $value = read_ow_file($file) or next;
+      $found++;
+      my $old = $state{$dev};
+      my $message_type =
+        (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
+      $state{$dev} = $value;
+      my $id = $dev;
+      $id =~ s!.*/!!;
+      send_xpl( $message_type, $id, $type, $value);
+    }
+  }
+  unless ($found) {
+    warn "No devices found?\n";
+    return 1;
+  }
+  return 1;
+}
+
+=head2 C<send_xpl( $message_type, $device, $type, $current )>
+
+This functions is used to send out sensor.basic xPL messages with
+the state of one-wire sensors.
+
+=cut
+
+sub send_xpl {
+  my $message_type = shift;
+  my $device = shift;
+  my $type = shift;
+  my $current = shift;
+  my %args =
+    (
+     message_type => $message_type,
+     class => 'sensor.basic',
+     body => { device => $device, type => 'temp', current => $current },
+    );
+  print STDERR "Sending $device\[$type]=$current\n" if ($verbose);
+  return $xpl->send(%args);
+}
+
+=head2 C<find_ow_devices( $ow_dir )>
+
+This functions is used to find all devices present in the one-wire
+file system.  It returns a list reference of paths to device
+directories.
+
+=cut
+
+sub find_ow_devices {
+  my $ow_dir = shift;
+  my $res = shift || [];
+  my $dh = DirHandle->new($ow_dir) or do {
+    warn "Failed to open ow dir, $ow_dir: $!\n";
+    return $res;
+  };
+  foreach my $dev ($dh->read) {
+    if ($dev =~ /^[0-9a-f]{2}\.[0-9a-f]{12}$/i) {
+      push @$res, $ow_dir.'/'.$dev;
+      foreach my $sub (qw/main aux/) {
+        my $new_dir = $ow_dir.'/'.$dev.'/'.$sub;
+        find_ow_devices($new_dir, $res) if (-d $new_dir);
+      }
+    }
+  }
+  $dh->close;
+  return $res;
+}
+
+sub read_ow_file {
+  my $file = shift;
+  my $fh = FileHandle->new("<".$file) || return;
+  my $value = <$fh>;
+  chomp($value);
+  $value =~ s/\s+$//;
+  $value =~ s/^\s+//;
+  return $value;
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+OWFS website: http://owfs.sourceforge.net/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
