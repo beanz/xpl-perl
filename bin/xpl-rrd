@@ -60,7 +60,8 @@ if (exists $opt{'i'}) {
 if ($verbose) {
   $args{verbose} = $opt{'v'};
 }
-my $rrd_dir = shift;
+my $rrd_dir =
+  shift or HELP_MESSAGE("Requires path to rrd directory parameter");
 my $state_db = $rrd_dir.'/state.db';
 
 mkdir $rrd_dir, 0755 unless (-d $rrd_dir);
