@@ -77,7 +77,7 @@ xPL::SQL::Msgelt->has_a(elt => 'xPL::SQL::Elt');
 xPL::SQL::Msg->set_sql(last_x10_on => q{
   SELECT msg.*
   FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
-  WHERE msg.class like 'x10.%' AND
+  WHERE msg.class = 'x10.basic' AND
         m1.msg = msg.id AND m1.elt = e1.id AND
         e1.name = 'device' AND e1.value = ? AND
         m2.msg = msg.id AND m2.elt = e2.id AND
