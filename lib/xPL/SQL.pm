@@ -74,6 +74,16 @@ my $loader = Class::DBI::Loader->new(%args, namespace => 'xPL::SQL');
 xPL::SQL::Msg->has_many(msgelts => 'xPL::SQL::Msgelt');
 xPL::SQL::Msgelt->has_a(msg => 'xPL::SQL::Msg');
 xPL::SQL::Msgelt->has_a(elt => 'xPL::SQL::Elt');
+xPL::SQL::Msg->set_sql(last_x10_on => q{
+  SELECT msg.*
+  FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
+  WHERE msg.class like 'x10.%' AND
+        m1.msg = msg.id AND m1.elt = e1.id AND
+        e1.name = 'device' AND e1.value = ? AND
+        m2.msg = msg.id AND m2.elt = e2.id AND
+        e2.value = 'on'
+  ORDER BY time DESC, usec DESC LIMIT 1
+});
 
 1;
 __END__
