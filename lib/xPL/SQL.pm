@@ -87,7 +87,7 @@ xPL::SQL::Msg->set_sql(last_x10_on => q{
 xPL::SQL::Msg->set_sql(last_x10 => q{
   SELECT msg.*, e2.value as command
   FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
-  WHERE msg.class = 'x10.basic' AND
+  WHERE msg.class = 'x10.basic' AND msg.type = 'xpl-trig' AND
         m1.msg = msg.id AND m1.elt = e1.id AND m2.msg = msg.id AND
         e1.name = 'device' AND e1.value = ? AND
         m2.elt = e2.id AND e2.name = 'command'
