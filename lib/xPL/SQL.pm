@@ -74,6 +74,7 @@ my $loader = Class::DBI::Loader->new(%args, namespace => 'xPL::SQL');
 xPL::SQL::Msg->has_many(msgelts => 'xPL::SQL::Msgelt');
 xPL::SQL::Msgelt->has_a(msg => 'xPL::SQL::Msg');
 xPL::SQL::Msgelt->has_a(elt => 'xPL::SQL::Elt');
+my @temp = ();
 xPL::SQL::Msg->set_sql(last_x10_on => q{
   SELECT msg.*
   FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
@@ -84,6 +85,20 @@ xPL::SQL::Msg->set_sql(last_x10_on => q{
         e2.value = 'on'
   ORDER BY time DESC, usec DESC LIMIT 1
 });
+xPL::SQL::Msg->set_sql(last_x10 => q{
+  SELECT msg.*, e2.value as command
+  FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
+  WHERE msg.class = 'x10.basic' AND
+        m1.msg = msg.id AND m1.elt = e1.id AND
+        e1.name = 'device' AND e1.value = ? AND
+        m2.msg = msg.id AND m2.elt = e2.id AND
+        e2.name = 'command'
+  ORDER BY time DESC, usec DESC LIMIT 1
+});
+push @temp, "command";
+
+xPL::SQL::Msg->columns(TEMP => @temp);
+
 
 1;
 __END__
