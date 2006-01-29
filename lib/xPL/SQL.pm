@@ -78,8 +78,9 @@ package xPL::SQL::Msg;
 my @temp = ();
 __PACKAGE__->has_many(msgelts => 'xPL::SQL::Msgelt');
 __PACKAGE__->has_a(body => 'xPL::SQL::Body');
+push @temp, "body_text";
 __PACKAGE__->set_sql(last_x10_on_new => q{
-  SELECT msg.*
+  SELECT msg.*, body.body as body_text
   FROM msg, body
   WHERE msg.class = 'x10.basic' AND
         msg.body = body.id AND
@@ -123,7 +124,7 @@ xPL::SQL::Msg->columns(TEMP => @temp);
 
 sub to_xpl_message {
   my $self = shift;
-  my $body = $self->body->body();
+  my $body = $self->body_text || $self->body->body();
   chomp($body);
   my %args = ();
   foreach (split /\n/, $body) {
