@@ -103,8 +103,6 @@ sub log {
     $body .= $field."=".$v."\n";
   }
   my $b = xPL::SQL::Body->find_or_create({ body => $body });
-  print STDERR "B: body: $b == ".($m->body || "undef")."\n";
-  next if ($m->body && $b eq $m->body);
   $m->body($b);
   $m->update();
   return 1;
