@@ -53,6 +53,7 @@ use warnings;
 use Class::DBI::Loader;
 use FileHandle;
 use Date::Parse qw/str2time/;
+use xPL::Message;
 use Exporter;
 
 our @ISA = qw(Exporter);
@@ -71,11 +72,13 @@ while (<$fh>) {
 }
 $fh->close;
 my $loader = Class::DBI::Loader->new(%args, namespace => 'xPL::SQL');
-xPL::SQL::Msg->has_many(msgelts => 'xPL::SQL::Msgelt');
 xPL::SQL::Msgelt->has_a(msg => 'xPL::SQL::Msg');
 xPL::SQL::Msgelt->has_a(elt => 'xPL::SQL::Elt');
+package xPL::SQL::Msg;
 my @temp = ();
-xPL::SQL::Msg->set_sql(last_x10_on => q{
+__PACKAGE__->has_many(msgelts => 'xPL::SQL::Msgelt');
+__PACKAGE__->has_a(body => 'xPL::SQL::Body');
+__PACKAGE__->set_sql(last_x10_on => q{
   SELECT msg.*
   FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
   WHERE msg.class = 'x10.basic' AND
@@ -85,7 +88,7 @@ xPL::SQL::Msg->set_sql(last_x10_on => q{
         e2.value = 'on'
   ORDER BY time DESC, usec DESC LIMIT 1
 });
-xPL::SQL::Msg->set_sql(last_x10 => q{
+__PACKAGE__->set_sql(last_x10 => q{
   SELECT msg.*, e2.value as command
   FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
   WHERE msg.class = 'x10.basic' AND msg.type = 'xpl-trig' AND
@@ -96,7 +99,7 @@ xPL::SQL::Msg->set_sql(last_x10 => q{
   ORDER BY time DESC, usec DESC LIMIT 1
 });
 push @temp, "command";
-xPL::SQL::Msg->set_sql(x10_history => q{
+__PACKAGE__->set_sql(x10_history => q{
   SELECT msg.*, e2.value as command
   FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
   WHERE time > ? AND
@@ -109,6 +112,33 @@ xPL::SQL::Msg->set_sql(x10_history => q{
 });
 
 xPL::SQL::Msg->columns(TEMP => @temp);
+
+sub to_xpl_message {
+  my $self = shift;
+  my $body = $self->body;
+  chomp($body);
+  my %args = ();
+  foreach (split /\n/, $body) {
+    my ($k, $v) = split /=/, $_, 2;
+    $k =~ s/-/_/g;
+    if (exists $args{body}->{$k}) {
+      xPL::Message->ouch('Repeated body field: '.$k);
+      next;
+    }
+    $args{body}->{$k} = $v;
+    push @{$args{body_order}}, $k;
+  }
+  return xPL::Message->new(message_type => $self->type,
+                           head =>
+                           {
+                            hop => 1,
+                            source => $self->source,
+                            target => $self->target,
+                           },
+                           class => $self->class,
+                           %args,
+                          );
+}
 
 1;
 __END__
