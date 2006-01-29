@@ -241,7 +241,7 @@ sub new_from_payload {
     }
     $r{body}->{$k} = $v;
     push @{$r{body_order}}, $k;
- }
+  }
   return $pkg->new(strict => 0, %r);
 }
 
