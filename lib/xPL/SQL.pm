@@ -87,6 +87,12 @@ __PACKAGE__->set_sql(last_x10_on => q{
         body.body like CONCAT('command=on\ndevice=',?,'\n%%')
   ORDER BY time DESC, usec DESC LIMIT 1
 });
+__PACKAGE__->set_sql(time => q{
+  SELECT msg.*
+  FROM msg
+  WHERE time > ?
+  ORDER BY time DESC, usec DESC LIMIT 1
+});
 __PACKAGE__->set_sql(last_x10_on_old => q{
   SELECT msg.*
   FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
