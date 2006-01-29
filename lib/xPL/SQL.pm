@@ -83,7 +83,7 @@ __PACKAGE__->set_sql(last_x10_on_new => q{
   FROM msg, body
   WHERE msg.class = 'x10.basic' AND
         msg.body = body.id AND
-        body.body like CONCAT('command=off\ndevice=',?,'\n%')
+        body.body like CONCAT('command=on\ndevice=',?,'\n%%')
   ORDER BY time DESC, usec DESC LIMIT 1
 });
 __PACKAGE__->set_sql(last_x10_on => q{
