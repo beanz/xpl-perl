@@ -91,13 +91,22 @@ sub log {
                            target => $msg->target,
                            incomplete => 0,
                           });
+  my $body = "";
   foreach my $field ($msg->body_fields) {
+    my $v = $msg->$field;
+    next unless (defined $v);
     $m->add_to_msgelts({elt =>
                         xPL::SQL::Elt->find_or_create({
                                                        name => $field,
-                                                       value => $msg->$field,
+                                                       value => $v,
                                                       })});
+    $body .= $field."=".$v."\n";
   }
+  my $b = xPL::SQL::Body->find_or_create({ body => $body });
+  print STDERR "B: body: $b == ".($m->body || "undef")."\n";
+  next if ($m->body && $b eq $m->body);
+  $m->body($b);
+  $m->update();
   return 1;
 };
 
