@@ -115,7 +115,7 @@ xPL::SQL::Msg->columns(TEMP => @temp);
 
 sub to_xpl_message {
   my $self = shift;
-  my $body = $self->body;
+  my $body = $self->body->body();
   chomp($body);
   my %args = ();
   foreach (split /\n/, $body) {
