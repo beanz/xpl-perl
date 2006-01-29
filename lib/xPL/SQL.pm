@@ -79,7 +79,7 @@ my @temp = ();
 __PACKAGE__->has_many(msgelts => 'xPL::SQL::Msgelt');
 __PACKAGE__->has_a(body => 'xPL::SQL::Body');
 push @temp, "body_text";
-__PACKAGE__->set_sql(last_x10_on_new => q{
+__PACKAGE__->set_sql(last_x10_on => q{
   SELECT msg.*, body.body as body_text
   FROM msg, body
   WHERE msg.class = 'x10.basic' AND
@@ -87,7 +87,7 @@ __PACKAGE__->set_sql(last_x10_on_new => q{
         body.body like CONCAT('command=on\ndevice=',?,'\n%%')
   ORDER BY time DESC, usec DESC LIMIT 1
 });
-__PACKAGE__->set_sql(last_x10_on => q{
+__PACKAGE__->set_sql(last_x10_on_old => q{
   SELECT msg.*
   FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
   WHERE msg.class = 'x10.basic' AND
