@@ -91,7 +91,6 @@ __PACKAGE__->set_sql(time => q{
   SELECT msg.*
   FROM msg
   WHERE time > ?
-  ORDER BY time DESC, usec DESC
 });
 __PACKAGE__->set_sql(last_x10_on_old => q{
   SELECT msg.*
