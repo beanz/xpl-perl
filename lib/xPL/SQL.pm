@@ -98,6 +98,14 @@ __PACKAGE__->set_sql(last_x10_on_old => q{
   ORDER BY time DESC, usec DESC LIMIT 1
 });
 __PACKAGE__->set_sql(last_x10 => q{
+  SELECT msg.*, body.body as body_text
+  FROM msg, body
+  WHERE msg.class = 'x10.basic' AND
+        msg.body = body.id AND
+        body.body like CONCAT('command=%%\ndevice=',?,'\n%%')
+  ORDER BY time DESC, usec DESC LIMIT 1
+});
+__PACKAGE__->set_sql(last_x10_old => q{
   SELECT msg.*, e2.value as command
   FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
   WHERE msg.class = 'x10.basic' AND msg.type = 'xpl-trig' AND
