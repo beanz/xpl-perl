@@ -92,16 +92,6 @@ __PACKAGE__->set_sql(time => q{
   FROM msg
   WHERE time > ?
 });
-__PACKAGE__->set_sql(last_x10_on_old => q{
-  SELECT msg.*
-  FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
-  WHERE msg.class = 'x10.basic' AND
-        m1.msg = msg.id AND m1.elt = e1.id AND
-        m2.msg = msg.id AND m2.elt = e2.id AND
-        e1.name = 'device' AND e1.value = ? AND
-        e2.value = 'on'
-  ORDER BY time DESC, usec DESC LIMIT 1
-});
 __PACKAGE__->set_sql(last_x10 => q{
   SELECT msg.*, body.body as body_text
   FROM msg, body
@@ -110,26 +100,14 @@ __PACKAGE__->set_sql(last_x10 => q{
         body.body like CONCAT('command=%%\ndevice=',?,'\n%%')
   ORDER BY time DESC, usec DESC LIMIT 1
 });
-__PACKAGE__->set_sql(last_x10_old => q{
-  SELECT msg.*, e2.value as command
-  FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
-  WHERE msg.class = 'x10.basic' AND msg.type = 'xpl-trig' AND
-        m1.msg = msg.id AND m1.elt = e1.id AND
-        m2.msg = msg.id AND m2.elt = e2.id AND
-        e1.name = 'device' AND e1.value = ? AND
-        e2.name = 'command'
-  ORDER BY time DESC, usec DESC LIMIT 1
-});
 push @temp, "command";
 __PACKAGE__->set_sql(x10_history => q{
-  SELECT msg.*, e2.value as command
-  FROM msg, msgelt m1, elt e1, msgelt m2, elt e2
+  SELECT msg.*, body.body as body_text
+  FROM msg, body
   WHERE time > ? AND
         msg.class = 'x10.basic' AND msg.type = 'xpl-trig' AND
-        m1.msg = msg.id AND m1.elt = e1.id AND
-        m2.msg = msg.id AND m2.elt = e2.id AND
-        e1.name = 'device' AND e1.value = ? AND
-        e2.name = 'command'
+        msg.body = body.id AND
+        body.body like CONCAT('command=%%\ndevice=',?,'\n%%')
   ORDER BY time DESC, usec DESC
 });
 
