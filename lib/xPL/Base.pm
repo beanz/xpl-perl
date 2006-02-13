@@ -598,7 +598,7 @@ will be cast in to a hash.
 sub simple_tokenizer {
   my $str = $_[0];
   my @r = ();
-  my $w = '[-\._a-zA-Z0-9]';
+  my $w = '[-+\._a-zA-Z0-9]';
   my $s = '[= \t]';
   my $q = q{["']};
   while ($str) {
