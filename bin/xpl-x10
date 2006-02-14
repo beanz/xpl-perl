@@ -208,7 +208,7 @@ sub xpl_to_heyu {
   my $command = shift;
   return {
           all_units_off => "alloff", all_units_on => "allon",
-          all_lights_off=> "lightsoff",  all_lights_on => "lightson",
+          all_lights_off => "lightsoff",  all_lights_on => "lightson",
           on => "on", off => "off",
           dim => "dim", bright => "bright",
          }->{$command};
