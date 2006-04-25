@@ -140,6 +140,7 @@ sub digitemp_reader {
   my $bytes = $fh->sysread($buf, 512, length($buf));
   while ($buf =~ s/^(.*?)\n//) {
     $_ = $1;
+    print $_, "\n" if ($verbose);
     # TOFIX: process timestamps
     if (m!Sensor\s+(\d+)\s+C:\s+(\S+)\s+!) {
       my $sensor = $1;
@@ -151,7 +152,6 @@ sub digitemp_reader {
       $state{$uid} = $value;
       send_xpl($message_type, $uid, "temp", $value);
     }
-    print $_, "\n" if ($verbose);
   }
   return 1;
 }
