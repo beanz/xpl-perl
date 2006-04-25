@@ -151,7 +151,7 @@ sub digitemp_reader {
       $state{$uid} = $value;
       send_xpl($message_type, $uid, "temp", $value);
     }
-    print if ($verbose);
+    print $_, "\n" if ($verbose);
   }
   return 1;
 }
