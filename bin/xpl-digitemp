@@ -178,10 +178,11 @@ sub send_xpl {
   my $device = shift;
   my $type = shift;
   my $current = shift;
+  my $class = $type eq 'humidity' ? 'sensor.basic' : 'sensor.humidity';
   my %args =
     (
      message_type => $message_type,
-     class => 'sensor.basic',
+     class => $class,
      body => { device => $device, type => $type, current => $current },
     );
   print STDERR "Sending $device\[$type]=$current\n" if ($verbose);
