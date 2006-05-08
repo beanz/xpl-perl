@@ -146,11 +146,21 @@ sub digitemp_reader {
       my $sensor = $1;
       my $value = $2;
       my $uid = $uid{$sensor};
-      my $old = $state{$uid};
+      my $old = $state{$uid}->{temp};
       my $message_type =
         (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
-      $state{$uid} = $value;
+      $state{$uid}->{temp} = $value;
       send_xpl($message_type, $uid, "temp", $value);
+    }
+    if (m!Sensor\s+(\d+)\s+C:\s+\S+\s+F:\s+\S+\s+H:\s+(\S+)%\s+!) {
+      my $sensor = $1;
+      my $value = $2;
+      my $uid = $uid{$sensor};
+      my $old = $state{$uid}->{humidity};
+      my $message_type =
+        (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
+      $state{$uid}->{humidity} = $value;
+      send_xpl($message_type, $uid, "humidity", $value);
     }
   }
   return 1;
