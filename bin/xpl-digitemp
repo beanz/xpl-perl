@@ -178,7 +178,7 @@ sub send_xpl {
   my $device = shift;
   my $type = shift;
   my $current = shift;
-  my $class = $type eq 'humidity' ? 'sensor.basic' : 'sensor.humidity';
+  my $class = $type eq 'humidity' ? 'sensor.humidity' : 'sensor.basic';
   my %args =
     (
      message_type => $message_type,
