@@ -152,7 +152,7 @@ sub digitemp_reader {
       $state{$uid}->{temp} = $value;
       send_xpl($message_type, $uid, "temp", $value);
     }
-    if (m!Sensor\s+(\d+)\s+C:\s+\S+\s+F:\s+\S+\s+H:\s+(\S+)%\s+!) {
+    if (m!Sensor\s+(\d+)\s+C:\s+\S+\s+F:\s+\S+\s+H:\s+(\S+)%!) {
       my $sensor = $1;
       my $value = $2;
       my $uid = $uid{$sensor};
