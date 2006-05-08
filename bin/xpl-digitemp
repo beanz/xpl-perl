@@ -182,7 +182,7 @@ sub send_xpl {
     (
      message_type => $message_type,
      class => 'sensor.basic',
-     body => { device => $device, type => 'temp', current => $current },
+     body => { device => $device, type => $type, current => $current },
     );
   print STDERR "Sending $device\[$type]=$current\n" if ($verbose);
   return $xpl->send(%args);
