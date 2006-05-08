@@ -23,7 +23,7 @@ This module creates an xPL message.
 use 5.006;
 use strict;
 use warnings;
-use xPL::Message;
+use xPL::Message::sensor::basic;
 
 require Exporter;
 use AutoLoader qw(AUTOLOAD);
