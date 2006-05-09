@@ -141,16 +141,15 @@ sub update_rrd {
     $var = $2;
     $rrd .= $1.'/';
     mkdir $rrd, 0755 unless (-d $1);
-    $rrd .= $2;
+    $rrd .= $2.'.rrd';
     my $old = $rrd_dir.'/'.$1.'.rrd';
     if (-f $old) {
-      print STDERR "Trying to rename $old to $1/$2.rrd\n";
+      print STDERR "Trying to rename $old to $rrd\n";
       rename($old, $rrd) or die "Failed to rename: $!\n";
     }
   } else {
-    $rrd .= $dev;
+    $rrd .= $dev.'.rrd';
   }
-  $rrd .= '.rrd';
   unless (-f $rrd) {
     make_rrd($rrd, $time, $dev, $last, $var, $val, $fill, $min, $max) or return;
   }
