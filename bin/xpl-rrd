@@ -111,7 +111,14 @@ sub xpl_msg {
   if ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
       $msg->device && $msg->type eq "temp") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
-    $state{$dev} = join($c, $time, 'temp', $msg->current, 1, -20, 120);
+    delete $state{$dev};
+    $state{$dev.'/temp'} = join($c, $time, $msg->current, 1, -20, 120);
+    $tie_h->sync;
+  } elsif ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
+      $msg->device && $msg->type eq "humidity") {
+    my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
+    delete $state{$dev};
+    $state{$dev.'/humidity'} = join($c, $time, $msg->current, 1, 0, 100);
     $tie_h->sync;
   }
   return 1;
@@ -127,12 +134,19 @@ sub rrd {
 }
 
 sub update_rrd {
-  my ($time, $dev, $last, $var, $val, $fill, $min, $max) = @_;
+  my ($time, $dev, $last, $val, $fill, $min, $max) = @_;
   my $rrd = $rrd_dir.'/';
+  my $var = "value";
   if ($dev =~ m!^(.*)/([^/]+)$!) {
+    $var = $2;
     $rrd .= $1.'/';
     mkdir $rrd, 0755 unless (-d $1);
     $rrd .= $2;
+    my $old = $rrd_dir.'/'.$1.'.rrd';
+    if (-f $old) {
+      print STDERR "Trying to rename $old to $1/$2.rrd\n";
+      rename($old, $rrd) or die "Failed to rename: $!\n";
+    }
   } else {
     $rrd .= $dev;
   }
