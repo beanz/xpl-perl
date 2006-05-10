@@ -114,7 +114,7 @@ sub xpl_msg {
     delete $state{$dev};
     $state{$dev.'/temp'} = join($c, $time, $msg->current, 1, -20, 120);
     $tie_h->sync;
-  } elsif ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
+  } elsif ($msg->class eq "sensor" && $msg->class_type eq "humidity" &&
       $msg->device && $msg->type eq "humidity") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};
