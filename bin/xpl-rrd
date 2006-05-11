@@ -178,6 +178,7 @@ sub update_rrd {
 
 sub make_rrd {
   my ($rrd, $time, $dev, $last, $var, $val, $fill, $dstype, $min, $max) = @_;
+  $var =~ s/-/_/g;
   RRDs::create($rrd,
                "--step", 60,
                "DS:$var:$dstype:300:$min:$max",
