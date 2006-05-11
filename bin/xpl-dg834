@@ -58,7 +58,7 @@ my $host = shift || '192.168.0.1';
 if (exists $opt{'h'}) { HELP_MESSAGE() }
 my $interval = $opt{'s'} || 120;
 my $verbose = exists $opt{'v'};
-my $conf = exists $opt{'c'};
+my $conf = $opt{'c'};
 unless ($conf) {
   foreach ($ENV{HOME}.'/.dg834rc', '/etc/dg834rc', 'dg834rc') {
     next unless (-f $_);
@@ -147,26 +147,26 @@ sub poll_dg834 {
               ) {
         my ($field, $type) = @$_;
         my $v = shift @F;
-        send(lc($key), $field, $v, $type);
+        xpl_send(lc($key), $field, $v, $type);
       }
     } elsif ($key =~ /^Connection Speed$/) {
       foreach my $dir (qw/downstream upstream/) {
         my $v = shift @F;
         $v =~ s/ kbps//;
         $v *= 1024;
-        send($dir, 'speed', $v, 'bps');
+        xpl_send($dir, 'speed', $v, 'bps');
       }
     } elsif ($key =~ /^Line Attenuation$/) {
       foreach my $dir (qw/downstream upstream/) {
         my $v = shift @F;
         $v =~ s/ db//;
-        send($dir, 'attenuation', $v, 'db');
+        xpl_send($dir, 'attenuation', $v, 'db');
       }
     } elsif ($key =~ /^Noise Margin$/) {
       foreach my $dir (qw/downstream upstream/) {
         my $v = shift @F;
         $v =~ s/ db//;
-        send($dir, 'noise', $v, 'db');
+        xpl_send($dir, 'noise', $v, 'db');
       }
     } else {
       #print "$key = ",join("!",@F),"\n";
@@ -175,7 +175,7 @@ sub poll_dg834 {
   return 1;
 }
 
-sub send {
+sub xpl_send {
   my ($dev, $var, $val, $type) = @_;
   return $xpl->send(message_type => 'xpl-stat', class => 'sensor.network',
                     body => { device => $dev, type => $type, current => $val });
