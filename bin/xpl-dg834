@@ -1,0 +1,205 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-dg834 56 2005-12-14 08:36:22Z beanz $
+
+=head1 NAME
+
+xpl-dg834 - Perl script for an xPL DG834 monitor
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-dg834 -h
+
+  # start the dg834 application with poll interval of 120 seconds
+  xpl-dg834 -s 120
+
+  # start the dg834 listening and broadcasting on first ethernet
+  # interface in verbose mode using poll interval of 120 seconds
+  xpl-dg834 -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that polls the dg834 daemon (listening
+on the loopback interface) to check for temperature changes of hard
+disks.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use FileHandle;
+use LWP::UserAgent;
+use POSIX qw/strftime/;
+use xPL::Client;
+
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] <host>
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+  -s nn  - number of seconds between polling the Netgear DG834 (120)
+  -c cfg - configuration file ('~/.dg834rc', '/etc/dg834rc', or './dg834rc')
+  -I id  - instance name
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvs:i:c:I:', \%opt);
+my $host = shift || '192.168.0.1';
+if (exists $opt{'h'}) { HELP_MESSAGE() }
+my $interval = $opt{'s'} || 120;
+my $verbose = exists $opt{'v'};
+my $conf = exists $opt{'c'};
+unless ($conf) {
+  foreach ($ENV{HOME}.'/.dg834rc', '/etc/dg834rc', 'dg834rc') {
+    next unless (-f $_);
+    $conf = $_;
+    last;
+  }
+  die "Failed to find configuration file\n" unless ($conf);
+}
+my $fh = FileHandle->new($conf) || die "Failed to open $conf: $!\n";
+my $user = <$fh>;
+chomp($user);
+my $pass = <$fh>;
+chomp($pass);
+$fh->close;
+
+my $ua = LWP::UserAgent->new;
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "dg834",
+   instance_id => (exists $opt{'I'} ? $opt{'I'} :
+                   ($host !~ /^(\d+\.){3}\d+$/ ? $host : "default")),
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $state = {};
+my $buf = "";
+
+# Add a timer to the xPL Client event loop to generate the
+# "sensor.network" messages.  The negative interval causes the timer
+# to trigger immediately rather than waiting for the first interval.
+$xpl->add_timer(id => 'poll',
+                timeout => -$interval,
+                callback => \&poll_dg834);
+
+$SIG{TERM} = \&end;
+$SIG{QUIT} = \&end;
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to connect to dg834
+sub poll_dg834 {
+  my $res = $ua->get('http://'.$user.':'.$pass.'@'.$host.
+                     '/setup.cgi?next_file=stattbl.htm');
+  unless ($res->is_success) {
+    if ($res->code eq '401') {
+      sleep 2;
+      return poll_dg834();
+    }
+    warn "Failed with: ".$res->status_line."!\n";
+    return 1;
+  }
+  my $c = $res->content;
+  $c =~ s!<td[^>]*>\s*<span[^>]*"thead">!<th>!g;
+  $c =~ s!<td[^>]*>\s*<span[^>]*"ttext">!<td>!g;
+  $c =~ s!</span>!!g;
+  $c =~ s!</td>\s*!!g;
+  $c =~ s!<tr>\s*!!g;
+  $c =~ s!^\s*</.*$!!mg;
+  $c =~ s!^\s*<table.*$!!mg;
+  $c =~ s!^\s*<[^t].*$!!mg;
+  $c =~ s!^\s*<t[^h].*$!!mg;
+  $c =~ s!^\s+!!mg;
+
+  my %d;
+  foreach (split /\n/, $c) {
+    next unless (s/^<th>//);
+    s!</tr>$!!;
+    my ($key, @F) = split(/<t[dh]>/);
+    if ($key =~ /^([WL]AN)$/) {
+      shift @F;
+      foreach ([tx => 'packets'],
+               [rx => 'packets'],
+               [collisions => 'packets'],
+               [txbps => 'bps'],
+               [rxbps => 'bps'],
+              ) {
+        my ($field, $type) = @$_;
+        my $v = shift @F;
+        send(lc($key), $field, $v, $type);
+      }
+    } elsif ($key =~ /^Connection Speed$/) {
+      foreach my $dir (qw/downstream upstream/) {
+        my $v = shift @F;
+        $v =~ s/ kbps//;
+        $v *= 1024;
+        send($dir, 'speed', $v, 'bps');
+      }
+    } elsif ($key =~ /^Line Attenuation$/) {
+      foreach my $dir (qw/downstream upstream/) {
+        my $v = shift @F;
+        $v =~ s/ db//;
+        send($dir, 'attenuation', $v, 'db');
+      }
+    } elsif ($key =~ /^Noise Margin$/) {
+      foreach my $dir (qw/downstream upstream/) {
+        my $v = shift @F;
+        $v =~ s/ db//;
+        send($dir, 'noise', $v, 'db');
+      }
+    } else {
+      #print "$key = ",join("!",@F),"\n";
+    }
+  }
+  return 1;
+}
+
+sub send {
+  my ($dev, $var, $val, $type) = @_;
+  return $xpl->send(message_type => 'xpl-stat', class => 'sensor.network',
+                    body => { device => $dev, type => $type, current => $val });
+}
+
+# send a "hbeat.end" message on exit
+sub end { defined $xpl && undef $xpl;exit; }#->send_hbeat_end(); exit; }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2006 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

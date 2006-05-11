@@ -1,6 +1,7 @@
 bin/xpl-bridge
 bin/xpl-clock
 bin/xpl-dawndusk
+bin/xpl-dg834
 bin/xpl-digitemp
 bin/xpl-hddtemp
 bin/xpl-hub
@@ -30,6 +31,8 @@ lib/xPL/Message/hbeat/basic.pm
 lib/xPL/Message/hbeat/end.pm
 lib/xPL/Message/osd/basic.pm
 lib/xPL/Message/sensor/basic.pm
+lib/xPL/Message/sensor/humidity.pm
+lib/xPL/Message/sensor/network.pm
 lib/xPL/Message/tts/basic.pm
 lib/xPL/Message/ups/basic.pm
 lib/xPL/Message/x10/basic.pm
