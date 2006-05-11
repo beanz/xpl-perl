@@ -178,7 +178,12 @@ sub poll_dg834 {
 sub xpl_send {
   my ($dev, $var, $val, $type) = @_;
   return $xpl->send(message_type => 'xpl-stat', class => 'sensor.network',
-                    body => { device => $dev, type => $type, current => $val });
+                    body =>
+                    {
+                     device => $dev.'-'.$var,
+                     type => $type,
+                     current => $val
+                    });
 }
 
 # send a "hbeat.end" message on exit
