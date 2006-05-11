@@ -112,13 +112,22 @@ sub xpl_msg {
       $msg->device && $msg->type eq "temp") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};
-    $state{$dev.'/temp'} = join($c, $time, $msg->current, 1, -20, 120);
+    $state{$dev.'/temp'} =
+      join($c, $time, $msg->current, 1, 'GAUGE', -20, 120);
     $tie_h->sync;
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "humidity" &&
       $msg->device && $msg->type eq "humidity") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};
-    $state{$dev.'/humidity'} = join($c, $time, $msg->current, 1, 0, 100);
+    $state{$dev.'/humidity'} =
+      join($c, $time, $msg->current, 1, 'GAUGE', 0, 100);
+    $tie_h->sync;
+  } elsif ($msg->class eq "sensor" && $msg->class_type eq "network" &&
+      $msg->device && $msg->type =~ /^(db|bps)$/) {
+    my $dev = $msg->source;
+    $dev =~ s/.*?\.//;
+    $state{$dev.'/'.$msg->device.'-'.$msg->type} =
+      join($c, $time, $msg->current, 1, 'GAUGE', -10, 200);
     $tie_h->sync;
   }
   return 1;
@@ -134,7 +143,7 @@ sub rrd {
 }
 
 sub update_rrd {
-  my ($time, $dev, $last, $val, $fill, $min, $max) = @_;
+  my ($time, $dev, $last, $val, $fill, $dstype, $min, $max) = @_;
   my $rrd = $rrd_dir.'/';
   my $var = "value";
   if ($dev =~ m!^(.*)/([^/]+)$!) {
@@ -151,7 +160,8 @@ sub update_rrd {
     $rrd .= $dev.'.rrd';
   }
   unless (-f $rrd) {
-    make_rrd($rrd, $time, $dev, $last, $var, $val, $fill, $min, $max) or return;
+    make_rrd($rrd, $time, $dev, $last, $var, $val, $fill, $dstype, $min, $max)
+      or return;
   }
   my $t = $fill ? $time : $last;
   if ($last{$rrd} && $last{$rrd} >= $t) {
@@ -167,10 +177,10 @@ sub update_rrd {
 }
 
 sub make_rrd {
-  my ($rrd, $time, $dev, $last, $var, $val, $fill, $min, $max) = @_;
+  my ($rrd, $time, $dev, $last, $var, $val, $fill, $dstype, $min, $max) = @_;
   RRDs::create($rrd,
                "--step", 60,
-               "DS:$var:GAUGE:300:$min:$max",
+               "DS:$var:$dstype:300:$min:$max",
                "RRA:AVERAGE:0.5:1:6000", # 100 hours
                "RRA:AVERAGE:0.5:60:2400", # every hour for 100 days
                "RRA:AVERAGE:0.5:1440:400", # every day for 400 days
