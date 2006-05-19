@@ -113,21 +113,28 @@ sub xpl_msg {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};
     $state{$dev.'/temp'} =
-      join($c, $time, $msg->current, 1, 'GAUGE', -20, 120);
+      join($c, $time, $msg->type, $msg->current, 1, 'GAUGE', -20, 120);
     $tie_h->sync;
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "humidity" &&
       $msg->device && $msg->type eq "humidity") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};
     $state{$dev.'/humidity'} =
-      join($c, $time, $msg->current, 1, 'GAUGE', 0, 100);
+      join($c, $time, $msg->type, $msg->current, 1, 'GAUGE', 0, 100);
     $tie_h->sync;
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "network" &&
-      $msg->device && $msg->type =~ /^(db|bps)$/) {
+      $msg->device && $msg->type eq "db") {
     my $dev = $msg->source;
     $dev =~ s/.*?\.//;
-    $state{$dev.'/'.$msg->device.'-'.$msg->type} =
-      join($c, $time, $msg->current, 1, 'GAUGE', -10, 200);
+    $state{$dev.'/'.$msg->device.'-db'} =
+      join($c, $time, 'db' , $msg->current, 1, 'GAUGE', -10, 200);
+    $tie_h->sync;
+  } elsif ($msg->class eq "sensor" && $msg->class_type eq "network" &&
+      $msg->device && $msg->type eq "bps") {
+    my $dev = $msg->source;
+    $dev =~ s/.*?\.//;
+    $state{$dev.'/'.$msg->device.'-bps'} =
+      join($c, $time, 'bps' , $msg->current, 1, 'GAUGE', -10, 209715200);
     $tie_h->sync;
   }
   return 1;
@@ -143,11 +150,9 @@ sub rrd {
 }
 
 sub update_rrd {
-  my ($time, $dev, $last, $val, $fill, $dstype, $min, $max) = @_;
+  my ($time, $dev, $last, $var, $val, $fill, $dstype, $min, $max) = @_;
   my $rrd = $rrd_dir.'/';
-  my $var = "value";
   if ($dev =~ m!^(.*)/([^/]+)$!) {
-    $var = $2;
     $rrd .= $1.'/';
     mkdir $rrd, 0755 unless (-d $1);
     $rrd .= $2.'.rrd';
@@ -178,7 +183,6 @@ sub update_rrd {
 
 sub make_rrd {
   my ($rrd, $time, $dev, $last, $var, $val, $fill, $dstype, $min, $max) = @_;
-  $var =~ s/-/_/g;
   RRDs::create($rrd,
                "--step", 60,
                "DS:$var:$dstype:300:$min:$max",
@@ -197,7 +201,7 @@ sub make_rrd {
               );
   my $err = RRDs::error;
   if ($err) {
-    warn "ERROR creating $rrd: $err\n";
+    warn "ERROR creating $rrd($var): $err\n";
     return;
   }
   return 1;
