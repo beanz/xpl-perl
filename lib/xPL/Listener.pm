@@ -60,7 +60,7 @@ our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_collection(input => [qw/callback_count handle/],
                              timer => [qw/next timeout callback_count/],
-                             xpl_callback => [qw/callback_count/],
+                             xpl_callback => [qw/filter callback_count/],
                             );
 __PACKAGE__->make_readonly_accessor(qw/ip broadcast interface
                                        listen_port port
@@ -422,6 +422,20 @@ sub add_xpl_callback {
   exists $p{id} or $self->argh("requires 'id' argument");
   exists $p{self_skip} or $p{self_skip} = 1;
   exists $p{targetted} or $p{targetted} = 1;
+  if (exists $p{filter}) {
+    my $filter = $p{filter};
+    if (ref($filter) && ref($filter) ne "HASH") {
+      $self->argh('filter not scalar or hash');
+    }
+    unless (ref($filter)) {
+      my %f = simple_tokenizer($filter);
+      if (exists $f{class} && $f{class} =~ /^(\w+)\.(\w+)$/) {
+        $f{class} = $1;
+        $f{class_type} = $2;
+      }
+      $p{filter} = $filter = \%f;
+    }
+  }
   return $self->add_callback_item('xpl_callback', $p{id}, \%p);
 }
 
@@ -472,12 +486,19 @@ sub xpl_message {
     return 1;
   }
 
+ CB:
   foreach my $id (sort $self->xpl_callbacks()) {
     my $rec = $self->{_col}->{xpl_callback}->{$id};
     if ($self->can('id')) {
       next if ($rec->{self_skip} && $msg->source eq $self->id);
       next if ($rec->{targetted} &&
                $msg->target ne '*' && $msg->target ne $self->id);
+    }
+    if ($rec->{filter}) {
+      foreach my $key (keys %{$rec->{filter}}) {
+        next CB unless ($msg->can($key));
+        next CB unless ($msg->$key() =~ $rec->{filter}->{$key});
+      }
     }
     &{$rec->{callback}}(message => $msg,
                         peeraddr => $peeraddr,
