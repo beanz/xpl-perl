@@ -178,7 +178,7 @@ sub process_w800 {
 #    print "Dup $k\n";
     return;
   }
-  print $k, "\n";
+  print $k, "\n" if ($verbose);
   send_xpl($f, $h.$u);
   return 1;
 }
@@ -234,7 +234,7 @@ sub send_xpl {
   my $level = shift;
   my %body = ( device => $device, command => $command );
   if ($command eq "bright" or $command eq "dim") {
-    $body{$level} = $level || 5;
+    $body{level} = $level || 5;
   }
   my %args =
     (
