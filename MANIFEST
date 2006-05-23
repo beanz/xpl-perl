@@ -11,6 +11,7 @@ bin/xpl-rrd
 bin/xpl-sender
 bin/xpl-sql-logger
 bin/xpl-viom
+bin/xpl-w800
 bin/xpl-x10
 bin/xpl-xosd
 Changes

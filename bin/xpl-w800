@@ -1,0 +1,272 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-w800 90 2006-01-14 08:57:06Z beanz $
+
+=head1 NAME
+
+xpl-w800 - Perl script for an xPL W800 RF receiver application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-w800 -h
+
+  # start the w800 application on first ethernet interface in verbose mode
+  xpl-w800 -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a W800 RF receiver.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Std;
+use Time::HiRes;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] <device>
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+  -B baud - the baud rate (4800)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:b:B:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $dev = shift or die HELP_MESSAGE("The device parameter is required");
+my $baud = exists $opt{'B'} ? $opt{'B'} : 4800;
+my $verbose = exists $opt{'v'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "w800",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'w800', callback => \&xpl_in);
+
+my $buf = q{};
+my %unit;
+my %last;
+
+# TODO: use Device::SerialPort?
+system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+  die "Setting serial port with stty failed: $!\n";
+my $fh = FileHandle->new;
+sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+  or die "Cannot open serial connection on device '$dev'\n";
+$fh->autoflush(1);
+binmode($fh);
+$xpl->add_input(handle => $fh, callback => \&w800_reader);
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming control.basic schema messages.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  if ($msg->message_type ne 'xpl-cmnd' ||
+      $msg->class ne 'control' ||
+      $msg->class_type ne 'basic') {
+    return 1;
+  }
+
+  return 1;
+}
+
+=head2 C<w800_reader()>
+
+This is the callback that processes output from the W800.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+=cut
+
+sub w800_reader {
+  my $bytes = $fh->sysread($buf, 512, length($buf));
+  process_w800($buf);
+  $buf = "";
+  return 1;
+}
+
+=head2 C<process_w800( $sequence )>
+
+This function processes a single sequence from the RF receiver.  For
+details of the protocol see:
+
+  http://www.wgldesigns.com/protocols/w800rf32_protocol.txt
+
+At the moment only regular X10 signals are understood since they are
+the only devices I have.
+
+There is a .5 second timer to avoid duplicate sequences sending
+duplicate xPL messages.
+
+The duplicates should probably be counted for bright and dim to set
+the level but they aren't yet.
+
+=cut
+
+sub process_w800 {
+  my $seq = shift;
+
+  my @bytes = unpack("C*",$seq);
+  foreach (@bytes) {
+    # flip-bits
+    $_ = unpack("C",pack("B8",unpack("b8", pack("C",$_))));
+  }
+#  foreach (@bytes) {
+#    printf("%02x %3d %s\n", $_, $_, unpack("B*", pack("C",$_)));
+#  }
+  unless ($bytes[0]+$bytes[1] == 255 &&
+          $bytes[2]+$bytes[3] == 255) {
+    print "Bogus ", unpack("H*",$buf), "\n";
+    return;
+  }
+  my $byte1 = $bytes[2];
+  my $byte3 = $bytes[0];
+
+  if ($byte1 & 0xe0) {
+    warn "Not X10\n";
+    return;
+  }
+  my $h = house_code($byte3);
+  my $f = function($byte1);
+  unless ($byte1&1) {
+    $unit{$h} = unit_code($byte1, $byte3);
+  }
+  my $u = $unit{$h} || do { warn "Don't have unit code for: $h $f\n"; return };
+  my $k = $h.$u." ".$f;
+  my $t = Time::HiRes::time;
+  my $l = $last{$k};
+  $last{$k} = $t;
+  if (defined $l && $t-$l < 0.5) {
+#    print "Dup $k\n";
+    return;
+  }
+  print $k, "\n";
+  send_xpl($f, $h.$u);
+  return 1;
+}
+
+=head2 C<house_code( $byte1 )>
+
+This function takes byte 1 of a processed sequence and returns the
+associated house code.
+
+=cut
+
+sub house_code {
+  ('m', 'e', 'c', 'k', 'o', 'g', 'a', 'i',
+   'n', 'f', 'd', 'l', 'p', 'h', 'b', 'j')[$_[0] & 0xf];
+}
+
+=head2 C<function( $byte1 )>
+
+This function takes byte 1 of a processed sequence and returns the
+associated function.
+
+=cut
+
+sub function {
+  $_[0]&0x1 ? ($_[0]&0x8 ? "dim" : "bright") : ($_[0]&0x4 ? "off" : "on");
+}
+
+=head2 C<unit_code( $byte1, $byte3 )>
+
+This function takes bytes 1 and 3 of a processed sequence and returns
+the associated unit code.
+
+=cut
+
+sub unit_code {
+  my $b1 = shift;
+  my $b3 = shift;
+  return 1 + ((($b1&0x2) << 1) +
+              (($b1&0x18) >> 3) +
+              (($b3&0x20) >> 2));
+}
+
+=head2 C<send_xpl( $command, $device, $level )>
+
+This functions is used to send out x10.basic xpl-trig messages as a
+result of RF messages received by the W800 inputs.
+
+=cut
+
+sub send_xpl {
+  my $command = shift;
+  my $device = shift;
+  my $level = shift;
+  my %body = ( device => $device, command => $command );
+  if ($command eq "bright" or $command eq "dim") {
+    $body{$level} = $level || 5;
+  }
+  my %args =
+    (
+     message_type => 'xpl-trig',
+     class => 'x10.basic',
+     body => \%body,
+    );
+  print STDERR "Sending $device $command\n" if ($verbose);
+  return $xpl->send(%args);
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+W800 website: http://www.wgldesigns.com/w800.html
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
