@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 use strict;
-use Test::More tests => 113;
+use Test::More tests => 114;
 use t::Helpers qw/test_error test_warn/;
 use Socket;
 use Time::HiRes;
@@ -325,6 +325,11 @@ is(test_error(sub { $xpl->add_xpl_callback(); }),
    ref($xpl)."->add_xpl_callback: requires 'id' argument",
    "adding callback without an id");
 
+is(test_error(sub { $xpl->add_xpl_callback(id => 'test',
+                                          filter => ['invalid']); }),
+   ref($xpl).'->add_xpl_callback: filter not scalar or hash',
+   "adding callback with invalid filter");
+
 is(test_warn(sub { $xpl->remove_xpl_callback('none'); }),
    ref($xpl)."->remove_item: xpl_callback item 'none' not registered",
    "removing non-existent callback");
@@ -381,7 +386,7 @@ is(test_error(sub {
 SKIP: {
   skip "DateTime::Event::Cron", 5
     unless ($xpl->module_available("DateTime::Event::Cron"));
-  ok($xpl->add_timer(id => 'every5m', timeout => "C */5 * * * *"),
+  ok($xpl->add_timer(id => 'every5m', timeout => 'cron crontab="*/5 * * * *"'),
      "cron based timer created");
   my $now = time;
   my $min = (localtime($now))[1];
