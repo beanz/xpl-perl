@@ -147,6 +147,11 @@ sub new {
 
   $self->add_xpl_callback(id => '!hub-found',
                           self_skip => 0,
+                          filter =>
+                          {
+                           class => 'hbeat',
+                           class_type => 'app',
+                          },
                           callback => sub { $self->hub_response(@_) });
 
   $self->{_hbeat_mode} = 'fast';
@@ -275,19 +280,17 @@ sub hub_response {
   my $msg = $p{message};
 
   return 1 unless ($msg->source eq $self->id);
-  if ($msg->class eq 'hbeat' && $msg->class_type eq 'app') {
 
-    $self->{_hbeat_mode} = 'standard';
+  $self->{_hbeat_mode} = 'standard';
 
-    # we have a winner, our hbeat has been returned
-    $self->remove_timer('!fast-hbeat');
-    $self->remove_xpl_callback('!hub-found');
+  # we have a winner, our hbeat has been returned
+  $self->remove_timer('!fast-hbeat');
+  $self->remove_xpl_callback('!hub-found');
 
-    $self->add_timer(id => '!hbeat',
-                     timeout => $self->hbeat_interval*60,
-                     callback => sub { $self->send_hbeat(@_) },
-                    );
-  }
+  $self->add_timer(id => '!hbeat',
+                   timeout => $self->hbeat_interval*60,
+                   callback => sub { $self->send_hbeat(@_) },
+                  );
   return 1;
 }
 
