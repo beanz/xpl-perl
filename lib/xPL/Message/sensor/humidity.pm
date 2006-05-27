@@ -1,6 +1,6 @@
 package xPL::Message::sensor::humidity;
 
-# $Id: humidity.pm 85 2006-01-14 07:53:24Z beanz $
+# $Id$
 
 =head1 NAME
 
@@ -32,7 +32,7 @@ our @ISA = qw(xPL::Message::sensor::basic);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 85 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 =head2 C<field_spec()>
 

@@ -1,6 +1,6 @@
 package xPL::Message::audio::basic;
 
-# $Id: basic.pm 46 2005-12-11 22:06:30Z beanz $
+# $Id$
 
 =head1 NAME
 
@@ -35,7 +35,7 @@ our @ISA = qw(xPL::Message);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 46 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 =head2 C<field_spec()>
 
