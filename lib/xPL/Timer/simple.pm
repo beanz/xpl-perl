@@ -4,7 +4,7 @@ package xPL::Timer::simple;
 
 =head1 NAME
 
-xPL::Timer - Perl extension for xPL simple timer
+xPL::Timer::simple - Perl extension for xPL simple timer
 
 =head1 SYNOPSIS
 
