@@ -410,7 +410,22 @@ the hash are:
 
 =item filter
 
-  Not implemented yet.
+  A hash reference containing keys matching xPL::Message methods with
+  values that are regular expressions to match against the message
+  attribute.  For example, the following will match C<x10.basic>
+  trigger messages.
+
+    {
+     msg_type => 'xpl-trig',
+     class => 'x10.basic',
+    }
+
+  It is also possible, though not advisable in normal Perl code, to
+  provide a filter as a string that is parsed using
+  L<simple_tokenizer> to produce a hash like the reference described
+  above.  This syntax is intended to be used where the natural source
+  format is a string - such as when the filter is obtained from a
+  database.
 
 =back
 
