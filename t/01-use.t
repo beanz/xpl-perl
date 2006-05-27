@@ -8,7 +8,7 @@ BEGIN {
   my $fh = FileHandle->new('<MANIFEST') or
     die 'Open of MANIFEST failed: '.$ERRNO;
   while(<$fh>) {
-    next if (!/lib\/(.*)\.pm/);
+    next if (!/^lib\/(.*)\.pm/);
     my $m = $LAST_PAREN_MATCH;
     $m =~ s!/!::!g;
     push @modules, $m;
