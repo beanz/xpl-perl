@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+#
+# Copyright (C) 2005 by Mark Hindess
+
 use strict;
 use Socket;
 use Time::HiRes;

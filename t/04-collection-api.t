@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+#
+# Copyright (C) 2005 by Mark Hindess
+
 use strict;
 use Test::More tests => 33;
 use t::Helpers qw/test_error test_warn/;

@@ -1,4 +1,7 @@
 #!/usr/bin/perl -w
+#
+# Copyright (C) 2006 by Mark Hindess
+
 use strict;
 use DirHandle;
 use English qw/-no_match_vars/;
