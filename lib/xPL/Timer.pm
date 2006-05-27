@@ -94,9 +94,6 @@ sub new_from_string {
 
   if ($timeout =~ /^cron (.*)$/i) {
     return $pkg->new(type => 'cron', simple_tokenizer($1));
-  } elsif ($timeout =~ /^c (.*)$/i) {
-    $pkg->ouch("use of obsolete timeout syntax: '$timeout'");
-    return $pkg->new(type => 'cron', crontab => $1);
   } elsif ($timeout =~ /^(sunrise|sunset)\s*(.*)$/) {
     return $pkg->new(type => $1, simple_tokenizer($2));
   } elsif ($timeout =~ /^-?[0-9\.]+$/) {
