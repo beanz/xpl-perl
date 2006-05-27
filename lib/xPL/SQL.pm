@@ -147,6 +147,13 @@ __END__
 
 Current tables which should work for MySQL are:
 
+  CREATE TABLE body (
+    id int NOT NULL auto_increment,
+    body varchar(1500) default NULL,
+    PRIMARY KEY  (id),
+    KEY body_idx (body(1000))
+  );
+
   CREATE TABLE elt (
     id int NOT NULL auto_increment,
     name varchar(16) default NULL,

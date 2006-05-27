@@ -19,5 +19,10 @@ BEGIN {
 }
 
 foreach my $m (@modules) {
-  require_ok($m);
+ SKIP: {
+    skip 'no database defined, see xPL::SQL', 1
+      unless (exists $ENV{'XPL_DB_CONFIG'});
+
+    require_ok($m);
+  }
 }

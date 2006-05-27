@@ -1,5 +1,24 @@
 Revision history for Perl extension xPL.
 
+0.03  Sat May 27 12:00:00 BST 2006
+        - Fixed problem with logger only logging its own messages.
+        - Fixed SYNOPSIS to use new syntax - thanks to rleong1.
+        - New xPL::Timer abstraction - crontab-based timer syntax
+          changed from "C * * * * *" to "cron crontab='* * * * *'"
+          to give more flexibility.
+        - New client: xpl-dawndusk
+        - New client: xpl-dg834 (for monitoring my adsl link)
+        - New client: xpl-digitemp (1-wire client)
+        - New client: xpl-hddtemp
+        - New client: xpl-owfs (1-wire client - less stable than xpl-digitemp)
+        - New client: xpl-rrd
+        - New client: xpl-sql-logger (in progress - api/table changes likely)
+        - New client: xpl-viom
+        - New client: xpl-w800
+        - New message types: cid.basic, tts.basic, dawndusk.basic,
+                             sensor.basic, control.basic
+        - Bug: closed filehandles were not removed properly
+
 0.02  Tue Dec 13 19:39:48 GMT 2005
         - Some API changes:
           * 'xpl-*' - '-i' now specifies and interface.
