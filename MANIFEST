@@ -3,6 +3,7 @@ bin/xpl-clock
 bin/xpl-dawndusk
 bin/xpl-dg834
 bin/xpl-digitemp
+bin/xpl-dmx
 bin/xpl-hddtemp
 bin/xpl-hub
 bin/xpl-logger
@@ -29,6 +30,7 @@ lib/xPL/Message/cid/basic.pm
 lib/xPL/Message/clock/update.pm
 lib/xPL/Message/control/basic.pm
 lib/xPL/Message/dawndusk/basic.pm
+lib/xPL/Message/dmx/basic.pm
 lib/xPL/Message/hbeat/app.pm
 lib/xPL/Message/hbeat/basic.pm
 lib/xPL/Message/hbeat/end.pm
