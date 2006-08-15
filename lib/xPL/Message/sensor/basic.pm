@@ -51,8 +51,11 @@ sub field_spec {
    {
     name => 'type',
     validation => xPL::Validation->new(type => 'Set',
-                                       set => [qw/fan generic input temp
-                                                  voltage/]),
+                                       set => [qw/count current
+                                                  direction distance
+                                                  fan generic humidity
+                                                  input pressure speed
+                                                  temp voltage/]),
     required => 1,
    },
    {
@@ -94,8 +97,9 @@ new value before it returns.
 
 This method returns the device type.  If the optional new value
 argument is present, then this method updates the device type with the
-new value before it returns.
+new value before it returns.  See the xPL Schema web page for details:
 
+   http://wiki.xplproject.org.uk/index.php/Schema_-_SENSOR.BASIC
 
 =head2 C<current( [ $new_current ] )>
 
