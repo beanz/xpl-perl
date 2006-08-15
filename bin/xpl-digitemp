@@ -143,27 +143,38 @@ sub digitemp_reader {
     print $_, "\n" if ($verbose);
     # TOFIX: process timestamps
     if (m!Sensor\s+(\d+)\s+C:\s+(\S+)\s+!) {
-      my $sensor = $1;
-      my $value = $2;
-      my $uid = $uid{$sensor};
-      my $old = $state{$uid}->{temp};
-      my $message_type =
-        (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
-      $state{$uid}->{temp} = $value;
-      send_xpl($message_type, $uid, "temp", $value);
+      process_sensor_value($1, 'temp', $2);
     }
     if (m!Sensor\s+(\d+)\s+C:\s+\S+\s+F:\s+\S+\s+H:\s+(\S+)%!) {
-      my $sensor = $1;
-      my $value = $2;
-      my $uid = $uid{$sensor};
-      my $old = $state{$uid}->{humidity};
-      my $message_type =
-        (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
-      $state{$uid}->{humidity} = $value;
-      send_xpl($message_type, $uid, "humidity", $value);
+      process_sensor_value($1, 'humidity', $2);
+    }
+    if (m!Sensor\s+(\d+)\s+#(\d+)\s+(\d+)!) {
+      process_sensor_value($1, 'count', $3, $2);
     }
   }
   return 1;
+}
+
+=head2 C<process_sensor_value( $sensor, $key, $value, $index)>
+
+This method is a helper for some common logic for sending values
+from sensors.
+
+=cut
+
+sub process_sensor_value {
+  my $sensor = shift;
+  my $key = shift;
+  my $value = shift;
+  my $index = shift;
+  my $uid = $uid{$sensor};
+  my $old = $state{$uid}->{$key};
+  my $message_type =
+    (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
+  $state{$uid}->{$key} = $value;
+  return send_xpl($message_type,
+                  defined $index ? $uid.'.'.$index : $uid,
+                  $key, $value);
 }
 
 =head2 C<send_xpl( $message_type, $device, $type, $current )>
@@ -178,7 +189,7 @@ sub send_xpl {
   my $device = shift;
   my $type = shift;
   my $current = shift;
-  my $class = $type eq 'humidity' ? 'sensor.humidity' : 'sensor.basic';
+  my $class = 'sensor.basic';
   my %args =
     (
      message_type => $message_type,
