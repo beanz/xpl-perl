@@ -35,6 +35,7 @@ lib/xPL/Message/hbeat/app.pm
 lib/xPL/Message/hbeat/basic.pm
 lib/xPL/Message/hbeat/end.pm
 lib/xPL/Message/osd/basic.pm
+lib/xPL/Message/remote/basic.pm
 lib/xPL/Message/sensor/basic.pm
 lib/xPL/Message/sensor/humidity.pm
 lib/xPL/Message/sensor/network.pm
