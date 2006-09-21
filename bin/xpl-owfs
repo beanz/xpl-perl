@@ -102,7 +102,37 @@ sub xpl_in {
     # don't have any debug actions yet
     return 1;
   }
+  my $device = uc $msg->device;
+  my $current = lc $msg->current;
+  unless ($device =~ /^[0-9A-F]{2}\.[0-9A-F]+$/) {
+    return 1;
+  }
+  if ($current eq 'high') {
+    owfs_write($device.'/PIO', 1);
+  } elsif ($current eq 'low') {
+    owfs_write($device.'/PIO', 0);
+  } elsif ($current eq 'pulse') {
+    owfs_write($device.'/PIO', 1);
+    select(undef,undef,undef,0.15);
+    owfs_write($device.'/PIO', 0);
+  }
   return 1;
+}
+
+=head2 C<owfs_write( $file, $value )>
+
+This function writes the given value to the named file in the 1-wire
+file system.
+
+=cut
+
+sub owfs_write {
+  my ($file, $value) = @_;
+  my $fh = FileHandle->new('>'.$ow_dir.'/'.$file) or return;
+  print STDERR "Writing $value to $file\n" if ($verbose);
+  $fh->print($value);
+  $fh->flush();
+  return;
 }
 
 =head2 C<owfs_reader()>
@@ -119,7 +149,8 @@ sub owfs_reader {
     foreach my $rec ([ "temperature", "temp" ],
                      [ 'humidity', 'humidity' ],
                      [ 'counters.A', 'count', 0 ],
-                     [ 'counters.B', 'count', 1 ]) {
+                     [ 'counters.B', 'count', 1 ],
+                     [ 'current', 'current' ]) {
       my ($filebase, $type, $index) = @$rec;
       my $file = $dev.'/'.$filebase;
       next unless (-f $file);
