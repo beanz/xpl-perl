@@ -154,7 +154,7 @@ sub process_w800 {
 #  }
   unless ($bytes[0]+$bytes[1] == 255 &&
           $bytes[2]+$bytes[3] == 255) {
-    print "Bogus ", unpack("H*",$buf), "\n";
+    print "Bogus ", unpack("H*",$seq), "\n";
     return;
   }
   my $byte1 = $bytes[2];
@@ -234,7 +234,7 @@ sub send_xpl {
   my $level = shift;
   my %body = ( device => $device, command => $command );
   if ($command eq "bright" or $command eq "dim") {
-    $body{level} = $level || 5;
+    $body{level} = $level || 10;
   }
   my %args =
     (
