@@ -92,7 +92,7 @@ sub summary {
 This method returns the DMX base address.  If the optional new value
 argument is present, then this method updates the base address with
 the new value before it returns.  The address should either be a
-single number between 1 and 512, or a such a number followed by 'x'
+single number between 1 and 512, or such a number followed by 'x'
 and then a second number, where the second number is the number of
 times to repeat the values.  For instance, a message containing a base
 address of 1x2 and a value of 0xff0000 would set the values for the
