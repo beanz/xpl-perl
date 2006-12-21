@@ -1,0 +1,135 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-irw 156 2006-08-15 19:27:58Z beanz $
+
+=head1 NAME
+
+xpl-irw - Perl script for an xPL interface to the lirc infrared reader, irw
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-irw -h
+
+  # start the irw client on first ethernet interface in verbose mode
+  xpl-irw -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with the irw client that
+comes with lirc.  It reads the remote control signals that are reported
+and transmits them as xPL C<remote.basic> messages.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use DirHandle;
+use FileHandle;
+use Getopt::Std;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $verbose = exists $opt{'v'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "irw",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+my $buf = "";
+my $pid;
+
+END {
+  # kill child process
+  kill(9, $pid) if ($pid);
+
+  # send a 'hbeat.end' message on exit
+  $xpl->send_hbeat_end() if (defined $xpl);
+}
+
+my $fh = FileHandle->new;
+$pid = $fh->open("irw|") or die "irw: $!\n";
+
+$xpl->add_input(handle => $fh, callback => \&irw_reader);
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<irw_reader()>
+
+This is the callback that processes output from the C<irw> program.
+It is responsible for sending out the remote.basic xpl-trig messages.
+
+=cut
+
+sub irw_reader {
+  my $bytes = $fh->sysread($buf, 512, length($buf));
+  while ($buf =~ s/^(.*?)\n//) {
+    $_ = $1;
+    print $_, "\n" if ($verbose);
+    if (m!^\S+ \S{2} (\S+) (\S+)!) {
+      my $device = lc($2);
+      my $key = lc($1);
+      my %args =
+        (
+         message_type => 'xpl-trig',
+         class => 'remote.basic',
+         body => { device => $device, 'keys' => $key },
+        );
+      print STDERR "Sending $device $key\n" if ($verbose);
+      return $xpl->send(%args);
+    }
+  }
+}
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+DigiTemp website: http://www.digitemp.com/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2006 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
