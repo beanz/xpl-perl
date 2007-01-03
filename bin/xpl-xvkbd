@@ -1,0 +1,120 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-x10 151 2006-05-27 10:53:39Z beanz $
+
+=head1 NAME
+
+xpl-x10 - Perl script for an xPL virtual keyboard application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-xvkbd -h
+
+  # start the xvkbd application on first ethernet interface in verbose mode
+  xpl-xvkbd -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with xvkbd to send key strokes
+to an X11 application.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Std;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:b:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "xvkbd",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'xvkbd', callback => \&xpl_in);
+
+# Run the main loop
+$xpl->main_loop();
+
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+a limited subset of the full remote.basic schema but could easily be
+extended.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  if ($msg->message_type ne 'xpl-cmnd' ||
+      $msg->class ne 'remote' ||
+      $msg->class_type ne 'basic') {
+    return 1;
+  }
+  my @cmd = qw/xvkbd -text/;
+  push @cmd, $msg->keys, "\n";
+  print STDERR "Executing '@cmd'\n" if ($opt{'v'});
+  system(@cmd);
+  return 1;
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), heyu(1)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005, 2006 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
