@@ -15,6 +15,7 @@ bin/xpl-viom
 bin/xpl-w800
 bin/xpl-x10
 bin/xpl-xosd
+bin/xpl-xvkbd
 Changes
 doc/footer.tex
 doc/header.tex
