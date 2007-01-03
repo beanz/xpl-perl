@@ -90,7 +90,7 @@ sub xpl_in {
     return 1;
   }
   my @cmd = qw/xvkbd -text/;
-  push @cmd, $msg->keys, "\n";
+  push @cmd, $msg->keys;
   print STDERR "Executing '@cmd'\n" if ($opt{'v'});
   system(@cmd);
   return 1;
