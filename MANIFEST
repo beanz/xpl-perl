@@ -48,6 +48,7 @@ lib/xPL/Message/x10/confirm.pm
 lib/xPL/SQL.pm
 lib/xPL/Timer.pm
 lib/xPL/Timer/cron.pm
+lib/xPL/Timer/recurrence.pm
 lib/xPL/Timer/simple.pm
 lib/xPL/Timer/sunrise.pm
 lib/xPL/Timer/sunset.pm
