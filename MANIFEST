@@ -6,6 +6,7 @@ bin/xpl-digitemp
 bin/xpl-dmx
 bin/xpl-hddtemp
 bin/xpl-hub
+bin/xpl-lirc
 bin/xpl-logger
 bin/xpl-mplayer
 bin/xpl-owfs

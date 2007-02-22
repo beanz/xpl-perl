@@ -1,0 +1,149 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-lirc 156 2006-08-15 19:27:58Z beanz $
+
+=head1 NAME
+
+xpl-lirc - Perl script for an xPL interface to an LIRC daemon
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-lirc -h
+
+  # start the lirc client on first ethernet interface in verbose mode
+  # socket /dev/lircd
+  xpl-lirc -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with the lirc client that
+comes with lirc.  It reads the remote control signals that are reported
+and transmits them as xPL C<remote.basic> messages.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use DirHandle;
+use FileHandle;
+use Getopt::Std;
+use IO::Socket::UNIX;
+use IO::Socket::INET;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0    - the inferface for xPL messages (first non-loopback or loopback)
+  -s server - server to connect to.  A _full_ path to unix domain socket
+              a host or a host:port pair (/dev/lircd)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:s:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $verbose = exists $opt{'v'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "lirc",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+my $server = $opt{'s'} || '/dev/lircd';
+
+my $ss;
+if ($server =~ m!^/!) {
+  $ss = IO::Socket::UNIX->new($server);
+} else {
+  $server .= ':8765' unless ($server =~ /:/);
+  $ss = IO::Socket::INET->new($server);
+}
+unless ($ss) {
+  die "Can't connect to $server: $!\n";
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+my $buf = "";
+
+END {
+  # send a 'hbeat.end' message on exit
+  $xpl->send_hbeat_end() if (defined $xpl);
+}
+
+$xpl->add_input(handle => $ss, callback => \&lirc_reader);
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<lirc_reader()>
+
+This is the callback that processes output from the C<lirc> program.
+It is responsible for sending out the remote.basic xpl-trig messages.
+
+=cut
+
+sub lirc_reader {
+  my $bytes = $ss->sysread($buf, 512, length($buf));
+  if (!$bytes) {
+    die 'lircd socket '.(defined $bytes ? 'closed' : 'error')."\n";
+  }
+  while ($buf =~ s/^(.*?)\n//) {
+    $_ = $1;
+    print $_, "\n" if ($verbose);
+    if (m!^\S+ \S{2} (\S+) (\S+)!) {
+      my $device = lc($2);
+      my $key = lc($1);
+      my %args =
+        (
+         message_type => 'xpl-trig',
+         class => 'remote.basic',
+         body => { device => $device, 'keys' => $key },
+        );
+      print STDERR "Sending $device $key\n" if ($verbose);
+      return $xpl->send(%args);
+    }
+  }
+}
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+DigiTemp website: http://www.digitemp.com/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2006 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
