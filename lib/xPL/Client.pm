@@ -104,7 +104,10 @@ sub new {
 
   exists $p{instance_id} or
     $p{instance_id} = substr $ENV{XPL_HOSTNAME}||(uname)[1]||'default', 0, 12;
-  $p{instance_id}=~/^[A-Za-z0-9]{1,12}$/ or $self->argh('instance_id invalid');
+  $p{instance_id}=~/^[A-Za-z0-9]{1,12}$/ or
+    $self->argh('instance_id, '.$p{instance_id}.", is invalid.\n".
+      "The default can be overriden by setting the XPL_HOSTNAME environment\n".
+      "variable");
 
   exists $p{hbeat_interval} or $p{hbeat_interval} = 5;
   ($p{hbeat_interval} =~ /^[\d]+$/ &&

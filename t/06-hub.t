@@ -219,7 +219,9 @@ is(test_error(sub {
                                 device_id => 'dingus',
                                 instance_id => 'thisinstanceidistoolong');
    }),
-   "xPL::Client->new: instance_id invalid",
+   "xPL::Client->new: instance_id, thisinstanceidistoolong, is invalid.\n".
+   "The default can be overriden by setting the XPL_HOSTNAME environment\n".
+   "variable",
    "client invalid instance_id parameter");
 
 is(test_warn(sub { $xpl->instance_id('thisinstanceidistoolong'); }),
