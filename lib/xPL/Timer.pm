@@ -92,9 +92,7 @@ sub new_from_string {
   my $pkg = shift;
   my $timeout = shift;
 
-  if ($timeout =~ /^cron (.*)$/i) {
-    return $pkg->new(type => 'cron', simple_tokenizer($1));
-  } elsif ($timeout =~ /^(sunrise|sunset)\s*(.*)$/) {
+  if ($timeout =~ /^(\w+) (.*)$/i) {
     return $pkg->new(type => $1, simple_tokenizer($2));
   } elsif ($timeout =~ /^-?[0-9\.]+$/) {
     return $pkg->new(type => 'simple', timeout => $timeout);
