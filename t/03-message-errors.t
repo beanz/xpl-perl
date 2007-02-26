@@ -3,7 +3,7 @@
 # Copyright (C) 2005 by Mark Hindess
 
 use strict;
-use Test::More tests => 24;
+use Test::More tests => 28;
 use t::Helpers qw/test_warn test_error/;
 
 use_ok("xPL::Message");
@@ -216,3 +216,26 @@ is(test_error(sub { xPL::Message->make_body_field({ name => 'test' }) }),
    'xPL::Message->make_body_field: '.
      'BUG: missing body field record missing validation',
    'make_body_field with name in field record');
+
+my $invalid;
+is(test_error(sub {
+  $invalid = xPL::Message->new(message_type => 'xpl-cmnd',
+                               class => 'invalid.header',
+                               strict => 1,
+                               head_content => "hop=10\ntarget=*",
+                               body_content => "");
+}),
+  '',
+  'check no error with lazy parsing of head and body');
+
+my $class;
+is(test_error(sub { $class = $invalid->class; }),
+  q{},
+  'check no error when head is parsed - can check class');
+is($class, 'invalid',
+  'check no error when head is parsed - can check class - content');
+my $target;
+is(test_error(sub { $target = $invalid->target; }),
+  q{xPL::Message->hop: hop count, 10, is invalid.
+It should be a value from 1 to 9},
+  'check no error when head is parsed - can\'t check target');
