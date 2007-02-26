@@ -70,10 +70,8 @@ if (exists $opt{'v'}) {
 }
 
 my $pl = [];
-if ($opt{'l'}) {
-  $pl = load_list($opt{'l'}, $opt{'s'});
-}
 my $pl_index = -1;
+load_list($opt{'l'}, $opt{'s'});
 
 # Create an xPL Client object
 my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
@@ -339,7 +337,7 @@ sub load_list {
   chomp(@array);
   fisher_yates_shuffle(\@array) if ($shuffle);
   print STDERR "Playlist contains ", scalar @array, " items\n";
-  return \@array;
+  return $pl = \@array;
 }
 
 =head2 C<fisher_yates_shuffle( \@array )>
