@@ -149,6 +149,8 @@ sub poll_dg834 {
         my $v = shift @F;
         xpl_send(lc($key), $field, $v, $type);
       }
+      my ($h,$m,$s) = split /:/, $F[0];
+      xpl_send(lc($key), 'uptime', $h*3600+$m*60+$s, 'count');
     } elsif ($key =~ /^Connection Speed$/) {
       foreach my $dir (qw/downstream upstream/) {
         my $v = shift @F;
@@ -177,7 +179,8 @@ sub poll_dg834 {
 
 sub xpl_send {
   my ($dev, $var, $val, $type) = @_;
-  return $xpl->send(message_type => 'xpl-stat', class => 'sensor.network',
+  my $class = $type eq "count" ? 'sensor.basic' : 'sensor.network';
+  return $xpl->send(message_type => 'xpl-stat', class => $class,
                     body =>
                     {
                      device => $dev.'-'.$var,
