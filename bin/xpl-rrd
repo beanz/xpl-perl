@@ -136,6 +136,13 @@ sub xpl_msg {
     $state{$dev.'/'.$msg->device.'-bps'} =
       join($c, $time, 'bps' , $msg->current, 1, 'GAUGE', -10, 209715200);
     $tie_h->sync;
+  } elsif ($msg->class eq 'x10' && $msg->class_type eq 'basic' &&
+           $msg->command =~ /^(on|off)$/) {
+    my $dev =
+      'x10/'.(exists $map{$msg->device} ? $map{$msg->device} : $msg->device);
+    $state{$dev} =
+      join($c, $time, 'state', $msg->command eq "on" ? 1 : 0, 1, 'GAUGE', 0, 1);
+    $tie_h->sync;
   }
   return 1;
 }
