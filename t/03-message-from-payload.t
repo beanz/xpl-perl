@@ -3,7 +3,7 @@
 # Copyright (C) 2005 by Mark Hindess
 
 use strict;
-use Test::More tests => 4;
+use Test::More tests => 6;
 use t::Helpers qw/test_warn/;
 
 use_ok('xPL::Message');
@@ -46,10 +46,19 @@ b=value-b2
 ';
 
 $payload = $payload_pre.$payload_body;
-
-is(test_warn(sub { $str = xPL::Message->new_from_payload($payload)->string; }),
-   'xPL::Message->new_from_payload: Repeated body field: b',
+my $str_in;
+my $str_out;
+my $fields;
+is(test_warn(sub {
+ my $xpl = xPL::Message->new_from_payload($payload);
+ $str_in = $xpl->string;
+ $fields = join(",", $xpl->extra_fields());
+ $str_out = $xpl->string;
+ }),
+   'xPL::Message->_parse_body: Repeated body field: b',
    'new_from_payload with duplicate field - error');
+is($fields, 'b,c,a', 'new_from_payload with duplicate field - fields');
+is($str_in, $payload, 'new_from_payload with duplicate field - content in');
 $payload_body =
 'b=value-b
 c=value-c
@@ -57,4 +66,4 @@ a=value-a
 }
 ';
 $payload = $payload_pre.$payload_body;
-is($str, $payload, 'new_from_payload with duplicate field - content');
+is($str_out, $payload, 'new_from_payload with duplicate field - content out');

@@ -112,8 +112,6 @@ sub new {
   my $pkg = shift;
 
   my %p = @_;
-  exists $p{head} or  $p{head} = {};
-  exists $p{body} or $p{body} = {};
   exists $p{strict} or $p{strict} = 1;
 
   my $class;
@@ -178,27 +176,30 @@ sub new {
   $self->message_type($p{message_type});
   delete $p{message_type};
 
-  $self->parse_head_parameters($p{head});
-  $self->parse_body_parameters($p{body});
-
-  $self->{_extra_order} = [];
-  foreach ($p{body_order} ? @{$p{body_order}} : keys %{$p{body}}) {
-    next unless (exists $p{body}->{$_});
-    $self->extra_field($_, $p{body}->{$_});
+  if ($p{head_content}) {
+    $self->{_head_content} = $p{head_content};
+  } else {
+    exists $p{head} or  $p{head} = {};
+    $self->parse_head_parameters($p{head}, $p{head_order});
   }
-  $self->{_head_order} = $p{head_order} || [qw/hop source target/];
 
+  if ($p{body_content}) {
+    $self->{_body_content} = $p{body_content};
+  } else {
+    exists $p{body} or $p{body} = {};
+    $self->parse_body_parameters($p{body});
+  }
   return $self;
 }
 
-=head2 C<new_from_payload( $message )>
+=head2 C<old_from_payload( $message )>
 
 This is a constructor that takes the string of an xPL message and
 constructs an xPL::Message object from it.
 
 =cut
 
-sub new_from_payload {
+sub old_from_payload {
   my $pkg = shift;
   my $msg = shift;
   my %r = ();
@@ -245,6 +246,75 @@ sub new_from_payload {
   return $pkg->new(strict => 0, %r);
 }
 
+=head2 C<new_from_payload( $message )>
+
+This is a constructor that takes the string of an xPL message and
+constructs an xPL::Message object from it.
+
+=cut
+
+sub new_from_payload {
+  my $pkg = shift;
+  my $msg = shift;
+  my %r = ();
+  my ($head, $body, $null) = split /\n}\n/, $msg, 3;
+  unless (defined $head) {
+    xPL::Message->argh('Message badly formed: empty?');
+  }
+  unless (defined $body) {
+    xPL::Message->argh('Message badly formed: failed to split head and body');
+  }
+  unless (defined $null) {
+    xPL::Message->ouch('Message badly terminated: missing final eol char?');
+    $body =~ s/\n}$//;
+  }
+  if ($null) {
+    xPL::Message->ouch("Trailing trash: $null\n");
+  }
+  unless ($head =~ /^(.*?)\n\{\n(.*)$/s) {
+    xPL::Message->argh("Invalid header: $head\n");
+  }
+  $r{message_type} = $1;
+  $r{head_content} = $2;
+
+  unless ($body =~ /^(.*?)\n\{\n(.*)$/s) {
+    xPL::Message->argh("Invalid body: $body\n");
+  }
+  $r{body_content} = $2;
+  @r{qw/class class_type/} = split /\./, $1, 2;
+  return $pkg->new(strict => 0, %r);
+}
+
+sub _parse_head {
+  my $self = shift;
+  my %r;
+  foreach (split /\n/, $self->{_head_content}) {
+    my ($k, $v) = split /=/, $_, 2;
+    $k =~ s/-/_/g;
+    $r{head}->{$k} = $v;
+    push @{$r{head_order}}, $k;
+  }
+  delete $self->{_head_content};
+  $self->parse_head_parameters($r{head}, $r{head_order});
+}
+
+sub _parse_body {
+  my $self = shift;
+  my %r;
+  foreach (split /\n/, $self->{_body_content}) {
+    my ($k, $v) = split /=/, $_, 2;
+    $k =~ s/-/_/g;
+    if (exists $r{body}->{$k}) {
+      xPL::Message->ouch('Repeated body field: '.$k);
+      next;
+    }
+    $r{body}->{$k} = $v;
+    push @{$r{body_order}}, $k;
+  }
+  delete $self->{_body_content};
+  $self->parse_body_parameters($r{body}, $r{body_order});
+}
+
 =head2 C<field_spec()>
 
 This is the default field specification.  It is empty.  Specific
@@ -256,7 +326,7 @@ sub field_spec {
   []
 }
 
-=head2 C<parse_head_parameters( $head_hash_ref )>
+=head2 C<parse_head_parameters( $head_hash_ref, $head_order )>
 
 This method is called by the constructor to process the fields of the
 header of the message.
@@ -266,7 +336,10 @@ header of the message.
 sub parse_head_parameters {
   my $self = shift;
   my $head = shift;
-    # process fields from the header
+  my $head_order = shift;
+  $self->{_head_order} = $head_order || [qw/hop source target/];
+
+  # process fields from the header
   foreach ([ hop => 1 ],
            [ source => undef ],
            [ target => "*" ],
@@ -296,9 +369,15 @@ message type.
 sub parse_body_parameters {
   my $self = shift;
   my $body = shift;
+  my $body_order = shift;
   my $spec = $self->field_spec();
   foreach my $field_rec (@$spec) {
     $self->process_field_record($body, $field_rec);
+  }
+  $self->{_extra_order} = [];
+  foreach ($body_order ? @{$body_order} : keys %{$body}) {
+    next unless (exists $body->{$_});
+    $self->extra_field($_, $body->{$_});
   }
   return 1;
 }
@@ -386,8 +465,12 @@ message.
 sub head_string {
   my $self = shift;
   my $h = $self->message_type."$LF\{$LF";
-  foreach (@{$self->{_head_order}}) {
-    $h .= $_.$EQUALS.$self->$_().$LF;
+  if (defined $self->{_head_content}) {
+    $h .= $self->{_head_content}.$LF;
+  } else {
+    foreach (@{$self->{_head_order}}) {
+      $h .= $_.$EQUALS.$self->$_().$LF;
+    }
   }
   $h .= "}$LF";
   return $h;
@@ -403,13 +486,17 @@ message.
 sub body_string {
   my $self = shift;
   my $b = $self->class.$DOT.$self->class_type."$LF\{$LF";
-  foreach ($self->body_fields()) {
-    my $v = $self->$_();
-    my $n = $_;
-    $n =~ s/_/-/g;
-    $b .= "$n=".$v."$LF" if (defined $v);
+  if (defined $self->{_body_content}) {
+    $b .= $self->{_body_content}.$LF;
+  } else {
+    foreach ($self->body_fields()) {
+      my $v = $self->$_();
+      my $n = $_;
+      $n =~ s/_/-/g;
+      $b .= "$n=".$v."$LF" if (defined $v);
+    }
+    $b .= $self->extra_field_string();
   }
-  $b .= $self->extra_field_string();
   $b .= "}$LF";
   return $b;
 }
@@ -466,6 +553,7 @@ before it returns.
 
 sub hop {
   my $self = shift;
+  $self->_parse_head() if ($self->{_head_content});
   if (@_) {
     my $value = $_[0];
     unless (!$self->strict || $value =~ /^[1-9]$/) {
@@ -487,6 +575,7 @@ before it returns.
 
 sub source {
   my $self = shift;
+  $self->_parse_head() if ($self->{_head_content});
   if (@_) {
     my $value = $_[0];
     my $valid = valid_id($value);
@@ -508,6 +597,7 @@ before it returns.
 
 sub target {
   my $self = shift;
+  $self->_parse_head() if ($self->{_head_content});
   if (@_) {
     my $value = $_[0];
     if ($value ne $STAR) {
@@ -565,6 +655,7 @@ updates the extra field with the new value before it returns.
 sub extra_field {
   my $self = shift;
   my $key = shift;
+  $self->_parse_body() if ($self->{_body_content});
   if (@_) {
     push @{$self->{_extra_order}}, $key;
     $self->{_extra}->{$key} = $_[0];
@@ -581,6 +672,7 @@ message.
 
 sub extra_fields {
   my $self = shift;
+  $self->_parse_body() if ($self->{_body_content});
   return @{$self->{_extra_order}};
 }
 
@@ -681,6 +773,7 @@ sub make_body_field {
   *{$new} =
     sub {
       my $self = shift;
+      $self->_parse_body() if ($self->{_body_content});
       if (@_) {
         my $value = shift;
         if ($self->strict && !$validation->valid($value)) {
