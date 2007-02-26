@@ -60,16 +60,13 @@ sub init {
   my $self = shift;
   my $p = shift;
   exists $p->{tz} or $p->{tz} = 'Europe/London';
-  exists $p->{freq} or $p->{freq} = 'weekly';
+  exists $p->{freq} or $p->{freq} = 'hourly';
   my $method = $p->{freq};
   my $set;
   my %args = %{$p};
-  delete $args{$_} foreach (qw/freq type tz/);
+  delete $args{$_} foreach (qw/freq type tz verbose/);
   eval { $set = DateTime::Event::Recurrence->$method(%args); };
-  unless ($set) {
-    warn $self."->$method => $@\n";
-    return;
-  }
+  $self->argh("freq='$method' is invalid: $@") unless ($set);
   $set->set_time_zone($p->{tz});
   $self->{_set} = $set;
   return $self;
