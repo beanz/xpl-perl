@@ -320,7 +320,11 @@ sub process_field_record {
     if (exists $rec->{default}) {
       $body->{$name} = $rec->{default};
     } elsif (exists $rec->{required}) {
-      $self->argh("requires '$name' parameter in body");
+      if ($self->strict) {
+        $self->argh("requires '$name' parameter in body");
+      } else {
+        $self->ouch("requires '$name' parameter in body");
+      }
     } else {
       return 1;
     }

@@ -3,8 +3,8 @@
 # Copyright (C) 2005 by Mark Hindess
 
 use strict;
-use Test::More tests => 7;
-use t::Helpers qw/test_error/;
+use Test::More tests => 8;
+use t::Helpers qw/test_error test_warn/;
 
 use_ok("xPL::Message");
 
@@ -52,11 +52,17 @@ It should be an integer between 1024 and 65535.",
    "xPL::Message::hbeat::app port number invalid");
 
 # Check that invalid port number is accepted if strict mode is off.
-is(test_error(sub {
+my $port;
+is(test_warn(sub {
                 $msg = xPL::Message->new(class => "hbeat.app",
                          head => {source => "vendor-device.instance"},
                          strict => 0,
                          body => { port => 123, },
-                       ); }),
-   "xPL::Message::hbeat::app->process_field_record: requires 'remote_ip' parameter in body",
+                       );
+                $port = $msg->port();
+              }),
+   'xPL::Message::hbeat::app->process_field_record: requires '.
+     '\'remote_ip\' parameter in body',
    "xPL::Message::hbeat::app port number too low - not strict");
+is($port, 123,
+   "xPL::Message::hbeat::app port number too low - not strict value");
