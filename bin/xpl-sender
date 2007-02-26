@@ -36,7 +36,7 @@ $|=1; # autoflush helps debugging
 sub HELP_MESSAGE {
   my $msg = shift || q{};
   die
-qq{Usage: $0 [flags] [options] -t <msg.type> -c <class.type> [param=value ... ]
+qq{Usage: $0 [flags] [options] -m <msg.type> -c <class.type> [param=value ... ]
 where valid flags are:
   -h - show this help text
   -v - verbose mode
