@@ -44,8 +44,6 @@ summary=xpl-cmnd/control.basic: acme-viom.node0 -> * - 1=pulse
 
 device=1
 
-device=1
-
 type=output
 
 current=pulse
