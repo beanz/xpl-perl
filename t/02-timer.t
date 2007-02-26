@@ -7,7 +7,7 @@ use DirHandle;
 use English qw/-no_match_vars/;
 use FileHandle;
 use t::Helpers qw/test_warn test_error/;
-use Test::More tests => 64;
+use Test::More tests => 77;
 $|=1;
 use_ok('xPL::Timer');
 
@@ -122,6 +122,44 @@ or LATITUDE environment variable},
 or LONGITUDE environment variable},
        'missing longitude - '.$type);
   }
+}
+
+
+SKIP_REC: {
+  eval { require DateTime::Event::Recurrence; };
+  skip "DateTime::Event::Recurrence is not available", 12 if $@;
+
+  $t = xPL::Timer->new(type => 'recurrence',
+                       minutes => 17, verbose => 1);
+  ok($t, 'create recurrence timer');
+  isa_ok($t, 'xPL::Timer::recurrence', 'recurrencecron timer type');
+  is($t->next(23), 1020, 'recurrence timer next value');
+
+  $t = xPL::Timer->new_from_string('recurrence freq=hourly minutes="17"');
+  ok($t, 'create recurrence timer from string');
+  isa_ok($t, 'xPL::Timer::recurrence', 'recurrence timer type from string');
+  is($t->next(23), 1020, 'recurrence timer next value from string');
+
+  $t = xPL::Timer->new(type => 'recurrence', freq => "hourly", minutes => 17,
+                       tz => 'Asia/Katmandu');
+  ok($t, 'create recurrence timer');
+  isa_ok($t, 'xPL::Timer::recurrence', 'recurrence timer type');
+  is($t->next(23), 2820, 'recurrence timer next value');
+
+  $t = xPL::Timer->new(type => 'recurrence', freq => "minutely",
+                       tz => 'UTC');
+  ok($t, 'create recurrence timer');
+  isa_ok($t, 'xPL::Timer::recurrence', 'recurrence timer type');
+  my $time = time;
+  my $sec = (gmtime $time)[0];
+  is($t->next(), $time + (60-$sec), 'recurrence timer next value');
+
+  is(test_error(sub { $t = xPL::Timer->new(type => 'recurrence',
+                                           freq => 'fortnightly' ) }),
+     q{xPL::Timer::recurrence->init: freq='fortnightly' is invalid: Can't }.
+       q{locate object method "fortnightly" via package }.
+       q{"DateTime::Event::Recurrence"},
+     'recurrence timer invalid frequency');
 }
 
 is(test_error(sub { $t = xPL::Timer->new(type => 'testing') }),
