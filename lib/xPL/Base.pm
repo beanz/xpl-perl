@@ -550,7 +550,7 @@ sub find_in_path {
   my $command = shift;
   my @path = split /:/, $ENV{PATH};
   # be sure to check /sbin unless we are in the Test::Harness
-  push @path, '/sbin' unless ($ENV{HARNESS_ACTIVE});
+  push @path, '/sbin' unless ($ENV{TEST_HARNESS_OVERRIDE});
   foreach my $path (@path) {
     my $f = $path.'/'.$command;
     if (-x $f) {

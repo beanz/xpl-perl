@@ -20,6 +20,8 @@ $| = 0;
   }
 }
 
+$ENV{TEST_HARNESS_OVERRIDE} = 1;
+
 # test the parsing by abusing the PATH variable to run some wrappers
 foreach my $path (qw{t/interfaces/ifconfig.linux
                      t/interfaces/ip.addr.show.linux}) {
@@ -117,5 +119,5 @@ is(test_error(sub { $xpl = xPL::Listener->new(interface => 'eth0') }),
 
 
 # finally unset HARNESS_ACTIVE to check that find_in_path also checks /sbin
-delete $ENV{HARNESS_ACTIVE};
+delete $ENV{TEST_HARNESS_OVERRIDE};
 is($xpl->find_in_path("init"), '/sbin/init', 'find_in_path checks /sbin');
