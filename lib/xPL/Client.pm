@@ -155,6 +155,7 @@ sub new {
                           {
                            class => 'hbeat',
                            class_type => 'app',
+                           source => $self->id,
                           },
                           callback => sub { $self->hub_response(@_) });
 
@@ -282,8 +283,6 @@ sub hub_response {
   my $self = shift;
   my %p = @_;
   my $msg = $p{message};
-
-  return 1 unless ($msg->source eq $self->id);
 
   $self->{_hbeat_mode} = 'standard';
 
