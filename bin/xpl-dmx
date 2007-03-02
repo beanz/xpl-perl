@@ -69,7 +69,14 @@ if (exists $opt{'v'}) {
 my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'dmx', callback => \&xpl_in);
+$xpl->add_xpl_callback(id => 'dmx',
+                       filter => {
+                                  message_type => 'xpl-cmnd',
+                                  class => 'dmx',
+                                  class_type => 'basic',
+                                  type => 'set',
+                                 },
+                       callback => \&xpl_in);
 
 my $rgb = read_rgb_txt($rgb_txt) or die "Failed to read $rgb_txt: $!\n";
 
@@ -101,11 +108,12 @@ sub xpl_in {
 
   if ($msg->message_type ne 'xpl-cmnd' ||
       $msg->class ne 'dmx' ||
-      $msg->class_type ne 'basic') {
+      $msg->class_type ne 'basic' ||
+      $msg->type ne "set") {
+    print STDERR "Bad message got through the filter\n  ",$msg->summary,"\n";
     return 1;
   }
 
-  return 1 unless ($msg->type eq "set");
   if ($msg->base =~ /hex/) { # hack to aid debug
     send_dmx($msg->value);
     return 1;
