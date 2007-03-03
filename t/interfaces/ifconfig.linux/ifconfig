@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright (C) 2005 by Mark Hindess
 /bin/cat <<EOF
 eth0      Link encap:Ethernet  HWaddr 00:0D:60:77:63:5B  
           inet addr:192.168.3.13  Bcast:192.168.3.255  Mask:255.255.255.0

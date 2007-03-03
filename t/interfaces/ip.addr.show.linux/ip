@@ -1,4 +1,5 @@
 #!/bin/sh
+# Copyright (C) 2005 by Mark Hindess
 /bin/cat <<EOF
 1: eth0: <BROADCAST,MULTICAST,UP> mtu 1300 qdisc pfifo_fast qlen 1000
     link/ether 00:0d:60:77:63:5b brd ff:ff:ff:ff:ff:ff

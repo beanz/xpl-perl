@@ -1,6 +1,6 @@
 package xPL::Message::test::basic;
 #
-# Copyright (C) 2005 by Mark Hindess
+# Copyright (C) 2005, 2006 by Mark Hindess
 
 use xPL::Message;
 our @ISA = qw(xPL::Message);

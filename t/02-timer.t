@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2006 by Mark Hindess
+# Copyright (C) 2006, 2007 by Mark Hindess
 
 use strict;
 use DirHandle;

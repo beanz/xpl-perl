@@ -1,3 +1,5 @@
+# Copyright (C) 2005 by Mark Hindess
+
 VERSION=$(shell awk '$$1~/^VERSION$$/ { print $$3 ;exit}' ../Makefile)
 DOC=xpl-perl-$(VERSION)
 DVI=$(DOC).dvi
