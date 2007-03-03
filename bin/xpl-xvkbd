@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 
-# $Id: xpl-x10 151 2006-05-27 10:53:39Z beanz $
+# $Id$
 
 =head1 NAME
 
-xpl-x10 - Perl script for an xPL virtual keyboard application
+xpl-xvkbd - Perl script for an xPL virtual keyboard application
 
 =head1 SYNOPSIS
 

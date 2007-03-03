@@ -1,6 +1,6 @@
 package xPL::Timer::recurrence;
 
-# $Id: recurrence.pm 151 2006-05-27 10:53:39Z beanz $
+# $Id$
 
 =head1 NAME
 
@@ -32,7 +32,7 @@ our @ISA = qw(xPL::Timer);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 151 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 =head2 C<init(\%parameter_hash)>
 

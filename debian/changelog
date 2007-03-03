@@ -1,3 +1,27 @@
+libxpl-perl (0.04-1) unstable; urgency=low
+
+  * Implemented lazy parsing of xPL message header and body to
+    give 400% speedup for hubs (which ignore everything but
+    the hop count) and significant improvement to typical clients.
+  * New client: xpl-dmx Interface to the 512 Channel Serial to DMX transmitter
+    from Milford Instruments http://www.milinst.com/
+  * New client: xpl-lirc (for LIRC infrared interface)
+  * New client: xpl-xvkbd (to sending keystrokes to X11 applications)
+  * New client: xpl-mplayer (mplayer interface for playing music)
+  * New message types: remote.basic and dmx.basic.
+  * Minor updates to reflect control.basic and sensor.basic schema changes.
+  * Added support for xPL::Timer::Recurrence wrapper around
+    DateTime::Event::Recurrence as an alternative to the Cron-style which
+    seems to have an infinite loop bug inheritted from DateTime::Event::Cron.
+  * Updated xpl-owfs for 1-wire interface to support humidity sensors and
+    relay outputs.
+  * Fixed a bugs and unhelpful error messages relating to the default
+    instance id.  Thanks to Andy on the xPL list.
+  * Fixed a few problems with SKIP blocks in tests.  (Thanks to Andy again.)
+  * Fixed a problem with the interfaces test.  (Thanks to Andy again.)
+
+ -- Mark Hindess <debian@beanz.uklinux.net>  Sat,  3 Mar 2007 19:00:00 +0000
+
 libxpl-perl (0.03-1) unstable; urgency=low
 
   * Fixed problem with logger only logging its own messages.

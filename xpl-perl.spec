@@ -1,8 +1,8 @@
 Summary: Modules for writing xPL applications in Perl
 Name: xpl-perl
-Version: 0.02
+Version: 0.04
 Release: 1
-Copyright: Perl Licence (C) 2005, 2006 by Mark Hindess
+Copyright: Perl Licence (C) 2005, 2007 by Mark Hindess
 Group: Applications/CPAN
 Source0: xPL-Perl-%{version}.tar.gz
 Url: http://www.xpl-perl.org.uk/
