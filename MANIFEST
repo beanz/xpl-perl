@@ -115,4 +115,7 @@ t/msg/011.sensor.basic.txt
 t/msg/012.control.basic.txt
 t/msg/013.sensor.humidity.txt
 t/msg/014.sensor.network.txt
+t/msg/015.remote.basic.txt
+t/msg/016.dmx.basic.txt
+t/msg/017.audio.basic.txt
 xpl-perl.spec
