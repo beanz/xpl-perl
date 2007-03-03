@@ -30,7 +30,7 @@ is(test_error(sub { xPL::Timer->new(type => 'simple', timeout => 'xxx'); }),
    q{xPL::Timer::simple->init: invalid 'timeout' parameter},
    'simple timer invalid timeout error');
 
-SKIP_CRON: {
+SKIP: {
   eval { require DateTime::Event::Cron; };
   skip "DateTime::Event::Cron is not available", 12 if $@;
 
@@ -58,7 +58,7 @@ SKIP_CRON: {
   is($t->next(), $time + (60-$sec), 'cron timer next value');
 }
 
-SKIP_SUN: {
+SKIP: {
   eval { require DateTime::Event::Sunrise; };
   skip "DateTime::Event::Sunrise is not available", 42 if $@;
 
@@ -125,9 +125,9 @@ or LONGITUDE environment variable},
 }
 
 
-SKIP_REC: {
+SKIP: {
   eval { require DateTime::Event::Recurrence; };
-  skip "DateTime::Event::Recurrence is not available", 12 if $@;
+  skip "DateTime::Event::Recurrence is not available", 13 if $@;
 
   $t = xPL::Timer->new(type => 'recurrence',
                        minutes => 17, verbose => 1);

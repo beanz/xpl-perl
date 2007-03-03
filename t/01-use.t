@@ -21,10 +21,27 @@ BEGIN {
   import Test::More tests => scalar @modules;
 }
 
+my %has;
+eval { require DateTime::Event::Cron; };
+$has{Cron}++ unless ($@);
+eval { require DateTime::Event::Sunrise; };
+$has{Sunrise}++ unless ($@);
+eval { require DateTime::Event::Recurrence; };
+$has{Recurrence}++ unless ($@);
+
+
 foreach my $m (@modules) {
  SKIP: {
     skip 'no database defined, see xPL::SQL', 1
       if ($m eq 'xPL::SQL' && !exists $ENV{'XPL_DB_CONFIG'});
+    skip 'DateTime::Event::Cron not available', 1
+      if ($m eq 'xPL::Timer::cron' && !$has{Cron});
+    skip 'DateTime::Event::Sunrise not available', 1
+      if ($m eq 'xPL::Timer::sunrise' && !$has{Sunrise});
+    skip 'DateTime::Event::Sunrise not available', 1
+      if ($m eq 'xPL::Timer::sunset' && !$has{Sunrise});
+    skip 'DateTime::Event::Recurrence not available', 1
+      if ($m eq 'xPL::Timer::recurrence' && !$has{Recurrence});
 
     require_ok($m);
   }
