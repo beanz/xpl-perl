@@ -4,6 +4,16 @@
 
 use strict;
 use Test::More tests => 3;
+BEGIN {
+  $ENV{XPL_SCHEMA_PATH} = 't/schema';
+  package xPL::Message::test::basic::xpltrig;
+  sub field {
+    return "field not overriden";
+  }
+  sub body_fields {
+    return "body_fields not overriden";
+  }
+}
 use xPL::Message;
 use lib 't/lib';
 

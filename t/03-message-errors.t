@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 28;
+use Test::More tests => 27;
 use t::Helpers qw/test_warn test_error/;
 
 use_ok("xPL::Message");
@@ -13,7 +13,7 @@ is(test_error(sub { $msg = xPL::Message->new(); }),
    "xPL::Message->new: requires 'class' parameter",
    "xPL::Message missing class test");
 
-is(test_error(sub { $msg = xPL::Message->new(class => "fred.schema") }),
+is(test_error(sub { $msg = xPL::Message->new(class => "remote.basic") }),
    "xPL::Message->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 
@@ -158,9 +158,9 @@ param1=value1",
    "badly formatted body");
 
 $ENV{XPL_MSG_WARN}=1;
-is(test_warn(sub { $msg = xPL::Message->new(class => "unknown.schema") }),
-   "Failed to load xPL::Message::unknown::schema: ".
-     "Can't locate xPL/Message/unknown/schema.pm in \@INC",
+is(test_warn(sub { $msg = xPL::Message->new(class => "unknown.schema",
+                                            message_type => 'xpl-cmnd') }),
+   'xPL::Message->new: New message type unknown.schema',
    "xPL::Message unknown schema warning");
 
 delete $ENV{XPL_MSG_WARN};
@@ -210,11 +210,6 @@ is(test_error(sub { xPL::Message->make_body_field() }),
 is(test_error(sub { xPL::Message->make_body_field({}) }),
    'xPL::Message->make_body_field: '.
      'BUG: missing body field record missing name',
-   'make_body_field with name in field record');
-
-is(test_error(sub { xPL::Message->make_body_field({ name => 'test' }) }),
-   'xPL::Message->make_body_field: '.
-     'BUG: missing body field record missing validation',
    'make_body_field with name in field record');
 
 my $invalid;

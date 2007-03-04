@@ -7,6 +7,7 @@ use Socket;
 use Time::HiRes;
 use IO::Select;
 use IO::Socket;
+use POSIX qw/strftime/;
 use Test::More tests => 12;
 use t::Helpers qw/test_error test_warn/;
 
@@ -53,7 +54,10 @@ ok($sel->can_read(0.5), "remote bridge has connection to accept");
 my $cs = $ss->accept();
 
 my $msg = xPL::Message->new(head => { source => 'acme-clock.clepsydra' },
-                            class => "clock.update");
+                            class => "clock.update",
+                            body => { time => strftime("%Y%m%d%H%M%S",
+                                                       localtime(time)) },
+                           );
 ok($msg, "prepared message to send from remote");
 my $msg_str = $msg->string;
 ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)), "client sent message");

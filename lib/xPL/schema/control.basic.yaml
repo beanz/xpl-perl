@@ -1,0 +1,36 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_CONTROL.BASIC
+default_message_type: xpl-cmnd
+types:
+  xpl-cmnd:
+    fields:
+      - name: device
+        required: 1
+      - name: type
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - balance
+            - flag
+            - infrared
+            - input
+            - macro
+            - mute
+            - output
+            - variable
+            - periodic
+            - scheduled
+            - slider
+            - timer
+      - name: current
+        required: 1
+      - name: data1
+      - name: name
+    summary:
+      - name: device
+      - name: type
+        prefix: '['
+        suffix: ']'
+      - name: current
+        prefix: =

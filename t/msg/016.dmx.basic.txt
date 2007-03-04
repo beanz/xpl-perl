@@ -51,5 +51,5 @@ value=10
 base[2]=2
 
 type[get]=get
-xPL::Message::dmx::basic->type: type, get, is invalid.
+xPL::Message::dmx::basic::xplcmnd->type: type, get, is invalid.
 It should be one of 'set'.

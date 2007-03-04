@@ -1,0 +1,28 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_DAWNDUSK.BASIC
+default_message_type: xpl-trig
+types:
+  xpl-trig:
+    fields:
+      - name: type
+        die: 1
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - dawndusk
+            - daynight
+      - name: status
+        die: 1
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - dawn
+            - dusk
+            - day
+            - night
+    summary:
+      - name: type
+      - name: status
+        prefix: /

@@ -64,9 +64,9 @@ command[exclusive]=exclusive
 command[release]=release
 
 command[foo]=foo
-xPL::Message::osd::basic->command: command, foo, is invalid.
+xPL::Message::osd::basic::xplcmnd->command: command, foo, is invalid.
 It should be one of 'clear', 'write', 'exclusive' or 'release'.
 
 delay[bar]=bar
-xPL::Message::osd::basic->delay: delay, bar, is invalid.
+xPL::Message::osd::basic::xplcmnd->delay: delay, bar, is invalid.
 It should be a positive number.

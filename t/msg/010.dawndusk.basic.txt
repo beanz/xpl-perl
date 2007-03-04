@@ -54,9 +54,9 @@ status[day]=day
 status[night]=night
 
 type[unknown]=undef
-xPL::Message::dawndusk::basic->type: type, unknown, is invalid.
+xPL::Message::dawndusk::basic::xpltrig->type: type, unknown, is invalid.
 It should be one of 'dawndusk' or 'daynight'.
 
 status[11thhour]=undef
-xPL::Message::dawndusk::basic->status: status, 11thhour, is invalid.
+xPL::Message::dawndusk::basic::xpltrig->status: status, 11thhour, is invalid.
 It should be one of 'dawn', 'dusk', 'day' or 'night'.

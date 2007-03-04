@@ -52,6 +52,8 @@ use 5.006;
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
+use File::Find;
+use YAML;
 use xPL::Validation;
 
 use xPL::Base;
@@ -63,6 +65,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
+our %specs = ();
 our %modules = ();
 
 our $LF = "\012";
@@ -73,6 +76,54 @@ our $EQUALS = q{=};
 our $DOUBLE_COLON = q{::};
 
 __PACKAGE__->make_readonly_accessor(qw/class class_type/);
+
+my $path = $INC{'xPL/Message.pm'};
+$path =~ s!([/\\])Message\.pm$!${1}schema!;
+my @paths = ($path);
+push @paths, $ENV{XPL_SCHEMA_PATH} if (exists $ENV{XPL_SCHEMA_PATH});
+find(sub {
+       return unless ($File::Find::name =~
+                      m![/\\]([^\\/\.]+)\.([^\\/\.]+)\.yaml$!);
+       my $class = $1;
+       my $class_type = $2;
+       # print STDERR "$class.$class_type\n";
+       my $spec = YAML::LoadFile($_);
+       $specs{$class.$DOT.$class_type} = $spec;
+       my $parent =
+         __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
+       eval "package $parent; our \@ISA = qw/xPL::Message/;";
+       $modules{$parent} = $parent;
+       my $dmt = $parent.'::default_message_type';
+       no strict qw/refs/;
+       *{$dmt} =
+         sub {
+           my $self = shift;
+           return $spec->{default_message_type};
+         };
+       foreach my $message_type (keys %{$spec->{types}}) {
+         my $mt = $message_type;
+         $mt =~ s/-//;
+         use strict qw/refs/;
+         my $module = $parent.$DOUBLE_COLON.$mt;
+         eval "package $module; our \@ISA = qw/$parent/;";
+         my $fs = $module.'::field_spec';
+         my $s = $module.'::spec';
+         no strict qw/refs/;
+         *{$fs} =
+           sub {
+             my $self = shift;
+             return $spec->{types}->{$message_type}->{fields};
+           };
+         *{$s} =
+           sub {
+             my $self = shift;
+             return $spec->{types}->{$message_type};
+           };
+         use strict qw/refs/;
+         $module->make_body_fields();
+         $modules{$module} = $module;
+       }
+     }, @paths);
 
 =head2 C<new(%parameter_hash)>
 
@@ -138,43 +189,41 @@ sub new {
   delete $p{class_type};
 
   my $module = $pkg.$DOUBLE_COLON.(lc $class).$DOUBLE_COLON.(lc $class_type);
-  unless (exists $modules{$module}) {
-
-    # At some point this will probably be change to generate the subclass
-    # on-the-fly from some form of machine readable schema definition.
-
-    eval "require $module; import $module;";
-    if ($EVAL_ERROR) {
-      $modules{$module} = $pkg; # default for unknown class type
-      if (exists $ENV{XPL_MSG_WARN}) {
-        warn "Failed to load $module: ".$EVAL_ERROR;
-      }
-    } else {
-      $modules{$module} = $module;
-      $module->make_body_fields();
-    }
+  if (!exists $p{message_type}) {
+    my $default_message_type =
+      $modules{$module} ? $module->default_message_type() :
+        $pkg->default_message_type();
+    $p{message_type} = $default_message_type
+      if (defined $default_message_type);
   }
-  $module = $modules{$module};
+
+  # process message_type
+  exists $p{message_type} or
+    $pkg->argh("requires 'message_type' parameter");
+  my $message_type = $p{message_type};
+  delete $p{message_type};
+
+  my $mt = lc $message_type;
+  $mt =~ s/-//;
+  $module .= $DOUBLE_COLON.$mt;
+
+  unless (exists $modules{$module}) {
+    $module = $pkg;
+    $pkg->ouch("New message type $class.$class_type\n")
+      if (exists $ENV{XPL_MSG_WARN});
+  } else {
+    $module = $modules{$module};
+  }
 
   my $self = {};
   bless $self, $module;
 
   $self->verbose($p{verbose}||0);
+  $self->strict($p{strict});
 
   $self->{_class} = $class;
   $self->{_class_type} = $class_type;
-
-  if (!exists $p{message_type} && $self->default_message_type()) {
-    $p{message_type} = $self->default_message_type();
-  }
-
-  $self->strict($p{strict});
-
-  # process message_type
-  exists $p{message_type} or
-    $self->argh("requires 'message_type' parameter");
-  $self->message_type($p{message_type});
-  delete $p{message_type};
+  $self->message_type($message_type);
 
   if ($p{head_content}) {
     $self->{_head_content} = $p{head_content};
@@ -190,60 +239,6 @@ sub new {
     $self->parse_body_parameters($p{body});
   }
   return $self;
-}
-
-=head2 C<old_from_payload( $message )>
-
-This is a constructor that takes the string of an xPL message and
-constructs an xPL::Message object from it.
-
-=cut
-
-sub old_from_payload {
-  my $pkg = shift;
-  my $msg = shift;
-  my %r = ();
-  my ($head, $body, $null) = split /\n}\n/, $msg, 3;
-  unless (defined $head) {
-    xPL::Message->argh('Message badly formed: empty?');
-  }
-  unless (defined $body) {
-    xPL::Message->argh('Message badly formed: failed to split head and body');
-  }
-  unless (defined $null) {
-    xPL::Message->ouch('Message badly terminated: missing final eol char?');
-    $body =~ s/\n}$//;
-  }
-  if ($null) {
-    xPL::Message->ouch("Trailing trash: $null\n");
-  }
-  unless ($head =~ /^(.*?)\n\{\n(.*)$/s) {
-    xPL::Message->argh("Invalid header: $head\n");
-  }
-  $r{message_type} = $1;
-  foreach (split /\n/, $2) {
-    my ($k, $v) = split /=/, $_, 2;
-    $k =~ s/-/_/g;
-    $r{head}->{$k} = $v;
-    push @{$r{head_order}}, $k;
-  }
-
-  unless ($body =~ /^(.*?)\n\{\n(.*)$/s) {
-    xPL::Message->argh("Invalid body: $body\n");
-  }
-  my $b_content = $2;
-  @r{qw/class class_type/} = split /\./, $1, 2;
-  foreach (split /\n/, $2) {
-    my ($k, $v) = split /=/, $_, 2;
-    $k =~ s/-/_/g;
-    if (exists $r{body}->{$k}) {
-      xPL::Message->ouch('Repeated body field: '.$k);
-      next;
-    }
-    $r{body}->{$k} = $v;
-    push @{$r{body_order}}, $k;
-  }
-  return $pkg->new(strict => 0, %r);
 }
 
 =head2 C<new_from_payload( $message )>
@@ -324,6 +319,17 @@ message classes are intended to override this method.
 
 sub field_spec {
   []
+}
+
+=head2 C<spec()>
+
+This is the default message specification.  It is empty.  Specific
+message classes are intended to override this method.
+
+=cut
+
+sub spec {
+  {}
 }
 
 =head2 C<parse_head_parameters( $head_hash_ref, $head_order )>
@@ -435,12 +441,24 @@ to the common components of the summary.
 
 sub summary {
   my $self = shift;
-  return
+  my $str =
     sprintf
       '%s/%s.%s: %s -> %s',
       $self->message_type,
       $self->class, $self->class_type,
       $self->source, $self->target;
+  my $spec = $self->spec();
+  if ($spec->{summary}) {
+    $str .= " - ";
+    foreach my $field (@{$spec->{summary}}) {
+      my $name = $field->{name};
+      next unless (defined $self->$name());
+      $str .= $field->{prefix} if ($field->{prefix});
+      $str .= $self->$name();
+      $str .= $field->{suffix} if ($field->{suffix});
+    }
+  }
+  return $str;
 }
 
 =head2 C<string()>
@@ -719,7 +737,7 @@ sub make_body_fields {
   }
   my $new = $pkg.'::body_fields';
   return if (defined &{$new});
-#  print STDERR "  $new => make_body_fields, @f\n";
+  #  print STDERR "  $new => make_body_fields, @f\n";
   no strict qw/refs/;
   *{$new} =
     sub {
@@ -739,8 +757,8 @@ For instance, called as:
 
   __PACKAGE__->make_body_field({
                                 name => 'interval',
-                                xPL::Validation->new(type => 'integer',
-                                                     min => 5, max => 30 ),
+                                validation => { type => 'IntegerRange',
+                                                min => 5, max => 30 ),
                                 error => 'It should be blah, blah, blah.',
                                );
 
@@ -759,8 +777,8 @@ sub make_body_field {
   my $rec = shift or $pkg->argh('BUG: missing body field record');
   my $name = $rec->{name} or
     $pkg->argh('BUG: missing body field record missing name');
-  my $validation = $rec->{validation} or
-    $pkg->argh('BUG: missing body field record missing validation');
+  my $validation = $rec->{validation} || { type => 'Any' };
+  $validation = xPL::Validation->new(%{$validation});
   my $die = $rec->{die} || 0;
   my $error_message =
     exists $rec->{error} ? $rec->{error} : $validation->error();

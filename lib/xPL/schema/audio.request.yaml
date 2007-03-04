@@ -1,0 +1,11 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_AUDIO.BASIC
+types:
+  xpl-cmnd:
+    fields:
+      - name: command
+        required: 1
+        validation:
+          set:
+           - status
+          type: Set

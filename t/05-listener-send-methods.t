@@ -58,7 +58,7 @@ is($xpl->last_sent_message(),
 is(test_error(sub {
      $xpl->send_from_string('-c osd.basic command=write text="This is a test"')
    }),
-   'xPL::Listener->send_aux: message error: xPL::Message::osd::basic'.
+   'xPL::Listener->send_aux: message error: xPL::Message::osd::basic::xplcmnd'.
      "->parse_head_parameters: requires 'source' parameter",
    'missing source');
 

@@ -1,0 +1,11 @@
+---
+default_message_type: xpl-trig
+types:
+  xpl-trig:
+    fields:
+      - name: field
+        validation: 
+          type: Set
+          set:
+            - a
+            - b

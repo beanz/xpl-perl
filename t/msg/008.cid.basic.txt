@@ -50,5 +50,5 @@ calltype[outbound]=outbound
 phone[unknown]=unknown
 
 calltype[premiumrate]=undef
-xPL::Message::cid::basic->calltype: calltype, premiumrate, is invalid.
+xPL::Message::cid::basic::xpltrig->calltype: calltype, premiumrate, is invalid.
 It should be one of 'inbound' or 'outbound'.

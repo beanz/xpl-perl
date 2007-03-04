@@ -56,5 +56,5 @@ type[bytes]=bytes
 current[blah]=blah
 
 type[scent]=scent
-xPL::Message::sensor::network->type: type, scent, is invalid.
+xPL::Message::sensor::network::xpltrig->type: type, scent, is invalid.
 It should be one of 'packets', 'bytes', 'bps' or 'db'.

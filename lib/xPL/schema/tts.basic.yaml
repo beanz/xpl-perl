@@ -1,0 +1,23 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_TTS.BASIC
+default_message_type: xpl-cmnd
+types:
+  xpl-cmnd:
+    fields:
+      - name: speech
+        required: 1
+      - name: volume
+        die: 1
+        validation: 
+          type: IntegerRange
+          min: 0
+          max: 100
+      - name: speed
+        die: 1
+        validation: 
+          type: IntegerRange
+          min: -10
+          max: 10
+      - name: voice
+    summary:
+      - name: speech

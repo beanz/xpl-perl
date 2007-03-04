@@ -44,5 +44,5 @@ summary=xpl-stat/clock.update: acme-clock.livingroom -> * - 20051113182650
 time[20051113182655]=20051113182655
 
 time[now]=undef
-xPL::Message::clock::update->time: time, now, is invalid.
+xPL::Message::clock::update::xplstat->time: time, now, is invalid.
 It should be 14 digits of the form 'YYYYMMDDhhmmss'.

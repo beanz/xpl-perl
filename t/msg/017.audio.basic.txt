@@ -43,5 +43,5 @@ summary=xpl-cmnd/audio.basic: acme-boombox.kitchen -> * - play
 command[stop]=stop
 
 command[replay]=replay
-xPL::Message::audio::basic->command: command, replay, is invalid.
+xPL::Message::audio::basic::xplcmnd->command: command, replay, is invalid.
 It should match the pattern "(play|stop|volume\s?[-+<>]?\d+|skip|back|random|clear)".
