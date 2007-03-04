@@ -121,7 +121,6 @@ sub query_handler {
   my $peerport = $p{peerport};
 
   return $xpl->send(message_type => 'xpl-stat',
-                    head => { target => $msg->source },
                     class => 'dawndusk.basic',
                     body => { type => 'daynight', status => $state },
                    );

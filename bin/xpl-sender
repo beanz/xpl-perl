@@ -106,12 +106,14 @@ sub xpl_hub_response {
   my $peerport = $p{peerport};
 
   print STDERR "Sending\n";
+  my $class = $opt{'c'};
+  $class =~ s/\..*$//;
   $xpl->remove_xpl_callback('wait_for_hub');
   $xpl->send_from_arg_list(%msg_args, @ARGV);
   $xpl->add_xpl_callback(id => 'wait_for_response',
                          filter =>
                          {
-                          target => $xpl->id,
+                          class => $class,
                          },
                          callback => \&xpl_response);
   $xpl->add_timer(id => 'timeout', timeout => $wait, callback => \&give_up);
@@ -125,7 +127,6 @@ sub xpl_response {
   my $peerport = $p{peerport};
 
   print $opt{'v'} ? $msg->string : $msg->summary ,"\n";
-  exit;
 }
 
 sub give_up {
