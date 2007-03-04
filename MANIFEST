@@ -49,6 +49,7 @@ lib/xPL/schema/cid.basic.yaml
 lib/xPL/schema/clock.update.yaml
 lib/xPL/schema/control.basic.yaml
 lib/xPL/schema/dawndusk.basic.yaml
+lib/xPL/schema/dawndusk.request.yaml
 lib/xPL/schema/dmx.basic.yaml
 lib/xPL/schema/hbeat.app.yaml
 lib/xPL/schema/hbeat.basic.yaml

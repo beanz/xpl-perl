@@ -79,6 +79,14 @@ $xpl->add_timer(id => 'dusk',
 
 $state = $xpl->timer_next('dusk') < $xpl->timer_next('dawn') ? "day" : "night";
 
+$xpl->add_xpl_callback(id => 'query_handler',
+                       filter =>
+                       {
+                        message_type => 'xpl-cmnd',
+                        class => 'dawndusk',
+                        class_type => 'request',
+                       },
+                       callback => \&query_handler);
 # Run the main loop
 $xpl->main_loop();
 
@@ -104,6 +112,19 @@ sub dusk {
   print "Dusk\n" if ($opt{'v'});
   send_dawndusk('dusk');
   return 1;
+}
+
+sub query_handler {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  return $xpl->send(message_type => 'xpl-stat',
+                    head => { target => $msg->source },
+                    class => 'dawndusk.basic',
+                    body => { type => 'daynight', status => $state },
+                   );
 }
 
 =head1 SEE ALSO

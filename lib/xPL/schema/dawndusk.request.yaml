@@ -1,0 +1,24 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_DAWNDUSK.BASIC
+default_message_type: xpl-cmnd
+types:
+  xpl-cmnd:
+    fields:
+      - name: command
+        die: 1
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - status
+      - name: query
+        die: 1
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - daynight
+    summary:
+      - name: command
+      - name: query
+        prefix: /

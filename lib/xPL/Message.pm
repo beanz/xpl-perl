@@ -87,7 +87,11 @@ find(sub {
        my $class = $1;
        my $class_type = $2;
        # print STDERR "$class.$class_type\n";
-       my $spec = YAML::LoadFile($_);
+       my $spec;
+       eval { $spec = YAML::LoadFile($_); };
+       if ($@) {
+         die "Failed to read schema from $File::Find::name\n",$@,"\n";
+       }
        $specs{$class.$DOT.$class_type} = $spec;
        my $parent =
          __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;

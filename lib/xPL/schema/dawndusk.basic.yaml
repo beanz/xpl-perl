@@ -11,7 +11,6 @@ types:
           type: Set
           set:
             - dawndusk
-            - daynight
       - name: status
         die: 1
         required: 1
@@ -20,6 +19,25 @@ types:
           set:
             - dawn
             - dusk
+    summary:
+      - name: type
+      - name: status
+        prefix: /
+  xpl-stat:
+    fields:
+      - name: type
+        die: 1
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - daynight
+      - name: status
+        die: 1
+        required: 1
+        validation: 
+          type: Set
+          set:
             - day
             - night
     summary:

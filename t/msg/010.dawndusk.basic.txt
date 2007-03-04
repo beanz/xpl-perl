@@ -45,18 +45,12 @@ type=dawndusk
 
 status=dawn
 
-type[daynight]=daynight
-
 status[dusk]=dusk
 
-status[day]=day
+type[daynight]=undef
+xPL::Message::dawndusk::basic::xpltrig->type: type, daynight, is invalid.
+It should be one of 'dawndusk'.
 
-status[night]=night
-
-type[unknown]=undef
-xPL::Message::dawndusk::basic::xpltrig->type: type, unknown, is invalid.
-It should be one of 'dawndusk' or 'daynight'.
-
-status[11thhour]=undef
-xPL::Message::dawndusk::basic::xpltrig->status: status, 11thhour, is invalid.
-It should be one of 'dawn', 'dusk', 'day' or 'night'.
+status[day]=undef
+xPL::Message::dawndusk::basic::xpltrig->status: status, day, is invalid.
+It should be one of 'dawn' or 'dusk'.
