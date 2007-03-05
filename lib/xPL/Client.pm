@@ -159,6 +159,14 @@ sub new {
                           },
                           callback => sub { $self->hub_response(@_) });
 
+  $self->add_xpl_callback(id => '!hbeat-request',
+                          filter =>
+                          {
+                           class => 'hbeat',
+                           class_type => 'request',
+                          },
+                          callback => sub { $self->hbeat_request(@_) });
+
   $self->{_hbeat_mode} = 'fast';
 
   return $self;
@@ -297,7 +305,42 @@ sub hub_response {
   return 1;
 }
 
+=head2 C<hbeat_request()>
+
+This method is the callback is used to handle C<hbeat.request> messages.
+
+=cut
+
+sub hbeat_request {
+  my $self = shift;
+  my %p = @_;
+  my $msg = $p{message};
+
+  $self->add_timer(id => '!hbeat-response',
+                   timeout => 2+rand(4),
+                   callback => sub { $self->send_extra_hbeat(@_); return 0; },
+                  );
+  $self->send_hbeat(@_);
+  $self->reset_timer('!hbeat') if ($self->exists_timer('!hbeat'));
+  return 1;
+}
+
 =head1 COMMON MESSAGE METHODS
+
+=head2 C<send_extra_hbeat()>
+
+This method is called when the client wants to send an extra heartbeat
+message.  For example, it is used to respond to a C<hbeat.request>
+message.
+
+=cut
+
+sub send_extra_hbeat {
+  my $self = shift;
+  $self->send_hbeat(@_);
+  $self->reset_timer('!hbeat') if ($self->exists_timer('!hbeat'));
+  return 1;
+}
 
 =head2 C<send_hbeat()>
 
@@ -316,6 +359,11 @@ sub send_hbeat {
                remote_ip => $self->ip,
               },
              );
+
+  # if we are due to respond to a request but we've sent a message anyway
+  # make sure we don't send another one
+  $self->remove_timer('!hbeat-response')
+    if ($self->exists_timer('!hbeat-response'));
   return 1;
 }
 

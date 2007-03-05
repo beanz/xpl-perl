@@ -698,6 +698,23 @@ sub timer_minimum_timeout {
   return $min ? $min-$t : undef;
 }
 
+=head2 C<reset_timer($id, [ $time ])>
+
+This method resets the timer to run from now (or the optional given time).
+
+=cut
+
+sub reset_timer {
+  my $self = shift;
+  my $id = shift;
+  $self->exists_timer($id) or
+    return $self->ouch("timer '$id' is not registered");
+
+  my $r = $self->{_col}->{timer}->{$id};
+  $r->{next} = &{$r->{next_fn}}(@_);
+  return 1;
+}
+
 =head2 C<dispatch_timer($id)>
 
 This method dispatches the callback for the given timer.
