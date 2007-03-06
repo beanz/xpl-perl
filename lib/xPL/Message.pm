@@ -304,7 +304,11 @@ sub _parse_body {
     my ($k, $v) = split /=/, $_, 2;
     $k =~ s/-/_/g;
     if (exists $r{body}->{$k}) {
-      xPL::Message->ouch('Repeated body field: '.$k);
+      if (ref($r{body}->{$k})) {
+        push @{$r{body}->{$k}}, $v;
+      } else {
+        @{$r{body}->{$k}} = ($r{body}->{$k}, $v);
+      }
       next;
     }
     $r{body}->{$k} = $v;
@@ -515,7 +519,10 @@ sub body_string {
       my $v = $self->$_();
       my $n = $_;
       $n =~ s/_/-/g;
-      $b .= "$n=".$v."$LF" if (defined $v);
+      next unless (defined $v);
+      foreach (ref($v) ? @{$v} : ($v)) {
+        $b .= "$n=".$_."$LF";
+      }
     }
     $b .= $self->extra_field_string();
   }
