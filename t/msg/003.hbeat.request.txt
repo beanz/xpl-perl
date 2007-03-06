@@ -1,0 +1,41 @@
+$args =
+  {
+   head =>
+   {
+    hop => 2,
+    source => "acme-lamp.livingroom",
+    target => "*",
+   },
+   class => "hbeat.request",
+  };
+
+xpl-cmnd
+{
+hop=2
+source=acme-lamp.livingroom
+target=*
+}
+hbeat.request
+{
+command=request
+}
+
+message_type=xpl-cmnd
+
+hop=2
+
+source=acme-lamp.livingroom
+
+target=*
+
+class=hbeat
+
+class_type=request
+
+command=request
+
+summary=xpl-cmnd/hbeat.request: acme-lamp.livingroom -> *
+
+command[query]=query
+xPL::Message::hbeat::request::xplcmnd->command: command, query, is invalid.
+It should be one of 'request'.

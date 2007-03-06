@@ -162,6 +162,7 @@ sub new {
   $self->add_xpl_callback(id => '!hbeat-request',
                           filter =>
                           {
+                           message_type => 'xpl-cmnd',
                            class => 'hbeat',
                            class_type => 'request',
                           },
@@ -250,6 +251,7 @@ messages.
 
 =head2 C<hub_response_timeout()>
 
+TOFIX: Wrong doc.
 Returns the hopeful hbeat interval (in seconds) for this source.
 This is used if the hub fails to respond to the initial fast hbeat
 messages.
@@ -320,8 +322,6 @@ sub hbeat_request {
                    timeout => 2+rand(4),
                    callback => sub { $self->send_extra_hbeat(@_); return 0; },
                   );
-  $self->send_hbeat(@_);
-  $self->reset_timer('!hbeat') if ($self->exists_timer('!hbeat'));
   return 1;
 }
 

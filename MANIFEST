@@ -54,6 +54,7 @@ lib/xPL/schema/dmx.basic.yaml
 lib/xPL/schema/hbeat.app.yaml
 lib/xPL/schema/hbeat.basic.yaml
 lib/xPL/schema/hbeat.end.yaml
+lib/xPL/schema/hbeat.request.yaml
 lib/xPL/schema/osd.basic.yaml
 lib/xPL/schema/remote.basic.yaml
 lib/xPL/schema/remote.confirm.yaml
@@ -99,6 +100,7 @@ t/msg/001.hbeat.basic.txt
 t/msg/002.hbeat.basic.def.txt
 t/msg/003.hbeat.app.txt
 t/msg/003.hbeat.end.txt
+t/msg/003.hbeat.request.txt
 t/msg/004.osd.basic.minimal.txt
 t/msg/004.osd.basic.txt
 t/msg/005.clock.update.minimal.txt

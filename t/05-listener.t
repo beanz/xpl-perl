@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2006 by Mark Hindess
 
 use strict;
-use Test::More tests => 131;
+use Test::More tests => 134;
 use t::Helpers qw/test_error test_warn/;
 use Socket;
 use Time::HiRes;
@@ -86,7 +86,18 @@ is(&{$xpl->timer_attrib('tick', 'next_fn')}($now), $now+$timeout,
 my $nt = $xpl->timer_next_ticks();
 $to = $nt->[0] - Time::HiRes::time();
 ok(defined $to && $to > 0 && $to < $timeout, "timer minimum timeout - ".$to);
+
+# test reset_timer
+$now = time + 10;
+ok($xpl->reset_timer('tick', $now), "timer reset");
+$nt = $xpl->timer_next_ticks();
+$to = $nt->[0] - $now;
+ok(defined $to && $to > 0 && $to <= $timeout, "timer reset timeout - ".$to);
 ok($xpl->remove_timer('tick'), "remove timer");
+
+is(test_warn(sub { $xpl->reset_timer('tick', $now) }),
+   "MY::Listener->reset_timer: timer 'tick' is not registered",
+   'timer reset - warn');
 
 $timeout = .5;
 $xpl->add_timer(id => 'null', timeout => -$timeout, count => 5);

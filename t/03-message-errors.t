@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 27;
+use Test::More tests => 28;
 use t::Helpers qw/test_warn test_error/;
 
 use_ok("xPL::Message");
@@ -14,6 +14,10 @@ is(test_error(sub { $msg = xPL::Message->new(); }),
    "xPL::Message missing class test");
 
 is(test_error(sub { $msg = xPL::Message->new(class => "remote.basic") }),
+   "xPL::Message->new: requires 'message_type' parameter",
+   "xPL::Message missing message type test");
+
+is(test_error(sub { $msg = xPL::Message->new(class => "unknown.basic") }),
    "xPL::Message->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 

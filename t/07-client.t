@@ -4,7 +4,7 @@
 
 use strict;
 use Socket;
-use Test::More tests => 36;
+use Test::More tests => 51;
 $|=1;
 
 use_ok("xPL::Client");
@@ -176,6 +176,69 @@ wait_for_tick($xpl, "!hbeat");
 is($xpl->hbeat_count, 4, "hbeat count");
 
 is($errors, undef, "no unexpected errors");
+
+fake_hub_response($xpl,
+                  class => 'hbeat.request',
+                  head => { source => "acme-dingus.req" },
+                  body => { command => 'request', },
+                 );
+$xpl->reset_timer('!hbeat', time+20);
+my $next_hbeat = $xpl->timer_next('!hbeat');
+$xpl->main_loop(1);
+is($xpl->xpl_callback_callback_count('!hbeat-request'), 1,
+   'hbeat.request - response received');
+is($xpl->hbeat_count, 4, "hbeat.request - hbeat count");
+ok($xpl->exists_timer("!hbeat-response"),
+   "hbeat.request - response timer exists");
+# force hbeat timer to go off after extra hbeat is sent
+$xpl->reset_timer('!hbeat-response', time-6);
+$xpl->main_loop(1);
+is($xpl->hbeat_count, 5, "hbeat.request - hbeat count");
+ok(!$xpl->exists_timer("!hbeat-response"),
+   "hbeat.request - response timer removed");
+ok($xpl->timer_next('!hbeat') < $next_hbeat,
+   'hbeat.request - hbeat timer reset');
+
+# force hbeat timer to go off before extra hbeat is sent but not so soon that
+# the hbeat response timer is removed immediately
+$xpl->reset_timer('!hbeat-response', time-1);
+fake_hub_response($xpl,
+                  class => 'hbeat.request',
+                  head => { source => "acme-dingus.req" },
+                  body => { command => 'request', },
+                 );
+$xpl->main_loop(1);
+is($xpl->xpl_callback_callback_count('!hbeat-request'), 2,
+   'hbeat.request - response received');
+ok($xpl->exists_timer("!hbeat-response"),
+   'hbeat.request - response timer exists');
+my $count = $xpl->timer_callback_count('!hbeat');
+$xpl->main_loop(1);
+is($count+1,$xpl->timer_callback_count('!hbeat'),
+   'hbeat.request - normal hbeat sent as response');
+ok(!$xpl->exists_timer("!hbeat-response"),
+   'hbeat.request - response timer removed');
+
+# test the case when the !hbeat timer doesn't exist - normally when the fast
+# timer or hopeful timer would but here we just remove it for simplicity
+$count = $xpl->hbeat_count();
+fake_hub_response($xpl,
+                  class => 'hbeat.request',
+                  head => { source => "acme-dingus.req" },
+                  body => { command => 'request', },
+                 );
+$xpl->remove_timer('!hbeat');
+$xpl->main_loop(1);
+is($xpl->xpl_callback_callback_count('!hbeat-request'), 3,
+   'hbeat.request - response received');
+is($xpl->hbeat_count, $count, "hbeat.request - hbeat count");
+ok($xpl->exists_timer("!hbeat-response"),
+   "hbeat.request - response timer exists");
+$xpl->reset_timer('!hbeat-response', time-6);
+$xpl->main_loop(1);
+is($xpl->hbeat_count, $count+1, "hbeat.request - hbeat count");
+ok(!$xpl->exists_timer("!hbeat-response"),
+   "hbeat.request - response timer removed");
 
 delete $ENV{XPL_HOSTNAME};
 no strict qw/refs/;
