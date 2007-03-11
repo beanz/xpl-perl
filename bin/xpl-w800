@@ -152,18 +152,31 @@ sub process_w800 {
 #  foreach (@bytes) {
 #    printf("%02x %3d %s\n", $_, $_, unpack("B*", pack("C",$_)));
 #  }
-  unless ($bytes[0]+$bytes[1] == 255 &&
-          $bytes[2]+$bytes[3] == 255) {
-    print "Bogus ", unpack("H*",$seq), "\n";
-    return;
+  if ($bytes[0]+$bytes[1] == 255 &&
+      $bytes[2]+$bytes[3] == 255) {
+    if ($bytes[2] & 0xe0) {
+      warn "Not X10\n";
+      return;
+    }
+    return parse_x10($seq, @bytes);
   }
+
+  if ( (($bytes[0]&0xf0)^($bytes[1]&0xf0)) == 0xf0 &&
+       ($bytes[0]&0xf) == ($bytes[1]&0xf) ) {
+    return parse_x10_sec($seq, @bytes);
+  }
+
+  print "Bogus ", unpack("H*",$seq), " ", unpack("H*", pack("C4",@bytes)), "\n";
+  return;
+}
+
+sub parse_x10 {
+  my $seq = shift;
+  my @bytes = @_;
+
   my $byte1 = $bytes[2];
   my $byte3 = $bytes[0];
 
-  if ($byte1 & 0xe0) {
-    warn "Not X10\n";
-    return;
-  }
   my $h = house_code($byte3);
   my $f = function($byte1);
   unless ($byte1&1) {
@@ -180,6 +193,45 @@ sub process_w800 {
   }
   print $k, "\n" if ($verbose);
   send_xpl($f, $h.$u);
+  return 1;
+}
+
+sub parse_x10_sec {
+  my $seq = shift;
+  my @bytes = @_;
+
+  my $device = sprintf('x10sec%02x',$bytes[0]);
+  my $data = $bytes[2];
+
+  my $alert = !($data&0x1);
+  my $min_delay = $data&0x20;
+  my $low_battery = $data&0x80;
+
+  my $k = $device.' '.
+    ($alert ? "open" : "closed").' '.
+      ($min_delay?"min":"max").' '.
+        ($low_battery ? "low" : "ok");
+  my $t = Time::HiRes::time;
+  my $l = $last{$k};
+  $last{$k} = $t;
+  if (defined $l && $t-$l < 0.5) {
+#    print "Dup $k\n";
+    return;
+  }
+  print STDERR "Sec: $k\n" if ($verbose);
+
+  my %args =
+    (
+     message_type => 'xpl-trig',
+     class => 'security.zone',
+     body => {
+              event => 'alert',
+              zone  => $device,
+              state => $alert ? 'true' : 'false',
+             }
+    );
+  $xpl->send(%args);
+
   return 1;
 }
 
