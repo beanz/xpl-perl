@@ -160,6 +160,7 @@ sub new {
                           callback => sub { $self->hub_response(@_) });
 
   $self->add_xpl_callback(id => '!hbeat-request',
+                          self_skip => 0,
                           filter =>
                           {
                            message_type => 'xpl-cmnd',
