@@ -307,7 +307,7 @@ sub _parse_body {
       if (ref($r{body}->{$k})) {
         push @{$r{body}->{$k}}, $v;
       } else {
-        @{$r{body}->{$k}} = ($r{body}->{$k}, $v);
+        $r{body}->{$k} = [$r{body}->{$k}, $v];
       }
       next;
     }
@@ -715,8 +715,11 @@ message body that contains the extra fields.
 sub extra_field_string {
   my $self = shift;
   my $b = $EMPTY;
-  foreach ($self->extra_fields) {
-    $b .= $_.$EQUALS.$self->extra_field($_).$LF;
+  foreach my $k ($self->extra_fields) {
+    my $v = $self->extra_field($k);
+    foreach (ref($v) ? @{$v} : ($v)) {
+      $b .= $k.$EQUALS.$_.$LF;
+    }
   }
   return $b;
 }
