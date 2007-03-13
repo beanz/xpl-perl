@@ -276,7 +276,7 @@ sub new_from_payload {
   $r{message_type} = $1;
   $r{head_content} = $2;
 
-  unless ($body =~ /^(.*?)\n\{\n(.*)$/s) {
+  unless ($body =~ /^(.*?)\n\{\n?(.*)$/s) {
     xPL::Message->argh("Invalid body: $body\n");
   }
   $r{body_content} = $2;
