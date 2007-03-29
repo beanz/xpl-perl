@@ -1,5 +1,6 @@
 bin/xpl-bridge
 bin/xpl-clock
+bin/xpl-csoft-sms
 bin/xpl-dawndusk
 bin/xpl-dg834
 bin/xpl-digitemp
@@ -58,6 +59,8 @@ lib/xPL/schema/hbeat.request.yaml
 lib/xPL/schema/osd.basic.yaml
 lib/xPL/schema/remote.basic.yaml
 lib/xPL/schema/remote.confirm.yaml
+lib/xPL/schema/sendmsg.basic.yaml
+lib/xPL/schema/sendmsg.confirm.yaml
 lib/xPL/schema/sensor.basic.yaml
 lib/xPL/schema/sensor.network.yaml
 lib/xPL/schema/tts.basic.yaml
