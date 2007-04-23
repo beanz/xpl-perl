@@ -1,0 +1,175 @@
+#!/usr/bin/perl -w
+use strict;
+
+use Gtk2 -init;
+use Gtk2::SimpleList;
+use xPL::Gtk2Client;
+use POSIX qw/strftime/;
+
+my $history_size = 20;
+my $timefmt = "%Y-%m-%d %H:%M:%S";
+
+my $xpl = xPL::Gtk2Client->new(vendor_id => 'bnz', device_id => 'gtk2mon',
+                               @ARGV);
+$xpl->add_xpl_callback(id => "logger", self_skip => 0, targetted => 0,
+                       callback => \&log);
+my %d;
+my $win = Gtk2::Window->new('toplevel');
+my $vbox = Gtk2::VBox->new(0,0);
+$win->add($vbox);
+my $slist = Gtk2::SimpleList->new('Id' => 'text',
+                                  'Last Message' => 'text',
+                                  'Last Time' => 'text',
+                                  'Hbeat Time' => 'text');
+$slist->signal_connect(button_press_event => \&button_press);
+$slist->set_rules_hint(1);
+$vbox->add($slist);
+foreach (['Send Request' => sub { $xpl->send(class=>'hbeat.request') }],
+         ['Quit' => sub { Gtk2->main_quit }]) {
+  my $button = Gtk2::Button->new($_->[0]);
+  $button->signal_connect(clicked => $_->[1]);
+  $vbox->add($button);
+}
+my $menu = Gtk2::Menu->new();
+$menu->set_name('client menu');
+my $tearoff = Gtk2::TearoffMenuItem->new();
+$menu->append($tearoff);
+$tearoff->show;
+foreach (['History' => \&history_callback],
+         ['Ping' => \&ping_callback],
+         ['Remove' => \&remove_callback]) {
+  my ($title, $cb) = @$_;
+  my $item = Gtk2::MenuItem->new($title);
+  $item->signal_connect('activate', $cb);
+  $menu->append($item);
+  $item->show;
+}
+$win->show_all;
+
+my $dialog = Gtk2::Window->new();
+$dialog->signal_connect("destroy", sub { $dialog->hide(); 1; });
+$dialog->set_role('dialog');
+$dialog->realize();
+my $hist_list = Gtk2::SimpleList->new('Time' => 'text',
+                                      'Summary' => 'text');
+$hist_list->set_rules_hint(1);
+$hist_list->signal_connect(button_press_event => \&hist_button_press);
+my $dialog_vbox = Gtk2::VBox->new(0,0);
+$dialog->add($dialog_vbox);
+$dialog_vbox->add($hist_list);
+my $hide_button = Gtk2::Button->new('Hide');
+$hide_button->signal_connect(clicked => sub { $dialog->hide(); 1; });
+$dialog_vbox->add($hide_button);
+
+my $hist_menu = Gtk2::Menu->new();
+$hist_menu->set_name('hist menu');
+my $hist_tearoff = Gtk2::TearoffMenuItem->new();
+$hist_menu->append($hist_tearoff);
+$hist_tearoff->show;
+foreach (['Body' => \&body_callback],
+         ['Head' => \&head_callback]) {
+  my ($title, $cb) = @$_;
+  my $item = Gtk2::MenuItem->new($title);
+  $item->signal_connect('activate', $cb);
+  $hist_menu->append($item);
+  $item->show;
+}
+
+Gtk2->main;
+
+sub log {
+  my %p = @_;
+  my $msg = $p{message};
+  my $source = $msg->source;
+  my $t = time;
+  $d{src}->{$source} = {} unless (exists $d{src}->{$source});
+  my $r = $d{src}->{$source};
+  if ($msg->class eq 'hbeat') {
+    if ($msg->class_type eq 'end') {
+      delete $d{src}->{$source};
+      undef $r;
+    } else {
+      $r->{last_hbeat} = $msg;
+      $r->{last_hbeat_time} = $t;
+      $r->{last_hbeat_time_str} = strftime($timefmt, localtime($t));
+    }
+  } else {
+    unshift @{$r->{hist}}, [$msg, $t];
+    if (scalar @{$r->{hist}} > $history_size) {
+      pop @{$r->{hist}};
+    }
+    $r->{last} = $msg;
+    $r->{last_time} = $t;
+    $r->{last_time_str} = strftime($timefmt, localtime($t));
+    $r->{last_summary} = $msg->summary;
+  }
+  redraw_list();
+}
+
+sub redraw_list {
+  my @list;
+  my $count = 0;
+  $d{row} = {};
+  foreach my $src (sort keys %{$d{src}}) {
+    my @row = $src;
+    foreach (qw/last_summary last_time_str last_hbeat_time_str/) {
+      push @row, $d{src}->{$src}->{$_};
+    }
+    push @list, \@row;
+    $d{src}->{$src}->{row} = $count;
+    $d{row}->{$count} = $src;
+    $count++;
+  }
+  @{$slist->{data}} = @list;
+  return 1;
+}
+
+sub button_press {
+  my ($widget, $event) = @_;
+  return unless (($event->button == 3) && ($event->type eq "button-press"));
+  my ($path) = $widget->get_path_at_pos($event->x, $event->y);
+  return 1 unless ($path);
+  my $index = $path->to_string();
+  my $src = $d{row}->{$index};
+  return 1 unless ($src);
+  $d{selected} = $src;
+  $menu->popup(undef,undef,undef,undef, $event->button, $event->time);
+  return 1;
+}
+
+sub history_callback {
+  my $src = $d{selected} || return 1;
+  my @list;
+  $d{hist_row} = [];
+  foreach (@{$d{src}->{$src}->{hist}}) {
+    my ($msg, $t) = @$_;
+    push @list, [ strftime($timefmt, localtime($t)), $msg->summary ];
+    push @{$d{hist_row}}, [$msg, $t];
+  }
+  @{$hist_list->{data}} = @list;
+  $dialog->show_all();
+  $dialog->resize(1, 1);
+  return 1;
+}
+
+sub ping_callback {
+  $xpl->send(head => { target => $d{selected} }, class=>'hbeat.request');
+  return 1;
+}
+
+sub remove_callback {
+  return 1;
+}
+
+sub hist_button_press {
+  my ($widget, $event) = @_;
+  return unless (($event->button == 3) && ($event->type eq "button-press"));
+  my ($path) = $widget->get_path_at_pos($event->x, $event->y);
+  return 1 unless ($path);
+  my $index = $path->to_string();
+  my $rec = $d{hist_row}->[$index];
+  return 1 unless ($rec);
+  $d{hist_selected} = $rec;
+  $hist_menu->popup(undef,undef,undef,undef, $event->button, $event->time);
+  return 1;
+}

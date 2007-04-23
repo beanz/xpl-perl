@@ -9,6 +9,7 @@ bin/xpl-hddtemp
 bin/xpl-hub
 bin/xpl-lirc
 bin/xpl-logger
+bin/xpl-monitor
 bin/xpl-mplayer
 bin/xpl-owfs
 bin/xpl-rrd
@@ -27,6 +28,7 @@ lib/xPL/Base.pm
 lib/xPL/Listener.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
+lib/xPL/Gtk2Client.pm
 lib/xPL/Hub.pm
 lib/xPL/Message.pm
 lib/xPL/SQL.pm
