@@ -23,6 +23,7 @@ This script is an xPL client that interfaces with an mplayer controller.
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
+use DirHandle;
 use FileHandle;
 use IO::Pipe;
 use Getopt::Std;
@@ -69,8 +70,7 @@ if (exists $opt{'v'}) {
   $args{verbose} = $opt{'v'};
 }
 
-my $pl = [];
-my $pl_index = -1;
+my $pl = {};
 load_list($opt{'l'}, $opt{'s'});
 
 # Create an xPL Client object
@@ -80,6 +80,7 @@ my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 $xpl->add_xpl_callback(id => 'mplayer', callback => \&xpl_in);
 
 my $mode = "idle";
+my $quick = 0;
 my $track = "unknown";
 my $artist = "unknown";
 my $album = "unknown";
@@ -217,6 +218,15 @@ sub xpl_in {
   } elsif ($command =~ /^volume\s?(\d+)/) {
     set_volume($1);
   } elsif ($command =~ /^play$/ || $command =~ /^skip$/) {
+    if ($quick) {
+      # switch play list
+      next_list();
+      $xpl->remove_timer('quick');
+    }
+    $quick = 1;
+    $xpl->add_timer(id => 'quick',
+                     timeout => 2,
+                    callback => sub { $quick = 0; return; });
     if ($mode eq "play") {
       skip();
     } else {
@@ -295,10 +305,23 @@ This method plays the next song from the playlist.
 
 sub play {
   $mode = 'play';
-  $pl_index += 1;
-  $pl_index %= scalar @$pl;
-  my $file = $pl->[$pl_index];
+  my $current = $pl->{lists}->[$pl->{index}];
+  $current->{index} += 1;
+  $current->{index} %= scalar @{$current->{tracks}};
+  my $file = $current->{tracks}->[$current->{index}];
   play_file($file);
+}
+
+=head2 C<next_list( )>
+
+This method switches to the next play list.
+
+=cut
+
+sub next_list {
+  $pl->{index} += 1;
+  $pl->{index} %= scalar @{$pl->{lists}};
+  print STDERR "Playlist is now ", $pl->{lists}->[$pl->{index}]->{file}, "\n";
 }
 
 =head2 C<skip( )>
@@ -332,12 +355,38 @@ This method loads a playlist.
 sub load_list {
   my $file = shift;
   my $shuffle = shift;
-  my $fh = FileHandle->new($file) || return [];
+  $pl = { index => -1, lists => [] };
+  if (-d $file) {
+    my $dh = DirHandle->new($file);
+    foreach my $sub (sort $dh->read()) {
+      next unless ($sub =~ /\.m3u$/);
+      _load_list($pl, $file.'/'.$sub, $shuffle);
+    }
+    return $pl;
+  } else {
+    return _load_list($pl, $file, $shuffle);
+  }
+}
+
+=head2 C<_load_list( $playlist, $file, [ $shuffle ])>
+
+This method loads a playlist.
+
+=cut
+
+sub _load_list {
+  my $playlist = shift;
+  my $file = shift;
+  my $shuffle = shift;
+  my %rec = ( file => $file, index => -1, tracks => []);
+  my $fh = FileHandle->new($file) || return \%rec;
   my @array = <$fh>;
   chomp(@array);
   fisher_yates_shuffle(\@array) if ($shuffle);
-  print STDERR "Playlist contains ", scalar @array, " items\n";
-  return $pl = \@array;
+  print STDERR "Playlist $file contains ", scalar @array, " items\n";
+  $rec{tracks} = \@array;
+  push @{$pl->{lists}}, \%rec;
+  return $pl;
 }
 
 =head2 C<fisher_yates_shuffle( \@array )>
