@@ -17,10 +17,8 @@ xpl-x10 - Perl script for an xPL X10 application
 =head1 DESCRIPTION
 
 This script is an xPL client that interfaces with an X10 controller.
-At the moment, this script uses heyu (version 1 not version 2) to
-communicate with the controller.  This is a temporary measure and I
-anticipate moving to something else ... possibly the x10dev kernel
-modules.
+At the moment, this script uses heyu (version 2) to communicate with
+the controller.
 
 =cut
 
@@ -103,6 +101,8 @@ sub xpl_in {
   return 1 unless ($heyu_command);
 
   my @devices;
+  my $data1;
+  my $data2;
   if ($msg->device) {
     push @devices, split /,/, $msg->device;
   }
@@ -113,12 +113,34 @@ sub xpl_in {
   if ($heyu_command =~ /^bright|dim$/ && $msg->level) {
     push @args, int $msg->level*22/100;
   }
+  if ($heyu_command eq 'xfunc') {
+    $data1 = $msg->data1;
+    $data2 = $msg->data2;
+    return 1 unless (defined $data1 && defined $data2);
+    $data1 = sprintf '%02x', $data1;
+    $data2 = sprintf '%02x', $data2;
+    foreach my $device (@devices) {
+      if ($opt{'v'}) {
+        print STDERR "Executing 'heyu $heyu_command $data1 $device $data2'\n";
+      }
+      system('heyu', $heyu_command, $data1, $device, $data2) == 0 or next;
+      my %args = (
+                  message_type => 'xpl-trig',
+                  class => 'x10.confirm',
+                  body => { command => $msg->command, device => $device,
+                            data1 => $msg->data1, data2 => $msg->data2 },
+                 );
+      $xpl->send(%args);
+    }
+    return 1;
+  }
+
   foreach my $device (@devices) {
     if ($opt{'v'}) {
-      print STDERR "Executing 'heyu turn $device $heyu_command".
+      print STDERR "Executing 'heyu $heyu_command $device".
         (@args ? " @args" : "")."'\n";
     }
-    system('heyu', 'turn', $device, $heyu_command, @args) == 0 or next;
+    system('heyu', $heyu_command, $device, @args) == 0 or next;
     send_xpl_confirm($device, $msg->command, @args);
   }
   return 1;
@@ -211,6 +233,7 @@ sub xpl_to_heyu {
           all_lights_off => "lightsoff",  all_lights_on => "lightson",
           on => "on", off => "off",
           dim => "dim", bright => "bright",
+          extended => "xfunc",
          }->{$command};
 }
 
