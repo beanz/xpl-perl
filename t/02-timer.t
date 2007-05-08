@@ -132,7 +132,7 @@ SKIP: {
   $t = xPL::Timer->new(type => 'recurrence',
                        minutes => 17, verbose => 1);
   ok($t, 'create recurrence timer');
-  isa_ok($t, 'xPL::Timer::recurrence', 'recurrencecron timer type');
+  isa_ok($t, 'xPL::Timer::recurrence', 'recurrence timer type');
   is($t->next(23), 1020, 'recurrence timer next value');
 
   $t = xPL::Timer->new_from_string('recurrence freq=hourly minutes="17"');

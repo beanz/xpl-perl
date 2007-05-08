@@ -1,0 +1,181 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-rfxcom 202 2007-03-11 19:48:50Z beanz $
+
+=head1 NAME
+
+xpl-rfxcom - Perl script for an xPL RFXCOM RF receiver application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-rfxcom -h
+
+  # start the rfxcom application on first ethernet interface in verbose mode
+  xpl-rfxcom -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a RFXCOM RF receiver.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Std;
+use Time::HiRes;
+use xPL::Client;
+use xPL::RF qw/:all/;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] <device>
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+  -B baud - the baud rate (4800)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:b:B:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $dev = shift or die HELP_MESSAGE("The device parameter is required");
+my $baud = exists $opt{'B'} ? $opt{'B'} : 4800;
+my $verbose = exists $opt{'v'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "rfxcom",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'rfxcom', callback => \&xpl_in);
+
+my $buf = q{};
+my %unit;
+my %last;
+my $rf = xPL::RF->new(source => $xpl->id) or
+  die "Failed to create RF decode object\n";
+
+# TODO: use Device::SerialPort?
+system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+  die "Setting serial port with stty failed: $!\n";
+my $fh = FileHandle->new;
+sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+  or die "Cannot open serial connection on device '$dev'\n";
+$fh->autoflush(1);
+binmode($fh);
+$xpl->add_input(handle => $fh, callback => \&rfxcom_reader);
+
+my @send = ("F020", "F02A", 'F02C');
+$xpl->add_timer(id => 'sender', timeout => -1,
+                callback => sub { my $m = shift @send;
+                                  return 0 unless ($m);
+                                  send_rfxcom($m);
+                                  return 1;
+                                });
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming control.basic schema messages.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  if ($msg->message_type ne 'xpl-cmnd' ||
+      $msg->class ne 'control' ||
+      $msg->class_type ne 'basic') {
+    return 1;
+  }
+
+  return 1;
+}
+
+=head2 C<rfxcom_reader()>
+
+This is the callback that processes output from the RFXCOM.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+=cut
+
+sub rfxcom_reader {
+  my $bytes = $fh->sysread($buf, 512, length($buf));
+
+  my $res = $rf->process_variable_length($buf);
+  if (defined $res) {
+    # truncate buffer by given length
+    substr($buf, 0, $res->{length}, '') if ($res->{length});
+    return 1 unless ($res->{messages} && ref($res->{messages}));
+    foreach my $msg (@{$res->{messages}}) {
+      print $msg->summary,"\n";
+    }
+  } else {
+    # discard buffer
+    print "Not a variable length message: ", hex_dump($buf), "\n";
+    $buf = '';
+  }
+  return 1;
+}
+
+sub send_rfxcom {
+  my $msg = shift;
+  my $quiet = shift;
+  print "Sending '$msg' to rfxcom receiver\n" if (!$quiet && $verbose);
+  $msg = pack("H*", $msg);
+  syswrite($fh, $msg, length($msg));
+  $fh->flush();
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+W800 website: http://www.wgldesigns.com/w800.html
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2006 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
