@@ -227,6 +227,10 @@ sub send_xpl_aux {
   $xpl->send(%args);
 }
 
+# data1=0x31 data2=0x00-0x3f - dim on/off to specific level
+# data2 & 0x40 = at 30 second rate
+#       & 0x80 = at 1 minute rate
+#       & 0xc0 = at 5 minute rate
 sub xpl_to_heyu {
   my $command = shift;
   return {
