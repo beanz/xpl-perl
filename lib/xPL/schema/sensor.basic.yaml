@@ -14,6 +14,7 @@ types:
             - current
             - direction
             - distance
+            - energy
             - fan
             - generic
             - humidity
@@ -60,6 +61,7 @@ types:
             - current
             - direction
             - distance
+            - energy
             - fan
             - generic
             - humidity
@@ -68,6 +70,7 @@ types:
             - speed
             - temp
             - voltage
+            - volume
       - name: current
         required: 1
       - name: lowest
