@@ -28,6 +28,8 @@ eval { require DateTime::Event::Sunrise; };
 $has{Sunrise}++ unless ($@);
 eval { require DateTime::Event::Recurrence; };
 $has{Recurrence}++ unless ($@);
+eval { require Gtk2; };
+$has{Gtk2}++ unless ($@);
 
 
 foreach my $m (@modules) {
@@ -42,6 +44,7 @@ foreach my $m (@modules) {
       if ($m eq 'xPL::Timer::sunset' && !$has{Sunrise});
     skip 'DateTime::Event::Recurrence not available', 1
       if ($m eq 'xPL::Timer::recurrence' && !$has{Recurrence});
+    skip 'Gtk2 not available', 1 if ($m eq 'xPL::Gtk2Client' && !$has{Gtk2});
 
     require_ok($m);
   }
