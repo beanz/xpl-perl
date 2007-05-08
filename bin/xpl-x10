@@ -158,6 +158,7 @@ sub heyu_reader {
   my $bytes = $fh->sysread($buf, 512, length($buf));
   while ($buf =~ s/^(.*?)\n//) {
     $_ = $LAST_PAREN_MATCH;
+    next if (/sndc/); # ignore what we send to avoid loops
     # TOFIX: process timestamps
     if (m!function\s+(\S+)\s+:\s+housecode\s+(\w+)(.*\s+by\s+%(\d+))?!) {
       my $f = lc($1);
