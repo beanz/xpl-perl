@@ -33,6 +33,9 @@ lib/xPL/Gtk2Client.pm
 lib/xPL/Hub.pm
 lib/xPL/Message.pm
 lib/xPL/RF.pm
+lib/xPL/RF/RFXCOM.pm
+lib/xPL/RF/X10.pm
+lib/xPL/RF/X10Security.pm
 lib/xPL/SQL.pm
 lib/xPL/Timer.pm
 lib/xPL/Timer/cron.pm
@@ -71,6 +74,7 @@ lib/xPL/schema/tts.basic.yaml
 lib/xPL/schema/ups.basic.yaml
 lib/xPL/schema/x10.basic.yaml
 lib/xPL/schema/x10.confirm.yaml
+lib/xPL/schema/x10.security.yaml
 Makefile.PL
 MANIFEST
 META.yml                                 Module meta-data (added by MakeMaker)
@@ -79,13 +83,16 @@ t/00-helpers.t
 t/01-use.t
 t/01-xpl-base.t
 t/01-xpl-interfaces.t
-t/01-xpl-rf.t
 t/01-xpl-validation.t
 t/02-message.t
 t/02-timer.t
 t/03-message-errors.t
 t/03-message-from-payload.t
 t/03-message-method-maker.t
+t/03-rf-electrisave.t
+t/03-rf-rfxcom.t
+t/03-rf-x10sec.t
+t/03-rf-x10.t
 t/04-clock.t
 t/04-collection-api.t
 t/04-hbeat-errors.t

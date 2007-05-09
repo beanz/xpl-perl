@@ -19,6 +19,7 @@ WriteMakefile(
                 AUTHOR  => 'Mark Hindess <xpl-perl@beanz.uklinux.net>',
                 PREREQ_PM => {
                   'YAML' => 0,
+                  'Module::Pluggable' => 0,
                 },
                ) : ()),
              );

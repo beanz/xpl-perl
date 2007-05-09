@@ -1,6 +1,6 @@
 package xPL::RF;
 
-# $Id: RF.pm 192 2007-03-03 19:05:56Z beanz $
+# $Id$
 
 =head1 NAME
 
@@ -25,6 +25,8 @@ use warnings;
 use English qw/-no_match_vars/;
 use Time::HiRes;
 use xPL::Message;
+use Module::Pluggable
+  search_path => 'xPL::RF', sub_name => 'parsers', require => 1;
 use Exporter;
 use AutoLoader qw(AUTOLOAD);
 
@@ -33,7 +35,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(hex_dump) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = '0.01';
-our $SVNVERSION = qw/$Revision: 192 $/[1];
+our $SVNVERSION = qw/$Revision$/[1];
 
 =head2 C<new(%parameter_hash)>
 
@@ -58,13 +60,42 @@ sub new {
   my %p = @_;
   my $self = {};
   bless $self, $pkg;
-  $self->{_verbose} = 1;
-  $self->{_source} = $p{source} or
-    die "$pkg->new: requires 'source' parameter\n";
+  $self->verbose($p{verbose});
+  $p{source} or die "$pkg->new: requires 'source' parameter\n";
+  $self->source($p{source});
   $self->{_default_x10_level} = 10;
   $self->{_duplicate_timeout} = $p{duplicate_timeout} || .5;
   $self->{_cache} = {};
   return $self;
+}
+
+sub verbose {
+  my $self = shift;
+  if (@_) {
+    $self->{_verbose} = $_[0];
+  }
+  return $self->{_verbose};
+}
+
+sub source {
+  my $self = shift;
+  if (@_) {
+    $self->{_source} = $_[0];
+  }
+  return $self->{_source};
+}
+
+sub stash {
+  my $self = shift;
+  my $key = shift;
+  my $value = shift;
+  return $self->{_stash}->{$key} = $value;
+}
+
+sub unstash {
+  my $self = shift;
+  my $key = shift;
+  return $self->{_stash}->{$key};
 }
 
 =head2 C<process_variable_length( $buf )>
@@ -119,23 +150,19 @@ sub process_variable_length {
   }
   my $res = { length => $length+1, messages => [] };
   my $msg = substr($buf, 1, $length); # message from buffer
-  return $res if ($self->is_duplicate($msg));
-  if ($length == 4) {
-    #process 32bit
-    $res->{messages} = $self->process_32bit($msg);
-  } elsif ($length == 6) {
-    #process 48bit
-    $res->{messages} = $self->process_48bit($msg);
-  } elsif ($length == 15) {
-    #process 120bit
-    $res->{messages} = $self->process_120bit($msg);
-  } else {
-    print "L: $length  H: ", unpack("H*",$msg), "\n";
+  return $res if ($self->is_duplicate($length_bits, $msg));
+  my @msg_bytes = unpack("C*",$msg);
+  foreach my $parser ($self->parsers()) {
+    my $messages = $parser->parse($self, $msg, \@msg_bytes, $length_bits);
+    next unless (defined $messages);
+    $res->{messages} = $messages;
+    return $res;
   }
+  #print "L: $length  H: ", unpack("H*",$msg), "\n";
   return $res;
 }
 
-=head2 C<is_duplicate( $message )>
+=head2 C<is_duplicate( $length_bits, $message )>
 
 This method returns true if this message has been seen in the
 previous C<duplicate_timeout> seconds.
@@ -144,7 +171,9 @@ previous C<duplicate_timeout> seconds.
 
 sub is_duplicate {
   my $self = shift;
-  my $key = shift;
+  my $bits = shift;
+  my $message = shift;
+  my $key = $bits.'!'.$message;
   my $t = Time::HiRes::time;
   my $l = $self->{_cache}->{$key};
   $self->{_cache}->{$key} = $t;
@@ -167,15 +196,12 @@ sub process_32bit {
   my $self = shift;
   my $message = shift;
   my @bytes = unpack("C*",$message);
-  if ($self->is_x10(\@bytes)) {
-    return $self->parse_x10($message, \@bytes);
-  }
 
-  if ($self->is_x10_security(\@bytes)) {
-    return $self->parse_x10_sec($message, \@bytes);
+  foreach my $parser ($self->parsers()) {
+    my $messages = $parser->parse($self, $message, \@bytes, 32);
+    next unless ($messages);
+    return $messages;
   }
-
-  print "Bogus ", unpack("H*",$message), "\n";
   return [];
 }
 
@@ -192,325 +218,6 @@ sub reverse_bits {
     $_ = unpack("C",pack("B8",unpack("b8", pack("C",$_))));
   }
   return 1;
-}
-
-=head2 C<process_48bit( $message )>
-
-This method processes a 48-bit message and returns an array references
-containing any xPL messages that can be constructed from the decoded
-message.
-
-=cut
-
-sub process_48bit {
-  my $self = shift;
-  my $message = shift;
-  my @bytes = unpack("C*",$message);
-  print "48bit: ", unpack("H*",$message), "\n";
-  if ($self->is_x10_security(\@bytes)) {
-    return $self->parse_x10_sec($message, \@bytes);
-  }
-  if ($bytes[0] == ($bytes[1]^0xf0)) {
-    return $self->parse_rfxcom($message, \@bytes);
-  }
-  return [];
-}
-
-=head2 C<process_120bit( $message )>
-
-This method processes a 120-bit message and returns an array references
-containing any xPL messages that can be constructed from the decoded
-message.
-
-=cut
-
-sub process_120bit {
-  my $self = shift;
-  my $message = shift;
-  my @bytes = unpack("C*",$message);
-  print "120bit: ", unpack("H*",$message), "\n";
-  if ($bytes[0] == 0xea && ($bytes[1]&0xf0) == 0x00) {
-    return $self->parse_electrisave($message, \@bytes);
-  }
-  return [];
-}
-
-sub parse_electrisave {
-  my $self = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $device = sprintf "%02x", $bytes->[2];
-  my $amps = ( $bytes->[3]+(($bytes->[4]&0x3)<<8) ) / 10;
-  my $kwh = ($amps*240)/1000;
-  my $pence = 7.572*$kwh;
-  printf "electrisave c=%.2f p=%.2f\n", $amps, $pence;
-  return [xPL::Message->new(
-                            message_type => 'xpl-trig',
-                            class => 'sensor.basic',
-                            head => { source => $self->{_source}, },
-                            body => {
-                                     device => 'electrisave.'.$device,
-                                     type => 'current',
-                                     current => $amps,
-                                    }
-                           )];
-  return [];
-}
-
-sub parse_rfxcom {
-  my $self = shift;
-  my $message = shift;
-  my $bytes = shift;
-#http://board.homeseer.com/showpost.php?p=749725&postcount=27
-#http://board.homeseer.com/showpost.php?p=767406&postcount=88
-  my $device = sprintf "%02x", $bytes->[0];
-  my $type = ($bytes->[5]&0xf0)>>4;
-  my $check = $bytes->[5]&0xf;
-  my $nibble_sum = 0;
-  $nibble_sum += ($bytes->[$_]&0xf) + (($bytes->[$_]&0xf0)>>4) foreach (0..4);
-  my $parity = 0xf^($nibble_sum&0xf);
-  unless ($parity == $bytes->[5]) {
-    print "rfxcom: ", unpack("H*",$message), "\n";
-  }
-
-  my $time =
-    { 0x01 => '30s',
-      0x02 => '1m',
-      0x04 => '5m',
-      0x08 => '10m',
-      0x10 => '15m',
-      0x20 => '30m',
-      0x40 => '45m',
-      0x80 => '60m',
-    };
-  my $type_str =
-      [
-       'normal data packet',
-       'new interval time set',
-       'calibrate value',
-       'new address set',
-       'counter value reset to zero',
-       'set 1st digit of counter value integer part',
-       'set 2nd digit of counter value integer part',
-       'set 3rd digit of counter value integer part',
-       'set 4th digit of counter value integer part',
-       'set 5th digit of counter value integer part',
-       'set 6th digit of counter value integer part',
-       'counter value set',
-       'set interval mode within 5 seconds',
-       'calibration mode within 5 seconds',
-       'set address mode within 5 seconds',
-       'identification packet',
-      ]->[$type];
-  unless ($type == 0) {
-    print "rfxpower: ", unpack("H*",$message), " ", $type_str, "\n";
-    return [];
-  }
-  my $kwh = ( ($bytes->[2]<<16) + ($bytes->[3]<<8) + ($bytes->[4]) ) / 100;
-  print "rfxpower: ", $kwh, "kwh\n";
-  return [xPL::Message->new(
-                            message_type => 'xpl-trig',
-                            class => 'sensor.basic',
-                            head => { source => $self->{_source}, },
-                            body => {
-                                     device => 'rfxpower.'.$device,
-                                     type => 'energy',
-                                     current => $kwh,
-                                    }
-                           )];
-}
-
-sub is_x10 {
-  my $self = shift;
-  my $bytes = shift;
-  # bits are not reversed yet!
-  return ($bytes->[2]^0xff) == $bytes->[3] &&
-    ($bytes->[0]^0xff) == $bytes->[1] &&
-      !($bytes->[2]&0x7)
-}
-
-=head2 C<parse_x10( $message )>
-
-TODO: POD
-
-TODO: The duplicates should probably be counted for bright and dim to set
-the level but they aren't yet.
-
-=cut
-
-sub parse_x10 {
-  my $self = shift;
-  my $message = shift;
-  my $bytes = shift;
-
-  $self->reverse_bits($bytes);
-
-  my $byte1 = $bytes->[2];
-  my $byte3 = $bytes->[0];
-
-  my $h = house_code($byte3);
-  my $f = function($byte1);
-  unless ($byte1&1) {
-    $self->{_unit}->{$h} = unit_code($byte1, $byte3);
-  }
-  my $u = $self->{_unit}->{$h} ||
-    do { warn "Don't have unit code for: $h $f\n"; return };
-  my $k = $h.$u." ".$f;
-  print $k, "\n" if ($self->{_verbose});
-  return [$self->x10_xpl_message($f, $h.$u)];
-}
-
-sub is_x10_security {
-  my $self = shift;
-  my $bytes = shift;
-  # bits are not reversed yet!
-  return  ($bytes->[0]^0x0f) == $bytes->[1] && ($bytes->[2]^0xff) == $bytes->[3]
-}
-
-sub parse_x10_sec {
-  my $self = shift;
-  my $message = shift;
-  my $bytes = shift;
-
-  $self->reverse_bits($bytes);
-
-  my $device = sprintf('x10sec%02x',$bytes->[0]);
-  my $data = $bytes->[2];
-
-  my %not_supported_yet =
-    (
-     # See: http://www.wgldesigns.com/protocols/w800rf32_protocol.txt
-     0x70 => 'SH624 arm home (min)',
-     0x60 => 'SH624 arm away (min)',
-     0x50 => 'SH624 arm home (max)',
-     0x40 => 'SH624 arm away (max)',
-     0x41 => 'SH624 disarm',
-     0x42 => 'SH624 sec light on',
-     0x43 => 'SH624 sec light off',
-     0x44 => 'SH624 panic',
-     #0x60 => 'KF574 arm',
-     0x61 => 'KF574 disarm',
-     0x62 => 'KF574 lights on',
-     0x63 => 'KF574 lights off',
-    );
-
-  if (exists $not_supported_yet{$data}) {
-    warn sprintf "Not supported: %02x %s\n", $data, $not_supported_yet{$data};
-    return [];
-  }
-
-  my $alert = !($data&0x1);
-  my $tamper = $data&0x2;
-  my $min_delay = $data&0x20;
-  my $low_battery = $data&0x80;
-
-  my $k = $device.' '.
-    ($alert ? 'alert' : 'normal').' '.
-      ($min_delay ? 'min' : 'max').' '.
-        ($tamper ? 'tamper ' : '').
-          ($low_battery ? 'lowbat' : '');
-
-  my @res;
-  my %args =
-    (
-     message_type => 'xpl-trig',
-     class => 'security.zone',
-     head => { source => $self->{_source}, },
-     body => {
-              event => 'alert',
-              zone  => $device,
-              state => $alert ? 'true' : 'false',
-             }
-    );
-  push @res, xPL::Message->new(%args);
-#x10.security
-#{
-#command=alert|normal|motion|light|dark|arm-home|arm-away|disarm|panic|lights-on|lights-off
-#device=<device id>
-#[type=sh624|kr10|ds10|ds90|ms10|ms20|ms90|dm10|sd90|...]
-#[tamper=true|false]
-#[low-battery=true|false]
-#[delay=min|max]
-#}
-  %args =
-    (
-     message_type => 'xpl-trig',
-     class => 'x10.security',
-     head => { source => $self->{_source}, },
-     body => {
-              command => $alert ? ($data&0x30 ? 'motion' : 'alert') : 'normal',
-              device  => $device,
-             }
-    );
-  $args{'tamper'} = 'true' if ($tamper);
-  $args{'low-battery'} = 'true' if ($low_battery);
-  $args{'delay'} = $min_delay ? 'min' : 'max';
-  push @res, xPL::Message->new(%args);
-  return \@res;
-}
-
-=head2 C<house_code( $byte1 )>
-
-This function takes byte 1 of a processed X10 message sequence and
-returns the associated house code.
-
-=cut
-
-sub house_code {
-  ('m', 'e', 'c', 'k', 'o', 'g', 'a', 'i',
-   'n', 'f', 'd', 'l', 'p', 'h', 'b', 'j')[$_[0] & 0xf];
-}
-
-=head2 C<function( $byte1 )>
-
-This function takes byte 1 of a processed X10 message sequence and
-returns the associated function.
-
-=cut
-
-sub function {
-  $_[0]&0x1 ? ($_[0]&0x8 ? "dim" : "bright") : ($_[0]&0x4 ? "off" : "on");
-}
-
-=head2 C<unit_code( $byte1, $byte3 )>
-
-This function takes bytes 1 and 3 of a processed X10 message sequence
-and returns the associated unit code.
-
-=cut
-
-sub unit_code {
-  my $b1 = shift;
-  my $b3 = shift;
-  return 1 + ((($b1&0x2) << 1) +
-              (($b1&0x18) >> 3) +
-              (($b3&0x20) >> 2));
-}
-
-=head2 C<x10_xpl_message( $command, $device, $level )>
-
-This functions is used to construct x10.basic xpl-trig messages as a
-result of RF messages decoded from the RF data.
-
-=cut
-
-sub x10_xpl_message {
-  my $self = shift;
-  my $command = shift;
-  my $device = shift;
-  my $level = shift;
-  my %body = ( device => $device, command => $command );
-  if ($command eq "bright" or $command eq "dim") {
-    $body{level} = $level || $self->{_default_x10_level};
-  }
-  my %args =
-    (
-     message_type => 'xpl-trig',
-     class => 'x10.basic',
-     head => { source => $self->{_source}, },
-     body => \%body,
-    );
-  return xPL::Message->new(%args);
 }
 
 =head2 C<hex_dump( $message )>
