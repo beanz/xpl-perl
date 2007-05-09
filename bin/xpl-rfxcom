@@ -72,8 +72,6 @@ my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 $xpl->add_xpl_callback(id => 'rfxcom', callback => \&xpl_in);
 
 my $buf = q{};
-my %unit;
-my %last;
 my $rf = xPL::RF->new(source => $xpl->id) or
   die "Failed to create RF decode object\n";
 
