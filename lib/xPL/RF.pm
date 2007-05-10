@@ -69,6 +69,12 @@ sub new {
   return $self;
 }
 
+=head2 C<verbose( [ $new_setting ] )>
+
+This is a getter/setter method for the verbosity setting for the RF parser.
+
+=cut
+
 sub verbose {
   my $self = shift;
   if (@_) {
@@ -76,6 +82,13 @@ sub verbose {
   }
   return $self->{_verbose};
 }
+
+=head2 C<source( [ $new_source ] )>
+
+This is a getter/setter method for the xPL source for messages generated
+by the RF parser.
+
+=cut
 
 sub source {
   my $self = shift;
@@ -85,12 +98,28 @@ sub source {
   return $self->{_source};
 }
 
+=head2 C<stash( $key, $value )>
+
+This method is intended for use by parser plugins to store
+persistent data.  This method stores the given value against
+the given key.
+
+=cut
+
 sub stash {
   my $self = shift;
   my $key = shift;
   my $value = shift;
   return $self->{_stash}->{$key} = $value;
 }
+
+=head2 C<unstash( $key )>
+
+This method is intended for use by parser plugins to store persistent
+data.  This method retrieves the value previously stored with a call
+to the C<stash> method with the same given key.
+
+=cut
 
 sub unstash {
   my $self = shift;
