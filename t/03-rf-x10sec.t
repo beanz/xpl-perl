@@ -46,11 +46,13 @@ is(test_warn(sub { $res = $rf->process_32bit(pack 'H*','010e46b9'); }),
    "Not supported: 62 KF574 lights on\n",
    'testing unsupported x10 security code');
 ok($res, 'recognizes valid message');
-is(ref($res), 'ARRAY', 'returns array of messages');
 is(scalar @$res, 0, 'array has no messages');
 
 $res =
   $rf->process_32bit(pack 'H*','00f00003');
 ok($res, 'recognizes valid message');
-is(ref($res), 'ARRAY', 'returns array of messages');
 is(scalar @$res, 0, 'array has no messages');
+
+$res = $rf->process_32bit(pack 'H*','01fe45ba');
+ok($res, 'recognizes valid message - non-x10sec');
+is(scalar @$res, 0, 'array has no messages - non-x10sec');

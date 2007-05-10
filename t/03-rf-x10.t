@@ -3,7 +3,7 @@
 # Copyright (C) 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 31;
+use Test::More tests => 33;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::RF');
@@ -88,3 +88,8 @@ is(test_warn(sub { $res = $rf->process_variable_length(pack 'H*', '20649b9867');
    'missing unit code warning');
 is($res->{length}, 5, 'recognizes sufficient data - missing unit code');
 is(scalar @{$res->{messages}}, 0, 'array has no messages - missing unit code');
+
+# a non-x10 message
+$res = $rf->process_variable_length(pack 'H*', '2064fb9867');
+is($res->{length}, 5, 'recognizes sufficient data - non-x10');
+is(scalar @{$res->{messages}}, 0, 'array has no messages - non-x10');
