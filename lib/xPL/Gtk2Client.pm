@@ -62,7 +62,7 @@ our @ISA = qw(xPL::Client);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 201 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 # Preloaded methods go here.
 
