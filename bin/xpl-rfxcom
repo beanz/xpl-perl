@@ -135,6 +135,7 @@ sub rfxcom_reader {
     return 1 unless ($res->{messages} && ref($res->{messages}));
     foreach my $msg (@{$res->{messages}}) {
       print $msg->summary,"\n";
+      $xpl->send($msg);
     }
   } else {
     # discard buffer
