@@ -162,14 +162,14 @@ sub heyu_reader {
     # TOFIX: process timestamps
     if (m!function\s+(\S+)\s+:\s+housecode\s+(\w+)(.*\s+by\s+%(\d+))?!) {
       my $f = lc($1);
-      my $h = $2;
+      my $h = lc($2);
       my $level = $4;
       my $u = $unit{$h} || 'X';
       my $xpl_command = heyu_to_xpl($f);
       next unless ($xpl_command);
       send_xpl($h.$u, $xpl_command, $level);
     } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
-      $unit{$2} = $1;
+      $unit{lc($2)} = $1;
     }
   }
   return 1;
