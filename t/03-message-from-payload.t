@@ -76,7 +76,7 @@ a=value-a
 ';
 $payload = $payload_pre.$payload_body;
 is($msg->string, $payload,
-   'new_from_payload with duplicate field - content out');
+   'new_from_payload with duplicate field - modified content out');
 
 $payload =
 'xpl-stat
