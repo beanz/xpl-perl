@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 7;
+use Test::More tests => 8;
 
 use_ok('xPL::Message');
 
@@ -57,6 +57,20 @@ $payload_body =
 b=value-b2
 b=value-b3
 c=value-c
+a=value-a
+}
+';
+$payload = $payload_pre.$payload_body;
+is($msg->string, $payload,
+   'new_from_payload with duplicate field - content out');
+
+$msg->extra_field('c', ['value-c1', 'value-c2']);
+$payload_body =
+'b=value-b
+b=value-b2
+b=value-b3
+c=value-c1
+c=value-c2
 a=value-a
 }
 ';
