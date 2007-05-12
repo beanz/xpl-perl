@@ -187,7 +187,9 @@ sub process_variable_length {
     $res->{messages} = $messages;
     return $res;
   }
-  #print "L: $length  H: ", unpack("H*",$msg), "\n";
+  if ($self->verbose) {
+    print "Unknown message, len=$length_bits:\n  ", unpack("H*",$msg), "\n";
+  }
   return $res;
 }
 
