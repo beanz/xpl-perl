@@ -463,7 +463,7 @@ sub summary {
       next unless (defined $self->$name());
       $str .= $field->{prefix} if ($field->{prefix});
       my $v = $self->$name();
-      if (ref($v) && ref($v) eq 'ARRAY') {
+      if (ref($v) eq 'ARRAY') {
         $v = '['.(join ',', @$v).']';
       }
       $str .= $v;

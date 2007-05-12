@@ -86,7 +86,7 @@ foreach my $m (sort keys %msg) {
     unless (defined $result) {
       $result = 'undef';
     }
-    if (ref($result) && ref($result) eq 'ARRAY') {
+    if (ref($result) eq 'ARRAY') {
       $result = '['.(join ',', @$result).']';
     }
     if ($EVAL_ERROR) {
