@@ -3,7 +3,7 @@
 # Copyright (C) 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 18;
+use Test::More tests => 20;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::RF');
@@ -54,5 +54,9 @@ ok($res, 'recognizes valid message');
 is(scalar @$res, 0, 'array has no messages');
 
 $res = $rf->process_32bit(pack 'H*','01fe45ba');
+ok($res, 'recognizes valid message - non-x10sec');
+is(scalar @$res, 0, 'array has no messages - non-x10sec');
+
+$res = $rf->process_32bit(pack 'H*','010e45fa');
 ok($res, 'recognizes valid message - non-x10sec');
 is(scalar @$res, 0, 'array has no messages - non-x10sec');
