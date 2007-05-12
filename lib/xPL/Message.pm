@@ -462,7 +462,11 @@ sub summary {
       my $name = $field->{name};
       next unless (defined $self->$name());
       $str .= $field->{prefix} if ($field->{prefix});
-      $str .= $self->$name();
+      my $v = $self->$name();
+      if (ref($v) && ref($v) eq 'ARRAY') {
+        $v = '['.(join ',', @$v).']';
+      }
+      $str .= $v;
       $str .= $field->{suffix} if ($field->{suffix});
     }
   }
@@ -686,7 +690,7 @@ sub extra_field {
   my $key = shift;
   $self->_parse_body() if ($self->{_body_content});
   if (@_) {
-    push @{$self->{_extra_order}}, $key;
+    push @{$self->{_extra_order}}, $key unless (exists $self->{_extra}->{$key});
     $self->{_extra}->{$key} = $_[0];
   }
   return $self->{_extra}->{$key};
