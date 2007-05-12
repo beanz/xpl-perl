@@ -31,6 +31,7 @@ ok($res, 'recognizes valid length - 0-bit null');
 is($res->{length}, 1, 'recognizes sufficient data - 0-bit null');
 is(scalar @{$res->{messages}}, 0, 'array has no messages - 0-bit null');
 
+$rf = xPL::RF->new(source => 'bnz-rfxcom.localhost', verbose => 1);
 $res = $rf->process_variable_length(pack 'H*','100000');
 ok($res, 'recognizes valid length - 16-bit null');
 is($res->{length}, 3, 'recognizes sufficient data - 16-bit null');
