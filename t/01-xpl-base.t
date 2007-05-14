@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2006 by Mark Hindess
 
 use strict;
-use Test::More tests => 8;
+use Test::More tests => 10;
 use t::Helpers qw/test_warn test_error/;
 
 use_ok('xPL::Base');
@@ -36,3 +36,7 @@ is(test_warn(sub { $test->test('argh'); }),
 is(test_error(sub { xPL::Test->make_readonly_accessor(); }),
    'xPL::Test->make_readonly_accessor: BUG: missing attribute name',
    'error message on making item attribute method without attribute name');
+
+my @l = xPL::Base::simple_tokenizer("minutes='[10,20,30]'");
+is(scalar @l, 2, 'simple_tokenizer - array ref');
+is($l[1]->[1], 20, 'simple_tokenizer - array ref element');

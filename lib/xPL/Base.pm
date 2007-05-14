@@ -607,6 +607,9 @@ sub simple_tokenizer {
       $t =~ s/^$q//o;
       $t =~ s/$q$//o;
       $t =~ s/\\($q)/$1/go;
+      if ($t =~ /^\[([^\]]*)\]$/) {
+        $t = [ split(/,/,$1) ];
+      }
       push @r, $t;
       $str =~s/^$s+//o;
     } elsif ($str =~ s/^($w+)$s*//o) {
