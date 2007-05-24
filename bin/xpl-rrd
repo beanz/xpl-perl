@@ -130,6 +130,13 @@ sub xpl_msg {
       join($c, $time, $msg->type, $msg->current, 1, 'GAUGE', 0, 80);
     $tie_h->sync;
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
+      $msg->device && $msg->type eq "uv") {
+    my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
+    delete $state{$dev};
+    $state{$dev.'/uv'} =
+      join($c, $time, $msg->type, $msg->current, 1, 'GAUGE', 0, 40);
+    $tie_h->sync;
+  } elsif ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
       $msg->device && $msg->type eq "energy") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};

@@ -34,6 +34,7 @@ lib/xPL/Listener.pm
 lib/xPL/Message.pm
 lib/xPL/RF/Electrisave.pm
 lib/xPL/RF.pm
+lib/xPL/RF/Oregon.pm
 lib/xPL/RF/RFXCOM.pm
 lib/xPL/RF/X10.pm
 lib/xPL/RF/X10Security.pm
