@@ -145,7 +145,7 @@ sub rtgr328n {
   my $hum = lo_nibble($bytes->[7])*10 + hi_nibble($bytes->[6]);
   my $hum_str = ['normal', 'comfortable', 'dry', 'wet']->[$bytes->[7]>>6];
   #printf STDERR "rtgr328n(%s) temp=%.1f hum=%d%% %s\n", $device, $temp, $hum,
-  $hum_str;
+  #              $hum_str;
   my $battery_low = $bytes->[4]&0x4;
   my $dev_str = 'rtgr328n.'.$device;
   my @res = ();
