@@ -173,3 +173,11 @@ sub hist_button_press {
   $hist_menu->popup(undef,undef,undef,undef, $event->button, $event->time);
   return 1;
 }
+
+sub body_callback {
+  print $d{hist_selected}->[0]->body_string, "\n";
+}
+sub head_callback {
+  print $d{hist_selected}->[0]->head_string, "\n";
+}
+
