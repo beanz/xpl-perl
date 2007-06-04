@@ -32,7 +32,7 @@ use strict;
 use warnings;
 use English qw/-no_match_vars/;
 
-require Exporter;
+use Exporter;
 
 our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw(

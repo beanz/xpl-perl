@@ -46,7 +46,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-our @attributes =
+my @attributes =
   qw/hbeat_mode vendor_id device_id
      hbeat_interval fast_hbeat_interval hopeful_hbeat_interval
      hub_response_timeout hbeat_count/;
@@ -108,7 +108,7 @@ sub new {
   $p{instance_id}=~/^[A-Za-z0-9]{1,12}$/ or
     $self->argh('instance_id, '.$p{instance_id}.", is invalid.\n".
       "The default can be overriden by setting the XPL_HOSTNAME environment\n".
-      "variable");
+      'variable');
 
   exists $p{hbeat_interval} or $p{hbeat_interval} = 5;
   ($p{hbeat_interval} =~ /^[\d]+$/ &&
@@ -141,7 +141,7 @@ sub new {
   }
 
   $self->{_max_fast_hbeat_count} =
-    int($self->hub_response_timeout / $self->fast_hbeat_interval);
+    int $self->hub_response_timeout / $self->fast_hbeat_interval;
 
   $self->add_timer(id => '!fast-hbeat',
                    # negative so it's triggered ASAP
@@ -231,7 +231,7 @@ sub instance_id {
     my $id = $_[0];
     $self->ouch("invalid instance_id '$id'")
       unless ($id =~ qr/^[A-Za-z0-9]{1,12}$/);
-    $self->{_instance_id} = substr($_[0],0,12);
+    $self->{_instance_id} = substr $_[0], 0, 12;
   }
   return $self->{_instance_id};
 }
@@ -320,7 +320,7 @@ sub hbeat_request {
   my $msg = $p{message};
 
   $self->add_timer(id => '!hbeat-response',
-                   timeout => 2+rand(4),
+                   timeout => 2 + rand 4,
                    callback => sub { $self->send_extra_hbeat(@_); return 0; },
                   );
   return 1;

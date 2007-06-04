@@ -38,6 +38,10 @@ our @EXPORT = qw();
 our $VERSION = '0.04';
 our $SVNVERSION = qw/$Revision$/[1];
 
+my $EMPTY = q{};
+my $SLASH = q{/};
+my $DOT = q{.};
+
 =head1 COLLECTION STRUCTURE API
 
 A number of the classes maintain collections of items.  For instance,
@@ -327,7 +331,7 @@ sub default_interface_info {
   my $self = shift;
   my $res = $self->interfaces();
   foreach my $if (@$res) {
-    next if ($if->{device} eq "lo");
+    next if ($if->{device} eq 'lo');
     return $if;
   }
   return;
@@ -425,7 +429,7 @@ using the modern C<ip> command.
 
 sub interfaces_ip {
   my $self = shift;
-  my $command = $self->find_in_path("ip") or return;
+  my $command = $self->find_in_path('ip') or return;
   my @res;
   my $fh = FileHandle->new($command.' addr show|');
   my $if;
@@ -459,12 +463,11 @@ using the traditional C<ifconfig> command.
 
 sub interfaces_ifconfig {
   my $self = shift;
-  my $command = $self->find_in_path("ifconfig") or return;
+  my $command = $self->find_in_path('ifconfig') or return;
   my @res;
   my $fh = FileHandle->new($command.' -a|');
   {
-    local $/;
-    $/ = "\n\n";
+    local $INPUT_RECORD_SEPARATOR = "\n\n";
     while (<$fh>) {
       if (/^([a-zA-Z0-9:]+) .*
            inet\s+addr:(\d+\.\d+\.\d+\.\d+)\s+
@@ -505,13 +508,13 @@ and netmask.
 sub broadcast_from_mask {
   my $ip = shift;
   my $mask = shift;
-  my @ip = unpack("C4", inet_aton($ip));
-  my @m = unpack("C4",inet_aton($mask));
+  my @ip = unpack 'C4', inet_aton($ip);
+  my @m = unpack 'C4', inet_aton($mask);
   my @b;
   foreach (0..3) {
     push @b, $ip[$_] | 255-$m[$_];
   }
-  return join ".",@b;
+  return join $DOT, @b;
 }
 
 =head2 C<broadcast_from_class( $ip, $class )>
@@ -534,7 +537,7 @@ sub broadcast_from_class {
       $class=0
     }
   }
-  return broadcast_from_mask($ip, join(".",@m));
+  return broadcast_from_mask($ip, join $DOT, @m);
 }
 
 =head2 C<find_in_path( $command )>
@@ -552,7 +555,7 @@ sub find_in_path {
   # be sure to check /sbin unless we are in the Test::Harness
   push @path, '/sbin' unless ($ENV{TEST_HARNESS_OVERRIDE});
   foreach my $path (@path) {
-    my $f = $path.'/'.$command;
+    my $f = $path.$SLASH.$command;
     if (-x $f) {
       return $f;
     }
@@ -576,7 +579,7 @@ sub module_available {
   $file =~ s!::!/!g;
   $file .= '.pm';
   return $self->{_mod}->{$module} = 1 if (exists $INC{$file});
-  eval "require $module; import $module \@_;";
+  eval { require $module; import $module @_; };
   return $self->{_mod}->{$module} = $EVAL_ERROR ? 0 : 1;
 }
 
@@ -608,7 +611,7 @@ sub simple_tokenizer {
       $t =~ s/$q$//o;
       $t =~ s/\\($q)/$1/go;
       if ($t =~ /^\[([^\]]*)\]$/) {
-        $t = [ split(/,/,$1) ];
+        $t = [ split /,/, $1 ];
       }
       push @r, $t;
       $str =~s/^$s+//o;
@@ -616,7 +619,7 @@ sub simple_tokenizer {
       push @r, $1;
     } else {
       push @r, $str;
-      $str="";
+      $str=$EMPTY;
     }
   }
   return @r;

@@ -71,9 +71,14 @@ our %modules = ();
 our $LF = "\012";
 our $EMPTY = q{};
 our $DOT = q{.};
+our $SPACE= q{ };
 our $STAR = q{*};
 our $EQUALS = q{=};
 our $DOUBLE_COLON = q{::};
+our $SPACE_DASH_SPACE = q{ - };
+our $COMMA = q{,};
+our $OPEN_SQUARE_BRACKET = q{[};
+our $CLOSE_SQUARE_BRACKET = q{]};
 
 __PACKAGE__->make_readonly_accessor(qw/class class_type/);
 
@@ -89,8 +94,8 @@ find(sub {
        # print STDERR "$class.$class_type\n";
        my $spec;
        eval { $spec = YAML::LoadFile($_); };
-       if ($@) {
-         die "Failed to read schema from $File::Find::name\n",$@,"\n";
+       if ($EVAL_ERROR) {
+         die "Failed to read schema from $File::Find::name\n",$EVAL_ERROR,"\n";
        }
        $specs{$class.$DOT.$class_type} = $spec;
        my $parent =
@@ -203,7 +208,7 @@ sub new {
 
   # process message_type
   exists $p{message_type} or
-    $pkg->argh("requires 'message_type' parameter");
+    $pkg->argh(q{requires 'message_type' parameter});
   my $message_type = $p{message_type};
   delete $p{message_type};
 
@@ -304,7 +309,7 @@ sub _parse_body {
     my ($k, $v) = split /=/, $_, 2;
     $k =~ s/-/_/g;
     if (exists $r{body}->{$k}) {
-      if (ref($r{body}->{$k})) {
+      if (ref $r{body}->{$k}) {
         push @{$r{body}->{$k}}, $v;
       } else {
         $r{body}->{$k} = [$r{body}->{$k}, $v];
@@ -356,7 +361,7 @@ sub parse_head_parameters {
   # process fields from the header
   foreach ([ hop => 1 ],
            [ source => undef ],
-           [ target => "*" ],
+           [ target => $STAR ],
           ) {
     my ($param, $default) = @$_;
     unless (exists $head->{$param}) {
@@ -457,14 +462,14 @@ sub summary {
       $self->source, $self->target;
   my $spec = $self->spec();
   if ($spec->{summary}) {
-    $str .= " - ";
+    $str .= $SPACE_DASH_SPACE;
     foreach my $field (@{$spec->{summary}}) {
       my $name = $field->{name};
       next unless (defined $self->$name());
       $str .= $field->{prefix} if ($field->{prefix});
       my $v = $self->$name();
-      if (ref($v) eq 'ARRAY') {
-        $v = '['.(join ',', @$v).']';
+      if ((ref $v) eq 'ARRAY') {
+        $v = $OPEN_SQUARE_BRACKET.(join $COMMA, @$v).$CLOSE_SQUARE_BRACKET;
       }
       $str .= $v;
       $str .= $field->{suffix} if ($field->{suffix});
@@ -524,7 +529,7 @@ sub body_string {
       my $n = $_;
       $n =~ s/_/-/g;
       next unless (defined $v);
-      foreach (ref($v) ? @{$v} : ($v)) {
+      foreach ((ref $v) ? @{$v} : ($v)) {
         $b .= "$n=".$_."$LF";
       }
     }
@@ -721,7 +726,7 @@ sub extra_field_string {
   my $b = $EMPTY;
   foreach my $k ($self->extra_fields) {
     my $v = $self->extra_field($k);
-    foreach (ref($v) ? @{$v} : ($v)) {
+    foreach ((ref $v) ? @{$v} : ($v)) {
       $b .= $k.$EQUALS.$_.$LF;
     }
   }
@@ -801,8 +806,8 @@ sub make_body_field {
   my $error_message =
     exists $rec->{error} ? $rec->{error} : $validation->error();
 
-  my $error_handler = $die ? "argh_named" : "ouch_named";
-  my $new = $pkg.q{::}.$name;
+  my $error_handler = $die ? 'argh_named' : 'ouch_named';
+  my $new = $pkg.$DOUBLE_COLON.$name;
   return if (defined &{$new});
 #  print STDERR "  $new => body_field, ",$validation->summary,"\n";
   no strict qw/refs/;
@@ -814,7 +819,7 @@ sub make_body_field {
         my $value = shift;
         if ($self->strict && !$validation->valid($value)) {
           $self->$error_handler($name,
-                                $name.", ".$value.", is invalid.\n".
+                                $name.$COMMA.$SPACE.$value.", is invalid.\n".
                                 $error_message);
         }
         $self->{_body}->{$name} = $value;

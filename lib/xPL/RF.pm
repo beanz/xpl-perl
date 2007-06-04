@@ -37,6 +37,8 @@ our @EXPORT = qw();
 our $VERSION = '0.01';
 our $SVNVERSION = qw/$Revision$/[1];
 
+my $EXCLAMATION = q{!};
+
 =head2 C<new(%parameter_hash)>
 
 The constructor creates a new xPL::RF object.  The constructor takes a
@@ -155,10 +157,10 @@ decoded buffer.
 sub process_variable_length {
   my $self = shift;
   my $buf = shift;
-  my ($hdr_byte, @bytes) = unpack("C*", $buf);
+  my ($hdr_byte, @bytes) = unpack 'C*', $buf;
   if ($hdr_byte == 0x2c || $hdr_byte == 0x4d) {
     # skip responses
-    return undef;
+    return;
   }
 
   # TODO: master/slave ?
@@ -166,21 +168,21 @@ sub process_variable_length {
   return { length => 1, messages => [] } if ($length_bits == 0);
   unless ($length_bits == 0x29 || $length_bits%8 == 0) {
     # not a length in bits
-    return undef;
+    return;
   }
   my $length = $length_bits / 8;
   if (scalar @bytes < $length) {
     # not enough data in buffer
     return { length => 0, messages => [] };
   }
-  if ($length != int($length)) {
+  if ($length != int $length) {
     # not a whole number of bytes so we must round it up
-    $length = int($length)+1;
+    $length = 1 + int $length;
   }
   my $res = { length => $length+1, messages => [] };
-  my $msg = substr($buf, 1, $length); # message from buffer
+  my $msg = substr $buf, 1, $length; # message from buffer
   return $res if ($self->is_duplicate($length_bits, $msg));
-  my @msg_bytes = unpack("C*",$msg);
+  my @msg_bytes = unpack 'C*', $msg;
   foreach my $parser ($self->parsers()) {
     my $messages = $parser->parse($self, $msg, \@msg_bytes, $length_bits);
     next unless (defined $messages);
@@ -188,7 +190,7 @@ sub process_variable_length {
     return $res;
   }
   if ($self->verbose) {
-    print "Unknown message, len=$length_bits:\n  ", unpack("H*",$msg), "\n";
+    print "Unknown message, len=$length_bits:\n  ", (unpack 'H*', $msg), "\n";
   }
   return $res;
 }
@@ -204,11 +206,11 @@ sub is_duplicate {
   my $self = shift;
   my $bits = shift;
   my $message = shift;
-  my $key = $bits.'!'.$message;
+  my $key = $bits.$EXCLAMATION.$message;
   my $t = Time::HiRes::time;
   my $l = $self->{_cache}->{$key};
   $self->{_cache}->{$key} = $t;
-  return (defined $l && $t-$l < $self->{_duplicate_timeout});
+  return defined $l && $t-$l < $self->{_duplicate_timeout};
 }
 
 =head2 C<process_32bit( $message )>
@@ -226,7 +228,7 @@ For details of the protocol see:
 sub process_32bit {
   my $self = shift;
   my $message = shift;
-  my @bytes = unpack("C*",$message);
+  my @bytes = unpack 'C*', $message;
 
   foreach my $parser ($self->parsers()) {
     my $messages = $parser->parse($self, $message, \@bytes, 32);
@@ -246,7 +248,7 @@ sub reverse_bits {
   my $self = shift;
   my $bytes = shift;
   foreach (@$bytes) {
-    $_ = unpack("C",pack("B8",unpack("b8", pack("C",$_))));
+    $_ = unpack 'C',(pack 'B8', (unpack 'b8', (pack 'C',$_)));
   }
   return 1;
 }
@@ -259,7 +261,7 @@ This method converts the given message to a hex string.
 
 sub hex_dump {
   my $message = shift;
-  return ~~unpack('H*', $message);
+  return ~~unpack 'H*', $message;
 }
 
 1;

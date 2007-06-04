@@ -58,7 +58,7 @@ sub parse {
 
   $parent->reverse_bits($bytes);
 
-  my $device = sprintf('x10sec%02x',$bytes->[0]);
+  my $device = sprintf 'x10sec%02x', $bytes->[0];
   my $short_device = $bytes->[0];
   my $data = $bytes->[2];
 
