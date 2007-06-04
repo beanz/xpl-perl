@@ -36,7 +36,7 @@ lib/xPL/RF/Electrisave.pm
 lib/xPL/RF.pm
 lib/xPL/RF/Oregon.pm
 lib/xPL/RF/RFXCOM.pm
-lib/xPL/RF/RFSensor.pm
+lib/xPL/RF/RFXSensor.pm
 lib/xPL/RF/X10.pm
 lib/xPL/RF/X10Security.pm
 lib/xPL/schema/audio.basic.yaml
@@ -94,6 +94,7 @@ t/03-message-from-payload.t
 t/03-message-method-maker.t
 t/03-rf-electrisave.t
 t/03-rf-rfxcom.t
+t/03-rf-rfxsensor.t
 t/03-rf-x10sec.t
 t/03-rf-x10.t
 t/04-clock.t
