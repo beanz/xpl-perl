@@ -171,9 +171,12 @@ Current tables which should work for MySQL are:
     target varchar(34) default NULL,
     class varchar(15) default NULL,
     incomplete int default NULL,
+    body int default NULL,
     PRIMARY KEY  (id),
     KEY class_idx (class),
     KEY time_idx (time,usec)
+    KEY type_idx (type),
+    KEY body_idx (body),
   );
 
   CREATE TABLE msgelt (
