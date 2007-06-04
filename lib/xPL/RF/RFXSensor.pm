@@ -1,14 +1,14 @@
-package xPL::RF::RFSensor;
+package xPL::RF::RFXSensor;
 
-# $Id: RFSensor.pm 220 2007-05-09 20:55:44Z beanz $
+# $Id: RFXSensor.pm 220 2007-05-09 20:55:44Z beanz $
 
 =head1 NAME
 
-xPL::RF::RFSensor - Perl extension for an xPL RF Class
+xPL::RF::RFXSensor - Perl extension for an xPL RF Class
 
 =head1 SYNOPSIS
 
-  use xPL::RF::RFSensor;
+  use xPL::RF::RFXSensor;
 
 =head1 DESCRIPTION
 
@@ -51,11 +51,18 @@ sub parse {
   (($bytes->[0]^0xf0) == $bytes->[1]) or return;
   checksum($bytes) or return;
   my $device = sprintf("rfsensor%02x%02x", $bytes->[0], $bytes->[1]);
+  my $base = sprintf("%02x%02x", $bytes->[0]&0xfc, $bytes->[1]&0xfc);
+  my $supply_voltage_cache = $parent->unstash('supply_voltage_cache');
+  unless ($supply_voltage_cache) {
+    $supply_voltage_cache = $parent->stash('supply_voltage_cache', {});
+  }
+  my $supply = $supply_voltage_cache->{$base};
   my $flag = $bytes->[3]&0x10;
   if ($flag) {
     # not implemented yet
   } else {
-    if (($bytes->[0]&0x3) == 0) {
+    my $type = ($bytes->[0]&0x3);
+    if ($type == 0) {
       # temp
       my $temp = $bytes->[2] + ($bytes->[3]&0x80 ? .5 : 0);
       return [xPL::Message->new(
@@ -67,11 +74,62 @@ sub parse {
                                          device => $device,
                                          type => 'temp',
                                          current => $temp,
+                                         base_device => $base,
                                         }
                                )];
-
+    } elsif ($type == 1) {
+      unless ($supply) {
+        warn "Don't have supply voltage for $device/$base yet\n";
+        return;
+      }
+      my $v = ( ($bytes->[2]<<3) + ($bytes->[3]>>5) ) / 100;
+      my @res = ();
+      push @res,
+        xPL::Message->new(
+                          strict => 0,
+                          message_type => 'xpl-trig',
+                          class => 'sensor.basic',
+                          head => { source => $parent->source, },
+                          body => {
+                                   device => $device,
+                                   type => 'voltage',
+                                   current => $v,
+                                   base_device => $base,
+                                  }
+                         );
+      my $hum = sprintf("%.2f", (($v/$supply) - 0.16)/0.0062);
+      #print STDERR "Hum: $hum\n";
+      push @res,
+                xPL::Message->new(
+                          strict => 0,
+                          message_type => 'xpl-trig',
+                          class => 'sensor.basic',
+                          head => { source => $parent->source, },
+                          body => {
+                                   device => $device,
+                                   type => 'humidity',
+                                   current => $hum,
+                                   base_device => $base,
+                                  }
+                         );
+      return \@res;
+    } elsif ($type == 2) {
+      my $v = ( ($bytes->[2]<<3) + ($bytes->[3]>>5) ) / 100;
+      $supply_voltage_cache->{$base} = $v;
+      return [xPL::Message->new(
+                                strict => 0,
+                                message_type => 'xpl-trig',
+                                class => 'sensor.basic',
+                                head => { source => $parent->source, },
+                                body => {
+                                         device => $device,
+                                         type => 'voltage',
+                                         current => $v,
+                                         base_device => $base,
+                                        }
+                               )];
     } else {
-      print STDERR "Unsupported RFSensor\n";
+      print STDERR "Unsupported RFXSensor\n";
       # not implemented yet
     }
   }
