@@ -25,6 +25,7 @@ use warnings;
 use English qw/-no_match_vars/;
 use Date::Parse qw/str2time/;
 use xPL::Message;
+use xPL::Utils qw/:all/;
 use Exporter;
 use AutoLoader qw(AUTOLOAD);
 
@@ -237,33 +238,14 @@ sub datetime {
   return \@res;
 }
 
-sub lo_nibble {
-  $_[0]&0xf;
-}
-sub hi_nibble {
-  ($_[0]&0xf0)>>4;
-}
-
 sub checksum1 {
-  my $c = hi_nibble($_[0]->[6]) + (($_[0]->[7]&0xf)<<4);
-  my $s = 0;
-  foreach (0..5) {
-    $s += lo_nibble($_[0]->[$_]) + hi_nibble($_[0]->[$_]);
-  }
-  $s += lo_nibble($_[0]->[6]);
-  $s -= 0xa;
-  $s &= 0xff;
+  my $c = hi_nibble($_[0]->[6]) + (lo_nibble($_[0]->[7])<<4);
+  my $s = ( ( nibble_sum(6, $_[0]) + lo_nibble($_[0]->[6]) - 0xa) & 0xff);
   return $s == $c;
 }
 
 sub checksum2 {
-  my $s = 0;
-  foreach (0..7) {
-    $s += lo_nibble($_[0]->[$_]) + hi_nibble($_[0]->[$_]);
-  }
-  $s -= 0xa;
-  $s &= 0xff;
-  return $s == $_[0]->[8];
+  return $_[0]->[8] == ((nibble_sum(8,$_[0]) - 0xa) & 0xff);
 }
 
 1;

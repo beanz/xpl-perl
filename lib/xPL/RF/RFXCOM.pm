@@ -24,6 +24,7 @@ use strict;
 use warnings;
 use English qw/-no_match_vars/;
 use xPL::Message;
+use xPL::Utils qw/:all/;
 use Exporter;
 use AutoLoader qw(AUTOLOAD);
 
@@ -57,10 +58,9 @@ sub parse {
 #http://board.homeseer.com/showpost.php?p=749725&postcount=27
 #http://board.homeseer.com/showpost.php?p=767406&postcount=88
   my $device = sprintf "%02x", $bytes->[0];
-  my $type = ($bytes->[5]&0xf0)>>4;
-  my $check = $bytes->[5]&0xf;
-  my $nibble_sum = 0;
-  $nibble_sum += ($bytes->[$_]&0xf) + (($bytes->[$_]&0xf0)>>4) foreach (0..4);
+  my $type = hi_nibble($bytes->[5]);
+  my $check = lo_nibble($bytes->[5]);
+  my $nibble_sum = nibble_sum(4, $bytes);
   my $parity = 0xf^($nibble_sum&0xf);
   unless ($parity == $check) {
     warn "RFXCOM parity error $parity != $check\n";
