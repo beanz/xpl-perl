@@ -24,6 +24,7 @@ use strict;
 use warnings;
 use English qw/-no_match_vars/;
 use xPL::Message;
+use xPL::Utils qw/:all/;
 use Exporter;
 use AutoLoader qw(AUTOLOAD);
 
@@ -33,6 +34,24 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = '0.01';
 our $SVNVERSION = qw/$Revision$/[1];
+
+my %info =
+  (
+   0x01 => "sensor addresses incremented",
+   0x02 => "battery low detected",
+   0x03 => "conversion not ready",
+  );
+
+my %error =
+  (
+   0x81 => "no 1-wire device connected",
+   0x82 => "1-wire ROM CRC error",
+   0x83 => "1-wire device connected is not a DS18B20 or DS2438",
+   0x84 => "no end of read signal received from 1-wire device",
+   0x85 => "1-wire scratchpad CRC error",
+   0x86 => "temperature conversion not ready in time",
+   0x87 => "A/D conversion not ready in time",
+  );
 
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 
@@ -49,7 +68,7 @@ sub parse {
 
   $bits == 32 or return;
   (($bytes->[0]^0xf0) == $bytes->[1]) or return;
-  checksum($bytes) or return;
+  ((nibble_sum(3.5, $bytes)&0xf)^0xf) == lo_nibble($bytes->[3]) or return;
   my $device = sprintf("rfsensor%02x%02x", $bytes->[0], $bytes->[1]);
   my $base = sprintf("%02x%02x", $bytes->[0]&0xfc, $bytes->[1]&0xfc);
   my $supply_voltage_cache = $parent->unstash('supply_voltage_cache');
@@ -59,12 +78,19 @@ sub parse {
   my $supply = $supply_voltage_cache->{$base};
   my $flag = $bytes->[3]&0x10;
   if ($flag) {
-    # not implemented yet
+    if (exists $info{$bytes->[2]}) {
+      warn "RFXSensor info $device: ".$info{$bytes->[2]}."\n";
+    } elsif (exists $error{$bytes->[2]}) {
+      warn "RFXSensor error $device: ".$error{$bytes->[2]}."\n";
+    } else {
+      warn sprintf "RFXSensor unknown status messages: %02x\n", $bytes->[2];
+    }
+    return;
   } else {
     my $type = ($bytes->[0]&0x3);
     if ($type == 0) {
       # temp
-      my $temp = $bytes->[2] + ($bytes->[3]&0x80 ? .5 : 0);
+      my $temp = $bytes->[2] + (($bytes->[3]&0xe0)/0x100);
       return [xPL::Message->new(
                                 strict => 0,
                                 message_type => 'xpl-trig',
@@ -129,31 +155,11 @@ sub parse {
                                         }
                                )];
     } else {
-      print STDERR "Unsupported RFXSensor\n";
+      warn "Unsupported RFXSensor: type=$type\n";
       # not implemented yet
     }
   }
   return;
-}
-
-sub lo_nibble {
-  $_[0]&0xf;
-}
-sub hi_nibble {
-  ($_[0]&0xf0)>>4;
-}
-
-sub checksum {
-  my $c = lo_nibble($_[0]->[3]);
-  my $s = 0;
-  foreach (0..2) {
-    $s += lo_nibble($_[0]->[$_]);
-    $s += hi_nibble($_[0]->[$_]);
-  }
-  $s += hi_nibble($_[0]->[3]);
-  $s ^= 0xf;
-  $s &= 0xf;
-  return $s == $c;
 }
 
 1;

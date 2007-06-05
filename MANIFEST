@@ -70,6 +70,7 @@ lib/xPL/Timer/recurrence.pm
 lib/xPL/Timer/simple.pm
 lib/xPL/Timer/sunrise.pm
 lib/xPL/Timer/sunset.pm
+lib/xPL/Utils.pm
 lib/xPL/Validation/Any.pm
 lib/xPL/Validation/Integer.pm
 lib/xPL/Validation/IntegerRange.pm
@@ -86,6 +87,7 @@ t/00-helpers.t
 t/01-use.t
 t/01-xpl-base.t
 t/01-xpl-interfaces.t
+t/01-xpl-utils.t
 t/01-xpl-validation.t
 t/02-message.t
 t/02-timer.t
@@ -93,6 +95,7 @@ t/03-message-errors.t
 t/03-message-from-payload.t
 t/03-message-method-maker.t
 t/03-rf-electrisave.t
+t/03-rf-oregon.t
 t/03-rf-rfxcom.t
 t/03-rf-rfxsensor.t
 t/03-rf-x10sec.t
@@ -145,3 +148,8 @@ t/msg/017.audio.basic.txt
 t/msg/018.osd.basic.txt
 t/schema/test.basic.yaml
 xpl-perl.spec
+debian/control
+debian/rules
+debian/changelog
+debian/compat
+debian/copyright
