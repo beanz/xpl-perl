@@ -67,7 +67,7 @@ This function returns the sum of the nibbles of count bytes.  If count
 is not an integer then the high nibble of the count+1 th byte is added
 to the sum as well.  So given the bytes [0x10, 0x20, 0x40, 0x81], the
 sum when count is 3 would be 0x07, the sum when count is 3.5 would be
-0xF, and the sum when count is 4 would be 0x0.
+0xF, and the sum when count is 4 would be 0x10.
 
 =cut
 
