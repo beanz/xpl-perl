@@ -176,7 +176,7 @@ Current tables which should work for MySQL are:
     KEY class_idx (class),
     KEY time_idx (time,usec)
     KEY type_idx (type),
-    KEY body_idx (body),
+    KEY body_idx (body)
   );
 
   CREATE TABLE msgelt (
