@@ -174,7 +174,7 @@ Current tables which should work for MySQL are:
     body int default NULL,
     PRIMARY KEY  (id),
     KEY class_idx (class),
-    KEY time_idx (time,usec)
+    KEY time_idx (time,usec),
     KEY type_idx (type),
     KEY body_idx (body)
   );
