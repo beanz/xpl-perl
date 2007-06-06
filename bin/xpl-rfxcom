@@ -131,7 +131,8 @@ sub rfxcom_reader {
   my $res = $rf->process_variable_length($buf);
   if (defined $res) {
     # truncate buffer by given length
-    substr($buf, 0, $res->{length}, '') if ($res->{length});
+    my $m = substr($buf, 0, $res->{length}, '') if ($res->{length});
+    print "Processed: ", unpack("H*", $m), "\n" if ($m && $verbose);
     return 1 unless ($res->{messages} && ref($res->{messages}));
     foreach my $msg (@{$res->{messages}}) {
       print $msg->summary,"\n";
