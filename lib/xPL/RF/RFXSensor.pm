@@ -71,11 +71,12 @@ sub parse {
   ((nibble_sum(3.5, $bytes)&0xf)^0xf) == lo_nibble($bytes->[3]) or return;
   my $device = sprintf("rfsensor%02x%02x", $bytes->[0], $bytes->[1]);
   my $base = sprintf("%02x%02x", $bytes->[0]&0xfc, $bytes->[1]&0xfc);
-  my $supply_voltage_cache = $parent->unstash('supply_voltage_cache');
-  unless ($supply_voltage_cache) {
-    $supply_voltage_cache = $parent->stash('supply_voltage_cache', {});
+  my $cache = $parent->unstash('rfxsensor_cache');
+  unless ($cache) {
+    $cache = $parent->stash('rfxsensor_cache', {});
   }
-  my $supply = $supply_voltage_cache->{$base};
+  my $supply_voltage = $cache->{$base}->{supply};
+  my $last_temp = $cache->{$base}->{temp};
   my $flag = $bytes->[3]&0x10;
   if ($flag) {
     if (exists $info{$bytes->[2]}) {
@@ -91,8 +92,8 @@ sub parse {
     if ($type == 0) {
       # temp
       my $temp = $bytes->[2] + (($bytes->[3]&0xe0)/0x100);
+      $cache->{$base}->{temp} = $temp;
       return [xPL::Message->new(
-                                strict => 0,
                                 message_type => 'xpl-trig',
                                 class => 'sensor.basic',
                                 head => { source => $parent->source, },
@@ -104,15 +105,10 @@ sub parse {
                                         }
                                )];
     } elsif ($type == 1) {
-      unless ($supply) {
-        warn "Don't have supply voltage for $device/$base yet\n";
-        return;
-      }
       my $v = ( ($bytes->[2]<<3) + ($bytes->[3]>>5) ) / 100;
       my @res = ();
       push @res,
         xPL::Message->new(
-                          strict => 0,
                           message_type => 'xpl-trig',
                           class => 'sensor.basic',
                           head => { source => $parent->source, },
@@ -123,11 +119,22 @@ sub parse {
                                    base_device => $base,
                                   }
                          );
-      my $hum = sprintf("%.2f", (($v/$supply) - 0.16)/0.0062);
-      #print STDERR "Hum: $hum\n";
+      unless (defined $supply_voltage) {
+        warn "Don't have supply voltage for $device/$base yet\n";
+        return \@res;
+      }
+      # See http://archives.sensorsmag.com/articles/0800/62/main.shtml
+      my $hum = sprintf "%.2f", (($v/$supply_voltage) - 0.16)/0.0062;
+      #print STDERR "Sensor Hum: $hum\n";
+      if (defined $last_temp) {
+        #print STDERR "Last temp: $last_temp\n";
+        $hum = sprintf "%.2f", $hum / (1.0546 - 0.00216*$last_temp);
+        #print STDERR "True Hum: $hum\n";
+      } else {
+        warn "Don't have temperature for $device/$base yet - assuming 25'C\n";
+      }
       push @res,
                 xPL::Message->new(
-                          strict => 0,
                           message_type => 'xpl-trig',
                           class => 'sensor.basic',
                           head => { source => $parent->source, },
@@ -141,9 +148,8 @@ sub parse {
       return \@res;
     } elsif ($type == 2) {
       my $v = ( ($bytes->[2]<<3) + ($bytes->[3]>>5) ) / 100;
-      $supply_voltage_cache->{$base} = $v;
+      $cache->{$base}->{supply} = $v;
       return [xPL::Message->new(
-                                strict => 0,
                                 message_type => 'xpl-trig',
                                 class => 'sensor.basic',
                                 head => { source => $parent->source, },

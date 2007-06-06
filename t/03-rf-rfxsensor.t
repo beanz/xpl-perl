@@ -3,7 +3,7 @@
 # Copyright (C) 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 14;
+use Test::More tests => 18;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::RF');
@@ -35,11 +35,34 @@ is($res->{messages}->[0]->summary,
    'returns correct message');
 is($res->{messages}->[1]->summary,
    q{xpl-trig/sensor.basic: bnz-rfxcom.localhost}.
-     q{ -> * - rfsensor01f1[humidity]=43.41},
+     q{ -> * - rfsensor01f1[humidity]=41.83},
    'returns correct message');
 
 # clear unit code cache and try again
-$rf->stash('supply_voltage_cache', {});
+$rf->stash('rfxsensor_cache', {});
+# clear duplicate cache to avoid hitting it
+$rf->{_cache} = {};
+# set the voltage but not the temperature and get the relative humidity again
+$res = $rf->process_variable_length(pack 'H*','2002f23ea1');
+
+is(test_warn(sub { $res =
+                     $rf->process_variable_length(pack 'H*','2001f11ae5');
+                 }),
+   qq{Don't have temperature for rfsensor01f1/00f0 yet - assuming 25'C\n},
+   q{assuming 25'c warning});
+is($res->{length}, 5, 'recognizes sufficient data');
+is($res->{messages}->[0]->summary,
+   q{xpl-trig/sensor.basic: bnz-rfxcom.localhost}.
+     q{ -> * - rfsensor01f1[voltage]=2.15},
+   'returns correct message');
+is($res->{messages}->[1]->summary,
+   q{xpl-trig/sensor.basic: bnz-rfxcom.localhost}.
+     q{ -> * - rfsensor01f1[humidity]=43.41},
+   'returns correct message');
+
+
+# clear unit code cache and try again
+$rf->stash('rfxsensor_cache', {});
 # clear duplicate cache to avoid hitting it
 $rf->{_cache} = {};
 is(test_warn(sub {
