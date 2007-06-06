@@ -44,6 +44,8 @@ lib/xPL/schema/audio.request.yaml
 lib/xPL/schema/cid.basic.yaml
 lib/xPL/schema/clock.update.yaml
 lib/xPL/schema/control.basic.yaml
+lib/xPL/schema/datetime.basic.yaml
+lib/xPL/schema/datetime.request.yaml
 lib/xPL/schema/dawndusk.basic.yaml
 lib/xPL/schema/dawndusk.request.yaml
 lib/xPL/schema/dmx.basic.yaml

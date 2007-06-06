@@ -152,7 +152,6 @@ sub rtgr328n {
   my @res = ();
   push @res,
     xPL::Message->new(
-                      strict => 0,
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
@@ -163,7 +162,6 @@ sub rtgr328n {
                               }
                      ),
     xPL::Message->new(
-                      strict => 0,
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
@@ -195,47 +193,37 @@ sub datetime {
   my $bytes = shift;
   my $bits = shift;
 
+  return unless (checksum3($bytes));
   my $device = sprintf "%02x", $bytes->[3];
   my $time =
     (
-     lo_nibble($bytes->[7]).
-     hi_nibble($bytes->[6]).
-     ':'.
-     lo_nibble($bytes->[6]).
-     hi_nibble($bytes->[5]).
-     ':'.
-     lo_nibble($bytes->[5]).
-     hi_nibble($bytes->[4])
+     lo_nibble($bytes->[7]).hi_nibble($bytes->[6]).
+     lo_nibble($bytes->[6]).hi_nibble($bytes->[5]).
+     lo_nibble($bytes->[5]).hi_nibble($bytes->[4])
     );
-  #print STDERR "datetime: $time\n";
-  return;
-  my $battery_low = $bytes->[4]&0x4;
+  my $day =
+    [ 'Mon', 'Tues', 'Wednes',
+      'Thur', 'Fri', 'Satur', 'Sun' ]->[($bytes->[9]&0x7)-1];
+  my $date =
+    2000+(lo_nibble($bytes->[10]).hi_nibble($bytes->[9])).
+      sprintf("%02d",hi_nibble($bytes->[8])).
+        lo_nibble($bytes->[8]).hi_nibble($bytes->[7]);
+
+  #print STDERR "datetime: $date $time $day\n";
   my $dev_str = 'rtgr328n.'.$device;
   my @res = ();
-  push @res,
-    xPL::Message->new(
-                      strict => 0,
-                      message_type => 'xpl-trig',
-                      class => 'sensor.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               device => $dev_str,
-                               type => 'temp',
-                               current => '',
-                              }
-                     );
-  push @res,
-    xPL::Message->new(
-                      message_type => 'xpl-cmnd',
-                      class => 'osd.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               command => 'clear',
-                               text => $dev_str.' has low battery',
-                               row => 2,
-                              }
-                     ) if ($battery_low);
-  return \@res;
+  return [xPL::Message->new(
+                            message_type => 'xpl-trig',
+                            class => 'datetime.basic',
+                            head => { source => $parent->source, },
+                            body => {
+                                     datetime => $date.$time,
+                                     'date' => $date,
+                                     'time' => $time,
+                                     day => $day.'day',
+                                     device => $dev_str,
+                                    }
+                           )];
 }
 
 sub checksum1 {
@@ -246,6 +234,10 @@ sub checksum1 {
 
 sub checksum2 {
   return $_[0]->[8] == ((nibble_sum(8,$_[0]) - 0xa) & 0xff);
+}
+
+sub checksum3 {
+  return $_[0]->[11] == ((nibble_sum(11,$_[0]) - 0xa) & 0xff);
 }
 
 1;
