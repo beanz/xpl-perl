@@ -3,7 +3,7 @@
 # Copyright (C) 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 15;
+use Test::More tests => 18;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::RF');
@@ -29,6 +29,15 @@ $res = $rf->process_variable_length(pack 'H*','689aec134d033311526072605f43');
 is($res->{length}, 14, 'recognizes sufficient data');
 is($res->{messages}->[0]->summary,
    q{xpl-trig/datetime.basic: bnz-rfxcom.localhost -> * - 20070605211330},
+   'returns correct message');
+
+$res = $rf->process_variable_length(pack 'H*','501a2d10a42115702536d0');
+is($res->{length}, 11, 'recognizes sufficient data');
+is($res->{messages}->[0]->summary,
+q{xpl-trig/sensor.basic: bnz-rfxcom.localhost -> * - thgr228n.a4[temp]=15.2},
+   'returns correct message');
+is($res->{messages}->[1]->summary,
+q{xpl-trig/sensor.basic: bnz-rfxcom.localhost -> * - thgr228n.a4[humidity]=57},
    'returns correct message');
 
 $res =

@@ -47,7 +47,7 @@ our %types =
    0xea4c => { part => 'THWR288A', len => 80, },
    0x8aec => { part => 'RTGR328N', len => 104, },
    0x9aec => { part => 'RTGR328N', len => 104, method => 'datetime', },
-   0x1a2d => { part => 'THRG228N/THGR122NX', len => 80, },
+   0x1a2d => { part => 'THRG228N/THGR122NX', len => 80, method => 'thrg228n', },
    0x1a3d => { part => 'THGR918', len => 80, },
    0x5a5d => { part => 'BTHR918', len => 88, },
    0x5a6d => { part => 'THRG918N', len => 96, },
@@ -55,6 +55,8 @@ our %types =
    0x2a1d => { part => 'RGR126/RGR682/RGR918', len => 80, },
    0x0a4d => { part => 'THR128/THR138', len => 80, },
   );
+
+my $DOT = q{.};
 
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 
@@ -130,8 +132,9 @@ sub uv138 {
   return \@res;
 }
 
-sub rtgr328n {
+sub common_temphydro {
   my $self = shift;
+  my $type = shift;
   my $parent = shift;
   my $message = shift;
   my $bytes = shift;
@@ -145,10 +148,10 @@ sub rtgr328n {
        hi_nibble($bytes->[4])/10);
   my $hum = lo_nibble($bytes->[7])*10 + hi_nibble($bytes->[6]);
   my $hum_str = ['normal', 'comfortable', 'dry', 'wet']->[$bytes->[7]>>6];
-  #printf STDERR "rtgr328n(%s) temp=%.1f hum=%d%% %s\n", $device, $temp, $hum,
-  #              $hum_str;
+  #printf STDERR "%s(%s) temp=%.1f hum=%d%% %s\n", $type, $device, $temp,
+  #              $hum, $hum_str;
   my $battery_low = $bytes->[4]&0x4;
-  my $dev_str = 'rtgr328n.'.$device;
+  my $dev_str = $type.$DOT.$device;
   my @res = ();
   push @res,
     xPL::Message->new(
@@ -184,6 +187,16 @@ sub rtgr328n {
                               }
                      ) if ($battery_low);
   return \@res;
+}
+
+sub rtgr328n {
+  my $self = shift;
+  return $self->common_temphydro('rtgr328n', @_);
+}
+
+sub thrg228n {
+  my $self = shift;
+  return $self->common_temphydro('thgr228n', @_);
 }
 
 sub datetime {
