@@ -1,0 +1,19 @@
+#!/usr/bin/perl -w
+
+# perl -Iblib/lib misc/process_variable_length 50aacc134d422470455310
+# will dump the full decode for that message
+
+use strict;
+use xPL::RF;
+my $rf = xPL::RF->new(source => "test-test.test", verbose => 1);
+foreach (@ARGV) {
+  my $r = $rf->process_variable_length(pack "H*", $_);
+  if ($r->{messages}) {
+    foreach my $m (@{$r->{messages}}) {
+      print $m->string(),"\n";
+   }
+  } else {
+    print "No messages\n";
+  }
+}
+
