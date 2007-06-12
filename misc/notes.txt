@@ -86,6 +86,12 @@ interface - contains tables for:
   with names, a3 and b4 and values l3 and l4 respectively and a single
   rule that checks all incoming x10 messages against the Map table.
 
+  Rooms, have many attributes and many devices.
+
+  Templates, has a type and has many dependencies which are also templates.
+  For instance, a template of type content might depend on templates of
+  type header and one or more of type room.
+
 
 [0] http://www.xpl-perl.org.uk/
 [1] http://www.template-toolkit.org/
