@@ -39,21 +39,21 @@ our $SVNVERSION = qw/$Revision$/[1];
 our %types =
   (
    0xfa28 => { part => 'THGR810', len => 80, },
-   0xfab8 => { part => 'WTRG800', len => 80, },
-   0x1a99 => { part => 'WTRG800', len => 88, },
+   0xfab8 => { part => 'WTRG800', len => 80, method => 'wtgr800_temphydro', },
+   0x1a99 => { part => 'WTRG800', len => 88, method => 'wtgr800_anemometer', },
    0x2a19 => { part => 'RCR800', len => 92, },
    0xda78 => { part => 'UVN800', len => 72, },
    0xea7c => { part => 'UV138', len => 120, method => 'uv138', },
    0xea4c => { part => 'THWR288A', len => 80, },
    0x8aec => { part => 'RTGR328N', len => 104, },
    0x9aec => { part => 'RTGR328N', len => 104, method => 'datetime', },
-   0x1a2d => { part => 'THRG228N/THGR122NX', len => 80, method => 'thrg228n', },
+   0x1a2d => { part => 'THGR228N/THGR122NX', len => 80, method => 'thgr228n', },
    0x1a3d => { part => 'THGR918', len => 80, },
    0x5a5d => { part => 'BTHR918', len => 88, },
-   0x5a6d => { part => 'THRG918N', len => 96, },
+   0x5a6d => { part => 'THGR918N', len => 96, },
    0x3a0d => { part => 'STR918/WGR918', len => 80, },
    0x2a1d => { part => 'RGR126/RGR682/RGR918', len => 80, },
-   0x0a4d => { part => 'THR128/THR138', len => 80, },
+   0x0a4d => { part => 'THR128/THR138', len => 80, method => 'thr128', },
   );
 
 my $DOT = q{.};
@@ -81,7 +81,7 @@ sub parse {
   }
   my $method = $rec->{method};
   unless ($method) {
-    print STDERR "Possible ",$rec->{part},"\n";
+    warn "Possible ",$rec->{part},"\n";
     return;
   }
   return $self->$method($parent, $message, $bytes, $bits);
@@ -189,14 +189,165 @@ sub common_temphydro {
   return \@res;
 }
 
+sub common_temp {
+  my $self = shift;
+  my $type = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  return unless (checksum2($bytes));
+  my $device = sprintf "%02x", $bytes->[3];
+  my $temp =
+    (($bytes->[6]&0x8) ? -1 : 1) *
+      (hi_nibble($bytes->[5])*10 + lo_nibble($bytes->[5]) +
+       hi_nibble($bytes->[4])/10);
+  #printf STDERR "%s(%s) temp=%.1f\n", $type, $device, $temp;
+  my $battery_low = $bytes->[4]&0x4;
+  my $dev_str = $type.$DOT.$device;
+  my @res = ();
+  push @res,
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'temp',
+                               current => $temp,
+                              }
+                     );
+  push @res,
+    xPL::Message->new(
+                      message_type => 'xpl-cmnd',
+                      class => 'osd.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               command => 'clear',
+                               text => $dev_str.' has low battery',
+                               row => 2,
+                              }
+                     ) if ($battery_low);
+  return \@res;
+}
+
+sub wtgr800_anemometer {
+  my $self = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  return unless (checksum4($bytes));
+  my $device = sprintf "%02x", $bytes->[3];
+  my $dir = hi_nibble($bytes->[4]) * 22.5;
+  my $speed = lo_nibble($bytes->[7]) * 10 + sprintf("%02x",$bytes->[6])/10;
+  my $bat = 100-10*lo_nibble($bytes->[4]);
+  #print "WTGR800: $device $dir $speed $bat\n";
+  my $dev_str = 'wtgr800'.$DOT.$device;
+  my @res = ();
+  push @res,
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'speed',
+                               current => $speed,
+                               units => 'mps',
+                              }
+                     ),
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'direction',
+                               current => $dir,
+                              }
+                     );
+  push @res,
+    xPL::Message->new(
+                      message_type => 'xpl-cmnd',
+                      class => 'osd.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               command => 'clear',
+                               text => $dev_str.' has low battery',
+                               row => 2,
+                              }
+                     ) if ($bat < 20);
+  return \@res;
+}
+
+sub wtgr800_temphydro {
+  my $self = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  return unless (checksum2($bytes));
+  my $device = sprintf "%02x", $bytes->[3];
+  my $temp = (($bytes->[6]&0x8) ? -1 : 1) *
+    (sprintf("%02x",$bytes->[5]) + hi_nibble($bytes->[4])/10);
+  my $hum = lo_nibble($bytes->[7])*10 + hi_nibble($bytes->[6]);
+  my $hum_str = ['normal', 'comfortable', 'dry', 'wet']->[$bytes->[7]>>6];
+  my $bat = 100-10*lo_nibble($bytes->[4]);
+  my $dev_str = 'wtgr800'.$DOT.$device;
+  my @res = ();
+  push @res,
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'temp',
+                               current => $temp,
+                              }
+                     ),
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'humidity',
+                               current => $hum,
+                               string => $hum_str,
+                              }
+                     );
+  push @res,
+    xPL::Message->new(
+                      message_type => 'xpl-cmnd',
+                      class => 'osd.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               command => 'clear',
+                               text => $dev_str.' has low battery',
+                               row => 2,
+                              }
+                     ) if ($bat < 20);
+  return \@res;
+}
+
 sub rtgr328n {
   my $self = shift;
   return $self->common_temphydro('rtgr328n', @_);
 }
 
-sub thrg228n {
+sub thgr228n {
   my $self = shift;
   return $self->common_temphydro('thgr228n', @_);
+}
+
+sub thr128 {
+  my $self = shift;
+  return $self->common_temp('thr128', @_);
 }
 
 sub datetime {
@@ -251,6 +402,10 @@ sub checksum2 {
 
 sub checksum3 {
   return $_[0]->[11] == ((nibble_sum(11,$_[0]) - 0xa) & 0xff);
+}
+
+sub checksum4 {
+  return $_[0]->[9] == ((nibble_sum(9,$_[0]) - 0xa) & 0xff);
 }
 
 1;
