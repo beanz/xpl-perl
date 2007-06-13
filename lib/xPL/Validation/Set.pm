@@ -56,19 +56,16 @@ It returns a blessed reference when successful or undef otherwise.
 =cut
 
 sub init {
-  my $self = shift;
-  my $p = shift;
-
-  exists $p->{set} or $self->argh(q{requires 'set' parameter});
-  my $set = $self->{_set} = $p->{set};
-  $self->{_set_str} = join(", ", map { q{'}.$_.q{'} } @{$set});
-  $self->{_set_str} =~ s/, ([^,]+)$/ or $1/;
-  $self->{_set_short_str} =
-    ((length $self->{_set_str}) < 40 ?
-     $self->{_set_str} :
-     (substr $self->{_set_str}, 0, 37).'...');
-  $self->{_set_map} = { map { (lc $_) => 1 } @{$set} };
-  return $self;
+  exists $_[1]->{set} or $_[0]->argh(q{requires 'set' parameter});
+  my $set = $_[0]->{_set} = $_[1]->{set};
+  $_[0]->{_set_str} = join(", ", map { q{'}.$_.q{'} } @{$set});
+  $_[0]->{_set_str} =~ s/, ([^,]+)$/ or $1/;
+  $_[0]->{_set_short_str} =
+    ((length $_[0]->{_set_str}) < 40 ?
+     $_[0]->{_set_str} :
+     (substr $_[0]->{_set_str}, 0, 37).'...');
+  $_[0]->{_set_map} = { map { (lc $_) => 1 } @{$set} };
+  $_[0];
 }
 
 =head2 C<summary()>
@@ -76,8 +73,7 @@ sub init {
 =cut
 
 sub summary {
-  my $self = shift;
-  return $self->SUPER::summary()." set=".$self->{_set_short_str};
+  $_[0]->SUPER::summary()." set=".$_[0]->{_set_short_str};
 }
 
 =head2 C<valid( $value )>
@@ -87,8 +83,7 @@ This method returns true if the value is valid.
 =cut
 
 sub valid {
-  my $self = shift;
-  return defined $_[0] && exists $self->{_set_map}->{lc $_[0]};
+  defined $_[0] && exists $_[0]->{_set_map}->{lc $_[1]};
 }
 
 =head2 C<error( )>
@@ -98,8 +93,7 @@ This method returns a suitable error string for the validation.
 =cut
 
 sub error {
-  my $self = shift;
-  return 'It should be one of '.$self->{_set_str}.'.';
+  'It should be one of '.$_[0]->{_set_str}.'.';
 }
 
 1;

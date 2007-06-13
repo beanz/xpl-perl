@@ -63,11 +63,9 @@ It returns a blessed reference when successful or undef otherwise.
 =cut
 
 sub init {
-  my $self = shift;
-  my $p = shift;
-  $self->{_min} = $p->{min};
-  $self->{_max} = $p->{max};
-  return $self;
+  $_[0]->{_min} = $_[1]->{min};
+  $_[0]->{_max} = $_[1]->{max};
+  $_[0];
 }
 
 =head2 C<summary()>
@@ -75,10 +73,9 @@ sub init {
 =cut
 
 sub summary {
-  my $self = shift;
-  return $self->SUPER::summary().
-    " min=".(defined $self->{_min} ? $self->{_min} : "none").
-    " max=".(defined $self->{_max} ? $self->{_max} : "none");
+  $_[0]->SUPER::summary().
+    " min=".(defined $_[0]->{_min} ? $_[0]->{_min} : "none").
+    " max=".(defined $_[0]->{_max} ? $_[0]->{_max} : "none");
 }
 
 =head2 C<valid( $value )>
@@ -88,10 +85,9 @@ This method returns true if the value is valid.
 =cut
 
 sub valid {
-  my $self = shift;
-  return defined $_[0] && $_[0] =~ qr/^-?\d+$/ &&
-    (!defined $self->{_min} or $_[0] >= $self->{_min}) &&
-    (!defined $self->{_max} or $_[0] <= $self->{_max});
+  defined $_[1] && $_[1] =~ qr/^-?\d+$/ &&
+    (!defined $_[0]->{_min} or $_[1] >= $_[0]->{_min}) &&
+    (!defined $_[0]->{_max} or $_[1] <= $_[0]->{_max});
 }
 
 =head2 C<error( )>
@@ -101,17 +97,16 @@ This method returns a suitable error string for the validation.
 =cut
 
 sub error {
-  my $self = shift;
-  if (defined $self->{_min}) {
-    if (defined $self->{_max}) {
+  if (defined $_[0]->{_min}) {
+    if (defined $_[0]->{_max}) {
       return 'It should be an integer between '.
-        $self->{_min}.' and '.$self->{_max}.'.';
+        $_[0]->{_min}.' and '.$_[0]->{_max}.'.';
     } else {
       return 'It should be an integer greater than or equal to '.
-        $self->{_min}.'.';
+        $_[0]->{_min}.'.';
     }
-  } elsif (defined $self->{_max}) {
-    return 'It should be an integer less than or equal to '.$self->{_max}.'.';
+  } elsif (defined $_[0]->{_max}) {
+    return 'It should be an integer less than or equal to '.$_[0]->{_max}.'.';
   } else {
     # this should just be an Integer validation!
     return 'It should be an integer.';

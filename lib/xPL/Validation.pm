@@ -105,11 +105,11 @@ sub new {
 
   my $self = {};
   bless $self, $module;
-  $self->verbose($p{verbose}||0);
+  $self->{_verbose} = $p{verbose}||0;
   $self->{_type} = $type;
   $self->init(\%p);
 
-  return $self;
+  $self;
 }
 
 =head2 C<init( $parameter_hash_ref )>
@@ -121,8 +121,7 @@ validation classes that have parameters.
 =cut
 
 sub init {
-  my $self = shift;
-  return $self;
+  $_[0];
 }
 
 =head2 C<summary()>
@@ -135,8 +134,7 @@ append brief relevant data to the common components of the summary.
 =cut
 
 sub summary {
-  my $self = shift;
-  return sprintf '%s', $self->type;
+  $_[0]->type;
 }
 
 =head2 C<valid( $value )>
@@ -146,8 +144,7 @@ This method returns true if the value is valid.
 =cut
 
 sub valid {
-  my $self = shift;
-  return 1;
+  1;
 }
 
 =head2 C<error( )>
@@ -157,8 +154,7 @@ This method returns a suitable error string for the validation.
 =cut
 
 sub error {
-  my $self = shift;
-  return 'It can be any value.'; # This wont get used much!
+  'It can be any value.'; # This wont get used much!
 }
 
 =head2 C<type( )>

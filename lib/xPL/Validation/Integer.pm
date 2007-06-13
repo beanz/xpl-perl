@@ -52,8 +52,7 @@ This method returns true if the value is valid.
 =cut
 
 sub valid {
-  my $self = shift;
-  return defined $_[0] && $_[0] =~ qr/^-?\d+$/;
+  defined $_[1] && $_[1] =~ qr/^-?\d+$/;
 }
 
 =head2 C<error( )>
@@ -63,8 +62,7 @@ This method returns a suitable error string for the validation.
 =cut
 
 sub error {
-  my $self = shift;
-  return 'It should be an integer.';
+  'It should be an integer.';
 }
 
 1;

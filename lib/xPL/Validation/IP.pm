@@ -52,9 +52,11 @@ This method returns true if the value is valid.
 =cut
 
 sub valid {
-  my $self = shift;
-  my $o = '([0-9]|1?[0-9][0-9]|2([0-4][0-9]|5[0-5]))';
-  return defined $_[0] && $_[0] =~ /^$o\.$o\.$o\.$o$/o;
+  defined $_[1] &&
+    $_[1] =~ /^([0-9]|1?[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.
+               ([0-9]|1?[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.
+               ([0-9]|1?[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.
+               ([0-9]|1?[0-9][0-9]|2([0-4][0-9]|5[0-5]))$/ox;
 }
 
 =head2 C<error( )>
@@ -64,8 +66,7 @@ This method returns a suitable error string for the validation.
 =cut
 
 sub error {
-  my $self = shift;
-  return 'It should be an IP address.';
+  'It should be an IP address.';
 }
 
 1;

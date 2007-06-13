@@ -56,12 +56,10 @@ It returns a blessed reference when successful or undef otherwise.
 =cut
 
 sub init {
-  my $self = shift;
-  my $p = shift;
-  exists $p->{pattern} or $self->argh(q{requires 'pattern' parameter});
-  my $pattern = $self->{_pattern} = $p->{pattern};
-  $self->{_re} = qr/^$pattern$/s;
-  return $self;
+  exists $_[1]->{pattern} or $_[0]->argh(q{requires 'pattern' parameter});
+  my $pattern = $_[0]->{_pattern} = $_[1]->{pattern};
+  $_[0]->{_re} = qr/^$pattern$/s;
+  $_[0];
 }
 
 =head2 C<summary()>
@@ -69,8 +67,7 @@ sub init {
 =cut
 
 sub summary {
-  my $self = shift;
-  return $self->SUPER::summary()." pattern=".$self->{_pattern};
+  $_[0]->SUPER::summary()." pattern=".$_[0]->{_pattern};
 }
 
 =head2 C<valid( $value )>
@@ -80,8 +77,7 @@ This method returns true if the value is valid.
 =cut
 
 sub valid {
-  my $self = shift;
-  return defined $_[0] && $_[0] =~ $self->{_re};
+  defined $_[1] && $_[1] =~ $_[0]->{_re};
 }
 
 =head2 C<error( )>
@@ -91,8 +87,7 @@ This method returns a suitable error string for the validation.
 =cut
 
 sub error {
-  my $self = shift;
-  return 'It should match the pattern "'.$self->{_pattern}.'".';
+  'It should match the pattern "'.$_[0]->{_pattern}.'".';
 }
 
 1;
