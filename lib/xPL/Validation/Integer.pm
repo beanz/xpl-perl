@@ -28,7 +28,7 @@ use strict;
 use warnings;
 
 use xPL::Validation::Any;
-use AutoLoader qw(AUTOLOAD);
+#use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(xPL::Validation::Any);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );

@@ -46,7 +46,7 @@ use English qw/-no_match_vars/;
 use xPL::Validation::Any;
 
 use xPL::Base;
-use AutoLoader qw(AUTOLOAD);
+#use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(xPL::Base);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );

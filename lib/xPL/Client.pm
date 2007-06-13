@@ -38,7 +38,7 @@ use Socket;
 use xPL::Listener;
 
 use Exporter;
-use AutoLoader qw(AUTOLOAD);
+#use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(xPL::Listener);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );

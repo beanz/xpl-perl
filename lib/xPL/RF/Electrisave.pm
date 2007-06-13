@@ -25,7 +25,7 @@ use warnings;
 use English qw/-no_match_vars/;
 use xPL::Message;
 use Exporter;
-use AutoLoader qw(AUTOLOAD);
+#use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );

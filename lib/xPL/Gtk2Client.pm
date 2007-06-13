@@ -56,7 +56,7 @@ use Gtk2;
 use xPL::Client;
 
 require Exporter;
-use AutoLoader qw(AUTOLOAD);
+#use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(xPL::Client);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );

@@ -27,7 +27,7 @@ use Date::Parse qw/str2time/;
 use xPL::Message;
 use xPL::Utils qw/:all/;
 use Exporter;
-use AutoLoader qw(AUTOLOAD);
+#use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );

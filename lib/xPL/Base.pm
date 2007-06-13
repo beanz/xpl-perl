@@ -29,7 +29,7 @@ use Socket;
 use Text::Balanced qw/extract_quotelike/;
 
 use Exporter;
-use AutoLoader qw(AUTOLOAD);
+#use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw(simple_tokenizer) ] );

@@ -28,7 +28,7 @@ use xPL::Message;
 use Module::Pluggable
   search_path => 'xPL::RF', sub_name => 'parsers', require => 1;
 use Exporter;
-use AutoLoader qw(AUTOLOAD);
+#use AutoLoader qw(AUTOLOAD);
 
 our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw(hex_dump) ] );
