@@ -239,8 +239,7 @@ sub make_collection_method {
   no strict 'refs';
   *{"$new"} =
     sub {
-      my $self = shift;
-      $self->$parent($collection_type, @_);
+      shift->$parent($collection_type, @_);
     };
   use strict 'refs';
   return 1;
@@ -273,9 +272,7 @@ sub make_item_attribute_method {
   no strict 'refs';
   *{"$new"} =
     sub {
-      my $self = shift;
-      my $item = shift;
-      $self->item_attrib($collection_type, $item, $attribute_name, @_);
+      shift->item_attrib($collection_type, shift, $attribute_name, @_);
     };
   use strict 'refs';
   return 1;
@@ -304,12 +301,11 @@ sub make_readonly_accessor {
     no strict 'refs';
     *{"$new"} =
       sub {
-        my $self = shift;
-        $self->ouch_named($attribute_name,
+        $_[0]->ouch_named($attribute_name,
                           'called with an argument, but '.
                             $attribute_name.' is readonly')
-          if (@_);
-        return $self->{'_'.$attribute_name};
+          if (@_ > 1);
+        $_[0]->{'_'.$attribute_name};
       };
     use strict 'refs';
   }
@@ -634,11 +630,8 @@ result in more messages.
 =cut
 
 sub verbose {
-  my $self = shift;
-  if (@_) {
-    $self->{_verbose} = $_[0];
-  }
-  return $self->{_verbose};
+  return $_[0]->{_verbose} unless (@_ > 1);
+  $_[0]->{_verbose} = $_[1];
 }
 
 =head2 C<argh(@message)>
