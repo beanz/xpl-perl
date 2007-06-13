@@ -36,15 +36,6 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-=head2 C<new(%parameter_hash)>
-
-The constructor creates a new xPL::Validation::PositiveInteger object.
-The constructor takes a parameter hash as arguments.  Common
-parameters are described in L<xPL::Validation>.  This validator type
-has no additional parameters.
-
-It returns a blessed reference when successful or undef otherwise.
-
 =head2 C<valid( $value )>
 
 This method returns true if the value is valid.

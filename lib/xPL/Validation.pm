@@ -103,11 +103,17 @@ sub new {
   }
   $module = $modules{$module};
 
+  if (ref($module)) {
+    # return previously instantiated singleton
+    return $module;
+  }
+
   my $self = {};
   bless $self, $module;
   $self->{_verbose} = $p{verbose}||0;
   $self->{_type} = $type;
   $self->init(\%p);
+  $modules{$module} = $self if ($self->singleton);
 
   $self;
 }
@@ -122,6 +128,19 @@ validation classes that have parameters.
 
 sub init {
   $_[0];
+}
+
+=head2 C<singleton( )>
+
+This method returns 1 if the validation can be a singleton.  This
+is the case for validations that have no parameters - such as
+Integer, Any, etc. - but not for others - such as IntegerRange,
+Pattern, etc.
+
+=cut
+
+sub singleton {
+  1
 }
 
 =head2 C<summary()>

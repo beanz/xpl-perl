@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2006 by Mark Hindess
 
 use strict;
-use Test::More tests => 107;
+use Test::More tests => 114;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::Validation');
@@ -18,6 +18,7 @@ is((ref $validation), "xPL::Validation::Any", '"Any" validation ref');
 is($validation->type, "Any", '"Any" validation type');
 is($validation->summary(), "Any", '"Any" validation summary');
 is($validation->error(), 'It can be any value.', '"Any" validation "error"');
+is($validation, xPL::Validation->new(type => "Any"), '"Any" singleton');
 
 ok($validation->valid('xxx'), '"Any" validation accepts "xxx"');
 ok($validation->valid(), '"Any" validation accepts undef');
@@ -29,6 +30,7 @@ is($validation->type, "Integer", '"Integer" validation type');
 is($validation->summary(), "Integer", '"Integer" validation summary');
 is($validation->error(), 'It should be an integer.',
    '"Integer" validation "error"');
+is($validation, xPL::Validation->new(type => "Integer"), '"Integer" singleton');
 
 ok($validation->valid(10), '"Integer" validation accepts "10"');
 ok($validation->valid(-10), '"Integer" validation accepts "-10"');
@@ -45,6 +47,8 @@ is($validation->summary(), "PositiveInteger",
    '"PositiveInteger" validation summary');
 is($validation->error(), 'It should be a positive integer.',
    '"PositiveInteger" validation "error"');
+is($validation, xPL::Validation->new(type => "PositiveInteger"),
+   '"PositiveInteger" singleton');
 
 ok($validation->valid(10), '"PositiveInteger" validation accepts "10"');
 ok(!$validation->valid(0), '"PositiveInteger" validation forbids "0"');
@@ -61,6 +65,8 @@ is($validation->summary(), "IntegerRange min=none max=none",
    '"IntegerRange" validation summary');
 is($validation->error(), 'It should be an integer.',
    '"IntegerRange" validation "error"');
+isnt($validation, xPL::Validation->new(type => "IntegerRange"),
+   '"IntegerRange" not singleton');
 
 ok($validation->valid(10), '"IntegerRange" validation accepts "10"');
 ok($validation->valid(-10), '"IntegerRange" validation accepts "-10"');
@@ -141,6 +147,8 @@ is($validation->summary(), "Pattern pattern=[a-z]",
    '"Pattern pattern=[a-z]" validation summary');
 is($validation->error(), 'It should match the pattern "[a-z]".',
    '"Pattern pattern=[a-z]" validation "error"');
+isnt($validation, xPL::Validation->new(type => "Pattern", pattern => '[1-9]'),
+   '"Pattern" not singleton');
 
 ok($validation->valid("a"),
    '"Pattern pattern=[a-z]" validation accepts "a"');
@@ -163,6 +171,7 @@ is($validation->type, "IP",'"IP" validation type');
 is($validation->summary(), "IP", '"IP" validation summary');
 is($validation->error(), 'It should be an IP address.',
    '"IP" validation "error"');
+is($validation, xPL::Validation->new(type => "IP"), '"IP" singleton');
 
 ok($validation->valid("127.0.0.1"), '"IP" validation accepts "127.0.0.1"');
 ok(!$validation->valid("127.1"), '"IP" validation forbids "127.1"');
@@ -178,6 +187,8 @@ is($validation->summary(), "Set set='a', 'b' or 'c'",
    '"Set" validation summary');
 is($validation->error(), q{It should be one of 'a', 'b' or 'c'.},
    '"Set" validation "error"');
+isnt($validation, xPL::Validation->new(type => "Set", set => [qw/1 2 3/]),
+   '"Set" not singleton');
 
 ok($validation->valid("a"), '"Set" validation accepts "a"');
 ok($validation->valid("b"), '"Set" validation accepts "b"');

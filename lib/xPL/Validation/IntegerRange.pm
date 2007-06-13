@@ -68,6 +68,16 @@ sub init {
   $_[0];
 }
 
+=head2 C<singleton( )>
+
+This method returns 0 because this validation has some parameters.
+
+=cut
+
+sub singleton {
+  0;
+}
+
 =head2 C<summary()>
 
 =cut
