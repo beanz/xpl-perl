@@ -86,52 +86,53 @@ my $path = $INC{'xPL/Message.pm'};
 $path =~ s!([/\\])Message\.pm$!${1}schema!;
 my @paths = ($path);
 push @paths, $ENV{XPL_SCHEMA_PATH} if (exists $ENV{XPL_SCHEMA_PATH});
-find(sub {
-       return unless ($File::Find::name =~
-                      m![/\\]([^\\/\.]+)\.([^\\/\.]+)\.yaml$!);
-       my $class = $1;
-       my $class_type = $2;
-       # print STDERR "$class.$class_type\n";
-       my $spec;
-       eval { $spec = YAML::LoadFile($_); };
-       if ($EVAL_ERROR) {
-         die "Failed to read schema from $File::Find::name\n",$EVAL_ERROR,"\n";
-       }
-       $specs{$class.$DOT.$class_type} = $spec;
-       my $parent =
-         __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
-       eval "package $parent; our \@ISA = qw/xPL::Message/;";
-       $modules{$parent} = $parent;
-       my $dmt = $parent.'::default_message_type';
-       no strict qw/refs/;
-       *{$dmt} =
-         sub {
-           my $self = shift;
-           return $spec->{default_message_type};
-         };
-       foreach my $message_type (keys %{$spec->{types}}) {
-         my $mt = $message_type;
-         $mt =~ s/-//;
-         use strict qw/refs/;
-         my $module = $parent.$DOUBLE_COLON.$mt;
-         eval "package $module; our \@ISA = qw/$parent/;";
-         my $fs = $module.'::field_spec';
-         my $s = $module.'::spec';
-         no strict qw/refs/;
-         *{$fs} =
-           sub {
-             my $self = shift;
-             return $spec->{types}->{$message_type}->{fields};
-           };
-         *{$s} =
-           sub {
-             my $self = shift;
-             return $spec->{types}->{$message_type};
-           };
-         use strict qw/refs/;
-         $module->make_body_fields();
-         $modules{$module} = $module;
-       }
+find({
+      wanted =>
+      sub {
+        return unless ($File::Find::name =~
+                       m![/\\]([^\\/\.]+)\.([^\\/\.]+)\.yaml$!);
+        my $class = $1;
+        my $class_type = $2;
+        # print STDERR "$class.$class_type\n";
+        my $spec;
+        eval { $spec = YAML::LoadFile($File::Find::name); };
+        if ($EVAL_ERROR) {
+          die "Failed to read schema from $File::Find::name\n",$EVAL_ERROR,"\n";
+        }
+        $specs{$class.$DOT.$class_type} = $spec;
+        my $parent =
+          __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
+        eval "package $parent; our \@ISA = qw/xPL::Message/;";
+        $modules{$parent} = $parent;
+        my $dmt = $parent.'::default_message_type';
+        no strict qw/refs/;
+        *{$dmt} =
+          sub {
+            $spec->{default_message_type};
+          };
+        foreach my $message_type (keys %{$spec->{types}}) {
+          my $mt = $message_type;
+          $mt =~ s/-//;
+          use strict qw/refs/;
+          my $module = $parent.$DOUBLE_COLON.$mt;
+          eval "package $module; our \@ISA = qw/$parent/;";
+          my $fs = $module.'::field_spec';
+          my $s = $module.'::spec';
+          no strict qw/refs/;
+          *{$fs} =
+            sub {
+              $spec->{types}->{$message_type}->{fields};
+            };
+          *{$s} =
+            sub {
+              $spec->{types}->{$message_type};
+            };
+          use strict qw/refs/;
+          $module->make_body_fields();
+          $modules{$module} = $module;
+        }
+      },
+      no_chdir => 1,
      }, @paths);
 
 =head2 C<new(%parameter_hash)>
