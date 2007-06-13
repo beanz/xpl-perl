@@ -568,17 +568,16 @@ identifier with the new value before it returns.
 =cut
 
 sub message_type {
-  my $self = shift;
-  if (@_) {
-    my $value = $_[0];
-    unless (!$self->strict ||
-            $value =~ /^XPL-CMND|XPL-STAT|XPL-TRIG$/i) {
-      $self->argh("message type identifier, $value, is invalid.\n".
-                  'It should be one of XPL-CMND, XPL-STAT or XPL-TRIG.');
-    }
-    $self->{_message_type} = $value;
+  return $_[0]->{_message_type} unless (@_ > 1);
+  my $value = $_[1];
+  if ($_[0]->{_strict} and
+      $value ne 'xpl-stat' and
+      $value ne 'xpl-trig' and
+      $value ne 'xpl-cmnd') {
+    $_[0]->argh("message type identifier, $value, is invalid.\n".
+                'It should be one of xpl-cmnd, xpl-stat or xpl-trig.');
   }
-  return $self->{_message_type};
+  $_[0]->{_message_type} = $value;
 }
 
 =head2 C<hop( [ $new_hop ] )>

@@ -41,7 +41,7 @@ is(test_error(sub { $msg = xPL::Message->new(class => "fred.schema",
                                              message_type => 'testing') }),
    "xPL::Message->message_type: ".
    "message type identifier, testing, is invalid.
-It should be one of XPL-CMND, XPL-STAT or XPL-TRIG.",
+It should be one of xpl-cmnd, xpl-stat or xpl-trig.",
    "xPL::Message invalid message type test");
 
 is(test_error(sub { $msg = xPL::Message->new(message_type => "xpl-stat",
