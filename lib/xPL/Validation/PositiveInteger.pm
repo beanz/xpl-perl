@@ -27,10 +27,10 @@ use 5.006;
 use strict;
 use warnings;
 
-use xPL::Validation::Any;
+use xPL::Validation;
 #use AutoLoader qw(AUTOLOAD);
 
-our @ISA = qw(xPL::Validation::Any);
+our @ISA = qw(xPL::Validation);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
