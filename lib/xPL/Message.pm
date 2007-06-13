@@ -227,8 +227,8 @@ sub new {
   my $self = {};
   bless $self, $module;
 
-  $self->verbose($p{verbose}||0);
-  $self->strict($p{strict});
+  $self->{_verbose} = $p{verbose}||0;
+  $self->{_strict} = $p{strict};
 
   $self->{_class} = $class;
   $self->{_class_type} = $class_type;
@@ -237,7 +237,7 @@ sub new {
   if ($p{head_content}) {
     $self->{_head_content} = $p{head_content};
   } else {
-    exists $p{head} or  $p{head} = {};
+    exists $p{head} or $p{head} = {};
     $self->parse_head_parameters($p{head}, $p{head_order});
   }
 
@@ -245,7 +245,7 @@ sub new {
     $self->{_body_content} = $p{body_content};
   } else {
     exists $p{body} or $p{body} = {};
-    $self->parse_body_parameters($p{body});
+    $self->parse_body_parameters($p{body}, $p{body_order});
   }
   return $self;
 }
@@ -258,10 +258,8 @@ constructs an xPL::Message object from it.
 =cut
 
 sub new_from_payload {
-  my $pkg = shift;
-  my $msg = shift;
   my %r = ();
-  my ($head, $body, $null) = split /\n}\n/, $msg, 3;
+  my ($head, $body, $null) = split /\n}\n/, $_[1], 3;
   unless (defined $head) {
     xPL::Message->argh('Message badly formed: empty?');
   }
@@ -286,26 +284,24 @@ sub new_from_payload {
   }
   $r{body_content} = $2;
   @r{qw/class class_type/} = split /\./, $1, 2;
-  return $pkg->new(strict => 0, %r);
+  return $_[0]->new(strict => 0, %r);
 }
 
 sub _parse_head {
-  my $self = shift;
   my %r;
-  foreach (split /\n/, $self->{_head_content}) {
+  foreach (split /\n/, $_[0]->{_head_content}) {
     my ($k, $v) = split /=/, $_, 2;
     $k =~ s/-/_/g;
     $r{head}->{$k} = $v;
     push @{$r{head_order}}, $k;
   }
-  delete $self->{_head_content};
-  $self->parse_head_parameters($r{head}, $r{head_order});
+  delete $_[0]->{_head_content};
+  $_[0]->parse_head_parameters($r{head}, $r{head_order});
 }
 
 sub _parse_body {
-  my $self = shift;
   my %r;
-  foreach (split /\n/, $self->{_body_content}) {
+  foreach (split /\n/, $_[0]->{_body_content}) {
     my ($k, $v) = split /=/, $_, 2;
     $k =~ s/-/_/g;
     if (exists $r{body}->{$k}) {
@@ -319,8 +315,8 @@ sub _parse_body {
     $r{body}->{$k} = $v;
     push @{$r{body_order}}, $k;
   }
-  delete $self->{_body_content};
-  $self->parse_body_parameters($r{body}, $r{body_order});
+  delete $_[0]->{_body_content};
+  $_[0]->parse_body_parameters($r{body}, $r{body_order});
 }
 
 =head2 C<field_spec()>
@@ -353,9 +349,7 @@ header of the message.
 =cut
 
 sub parse_head_parameters {
-  my $self = shift;
-  my $head = shift;
-  my $head_order = shift;
+  my ($self, $head, $head_order) = @_;
   $self->{_head_order} = $head_order || [qw/hop source target/];
 
   # process fields from the header
@@ -386,9 +380,7 @@ message type.
 =cut
 
 sub parse_body_parameters {
-  my $self = shift;
-  my $body = shift;
-  my $body_order = shift;
+  my ($self, $body, $body_order) = @_;
   my $spec = $self->field_spec();
   foreach my $field_rec (@$spec) {
     $self->process_field_record($body, $field_rec);
@@ -418,7 +410,7 @@ sub process_field_record {
     if (exists $rec->{default}) {
       $body->{$name} = $rec->{default};
     } elsif (exists $rec->{required}) {
-      if ($self->strict) {
+      if ($self->{_strict}) {
         $self->argh("requires '$name' parameter in body");
       } else {
         $self->ouch("requires '$name' parameter in body");
@@ -457,9 +449,9 @@ sub summary {
   my $str =
     sprintf
       '%s/%s.%s: %s -> %s',
-      $self->message_type,
-      $self->class, $self->class_type,
-      $self->source, $self->target;
+      $self->{_message_type},
+      $self->{_class}, $self->{_class_type},
+      $self->{_source}, $self->{_target};
   my $spec = $self->spec();
   if ($spec->{summary}) {
     $str .= $SPACE_DASH_SPACE;
@@ -487,7 +479,7 @@ L<head_string()> and L<body_string()>.
 
 sub string {
   my $self = shift;
-  return $self->head_string(@_).$self->body_string(@_);
+  $self->head_string(@_).$self->body_string(@_);
 }
 
 =head2 C<head_string()>
@@ -498,13 +490,12 @@ message.
 =cut
 
 sub head_string {
-  my $self = shift;
-  my $h = $self->message_type."$LF\{$LF";
-  if (defined $self->{_head_content}) {
-    $h .= $self->{_head_content}.$LF;
+  my $h = $_[0]->{_message_type}."$LF\{$LF";
+  if (defined $_[0]->{_head_content}) {
+    $h .= $_[0]->{_head_content}.$LF;
   } else {
-    foreach (@{$self->{_head_order}}) {
-      $h .= $_.$EQUALS.$self->$_().$LF;
+    foreach (@{$_[0]->{_head_order}}) {
+      $h .= $_.$EQUALS.$_[0]->$_().$LF;
     }
   }
   $h .= "}$LF";
@@ -519,13 +510,12 @@ message.
 =cut
 
 sub body_string {
-  my $self = shift;
-  my $b = $self->class.$DOT.$self->class_type."$LF\{$LF";
-  if (defined $self->{_body_content}) {
-    $b .= $self->{_body_content}.$LF;
+  my $b = $_[0]->{_class}.$DOT.$_[0]->{_class_type}."$LF\{$LF";
+  if (defined $_[0]->{_body_content}) {
+    $b .= $_[0]->{_body_content}.$LF;
   } else {
-    foreach ($self->body_fields()) {
-      my $v = $self->$_();
+    foreach ($_[0]->body_fields()) {
+      my $v = $_[0]->$_();
       my $n = $_;
       $n =~ s/_/-/g;
       next unless (defined $v);
@@ -533,7 +523,7 @@ sub body_string {
         $b .= "$n=".$_."$LF";
       }
     }
-    $b .= $self->extra_field_string();
+    $b .= $_[0]->extra_field_string();
   }
   $b .= "}$LF";
   return $b;
@@ -552,11 +542,8 @@ incoming messages would not.
 =cut
 
 sub strict {
-  my $self = shift;
-  if (@_) {
-    $self->{_strict} = $_[0];
-  }
-  return $self->{_strict};
+  return $_[0]->{_strict} unless (@_ > 1);
+  $_[0]->{_strict} = $_[1];
 }
 
 =head2 C<message_type( [ $new_message_type ] )>
@@ -593,7 +580,7 @@ sub hop {
   $self->_parse_head() if ($self->{_head_content});
   if (@_) {
     my $value = $_[0];
-    unless (!$self->strict || $value =~ /^[1-9]$/) {
+    unless (!$self->{_strict} || $value =~ /^[1-9]$/) {
       $self->argh("hop count, $value, is invalid.\n".
                   'It should be a value from 1 to 9');
     }
@@ -616,7 +603,7 @@ sub source {
   if (@_) {
     my $value = $_[0];
     my $valid = valid_id($value);
-    unless (!$self->strict || $valid eq 'valid') {
+    unless (!$self->{_strict} || $valid eq 'valid') {
       $self->argh("source, $value, is invalid.\n$valid");
     }
     $self->{_source} = $value;
@@ -639,7 +626,7 @@ sub target {
     my $value = $_[0];
     if ($value ne $STAR) {
       my $valid = valid_id($value);
-      unless (!$self->strict || $valid eq 'valid') {
+      unless (!$self->{_strict} || $valid eq 'valid') {
         $self->argh("target, $value, is invalid.\n$valid");
       }
     }
@@ -708,9 +695,8 @@ message.
 =cut
 
 sub extra_fields {
-  my $self = shift;
-  $self->_parse_body() if ($self->{_body_content});
-  return @{$self->{_extra_order}};
+  $_[0]->_parse_body() if ($_[0]->{_body_content});
+  return @{$_[0]->{_extra_order}};
 }
 
 =head2 C<extra_field_string()>
@@ -721,10 +707,10 @@ message body that contains the extra fields.
 =cut
 
 sub extra_field_string {
-  my $self = shift;
+  $_[0]->_parse_body() if ($_[0]->{_body_content});
   my $b = $EMPTY;
-  foreach my $k ($self->extra_fields) {
-    my $v = $self->extra_field($k);
+  foreach my $k (@{$_[0]->{_extra_order}}) {
+    my $v = $_[0]->{_extra}->{$k};
     foreach ((ref $v) ? @{$v} : ($v)) {
       $b .= $k.$EQUALS.$_.$LF;
     }
@@ -751,20 +737,18 @@ It also creates a C<body_fields> method from the specification.
 =cut
 
 sub make_body_fields {
-  my $pkg = shift;
   my @f = ();
-  foreach my $rec (@{$pkg->field_spec()}) {
-    $pkg->make_body_field($rec);
+  foreach my $rec (@{$_[0]->field_spec()}) {
+    $_[0]->make_body_field($rec);
     push @f, $rec->{name};
   }
-  my $new = $pkg.'::body_fields';
+  my $new = $_[0].'::body_fields';
   return if (defined &{$new});
   #  print STDERR "  $new => make_body_fields, @f\n";
   no strict qw/refs/;
   *{$new} =
     sub {
-      my $self = shift;
-      return @f;
+      @f;
     };
   use strict qw/refs/;
   return 1;
@@ -812,18 +796,16 @@ sub make_body_field {
   no strict qw/refs/;
   *{$new} =
     sub {
-      my $self = shift;
-      $self->_parse_body() if ($self->{_body_content});
-      if (@_) {
-        my $value = shift;
-        if ($self->strict && !$validation->valid($value)) {
-          $self->$error_handler($name,
-                                $name.$COMMA.$SPACE.$value.", is invalid.\n".
+      $_[0]->_parse_body() if ($_[0]->{_body_content});
+      if (@_ > 1) {
+        if ($_[0]->{_strict} && !$validation->valid($_[1])) {
+          $_[0]->$error_handler($name,
+                                $name.$COMMA.$SPACE.$_[1].", is invalid.\n".
                                 $error_message);
         }
-        $self->{_body}->{$name} = $value;
+        $_[0]->{_body}->{$name} = $_[1];
       }
-      return $self->{_body}->{$name};
+      return $_[0]->{_body}->{$name};
     };
   use strict qw/refs/;
   return 1;
