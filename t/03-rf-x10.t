@@ -3,7 +3,7 @@
 # Copyright (C) 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 33;
+use Test::More tests => 24;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::RF');
@@ -14,7 +14,8 @@ is(test_error(sub { xPL::RF->new(); }),
    qq{xPL::RF->new: requires 'source' parameter\n},
    'xPL::RF requires source parameter');
 
-my $rf = xPL::RF->new(source => 'bnz-rfxcom.localhost');
+my $rf = xPL::RF->new(source => 'bnz-rfxcom.localhost',
+                      duplicate_timeout => 1);
 ok($rf, 'RF constructor');
 
 my $res = $rf->process_variable_length(pack 'H*', '4d14');
@@ -32,7 +33,8 @@ is($res->{length}, 1, 'recognizes sufficient data - 0-bit null');
 is(scalar @{$res->{messages}}, 0, 'array has no messages - 0-bit null');
 
 $rf = xPL::RF->new(source => 'bnz-rfxcom.localhost', verbose => 1);
-$res = $rf->process_variable_length(pack 'H*','100000');
+is(test_warn(sub { $res = $rf->process_variable_length(pack 'H*','100000'); }),
+   "Unknown message, len=16:\n  0000\n", 'warning - 16-bit null');
 ok($res, 'recognizes valid length - 16-bit null');
 is($res->{length}, 3, 'recognizes sufficient data - 16-bit null');
 is(scalar @{$res->{messages}}, 0, 'array has no messages - 16-bit null');
@@ -41,56 +43,22 @@ $res = $rf->process_variable_length(pack 'H*', '20649b');
 ok($res, 'recognizes valid length w/insufficent data');
 is($res->{length}, 0, 'recognizes insufficient data');
 
-$rf = xPL::RF->new(source => 'bnz-rfxcom.localhost',
-                   duplicate_timeout => 1);
-ok($rf, 'RF constructor - long duplicate timeout');
-$res = $rf->process_variable_length(pack 'H*', '20649b28d70000');
-is($res->{length}, 5, 'recognizes sufficient data - a11 off');
-is($res->{messages}->[0]->summary,
+$res = $rf->process_32bit(pack 'H*','649b28d7');
+ok($res, 'recognizes valid message');
+is($res->[0]->summary,
    q{xpl-trig/x10.basic: bnz-rfxcom.localhost -> * - off a11},
-   'returns correct message - a11 off');
+   'returns correct messages - 1');
 
-$res = $rf->process_variable_length(pack 'H*', '20649b28d70000');
-is($res->{length}, 5, 'recognizes sufficient data - a11 off dup');
-is(scalar @{$res->{messages}}, 0, 'does not return duplicate - a11 off');
+$res =
+  $rf->process_32bit(pack 'H*','00f00003');
+ok($res, 'recognizes valid message');
+is(scalar @$res, 0, 'array has no messages');
 
-# wait for duplicate entry to expire
-select undef, undef, undef, 1.1;
-$res = $rf->process_variable_length(pack 'H*', '20649b28d70000');
-is($res->{length}, 5, 'recognizes sufficient data - a11 off not dup');
-is($res->{messages}->[0]->summary,
-   q{xpl-trig/x10.basic: bnz-rfxcom.localhost -> * - off a11},
-   'returns correct message - a11 off not dup');
+$res = $rf->process_32bit(pack 'H*','01fe45ba');
+ok($res, 'recognizes valid message - non-x10sec');
+is(scalar @$res, 0, 'array has no messages - non-x10sec');
 
-$res = $rf->process_variable_length(pack 'H*', '20649b08f7');
-is($res->{length}, 5, 'recognizes sufficient data - a11 on');
-is($res->{messages}->[0]->summary,
-   q{xpl-trig/x10.basic: bnz-rfxcom.localhost -> * - on a11},
-   'returns correct message - a11 on');
+$res = $rf->process_32bit(pack 'H*','010e45fa');
+ok($res, 'recognizes valid message - non-x10sec');
+is(scalar @$res, 0, 'array has no messages - non-x10sec');
 
-$res = $rf->process_variable_length(pack 'H*', '20649b9867');
-is($res->{length}, 5, 'recognizes sufficient data a11 dim');
-is($res->{messages}->[0]->summary,
-   q{xpl-trig/x10.basic: bnz-rfxcom.localhost -> * - dim a11},
-   'returns correct message - a11 dim');
-
-$res = $rf->process_variable_length(pack 'H*', '20649b8877');
-is($res->{length}, 5, 'recognizes sufficient data - a11 bright');
-is($res->{messages}->[0]->summary,
-   q{xpl-trig/x10.basic: bnz-rfxcom.localhost -> * - bright a11},
-   'returns correct message - a11 bright');
-
-# clear unit code cache and try again
-$rf->stash('unit_cache', {});
-$rf->{_cache} = {}; # clear duplicate cache to avoid hitting it
-is(test_warn(sub { $res = $rf->process_variable_length(pack 'H*', '20649b9867');
-                 }),
-   "Don't have unit code for: a dim\n",
-   'missing unit code warning');
-is($res->{length}, 5, 'recognizes sufficient data - missing unit code');
-is(scalar @{$res->{messages}}, 0, 'array has no messages - missing unit code');
-
-# a non-x10 message
-$res = $rf->process_variable_length(pack 'H*', '2064fb9867');
-is($res->{length}, 5, 'recognizes sufficient data - non-x10');
-is(scalar @{$res->{messages}}, 0, 'array has no messages - non-x10');

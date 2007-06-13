@@ -1,0 +1,19 @@
+20649b8877
+
+5 bytes
+
+1 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+x10.basic
+{
+command=bright
+device=a11
+level=10
+}
+

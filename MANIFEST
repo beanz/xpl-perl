@@ -100,7 +100,6 @@ t/03-rf-electrisave.t
 t/03-rf-oregon.t
 t/03-rf-rfxcom.t
 t/03-rf-rfxsensor.t
-t/03-rf-x10sec.t
 t/03-rf-x10.t
 t/04-clock.t
 t/04-collection-api.t

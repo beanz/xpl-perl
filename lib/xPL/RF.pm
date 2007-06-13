@@ -190,7 +190,7 @@ sub process_variable_length {
     return $res;
   }
   if ($self->verbose) {
-    print "Unknown message, len=$length_bits:\n  ", (unpack 'H*', $msg), "\n";
+    warn "Unknown message, len=$length_bits:\n  ", (unpack 'H*', $msg), "\n";
   }
   return $res;
 }

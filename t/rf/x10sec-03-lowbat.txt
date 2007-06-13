@@ -1,0 +1,33 @@
+20010e45ba
+
+5 bytes
+
+2 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+security.zone
+{
+zone=x10sec80
+event=alert
+state=true
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+x10.security
+{
+command=alert
+device=128
+tamper=true
+low-battery=true
+delay=min
+}
+
