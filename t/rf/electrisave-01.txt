@@ -1,0 +1,19 @@
+78ea00a642000000169bff5f1dc05408
+
+16 bytes
+
+1 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=electrisave.a6
+type=current
+current=6.6
+}
+

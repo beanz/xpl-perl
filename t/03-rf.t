@@ -71,8 +71,8 @@ foreach my $m (sort keys %msg) {
 
   my $length = $res ? $res->{length}.' bytes' : 'undef';
   my $count = $res ? scalar @{$res->{messages}}.' messages' : 'undef';
-  is($length, $rec->{len}, $m.' - decoded from correct number of bytes');
-  is($count, $rec->{count}, $m.' - decoded to correct number of messages');
+  is($length, $rec->{len}, $m.' - correct number of bytes');
+  is($count, $rec->{count}, $m.' - correct number of messages');
   my $string = 'empty';
   if (defined $res) {
     if (@{$res->{messages}}) {
@@ -85,5 +85,5 @@ foreach my $m (sort keys %msg) {
     $string = 'undef'
   }
   chomp($string);
-  is($string, $rec->{string}, $m.' - decoded correct messages');
+  is($string, $rec->{string}, $m.' - correct messages');
 }
