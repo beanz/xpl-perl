@@ -1,0 +1,19 @@
+3000f00006000a
+
+7 bytes
+
+1 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=rfxpower.00
+type=energy
+current=15.36
+}
+

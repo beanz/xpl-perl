@@ -36,7 +36,7 @@ our @EXPORT = qw();
 our $VERSION = '0.01';
 our $SVNVERSION = qw/$Revision$/[1];
 
-our %types =
+my %types =
   (
    0xfa28 => { part => 'THGR810', len => 80, },
    0xfab8 => { part => 'WTRG800', len => 80, method => 'wtgr800_temphydro', },
@@ -54,6 +54,7 @@ our %types =
    0x3a0d => { part => 'STR918/WGR918', len => 80, },
    0x2a1d => { part => 'RGR126/RGR682/RGR918', len => 80, },
    0x0a4d => { part => 'THR128/THR138', len => 80, method => 'thr128', },
+   0xfefe => { part => 'TEST' },
   );
 
 my $DOT = q{.};
@@ -81,7 +82,7 @@ sub parse {
   }
   my $method = $rec->{method};
   unless ($method) {
-    warn "Possible ",$rec->{part},"\n";
+    warn "Possible message from Oregon part \"",$rec->{part},"\"\n";
     return;
   }
   return $self->$method($parent, $message, $bytes, $bits);
@@ -97,10 +98,7 @@ sub uv138 {
   return unless (checksum1($bytes));
   my $device = sprintf "%02x", $bytes->[3];
   my $uv =  lo_nibble($bytes->[5])*10 + hi_nibble($bytes->[4]);
-  my $risk = ($uv < 3 ? 'low' :
-              ($uv < 6 ? 'medium' :
-               ($uv < 8 ? 'high' :
-                ($uv < 11 ? 'very high' : 'dangerous'))));
+  my $risk = uv_string($uv);
   #printf STDERR "uv138(%s) uv=%d risk=%s\n", $device, $uv, $risk;
   my $battery_low = $bytes->[4]&0x4;
   my $dev_str = 'uv138.'.$device;
@@ -406,6 +404,18 @@ sub checksum3 {
 
 sub checksum4 {
   return $_[0]->[9] == ((nibble_sum(9,$_[0]) - 0xa) & 0xff);
+}
+
+my @uv_str =
+  (
+   qw/low low low/, # 0 - 2
+   qw/medium medium medium/, # 3 - 5
+   qw/high high/, # 6 - 7
+   'very high', 'very high', 'very high', # 8 - 10
+  );
+
+sub uv_string {
+  $uv_str[$_[0]] || 'dangerous';
 }
 
 1;

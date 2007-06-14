@@ -1,0 +1,10 @@
+3000f0000600fa
+
+7 bytes
+
+0 messages
+
+empty
+
+Unsupported rfxpower message identification packet
+H:: 00f0000600fa

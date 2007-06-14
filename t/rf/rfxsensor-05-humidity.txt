@@ -1,0 +1,36 @@
+2001f11ae5
+
+5 bytes
+
+2 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=rfxsensor01f1
+type=voltage
+current=2.15
+base_device=00f0
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=rfxsensor01f1
+type=humidity
+current=41.83
+base_device=00f0
+}
+
+none
+
+clear

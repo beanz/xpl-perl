@@ -1,0 +1,10 @@
+2003f30217
+
+5 bytes
+
+0 messages
+
+empty
+
+RFXSensor info rfxsensor03f3: battery low detected
+

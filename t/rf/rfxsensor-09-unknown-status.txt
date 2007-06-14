@@ -1,0 +1,10 @@
+2003f39917
+
+5 bytes
+
+0 messages
+
+empty
+
+RFXSensor unknown status messages: 99
+

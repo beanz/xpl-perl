@@ -1,0 +1,20 @@
+2002f23ea1
+
+5 bytes
+
+1 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=rfxsensor02f2
+type=voltage
+current=5.01
+base_device=00f0
+}
+
