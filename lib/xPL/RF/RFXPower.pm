@@ -1,14 +1,14 @@
-package xPL::RF::RFXCOM;
+package xPL::RF::RFXPower;
 
 # $Id$
 
 =head1 NAME
 
-xPL::RF::RFXCOM - Perl extension for an xPL RF Class
+xPL::RF::RFXPower - Perl extension for an xPL RF Class
 
 =head1 SYNOPSIS
 
-  use xPL::RF::RFXCOM;
+  use xPL::RF::RFXPower;
 
 =head1 DESCRIPTION
 
@@ -63,7 +63,7 @@ sub parse {
   my $nibble_sum = nibble_sum(4, $bytes);
   my $parity = 0xf^($nibble_sum&0xf);
   unless ($parity == $check) {
-    warn "RFXCOM parity error $parity != $check\n";
+    warn "RFXPower parity error $parity != $check\n";
     return;
   }
 

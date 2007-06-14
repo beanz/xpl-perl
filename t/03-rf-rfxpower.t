@@ -20,7 +20,7 @@ q{xpl-trig/sensor.basic: bnz-rfxcom.localhost -> * - rfxpower.00[energy]=15.36},
 is(test_warn(sub {
                $res = $rf->process_variable_length(pack 'H*','3000f00006000b');
              }),
-   "RFXCOM parity error 10 != 11\n",
+   "RFXPower parity error 10 != 11\n",
    'rfxcom parity error');
 is($res->{length}, 7, 'recognizes sufficient data');
 is(scalar @{$res->{messages}}, 0, 'array has no messages');
