@@ -5,15 +5,22 @@
 
 use strict;
 use xPL::RF;
-my $rf = xPL::RF->new(source => "test-test.test", verbose => 1);
+my $rf = xPL::RF->new(source => "bnz-rftest.default", verbose => 0);
 foreach (@ARGV) {
+  print $_, "\n\n";
   my $r = $rf->process_variable_length(pack "H*", $_);
-  if ($r->{messages}) {
-    foreach my $m (@{$r->{messages}}) {
-      print $m->string(),"\n";
-   }
+  if ($r) {
+    print $r->{length}," bytes\n\n";
+    if ($r->{messages} && @{$r->{messages}}) {
+      print scalar @{$r->{messages}}, " messages\n\n";
+      foreach my $m (@{$r->{messages}}) {
+        print $m->string();
+      }
+      print "\n";
+    } else {
+      print "0 messages\n\nempty\n\n";
+    }
   } else {
-    print "No messages\n";
+    print "undef\n\nundef\n\n";
   }
 }
-
