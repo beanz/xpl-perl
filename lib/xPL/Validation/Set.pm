@@ -93,7 +93,7 @@ This method returns true if the value is valid.
 =cut
 
 sub valid {
-  defined $_[0] && exists $_[0]->{_set_map}->{lc $_[1]};
+  defined $_[1] && exists $_[0]->{_set_map}->{lc $_[1]};
 }
 
 =head2 C<error( )>
