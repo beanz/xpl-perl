@@ -1,0 +1,44 @@
+50dacc134d352220645232
+
+11 bytes
+
+3 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=rtgr328n.4d
+type=temp
+current=22.3
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=rtgr328n.4d
+type=humidity
+current=42
+string=comfortable
+}
+xpl-cmnd
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+osd.basic
+{
+command=clear
+text=rtgr328n.4d has low battery
+row=2
+}
+

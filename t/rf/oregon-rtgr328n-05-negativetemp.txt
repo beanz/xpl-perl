@@ -1,0 +1,32 @@
+50dacc134d710128645732
+
+11 bytes
+
+2 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=rtgr328n.4d
+type=temp
+current=-1.7
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=rtgr328n.4d
+type=humidity
+current=42
+string=comfortable
+}
+

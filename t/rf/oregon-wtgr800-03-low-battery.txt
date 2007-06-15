@@ -1,0 +1,44 @@
+50fab8142f792060d865db
+
+11 bytes
+
+3 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=wtgr800.2f
+type=temp
+current=20.7
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=wtgr800.2f
+type=humidity
+current=86
+string=wet
+}
+xpl-cmnd
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+osd.basic
+{
+command=clear
+text=wtgr800.2f has low battery (10%)
+row=2
+}
+
