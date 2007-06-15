@@ -12,6 +12,7 @@ foreach (@ARGV) {
   local $SIG{__WARN__} = sub { $warn .= $_[0]; };
   my $r;
   eval { $r = $rf->process_variable_length(pack "H*", $_); };
+  die $@ if ($@);
   if ($r) {
     print $r->{length}," bytes\n\n";
     if ($r->{messages} && @{$r->{messages}}) {
