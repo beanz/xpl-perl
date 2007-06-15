@@ -94,6 +94,7 @@ t/00-helpers.t
 t/01-use.t
 t/01-xpl-base.t
 t/01-xpl-interfaces.t
+t/01-xpl-message.t
 t/01-xpl-utils.t
 t/01-xpl-validation.t
 t/02-message.t
