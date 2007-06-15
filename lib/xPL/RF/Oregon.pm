@@ -46,7 +46,7 @@ my %types =
    0xea7c => { part => 'UV138', len => 120, method => 'uv138', },
    0xea4c => { part => 'THWR288A', len => 80, },
    0x8aec => { part => 'RTGR328N', len => 104, },
-   0x9aec => { part => 'RTGR328N', len => 104, method => 'datetime', },
+   0x9aec => { part => 'RTGR328N', len => 104, method => 'rtgr328n_datetime', },
    0x1a2d => { part => 'THGR228N/THGR122NX', len => 80, method => 'thgr228n', },
    0x1a3d => { part => 'THGR918', len => 80, },
    0x5a5d => { part => 'BTHR918', len => 88, },
@@ -61,7 +61,10 @@ my $DOT = q{.};
 
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 
-TODO: POD
+This method is called via the main C<xPL::RF> decode loop and it
+determines whether the bytes match the format of any supported Oregon
+Scientific sensors.  It returns a list reference of containing xPL
+messages corresponding to the sensor readings.
 
 =cut
 
@@ -74,7 +77,7 @@ sub parse {
 
   my $type = ($bytes->[0] << 8) + $bytes->[1];
   if (($type&0xfff) == 0xacc) {
-    return $self->rtgr328n($parent, $message, $bytes, $bits);
+    return $self->rtgr328n_temphydro($parent, $message, $bytes, $bits);
   }
   my $rec = $types{$type};
   unless ($rec) {
@@ -88,6 +91,15 @@ sub parse {
   return $self->$method($parent, $message, $bytes, $bits);
 }
 
+=head1 DEVICE METHODS
+
+=head2 C<uv138( $parent, $message, $bytes, $bits )>
+
+This method is called if the device type bytes indicate that the bytes
+might contain a message from a UV138 sensor.
+
+=cut
+
 sub uv138 {
   my $self = shift;
   my $parent = shift;
@@ -97,138 +109,19 @@ sub uv138 {
 
   return unless (checksum1($bytes));
   my $device = sprintf "%02x", $bytes->[3];
-  my $uv =  lo_nibble($bytes->[5])*10 + hi_nibble($bytes->[4]);
-  my $risk = uv_string($uv);
-  #printf STDERR "uv138(%s) uv=%d risk=%s\n", $device, $uv, $risk;
-  my $battery_low = $bytes->[4]&0x4;
   my $dev_str = 'uv138.'.$device;
   my @res = ();
-  push @res,
-    xPL::Message->new(
-                      strict => 0,
-                      message_type => 'xpl-trig',
-                      class => 'sensor.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               device => $dev_str,
-                               type => 'uv',
-                               current => $uv,
-                               risk => $risk,
-                              }
-                     );
-  push @res,
-    xPL::Message->new(
-                      message_type => 'xpl-cmnd',
-                      class => 'osd.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               command => 'clear',
-                               text => $dev_str.' has low battery',
-                               row => 2,
-                              }
-                     ) if ($battery_low);
+  uv($parent, $bytes, $dev_str, \@res);
+  simple_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
 }
 
-sub common_temphydro {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+=head2 C<wtgr800_anemometer( $parent, $message, $bytes, $bits )>
 
-  return unless (checksum2($bytes));
-  my $device = sprintf "%02x", $bytes->[3];
-  my $temp =
-    (($bytes->[6]&0x8) ? -1 : 1) *
-      (hi_nibble($bytes->[5])*10 + lo_nibble($bytes->[5]) +
-       hi_nibble($bytes->[4])/10);
-  my $hum = lo_nibble($bytes->[7])*10 + hi_nibble($bytes->[6]);
-  my $hum_str = ['normal', 'comfortable', 'dry', 'wet']->[$bytes->[7]>>6];
-  #printf STDERR "%s(%s) temp=%.1f hum=%d%% %s\n", $type, $device, $temp,
-  #              $hum, $hum_str;
-  my $battery_low = $bytes->[4]&0x4;
-  my $dev_str = $type.$DOT.$device;
-  my @res = ();
-  push @res,
-    xPL::Message->new(
-                      message_type => 'xpl-trig',
-                      class => 'sensor.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               device => $dev_str,
-                               type => 'temp',
-                               current => $temp,
-                              }
-                     ),
-    xPL::Message->new(
-                      message_type => 'xpl-trig',
-                      class => 'sensor.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               device => $dev_str,
-                               type => 'humidity',
-                               current => $hum,
-                               string => $hum_str,
-                              }
-                     );
-  push @res,
-    xPL::Message->new(
-                      message_type => 'xpl-cmnd',
-                      class => 'osd.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               command => 'clear',
-                               text => $dev_str.' has low battery',
-                               row => 2,
-                              }
-                     ) if ($battery_low);
-  return \@res;
-}
+This method is called if the device type bytes indicate that the bytes
+might contain a wind speed/direction message from a WTGR800 sensor.
 
-sub common_temp {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
-
-  return unless (checksum2($bytes));
-  my $device = sprintf "%02x", $bytes->[3];
-  my $temp =
-    (($bytes->[6]&0x8) ? -1 : 1) *
-      (hi_nibble($bytes->[5])*10 + lo_nibble($bytes->[5]) +
-       hi_nibble($bytes->[4])/10);
-  #printf STDERR "%s(%s) temp=%.1f\n", $type, $device, $temp;
-  my $battery_low = $bytes->[4]&0x4;
-  my $dev_str = $type.$DOT.$device;
-  my @res = ();
-  push @res,
-    xPL::Message->new(
-                      message_type => 'xpl-trig',
-                      class => 'sensor.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               device => $dev_str,
-                               type => 'temp',
-                               current => $temp,
-                              }
-                     );
-  push @res,
-    xPL::Message->new(
-                      message_type => 'xpl-cmnd',
-                      class => 'osd.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               command => 'clear',
-                               text => $dev_str.' has low battery',
-                               row => 2,
-                              }
-                     ) if ($battery_low);
-  return \@res;
-}
+=cut
 
 sub wtgr800_anemometer {
   my $self = shift;
@@ -241,7 +134,6 @@ sub wtgr800_anemometer {
   my $device = sprintf "%02x", $bytes->[3];
   my $dir = hi_nibble($bytes->[4]) * 22.5;
   my $speed = lo_nibble($bytes->[7]) * 10 + sprintf("%02x",$bytes->[6])/10;
-  my $bat = 100-10*lo_nibble($bytes->[4]);
   #print "WTGR800: $device $dir $speed $bat\n";
   my $dev_str = 'wtgr800'.$DOT.$device;
   my @res = ();
@@ -267,19 +159,16 @@ sub wtgr800_anemometer {
                                current => $dir,
                               }
                      );
-  push @res,
-    xPL::Message->new(
-                      message_type => 'xpl-cmnd',
-                      class => 'osd.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               command => 'clear',
-                               text => $dev_str.' has low battery',
-                               row => 2,
-                              }
-                     ) if ($bat < 20);
+  percentage_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
 }
+
+=head2 C<wtgr800_temphydro( $parent, $message, $bytes, $bits )>
+
+This method is called if the device type bytes indicate that the bytes
+might contain a temperature/humidity message from a WTGR800 sensor.
+
+=cut
 
 sub wtgr800_temphydro {
   my $self = shift;
@@ -290,65 +179,58 @@ sub wtgr800_temphydro {
 
   return unless (checksum2($bytes));
   my $device = sprintf "%02x", $bytes->[3];
-  my $temp = (($bytes->[6]&0x8) ? -1 : 1) *
-    (sprintf("%02x",$bytes->[5]) + hi_nibble($bytes->[4])/10);
-  my $hum = lo_nibble($bytes->[7])*10 + hi_nibble($bytes->[6]);
-  my $hum_str = ['normal', 'comfortable', 'dry', 'wet']->[$bytes->[7]>>6];
-  my $bat = 100-10*lo_nibble($bytes->[4]);
   my $dev_str = 'wtgr800'.$DOT.$device;
   my @res = ();
-  push @res,
-    xPL::Message->new(
-                      message_type => 'xpl-trig',
-                      class => 'sensor.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               device => $dev_str,
-                               type => 'temp',
-                               current => $temp,
-                              }
-                     ),
-    xPL::Message->new(
-                      message_type => 'xpl-trig',
-                      class => 'sensor.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               device => $dev_str,
-                               type => 'humidity',
-                               current => $hum,
-                               string => $hum_str,
-                              }
-                     );
-  push @res,
-    xPL::Message->new(
-                      message_type => 'xpl-cmnd',
-                      class => 'osd.basic',
-                      head => { source => $parent->source, },
-                      body => {
-                               command => 'clear',
-                               text => $dev_str.' has low battery',
-                               row => 2,
-                              }
-                     ) if ($bat < 20);
+  temperature($parent, $bytes, $dev_str, \@res);
+  humidity($parent, $bytes, $dev_str, \@res);
+  percentage_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
 }
 
-sub rtgr328n {
+=head2 C<rtgr328n_temphydro( $parent, $message, $bytes, $bits )>
+
+This method is called if the device type bytes indicate that the bytes
+might contain a temperature/humidity message from a RTGR328n sensor.
+
+=cut
+
+sub rtgr328n_temphydro {
   my $self = shift;
   return $self->common_temphydro('rtgr328n', @_);
 }
+
+=head2 C<thgr228n( $parent, $message, $bytes, $bits )>
+
+This method is called if the device type bytes indicate that the bytes
+might contain a temperature/humidity message from a THGR228n sensor.
+
+=cut
 
 sub thgr228n {
   my $self = shift;
   return $self->common_temphydro('thgr228n', @_);
 }
 
+=head2 C<thr128( $parent, $message, $bytes, $bits )>
+
+This method is called if the device type bytes indicate that the bytes
+might contain a temperature message from a THR128 sensor.
+
+=cut
+
 sub thr128 {
   my $self = shift;
   return $self->common_temp('thr128', @_);
 }
 
-sub datetime {
+=head2 C<rtgr328n_datetime( $parent, $message, $bytes, $bits )>
+
+This method is called if the device type bytes indicate that the bytes
+might contain a date/time message from a RTGR328n sensor.
+
+=cut
+
+sub rtgr328n_datetime {
   my $self = shift;
   my $parent = shift;
   my $message = shift;
@@ -388,22 +270,103 @@ sub datetime {
                            )];
 }
 
+=head2 C<common_temp( $type, $parent, $message, $bytes, $bits )>
+
+This method is a generic device method for devices that report
+temperature in a particular manner.
+
+=cut
+
+sub common_temp {
+  my $self = shift;
+  my $type = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  return unless (checksum2($bytes));
+  my $device = sprintf "%02x", $bytes->[3];
+  my $dev_str = $type.$DOT.$device;
+  my @res = ();
+  temperature($parent, $bytes, $dev_str, \@res);
+  simple_battery($parent, $bytes, $dev_str, \@res);
+  return \@res;
+}
+
+=head2 C<common_temphydro( $type, $parent, $message, $bytes, $bits )>
+
+This method is a generic device method for devices that report
+temperature and humidity in a particular manner.
+
+=cut
+
+sub common_temphydro {
+  my $self = shift;
+  my $type = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  return unless (checksum2($bytes));
+  my $device = sprintf "%02x", $bytes->[3];
+  my $dev_str = $type.$DOT.$device;
+  my @res = ();
+  temperature($parent, $bytes, $dev_str, \@res);
+  humidity($parent, $bytes, $dev_str, \@res);
+  simple_battery($parent, $bytes, $dev_str, \@res);
+  return \@res;
+}
+
+=head1 CHECKSUM METHODS
+
+=head2 C<checksum1( $bytes )>
+
+This method is a byte checksum of all nibbles of the first 6 bytes,
+the low nibble of the 7th byte, minus 10 which should equal the byte
+consisting of a high nibble taken from the low nibble of the 8th byte
+plus the high nibble from the 7th byte.
+
+=cut
+
 sub checksum1 {
   my $c = hi_nibble($_[0]->[6]) + (lo_nibble($_[0]->[7])<<4);
   my $s = ( ( nibble_sum(6, $_[0]) + lo_nibble($_[0]->[6]) - 0xa) & 0xff);
-  return $s == $c;
+  $s == $c;
 }
+
+=head2 C<checksum2( $bytes )>
+
+This method is a byte checksum of all nibbles of the first 8 bytes
+minus 10, which should equal the 9th byte.
+
+=cut
 
 sub checksum2 {
-  return $_[0]->[8] == ((nibble_sum(8,$_[0]) - 0xa) & 0xff);
+  $_[0]->[8] == ((nibble_sum(8,$_[0]) - 0xa) & 0xff);
 }
+
+=head2 C<checksum3( $bytes )>
+
+This method is a byte checksum of all nibbles of the first 11 bytes
+minus 10, which should equal the 12th byte.
+
+=cut
 
 sub checksum3 {
-  return $_[0]->[11] == ((nibble_sum(11,$_[0]) - 0xa) & 0xff);
+  $_[0]->[11] == ((nibble_sum(11,$_[0]) - 0xa) & 0xff);
 }
 
+=head2 C<checksum4( $bytes )>
+
+This method is a byte checksum of all nibbles of the first 9 bytes
+minus 10, which should equal the 10th byte.
+
+=cut
+
 sub checksum4 {
-  return $_[0]->[9] == ((nibble_sum(9,$_[0]) - 0xa) & 0xff);
+  $_[0]->[9] == ((nibble_sum(9,$_[0]) - 0xa) & 0xff);
 }
 
 my @uv_str =
@@ -414,8 +377,149 @@ my @uv_str =
    'very high', 'very high', 'very high', # 8 - 10
   );
 
+=head1 UTILITY METHODS
+
+=head2 C<uv_string( $uv_index )>
+
+This method takes the UV Index and returns a suitable string.
+
+=cut
+
 sub uv_string {
   $uv_str[$_[0]] || 'dangerous';
+}
+
+=head1 SENSOR READING METHODS
+
+=head2 C<uv( $parent, $bytes, $device, \@result)>
+
+This method processes a UV Index reading.  It appends an xPL message
+to the result array.
+
+=cut
+
+sub uv {
+  my ($parent, $bytes, $dev, $res) = @_;
+  my $uv =  lo_nibble($bytes->[5])*10 + hi_nibble($bytes->[4]);
+  my $risk = uv_string($uv);
+  #printf STDERR "%s uv=%d risk=%s\n", $dev, $uv, $risk;
+  push @$res,
+    xPL::Message->new(
+                      strict => 0,
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev,
+                               type => 'uv',
+                               current => $uv,
+                               risk => $risk,
+                              }
+                     );
+  1;
+}
+
+=head2 C<temperature( $parent, $bytes, $device, \@result)>
+
+This method processes a temperature reading.  It appends an xPL message
+to the result array.
+
+=cut
+
+sub temperature {
+  my ($parent, $bytes, $dev, $res) = @_;
+  my $temp =
+    (($bytes->[6]&0x8) ? -1 : 1) *
+      (hi_nibble($bytes->[5])*10 + lo_nibble($bytes->[5]) +
+       hi_nibble($bytes->[4])/10);
+  #printf STDERR "%s temp=%.1f\n", $dev, $temp;
+  push @$res,
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev,
+                               type => 'temp',
+                               current => $temp,
+                              }
+                     );
+  1;
+}
+
+=head2 C<humidity( $parent, $bytes, $device, \@result)>
+
+This method processes a humidity reading.  It appends an xPL message
+to the result array.
+
+=cut
+
+sub humidity {
+  my ($parent, $bytes, $dev, $res) = @_;
+  my $hum = lo_nibble($bytes->[7])*10 + hi_nibble($bytes->[6]);
+  my $hum_str = ['normal', 'comfortable', 'dry', 'wet']->[$bytes->[7]>>6];
+  #printf STDERR "%s hum=%d%% %s\n", $dev, $hum, $hum_str;
+  push @$res,
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev,
+                               type => 'humidity',
+                               current => $hum,
+                               string => $hum_str,
+                              }
+                     );
+  1;
+}
+
+=head2 C<simple_battery( $parent, $bytes, $device, \@result)>
+
+This method processes a simple low battery reading.  It appends an xPL
+message to the result array if the battery is low.
+
+=cut
+
+sub simple_battery {
+  my ($parent, $bytes, $dev, $res) = @_;
+  my $battery_low = $bytes->[4]&0x4;
+  push @$res,
+    xPL::Message->new(
+                      message_type => 'xpl-cmnd',
+                      class => 'osd.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               command => 'clear',
+                               text => $dev.' has low battery',
+                               row => 2,
+                              }
+                     ) if ($battery_low);
+  $battery_low;
+}
+
+=head2 C<percentage_battery( $parent, $bytes, $device, \@result)>
+
+This method processes a battery percentage charge reading.  It appends
+an xPL message to the result array if the battery is low.
+
+=cut
+
+sub percentage_battery {
+  my ($parent, $bytes, $dev, $res) = @_;
+  my $bat = 100-10*lo_nibble($bytes->[4]);
+  push @$res,
+    xPL::Message->new(
+                      message_type => 'xpl-cmnd',
+                      class => 'osd.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               command => 'clear',
+                               text => $dev.' has low battery ('.$bat.'%)',
+                               row => 2,
+                              }
+                     ) if ($bat < 20);
+  $bat < 20;
 }
 
 1;
