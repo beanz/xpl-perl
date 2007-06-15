@@ -116,8 +116,8 @@ sub xpl_in {
   my $hex;
   if ($msg->value =~ /^0x([0-9a-f]+)/i) {
     $hex = $1;
-  } elsif ($msg->value =~ /^(\d+)$/) {
-    $hex = sprintf("%02x", $1);
+  } elsif (my @l = ($msg->value=~/\G[ ,]?(\d+)/mg)) {
+    $hex = sprintf "%02x" x scalar @l, @l;
   } elsif (exists $rgb->{lc $msg->value}) {
     $hex = $rgb->{lc $msg->value};
   } else {
