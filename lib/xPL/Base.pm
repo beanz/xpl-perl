@@ -575,7 +575,7 @@ sub module_available {
   $file =~ s!::!/!g;
   $file .= '.pm';
   return $self->{_mod}->{$module} = 1 if (exists $INC{$file});
-  eval { require $module; import $module @_; };
+  eval " require $module; import $module \@_; ";
   return $self->{_mod}->{$module} = $EVAL_ERROR ? 0 : 1;
 }
 
