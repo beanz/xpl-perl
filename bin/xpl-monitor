@@ -1,4 +1,24 @@
 #!/usr/bin/perl -w
+
+# $Id$
+
+=head1 NAME
+
+xpl-monitor - Perl script for monitoring xPL clients
+
+=head1 SYNOPSIS
+
+  # start monitor
+  xpl-monitor
+
+=head1 DESCRIPTION
+
+This script is an xPL client that records xPL message in a GUI.  It is
+really just a toy for debugging at the moment, not a serious
+application.
+
+=cut
+
 use strict;
 
 use Gtk2 -init;
@@ -181,3 +201,22 @@ sub head_callback {
   print $d{hist_selected}->[0]->head_string, "\n";
 }
 
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2007 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

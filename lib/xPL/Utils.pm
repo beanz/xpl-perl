@@ -1,6 +1,6 @@
 package xPL::Utils;
 
-# $Id: Utils.pm 191 2007-03-03 17:48:47Z beanz $
+# $Id$
 
 =head1 NAME
 
@@ -37,7 +37,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
                                   ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = qw/$Revision: 191 $/[1];
+our $VERSION = qw/$Revision$/[1];
 
 =head2 C<lo_nibble($byte)>
 
