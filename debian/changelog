@@ -4,10 +4,15 @@ libxpl-perl (0.05-1) unstable; urgency=low
     not as Perl modules.  The YAML module is now required.  It is
     avaliable as a Debian package called libyaml-perl and (probably)
     an RPM package called perl-YAML.
+  * New tool: xpl-rrd-graphs to convert rrd files as produced by xpl-rrd
+    into graphs under /var/www/rrd.
+  * New *experimental* tool: xpl-perl-setup to setup the xPL-Perl clients
+    Feedback on this would be *very* useful.
   * New client: xpl-rfxcom to decode messages from RFXCOM receivers.
   * New client: xpl-csoft-sms: SMS sending client using the service at:
     http://www.csoft.co.uk/
   * New client: xpl-monitor - a graphical debug tool - not complete
+  * Mew tool: xpl-packet-trace - a TCP packet decoding tool for xPL messages
   * xPL::Client: Support for hbeat.request messages.
   * xpl-sender: Support for waiting for responses.  Useful for things
     like "xpl-sender -w 10 -c hbeat.request".
