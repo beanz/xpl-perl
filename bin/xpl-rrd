@@ -240,7 +240,7 @@ END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 
-xPL::Client(3), xPL::Listener(3)
+xPL::Client(3), xPL::Listener(3), rrdtool(1), RRDs(3)
 
 Project website: http://www.xpl-perl.org.uk/
 

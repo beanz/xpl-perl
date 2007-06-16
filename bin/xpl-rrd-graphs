@@ -1,0 +1,220 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-rrd 235 2007-05-24 18:40:17Z beanz $
+
+=head1 NAME
+
+xpl-rrd-graphs - Perl script for producing graphs from xpl-rrd directory.
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-rrd -h
+
+  # search for rrd files under /var/lib/rrd and create graphs in /var/www/rrd
+  xpl-rrd-graphs /var/lib/rrd /var/www/rrd
+
+  # same again but only produce the hourly graphs
+  xpl-rrd-graphs /var/lib/rrd /var/www/rrd 1h
+
+=head1 DESCRIPTION
+
+This script is an xPL client that logs known message types
+
+=cut
+
+use strict;
+use File::Find;
+use FileHandle;
+use POSIX qw/strftime/;
+use RRDs;
+
+$|=1;
+
+my $data_dir = shift || "/var/lib/rrd";
+my $graph_dir = shift || "/var/www/rrd";
+my $todo;
+if (@ARGV) {
+  %$todo = map { $_ => 1 } @ARGV;
+}
+
+mkdir($graph_dir, 0755) unless (-d $graph_dir);
+
+my %rrds = ();
+
+{
+  sub wanted {
+    return unless (/^(.*)\.rrd$/);
+    $rrds{substr($File::Find::dir, length($data_dir)+1)}->{$1} =
+      {
+       rrd => $File::Find::name,
+      };
+    return 1;
+  }
+
+  find(\&wanted, $data_dir);
+}
+
+my $time = time;
+
+my @graph =
+  (
+   {
+    span => '1h',
+    name => "1 Hour",
+   },
+   {
+    span => '6h',
+    name => "6 Hours",
+   },
+   {
+    span => '1d',
+    name => "1 Day",
+   },
+   {
+    span => '7d',
+    name => "1 Week",
+   },
+   {
+    span => '14d',
+    name => "Fortnight",
+   },
+   {
+    span => '1m',
+    name => "Month",
+   },
+   {
+    span => '3mon',
+    name => "3 Months",
+   },
+   {
+    span => '6mon',
+    name => "6 Months",
+   },
+   {
+    span => '1y',
+    name => "1 Year",
+   },
+   {
+    span => '2y',
+    name => "2 Year",
+   },
+  );
+
+foreach my $dir (sort keys %rrds) {
+
+  print "D: ", $dir, "\n";
+  my $gd = $graph_dir."/".$dir;
+  mkdir($gd, 0755) unless (-d $gd);
+
+  foreach my $a (sort keys %{$rrds{$dir}}) {
+
+    eval {
+      print "  ", $a, " ";
+      my $rrd = $rrds{$dir}->{$a}->{rrd};
+      my $gb = $gd."/".$a;
+      mkdir($gb, 0755) unless (-d $gb);
+      my $sources = rrd_data_sources($rrd);
+      foreach my $var (@$sources) {
+        print $var, ": ";
+        my $index = $gb."/$var.html";
+        my $fh = FileHandle->new(">".$index) ||
+          die "Failed to open $index: $!\n";
+        my $title = 'for '.$var.' from '.$dir.'/'.$a;
+        $fh->print("<html><head><title>Graphs $title</title></head><body>\n");
+        $fh->print("<h1>Graphs $title</h1>");
+        $fh->printf("<p>Generated at %s.</p>\n",
+                    strftime("%Y-%m-%d %H:%M", localtime(time)));
+        foreach my $rec (@graph) {
+          my $span = $rec->{span};
+          my $name = $rec->{name};
+          my $file = $var."-".$span.".png";
+          if ($todo && !exists $todo->{$span}) {
+            # skip graph generation
+          } else {
+            print $span, ",";
+            my $start = '-'.$span;
+            my $end = 'now';
+            RRDs::graph("$gb/$file",
+                        "--title" => "Graph $title ($name)",
+                        "--start" => $start, "--end"   => $end,
+                        "--width" => 600,  "--height" => 200,
+                        "--imgformat" => "PNG", "--interlaced", '--lazy',
+                        "DEF:avg=$rrd:$var:AVERAGE", "DEF:min=$rrd:$var:MIN",
+                        "DEF:max=$rrd:$var:MAX",
+                        "LINE1:min#0EEFD2:C Min",
+                        "LINE1:avg#EFD80E:C Avg",
+                        "LINE1:max#EF500E:C Max",
+                        "GPRINT:min:MIN:Min %7.2lf",
+                        "GPRINT:max:MAX:Max %7.2lf\\l",
+                        "COMMENT:".strftime('%Y-%m-%d %H\:%m\r',
+                                            localtime(time)),
+                       );
+            my $err = RRDs::error;
+            if ($err) {
+              warn "ERROR creating $rrd: $err\n";
+              next;
+            }
+          }
+          $fh->print("<h2>$name</h2>\n");
+          $fh->print("<img src=\"$file\" />\n");
+        }
+        $fh->print("</body></html>\n");
+        $fh->close;
+      }
+      if ((scalar @$sources) == 1) {
+        symlink($sources->[0].".html", $gb."/index.html");
+      } else {
+        my $index = $gb."/index.html";
+        my $fh = FileHandle->new(">".$index) ||
+          die "Failed to open $index: $!\n";
+        my $title = " from ".$a;
+        $fh->print("<html><head><title>Graphs $title</title></head><body>\n");
+        $fh->print("<h1>Graphs $title</h1>");
+        $fh->printf("<p>Generated at %s.</p>\n",
+                    strftime("%Y-%m-%d %H:%M", localtime(time)));
+        foreach my $var (@$sources) {
+          $fh->print("<h2>$var</h2>\n");
+          my $file = $var."-1d.png";
+          $fh->print("<a href=\"$var\"><img src=\"$file\" /></a>\n");
+        }
+        $fh->print("</body></html>\n");
+        $fh->close;
+      }
+    };
+    warn $@ if ($@);
+    print "\n";
+  }
+}
+
+sub rrd_data_sources {
+  my $rrd = shift;
+
+  my $hash = RRDs::info $rrd;
+  return undef unless ($hash);
+  my %ds;
+  foreach my $key (keys %$hash){
+    $ds{$1}++ if ($key =~ /^ds\[([^]]+)\]/);
+  }
+  return [keys %ds];
+}
+
+=head1 SEE ALSO
+
+xpl-rrd(1), rrdtool(1), RRDs(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005, 2007 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

@@ -12,8 +12,11 @@ bin/xpl-logger
 bin/xpl-monitor
 bin/xpl-mplayer
 bin/xpl-owfs
+bin/xpl-packet-trace
+bin/xpl-perl-setup
 bin/xpl-rfxcom
 bin/xpl-rrd
+bin/xpl-rrd-graphs
 bin/xpl-sender
 bin/xpl-sql-logger
 bin/xpl-viom
