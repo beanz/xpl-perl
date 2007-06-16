@@ -57,7 +57,7 @@ This script will attempt to set up a group 'xplperl' and two users
 
 EOF
     exit 1
- 
+fi 
 
 
 ETC=${1:-/etc/xplperl}
