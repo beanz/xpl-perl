@@ -219,8 +219,8 @@ if test -e /etc/cron.d/xpl-rrd ; then
 else
     echo /etc/cron.d/xpl-rrd created
     cat >/etc/cron.d/xpl-rrd <<EOF
-7,12,17,22,27,32,37,42,47,52,57 * * * * xplperl /usr/bin/xpl-rrd-graphs 1h
-2 * * * * xplperl /usr/bin/xpl-rrd-graphs
+7,12,17,22,27,32,37,42,47,52,57 * * * * xplperl /usr/bin/xpl-rrd-graphs 1h >/dev/null
+2 * * * * xplperl /usr/bin/xpl-rrd-graphs >/dev/null
 EOF
     chmod a+rx /etc/cron.d/xpl-rrd
 fi
