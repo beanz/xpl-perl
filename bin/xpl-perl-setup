@@ -115,7 +115,7 @@ make_service_aux() {
         echo $ETC/service/$dir/run already exists
     else
         if [ "$TYPE" == "daemontools" ]; then
-
+            make_dir $ETC/service/$dir/env
             cat >$ETC/service/$dir/run <<EOF
 #!/bin/sh
 exec 2>&1
