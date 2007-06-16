@@ -1,4 +1,31 @@
 #!/usr/bin/perl -w
+
+# $Id: xpl-monitor 281 2007-06-15 16:53:50Z beanz $
+
+=head1 NAME
+
+xpl-packet-trace - Perl script for decoding xPL messages from tcp packets
+
+=head1 SYNOPSIS
+
+  # live decode
+  # decode xPL packets that are visible on the interface eth0
+  xpl-packet-trace eth0
+
+  # batch decode
+  # sniff 100 xPL packets from eth0 and write them to xpl.tcp
+  # then later decode xPL messages from tcpdump file
+  tcpdump -w xpl.tcp -i eth0 -c 100 -s 2048 udp and port 3865
+  xpl-packet-trace xpl.tcp
+
+=head1 DESCRIPTION
+
+This script is an xPL client that records xPL message in a GUI.  It is
+really just a toy for debugging at the moment, not a serious
+application.
+
+=cut
+
 use strict;
 use Net::Pcap;
 use Socket qw/inet_ntoa/;
@@ -13,7 +40,7 @@ my $promisc = 1;
 my $timeout = 100;
 my $glob = {};
 $glob->{t} = Time::HiRes::time;
-foreach my $c (0..20) {
+
 my $pcap;
 if ($dev =~ /\.tcp$/) {
   # seems to be a file
@@ -43,7 +70,6 @@ Net::Pcap::close($pcap);
 printf STDERR
   "Elapsed processing time: %.02f\n", Time::HiRes::time - $glob->{t};
 
-}
 END {
   print STDERR "Trace contained ".$glob->{count}." packets\n";
   foreach (qw/xpl-cmnd xpl-stat xpl-trig/) {
@@ -100,15 +126,30 @@ sub packet {
     return;
   }
   my $xpl = xPL::Message->new_from_payload($payload);
-#  print STDERR $xpl->summary,"\n";
+  print STDERR $xpl->summary,"\n";
   print $xpl->string,"\n";
   $glob->{$xpl->message_type}++;
 }
 
-exit;
+=head1 SEE ALSO
 
+xPL::Client(3), xPL::Listener(3), Net::Pcap(3), tcpdump(8)
 
+Project website: http://www.xpl-perl.org.uk/
 
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2007 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
 
 
 
