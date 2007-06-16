@@ -64,6 +64,7 @@ fi
 
 ETC=${1:-/etc/xplperl}
 SVDIR=${2:-/var/service}
+TYPE=${3:-RUNIT}
 
 if [ -z "$XPL_OWFS" ]; then
     XPL_OWFS=/ow
@@ -82,8 +83,10 @@ fi
 
 if test \! -e $SVDIR ; then
     SVDIR=/service
+    TYPE=daemontools
     if test \! -e $SVDIR ; then
         SVDIR=/var/lib/svscan
+        TYPE=daemontools
         if test \! -e $SVDIR ; then
             echo $0: requires a runit/daemontools service directory
             echo perhaps you need to install either runit or daemontools
@@ -111,11 +114,20 @@ make_service_aux() {
     if test -f $ETC/service/$dir/run ; then
         echo $ETC/service/$dir/run already exists
     else
-        cat >$ETC/service/$dir/run <<EOF
+        if [ "$TYPE" == "daemontools" ]; then
+
+            cat >$ETC/service/$dir/run <<EOF
+#!/bin/sh
+exec 2>&1
+exec setuidgid ${user%:*} envdir ./env softlimit -d300000 ${prog}
+EOF
+        else
+            cat >$ETC/service/$dir/run <<EOF
 #!/bin/sh
 exec 2>&1
 exec chpst -u${user} ${prog}
 EOF
+        fi
         chmod 0755 $ETC/service/$dir/run
     fi
 }
@@ -135,12 +147,16 @@ make_service() {
     user=$3
     make_dir $ETC/service
     make_service_aux $name "$prog" $user
-    make_service_aux $name/log "svlogd -tt ./main" \
-        xplperllog:xplperl
-    if test -f $ETC/service/$name/log/config ; then
-        echo $ETC/service/$name/log/config already exists
+    if [ "$TYPE" == "daemontools" ]; then
+        make_service_aux $name/log "multilog t s1000000 n1000 ./main" \
+            xplperllog:xplperl
     else
-        cat >$ETC/service/$name/log/config <<EOF
+        make_service_aux $name/log "svlogd -tt ./main" \
+            xplperllog:xplperl
+        if test -f $ETC/service/$name/log/config ; then
+            echo $ETC/service/$name/log/config already exists
+        else
+            cat >$ETC/service/$name/log/config <<EOF
 # Files should be 1M before being rotated
 s1000000
 # keep 1000 log files
@@ -148,7 +164,8 @@ n1000
 # rotate at least once per day
 t86400
 EOF
-        chmod 0644 $ETC/service/$name/log/config
+            chmod 0644 $ETC/service/$name/log/config
+        fi
     fi
     make_dir $ETC/service/$name/log/main xplperllog:xplperl
 }
