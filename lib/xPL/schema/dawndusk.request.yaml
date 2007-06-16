@@ -5,15 +5,15 @@ types:
   xpl-cmnd:
     fields:
       - name: command
+        default: status
         die: 1
-        required: 1
         validation: 
           type: Set
           set:
             - status
       - name: query
+        default: daynight
         die: 1
-        required: 1
         validation: 
           type: Set
           set:

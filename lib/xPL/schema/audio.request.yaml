@@ -4,7 +4,8 @@ types:
   xpl-cmnd:
     fields:
       - name: command
-        required: 1
+        default: status
+        die: 1
         validation:
           set:
            - status

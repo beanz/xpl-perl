@@ -5,8 +5,8 @@ types:
   xpl-cmnd:
     fields:
       - name: command
+        default: set
         die: 1
-        required: 1
         validation:
           type: Set
           set:

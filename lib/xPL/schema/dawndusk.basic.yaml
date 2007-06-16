@@ -5,8 +5,8 @@ types:
   xpl-trig:
     fields:
       - name: type
+        default: dawndusk
         die: 1
-        required: 1
         validation: 
           type: Set
           set:
@@ -26,8 +26,8 @@ types:
   xpl-stat:
     fields:
       - name: type
+        default: daynight
         die: 1
-        required: 1
         validation: 
           type: Set
           set:
