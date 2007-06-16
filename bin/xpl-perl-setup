@@ -67,12 +67,15 @@ if [ -z "$XPL_OWFS" ]; then
     XPL_OWFS=/ow
 fi
 
-if [ "`id -u`" == "0" ]; then
-    echo $0: must be run as root
+if [ "`id -u`" != "0" ]; then
+    echo $0: must be run as root 2>&1
+    exit 1
 fi
 
 if test \! -e /var/www ; then
-    echo xpl-rdd requires a web server - perhaps "apt-get install lighttpd"
+    echo xpl-rdd-graphs requires a web server.
+    echo perhaps "apt-get install lighttpd"
+    exit 1
 fi
 
 if test \! -e $SVDIR ; then
