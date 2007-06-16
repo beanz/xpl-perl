@@ -228,6 +228,7 @@ For details of the protocol see:
 sub process_32bit {
   my $self = shift;
   my $message = shift;
+  return [] if ($self->is_duplicate(32, $message));
   my @bytes = unpack 'C*', $message;
 
   foreach my $parser ($self->parsers()) {
