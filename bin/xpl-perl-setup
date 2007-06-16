@@ -83,10 +83,11 @@ if test \! -e $SVDIR ; then
     if test \! -e $SVDIR ; then
         SVDIR=/var/lib/svscan
         if test \! -e $SVDIR ; then
-        echo $0: requires a runit/daemontools service directory
-        echo perhaps you need to install either runit or daemontools
-        echo "See the usage (\"$0 -h\") for more details."
-        exit
+            echo $0: requires a runit/daemontools service directory
+            echo perhaps you need to install either runit or daemontools
+            echo "See the usage (\"$0 -h\") for more details."
+            exit
+        fi
     fi
 fi
 
