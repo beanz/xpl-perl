@@ -30,7 +30,7 @@ This script will attempt to set up a group 'xplperl' and two users
 'xplperl' and 'xplperllog'.  Then script will try to install:
 
   xpl-hub - an xPL Hub is always required and it will be configured if
-    there is not already a program listening on udp port 3865.
+    there is not already a program listening on UDP port 3865.
 
   xpl-rrd - a client to store sensor data in /var/lib/rrd
 
@@ -54,6 +54,8 @@ This script will attempt to set up a group 'xplperl' and two users
 
   xpl-w800 - if the environment variable XPL_W800_TTY is defined with
     the name of the tty device that an W800 receiver is attached to.
+
+  xpl-hddtemp - if the hddtemp daemon is listening on TCP port 7635
 
 EOF
     exit 1
@@ -284,5 +286,14 @@ if test -n "$XPL_W800_TTY" ;then
     link_service xpl-w800
 else
     echo XPL_W800_TTY not defined, not configuring xpl-w800
+fi
+echo
+
+if netstat -na |grep -q '^tcp.*:7634.*LISTEN' ;then
+    echo hddtemp daemon running, configuring xpl-hddtemp
+    make_service xpl-hddtemp "/usr/bin/xpl-hddtemp -v"
+    link_service xpl-hddtemp
+else
+    echo hddtemp daemon not running, not configuring xpl-hddtemp
 fi
 echo
