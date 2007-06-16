@@ -4,7 +4,7 @@
 
 =head1 NAME
 
-xpl-packet-trace - Perl script for decoding xPL messages from tcp packets
+xpl-packet-trace - Perl script for decoding xPL messages from IP packets
 
 =head1 SYNOPSIS
 
@@ -20,9 +20,9 @@ xpl-packet-trace - Perl script for decoding xPL messages from tcp packets
 
 =head1 DESCRIPTION
 
-This script is an xPL client that records xPL message in a GUI.  It is
-really just a toy for debugging at the moment, not a serious
-application.
+This script is an xPL message decoder for IP packets.  Packets can be
+decoded live by sniffing traffic on a network interface or they can be
+batched processed by reading them from a tcpdump file.
 
 =cut
 
@@ -133,7 +133,7 @@ sub packet {
 
 =head1 SEE ALSO
 
-xPL::Client(3), xPL::Listener(3), Net::Pcap(3), tcpdump(8)
+xPL::Message(3), Net::Pcap(3), tcpdump(8)
 
 Project website: http://www.xpl-perl.org.uk/
 
