@@ -4,7 +4,7 @@ package xPL::Gtk2Client;
 
 =head1 NAME
 
-xPL::Client - Perl extension for a graphical xPL Client
+xPL::Gtk2Client - Perl extension for a graphical xPL Client
 
 =head1 SYNOPSIS
 
