@@ -447,6 +447,7 @@ to the common components of the summary.
 
 sub summary {
   my $self = shift;
+  $self->_parse_head() if ($self->{_head_content});
   my $str =
     sprintf
       '%s/%s.%s: %s -> %s',
@@ -454,6 +455,7 @@ sub summary {
       $self->{_class}, $self->{_class_type},
       $self->{_source}, $self->{_target};
   my $spec = $self->spec();
+  $self->_parse_body() if ($self->{_body_content});
   if ($spec->{summary}) {
     $str .= $SPACE_DASH_SPACE;
     foreach my $field (@{$spec->{summary}}) {

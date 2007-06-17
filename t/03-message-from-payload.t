@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 use_ok('xPL::Message');
 
@@ -61,6 +61,8 @@ a=value-a
 }
 ';
 $payload = $payload_pre.$payload_body;
+is($msg->summary, 'xpl-stat/fred.schema: vendor-device-instance -> *',
+   'new_from_payload decoding');
 is($msg->string, $payload,
    'new_from_payload with duplicate field - content out');
 
