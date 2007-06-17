@@ -28,7 +28,7 @@ libxpl-perl (0.05-1) unstable; urgency=low
     sendmsg.basic, x10.security
   * Lots of performance improvements to the code used for xPL messages.
 
- -- Mark Hindess <debian@beanz.uklinux.net>  Fri, 15 Jun 2007 21:00:03 +0100
+ -- Mark Hindess <debian@beanz.uklinux.net>  Sun, 17 Jun 2007 21:33:22 +0100
 
 libxpl-perl (0.04-2) unstable; urgency=low
 
