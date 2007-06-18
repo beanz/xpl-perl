@@ -3,7 +3,7 @@
 # Copyright (C) 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 24;
+use Test::More tests => 26;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::RF');
@@ -48,6 +48,10 @@ ok($res, 'recognizes valid message');
 is($res->[0]->summary,
    q{xpl-trig/x10.basic: bnz-rfxcom.localhost -> * - off a11},
    'returns correct messages - 1');
+
+$res = $rf->process_32bit(pack 'H*','649b28d7');
+ok($res, 'recognizes valid message - duplicate');
+is(scalar @{$res}, 0, 'returns no messages - duplicate');
 
 $res =
   $rf->process_32bit(pack 'H*','00f00003');
