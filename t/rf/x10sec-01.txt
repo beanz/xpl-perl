@@ -12,8 +12,8 @@ target=*
 }
 security.zone
 {
-zone=x10sec7f
 event=alert
+zone=x10sec7f
 state=false
 }
 xpl-trig
