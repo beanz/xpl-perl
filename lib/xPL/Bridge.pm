@@ -212,7 +212,7 @@ sub bridge {
   return 1 if ($self->seen_local($msg_str));
 
   foreach my $peer ($self->peers) {
-    print $peer pack_message($msg_str);
+    $peer->print(pack_message($msg_str));
   }
 
   return 1;
