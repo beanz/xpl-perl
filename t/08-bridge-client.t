@@ -79,7 +79,7 @@ $ss->close;
 
 is(test_error(sub {
      $bridge = xPL::Bridge->new(ip => "127.0.0.1",
-                                broadcast => "127.255.255.255",
+                                broadcast => "127.0.0.1",
                                 vendor_id => 'acme',
                                 device_id => 'bridge',
                                 bridge_port => 19_999,

@@ -11,4 +11,5 @@ lo        Link encap:Local Loopback
 
 dummy     Link encap:Ethernet  HWaddr 00:00:00:00:00:00  
           UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+
 EOF

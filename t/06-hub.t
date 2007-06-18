@@ -16,7 +16,7 @@ my $hub = xPL::Hub->new(interface => 'lo', port => 0);
 my @methods =
   (
    [ 'ip', "127.0.0.1", ],
-   [ 'broadcast', "127.255.255.255", ],
+   [ 'broadcast', "127.0.0.1", ],
    [ 'port', '0', ],
   );
 foreach my $rec (@methods) {
@@ -379,6 +379,7 @@ is(test_error(sub {
 SKIP: {
   my $uname = (uname)[1];
   skip "uname isn't usable", 2 unless ($uname);
+  $uname =~ s/\..*$//; # strip domain name
   delete $ENV{XPL_HOSTNAME};
   my $xpl = xPL::Client->new(vendor_id => 'acme',
                              device_id => 'dingus',

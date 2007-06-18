@@ -1,6 +1,7 @@
 #!/bin/sh
 # Copyright (C) 2005 by Mark Hindess
 /bin/cat <<EOF
+          inet addr:192.168.99.13  Bcast:192.168.99.255  Mask:255.255.255.0
 eth0      Link encap:Ethernet  HWaddr 00:0D:60:77:63:5B  
           inet addr:192.168.3.13  Bcast:192.168.3.255  Mask:255.255.255.0
           UP BROADCAST RUNNING MULTICAST  MTU:1300  Metric:1
@@ -21,6 +22,14 @@ lo        Link encap:Local Loopback
 vmnet8    Link encap:Ethernet  HWaddr 00:50:56:C0:00:08  
           inet addr:192.168.165.1  Bcast:192.168.165.255  Mask:255.255.255.0
           UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:0 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000 
+          RX bytes:0 (0.0 b)  TX bytes:0 (0.0 b)
+
+ppp0      Link encap:Point-to-Point Protocol
+          inet addr:192.168.99.1 P-t-P:192.168.99.2 Mask:255.255.255.255
+          UP POINTOPOINT RUNNING NOARP MULTICAST MTU:1500 Metric:1
           RX packets:0 errors:0 dropped:0 overruns:0 frame:0
           TX packets:0 errors:0 dropped:0 overruns:0 carrier:0
           collisions:0 txqueuelen:1000 

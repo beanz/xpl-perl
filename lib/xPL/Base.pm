@@ -327,7 +327,7 @@ sub default_interface_info {
   my $self = shift;
   my $res = $self->interfaces();
   foreach my $if (@$res) {
-    next if ($if->{device} eq 'lo');
+    next if ($if->{device} eq 'lo' or $if->{device} eq 'lo0');
     return $if;
   }
   return;
@@ -388,6 +388,8 @@ sub interface_info {
   my $res = $self->interfaces();
   foreach my $if (@$res) {
     return $if if ($if->{device} eq $ifname);
+    # hack for portability on macosx
+    return $if if ($ifname eq 'lo' && $if->{device} eq 'lo0');
   }
   return;
 }
@@ -439,7 +441,7 @@ sub interfaces_ip {
         {
          device => $if,
          ip => $1,
-         broadcast => broadcast_from_class($1,$2),
+         broadcast => $1,
          src => 'ip',
         };
     }
@@ -462,35 +464,30 @@ sub interfaces_ifconfig {
   my $command = $self->find_in_path('ifconfig') or return;
   my @res;
   my $fh = FileHandle->new($command.' -a|');
-  {
-    local $INPUT_RECORD_SEPARATOR = "\n\n";
-    while (<$fh>) {
-      if (/^([a-zA-Z0-9:]+) .*
-           inet\s+addr:(\d+\.\d+\.\d+\.\d+)\s+
-           bcast:(\d+\.\d+\.\d+\.\d+)/six) {
-        push @res,
-          {
-           device => $1,
-           ip => $2,
-           broadcast => $3,
-           src => 'ifconfig',
-          };
-      } elsif (/^(lo[a-zA-Z0-9:]*) .*
-           inet\s+addr:(\d+\.\d+\.\d+\.\d+)\s+
-           mask:(\d+\.\d+\.\d+\.\d+)/six) {
-        # special case to cope with loopback even though it isn't
-        # strictly a broadcast interface
-        push @res,
-          {
-           device => $1,
-           ip => $2,
-           broadcast => broadcast_from_mask($2,$3),
-           src => 'ifconfig'
-          };
+  my $rec;
+  while (<$fh>) {
+    if (/^([a-zA-Z0-9:]+):\s+flags/ or /^([a-zA-Z0-9:]+)\s*Link/) {
+      push @res, $rec if ($rec && $rec->{ip} && $rec->{broadcast});
+      $rec = { device => $1, src => 'ifconfig', };
+    }
+    if ($rec && /mask:(\d+\.\d+\.\d+\.\d+)\s+/i) {
+      $rec->{mask} = $1;
+    }
+    if ($rec && /netmask 0x([A-Fa-f0-9]{8})/) {
+      $rec->{mask} = join ".", unpack "C*", pack "H*", $1;
+    }
+    if ($rec && /inet\s*(?:addr:)?(\d+\.\d+\.\d+\.\d+)\s+/) {
+      $rec->{ip} = $1;
+      if ($rec->{device} =~ /^lo0?$/) {
+        # special case for loopback which isn't strictly broadcast
+        $rec->{broadcast} = $rec->{ip};
       }
     }
-    $fh->close;
+    if ($rec && /(?:broadcast|bcast:)\s*(\d+\.\d+\.\d+\.\d+)\s+/i) {
+      $rec->{broadcast} = $1;
+    }
   }
+  push @res, $rec if ($rec && $rec->{ip} && $rec->{broadcast});
   return \@res;
 }
 

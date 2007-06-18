@@ -5,7 +5,7 @@
 use strict;
 use English qw/-no_match_vars/;
 use xPL::Base;
-use Test::More tests => 49;
+use Test::More tests => 71;
 use t::Helpers qw/test_error/;
 $| = 0;
 
@@ -47,15 +47,65 @@ foreach my $path (qw{t/interfaces/ifconfig.linux
 
   is($test->interface_ip('lo'), '127.0.0.1',
      "interface ip lo - $path");
-  is($test->interface_broadcast('lo'), '127.255.255.255',
+  is($test->interface_broadcast('lo'), '127.0.0.1',
      "interface broadcast lo - $path");
 }
 
-# finally test the higher level methods with one of the paths
-$ENV{PATH} = 't/interfaces/ifconfig.linux';
+foreach my $path (qw{t/interfaces/ifconfig.macosx}) {
+  $ENV{PATH} = $path;
+  my $test = xPL::Test->new();
+  ok($test, "test object - $path");
+  my $src = -f $path.'/ifconfig' ? 'ifconfig' : 'ip';
+  my $list = $test->interfaces();
+  ok($list, "interfaces - $path");
+  is(@$list, 2, "interfaces length - $path");
+  is($list->[0]->{device}, 'lo0', "interfaces device - $path");
+  is($list->[0]->{src}, $src, "interfaces src - $path");
+  is($list->[0]->{ip}, '127.0.0.1', "interfaces ip - $path");
+  is($list->[0]->{broadcast}, '127.0.0.1',"interfaces broadcast - $path");
+
+  # hack the cache because we didn't use the API properly
+  $test->{_interfaces} = $list;
+
+  is($test->interface_ip('en0'), '192.168.3.13',
+     "interface ip en0 - $path");
+  is($test->interface_broadcast('en0'), '192.168.3.255',
+     "interface broadcast en0 - $path");
+
+  is($test->interface_ip('lo0'), '127.0.0.1',
+     "interface ip lo0 - $path");
+  is($test->interface_broadcast('lo0'), '127.0.0.1',
+     "interface broadcast lo0 - $path");
+
+  is($test->interface_ip('lo'), '127.0.0.1',
+     "interface ip lo - $path");
+  is($test->interface_broadcast('lo'), '127.0.0.1',
+     "interface broadcast lo - $path");
+}
+
+
+$ENV{PATH} = 't/interfaces/ifconfig.empty';
 my $test = xPL::Test->new();
 ok($test, "test object - main");
+my $list = $test->interfaces();
+ok($list, "interfaces - empty");
+is(@$list, 0, "interfaces length - empty");
+
+$ENV{PATH} = 't/interfaces/ifconfig.macosx';
+$test = xPL::Test->new();
+ok($test, "test object - main");
 my $info = $test->default_interface_info();
+ok($info, "default interface");
+is($info->{device}, 'en0', 'default interface device');
+is($info->{src}, 'ifconfig', 'default interface src');
+is($info->{ip}, '192.168.3.13', 'default interface ip');
+is($info->{broadcast}, '192.168.3.255', 'default interface broadcast');
+
+# finally test the higher level methods with one of the paths
+$ENV{PATH} = 't/interfaces/ifconfig.linux';
+$test = xPL::Test->new();
+ok($test, "test object - main");
+$info = $test->default_interface_info();
 ok($info, "default interface");
 is($info->{device}, 'eth0', 'default interface device');
 is($info->{src}, 'ifconfig', 'default interface src');
@@ -87,7 +137,7 @@ is(xPL::Base::broadcast_from_class('10.0.0.1', '30'), '10.0.0.3',
 # let's fake the interfaces list and test the failure case
 $test->{_interfaces} =
   [
-   { device => 'lo', ip => '127.0.0.1', broadcast => '127.255.255.255',
+   { device => 'lo', ip => '127.0.0.1', broadcast => '127.0.0.1',
      src => 'manual hack' },
   ];
 
@@ -100,7 +150,7 @@ $ENV{PATH} = $path;
 my $xpl = xPL::Listener->new();
 ok($xpl, "xPL object - $path");
 is($xpl->ip, '127.0.0.1', "xPL ip - $path");
-is($xpl->broadcast, '127.255.255.255', "xPL broadcast - $path");
+is($xpl->broadcast, '127.0.0.1', "xPL broadcast - $path");
 
 $path = 't/interfaces/failure.case';
 $ENV{PATH} = $path;
@@ -108,7 +158,7 @@ is(test_error(sub { $xpl = xPL::Listener->new() }),
    'xPL::Listener->new: Unable to determine broadcast address.
 An interface or broadcast address should be specified.',
    'xPL broadcast failure');
-is(test_error(sub { $xpl = xPL::Listener->new(broadcast=>"127.255.255.255") }),
+is(test_error(sub { $xpl = xPL::Listener->new(broadcast=>"127.0.0.1") }),
    'xPL::Listener->new: Unable to determine ip address.
 An interface or ip address should be specified.',
    'xPL ip failure');

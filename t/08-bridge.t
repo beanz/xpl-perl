@@ -33,7 +33,7 @@ my $warn;
 $SIG{__WARN__} = sub { $warn .= $_[0]; };
 
 my $bridge = xPL::Bridge->new(ip => "127.0.0.1",
-                              broadcast => "127.255.255.255",
+                              broadcast => "127.0.0.1",
                               vendor_id => 'acme',
                               device_id => 'bridge',
                               bridge_port => 19_999);
@@ -183,7 +183,7 @@ ok(!$bridge->seen_cache_remove("non-existent-entry"),
 
 is(test_error(sub {
      my $bridge = xPL::Bridge->new(ip => "127.0.0.1",
-                                   broadcast => "127.255.255.255",
+                                   broadcast => "127.0.0.1",
                                    vendor_id => 'acme',
                                    device_id => 'bridge',
                                    timeout => 1,
@@ -193,7 +193,7 @@ is(test_error(sub {
      'bind to listen socket failed: Address already in use',
    'bind failure');
 
-$bridge = $bridge->new(ip => "127.0.0.1", broadcast => "127.255.255.255",
+$bridge = $bridge->new(ip => "127.0.0.1", broadcast => "127.0.0.1",
                        vendor_id => 'acme', device_id => 'bridge',
                        local_ip => '127.0.0.1', timeout => 1);
 is($bridge->timeout, 1, 'check timeout parameter');

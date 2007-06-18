@@ -21,14 +21,14 @@ use_ok("xPL::Listener");
 }
 
 my $xpl = MY::Listener->new(ip => "127.0.0.1",
-                            broadcast => "127.255.255.255",
+                            broadcast => "127.0.0.1",
                             verbose => 1,
                            );
 
 my @methods =
   (
    [ 'ip', "127.0.0.1", ],
-   [ 'broadcast', "127.255.255.255", ],
+   [ 'broadcast', "127.0.0.1", ],
    [ 'port', 0, ],
   );
 foreach my $rec (@methods) {
@@ -358,7 +358,7 @@ is(test_error(sub {
     my $xpl = xPL::Listener->new(vendor_id => 'acme',
                                  device_id => 'dingus',
                                  ip => "not-ip",
-                                 broadcast => "127.255.255.255",
+                                 broadcast => "127.0.0.1",
                                 );
   }),
    "xPL::Listener->new: ip invalid",
@@ -369,7 +369,7 @@ is(test_error(sub {
                                  device_id => 'dingus',
                                  port => "not-port",
                                  ip => "127.0.0.1",
-                                 broadcast => "127.255.255.255",
+                                 broadcast => "127.0.0.1",
                                 );
   }),
    "xPL::Listener->new: port invalid",
@@ -441,7 +441,7 @@ is(test_error(sub {
      my $test = xPL::Test->new(vendor_id => 'acme',
                                device_id => 'dingus',
                                ip => "127.0.0.1",
-                               broadcast => "127.255.255.255");
+                               broadcast => "127.0.0.1");
   }),
    "xPL::Test->create_listen_socket: ".
      "Failed to bind listen socket: Address already in use",
@@ -472,10 +472,15 @@ SKIP: {
 #in order to support crontab-like timer syntax",
 #   "graceful crontab-like behaviour failure");
 
-$xpl = $xpl->new(ip => "127.0.0.2",
-                 broadcast => "127.255.255.255",
-                );
-ok($xpl, 'constructor from blessed reference - not recommended');
+SKIP: {
+  skip "Loopback doesn't support binding to 127.0.0.2 address", 1
+    if ($^O eq 'darwin');
+
+  $xpl = $xpl->new(ip => "127.0.0.2",
+                   broadcast => "127.0.0.1",
+                  );
+  ok($xpl, 'constructor from blessed reference - not recommended');
+}
 
 # mostly for coverage, these aren't used (yet)
 like(test_warn(sub { xPL::Listener->ouch('ouch') }),
