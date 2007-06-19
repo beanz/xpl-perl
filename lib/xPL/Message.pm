@@ -387,7 +387,7 @@ sub parse_body_parameters {
     $self->process_field_record($body, $field_rec);
   }
   $self->{_extra_order} = [];
-  foreach ($body_order ? @{$body_order} : keys %{$body}) {
+  foreach ($body_order ? @{$body_order} : sort keys %{$body}) {
     next unless (exists $body->{$_});
     $self->extra_field($_, $body->{$_});
   }
