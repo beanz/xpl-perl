@@ -71,6 +71,7 @@ my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'rfxcom', callback => \&xpl_in);
 
+my $last_read = 0;
 my $buf = q{};
 my $rf = xPL::RF->new(source => $xpl->id) or
   die "Failed to create RF decode object\n";
@@ -126,7 +127,14 @@ responsible for sending out the sensor.basic xpl-trig messages.
 =cut
 
 sub rfxcom_reader {
+  if ($last_read < Time::HiRes::time - 0.03) {
+    # discard (incomplete) data in the buffer if last read was more than
+    # 30ms ago - in line with Bert's comments on xPL list
+    print "Discarding: ", hex_dump($buf), "\n";
+    $buf = q{};
+  }
   my $bytes = $fh->sysread($buf, 512, length($buf));
+  $last_read = Time::HiRes::time;
 
   my $res = $rf->process_variable_length($buf);
   if (defined $res) {
