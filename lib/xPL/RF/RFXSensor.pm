@@ -92,6 +92,9 @@ sub parse {
     if ($type == 0) {
       # temp
       my $temp = $bytes->[2] + (($bytes->[3]&0xe0)/0x100);
+      if ($temp > 150) {
+        $temp = -1*(256-$temp);
+      }
       $cache->{$base}->{temp} = $temp;
       return [xPL::Message->new(
                                 message_type => 'xpl-trig',
