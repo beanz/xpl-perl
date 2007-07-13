@@ -113,39 +113,24 @@ __PACKAGE__->set_sql(x10_history => q{
 
 xPL::SQL::Msg->columns(TEMP => @temp);
 
-__PACKAGE__->set_sql(last_24hours_average_sensor_readings =>
+foreach ([ average => 'AVG' ], [ minimum => 'MIN' ], [ maximum => 'MAX' ]) {
+  my ($name, $func) = @$_;
+
+  __PACKAGE__->set_sql('last_24hours_'.$name.'_sensor_readings' =>
 q{
   SELECT HOUR(FROM_UNIXTIME(msg.time)) as time,
-         AVG(SUBSTRING(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)) FROM 1 FOR -1+POSITION("\n" IN CONCAT(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)),"\n")))) AS value
+         }.$func.q{(SUBSTRING(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)) FROM 1 FOR -1+POSITION("\n" IN CONCAT(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)),"\n")))) AS value
   FROM msg,body WHERE msg.class = 'sensor.basic' AND msg.type = 'xpl-trig' AND
        msg.body = body.id AND
        msg.time > ? AND
        body.body LIKE CONCAT('%%device=',?,'\ntype=',?,'\n%%')
   GROUP BY HOUR(FROM_UNIXTIME(msg.time)) ORDER BY msg.time
 });
-__PACKAGE__->set_sql(last_24hours_maximum_sensor_readings =>
-q{
-  SELECT HOUR(FROM_UNIXTIME(msg.time)) as time,
-         MAX(SUBSTRING(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)) FROM 1 FOR -1+POSITION("\n" IN CONCAT(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)),"\n")))) AS value
-  FROM msg,body WHERE msg.class = 'sensor.basic' AND msg.type = 'xpl-trig' AND
-       msg.body = body.id AND
-       msg.time > ? AND
-       body.body LIKE CONCAT('%%device=',?,'\ntype=',?,'\n%%')
-  GROUP BY HOUR(FROM_UNIXTIME(msg.time)) ORDER BY msg.time
-});
-__PACKAGE__->set_sql(last_24hours_minimum_sensor_readings =>
-q{
-  SELECT HOUR(FROM_UNIXTIME(msg.time)) as time,
-         MIN(SUBSTRING(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)) FROM 1 FOR -1+POSITION("\n" IN CONCAT(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)),"\n")))) AS value
-  FROM msg,body WHERE msg.class = 'sensor.basic' AND msg.type = 'xpl-trig' AND
-       msg.body = body.id AND
-       msg.time > ? AND
-       body.body LIKE CONCAT('%%device=',?,'\ntype=',?,'\n%%')
-  GROUP BY HOUR(FROM_UNIXTIME(msg.time)) ORDER BY msg.time
-});
+}
+
 __PACKAGE__->set_sql(last_24hours_sensor_readings =>
 q{
-  SELECT msg.time as time, body.body,
+  SELECT msg.time as time,
          SUBSTRING(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)) FROM 1 FOR -1+POSITION("\n" IN CONCAT(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)),"\n"))) AS value
   FROM msg,body WHERE msg.class = 'sensor.basic' AND msg.type = 'xpl-trig' AND
        msg.body = body.id AND
