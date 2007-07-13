@@ -108,6 +108,11 @@ sub read_hddtemp {
     my $device = $1;
     my $temp = $3;
     my $unit = $4;
+
+    # sometimes temp isn't numeric - value is 'SPL'
+    # avoid reporting these
+    next if ($temp =~ /[^\d\.]/);
+
     $device =~ s!/dev/!!;
     $device = $xpl->instance_id."-".$device;
     my $old = $state->{$device};
