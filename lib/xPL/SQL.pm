@@ -53,6 +53,7 @@ use warnings;
 use Class::DBI::Loader;
 use FileHandle;
 use Date::Parse qw/str2time/;
+use DateTime;
 use xPL::Message;
 use Exporter;
 
@@ -113,22 +114,24 @@ __PACKAGE__->set_sql(x10_history => q{
 
 xPL::SQL::Msg->columns(TEMP => @temp);
 
-foreach ([ average => 'AVG' ], [ minimum => 'MIN' ], [ maximum => 'MAX' ]) {
-  my ($name, $func) = @$_;
+foreach my $span (qw/hour day week month year/) {
+  my $sql_span = uc($span);
+  foreach ([ average => 'AVG' ], [ minimum => 'MIN' ], [ maximum => 'MAX' ]) {
+    my ($name, $func) = @$_;
 
-  __PACKAGE__->set_sql('last_24hours_'.$name.'_sensor_readings' =>
+    __PACKAGE__->set_sql('last_'.$span.'s_'.$name.'_sensor_readings' =>
 q{
-  SELECT HOUR(FROM_UNIXTIME(msg.time)) as time,
+  SELECT }.$sql_span.q{(FROM_UNIXTIME(msg.time)) as time,
          }.$func.q{(SUBSTRING(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)) FROM 1 FOR -1+POSITION("\n" IN CONCAT(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)),"\n")))) AS value
   FROM msg,body WHERE msg.class = 'sensor.basic' AND msg.type = 'xpl-trig' AND
        msg.body = body.id AND
        msg.time > ? AND
        body.body LIKE CONCAT('%%device=',?,'\ntype=',?,'\n%%')
-  GROUP BY HOUR(FROM_UNIXTIME(msg.time)) ORDER BY msg.time
+  GROUP BY }.$sql_span.q{(FROM_UNIXTIME(msg.time)) ORDER BY msg.time
 });
+  }
 }
-
-__PACKAGE__->set_sql(last_24hours_sensor_readings =>
+__PACKAGE__->set_sql(last_sensor_readings =>
 q{
   SELECT msg.time as time,
          SUBSTRING(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)) FROM 1 FOR -1+POSITION("\n" IN CONCAT(SUBSTRING(body.body FROM 8+POSITION('current=' IN body.body)),"\n"))) AS value
@@ -138,20 +141,64 @@ q{
        body.body LIKE CONCAT('%%device=',?,'\ntype=',?,'\n%%')
   ORDER BY msg.time
 });
+
+=head2 C<last_sensor_readings( %parameter_hash )>
+
+This method returns an array reference containing time and value pairs for
+sensor readings.  The arguments should be a parameter hash.  Valid keys
+are:
+
+=over 4
+
+=item device
+
+It is a string passed to SQL to match with 'LIKE' against the name of
+the device.  Typically this will be the name of a single device but it
+could be a less specific string.  For example, '28.____________' would
+match all DS18B20 temperature sensors.  This item is required.
+
+=item type
+
+This is the C<sensor.basic> type element.  For example, 'temp',
+'humidity', etc.  This item is required.
+
+=item function
+
+This is the function to use to agregate multiple data values.  It
+should be either 'average', 'minimum', or 'maximum'.  This item is
+optional.  The default is 'average'.
+
+=item period
+
+This is the time period that the data should be agregated over.  It
+should be either 'hours', 'days', 'weeks', 'months', or 'years'.  This
+item is optional.  The default is 'hours'.
+
+=item number
+
+This is the number of time periods to go back in time.  This item is
+optional.  The default is '24'.
+
+=back
+
+=cut
+
 sub last_sensor_readings {
   my $self = shift;
-  my $device = shift;
-  my $type = shift;
-  my $function = shift || "average";
-  my $span = shift || "24hours";
-  my $t = time-86400;
-  my ($sec,$min) = localtime($t);
-  $t += 3600-($sec+$min*60); # round up to nearest hour
+  my %p = @_;
+  my $device = $p{device};
+  my $type = $p{type};
+  my $function = $p{function} || "average";
+  my $span = $p{period} || "hours";
+  my $num = $p{number} || 24;
+  my $dt = DateTime->now;
+  $dt->truncate(to => substr($span, 0, -1)); # remove the 's' from hours, etc
+  $dt->add($span => 1-$num);
   my $method =
-    $function eq 'all' ? 'sql_last_'.$span.'_sensor_readings' :
+    $function eq 'all' ? 'sql_last_sensor_readings' :
       'sql_last_'.$span.'_'.$function.'_sensor_readings';
   my $sth = $self->$method();
-  $sth->execute($t, $device, $type);
+  $sth->execute($dt->epoch, $device, $type);
   return $sth->fetchall_arrayref;
 }
 
