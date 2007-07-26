@@ -1,0 +1,153 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-rfxcom 323 2007-07-26 19:49:40Z beanz $
+
+=head1 NAME
+
+xpl-tty-tcp - Perl script to make a tty serial port available as TCP socket
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-tty-tcp -h
+
+  # start the tty to TCP script reading the device /dev/ttyUSB4 and
+  # listening on 192.168.0.10 port 10001
+  xpl-tty-tcp -v -i 192.168.0.10 /dev/ttyUSB4
+
+  # supposing /dev/ttyUSB4 had an rfxcom receiver attached to it, then
+  # it might make sense to then run:
+  xpl-rfxcom -v 192.168.0.10:10001
+
+=head1 DESCRIPTION
+
+Surprisingly, this is B<not> an xPL client.  This script is a utility
+to make a serial port available to (multiple) clients over a TCP
+socket.  It is primarily intended to help me test the xpl-rfxcom TCP
+socket code but it might be useful for other clients too.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Std;
+use IO::Select;
+use IO::Socket::INET;
+use Socket;
+
+$|=1; # autoflush to help with debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] <device>
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -B baud - the baud rate (4800)
+  -i ip   - the IP address to listen on (0.0.0.0)
+  -p port - the port to listen on (10001)
+$msg
+};
+}
+my %opt = ();
+getopts('hvi:p:B:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $dev = shift or die HELP_MESSAGE('The device parameter is required');
+my $baud = exists $opt{'B'} ? $opt{'B'} : 4800;
+my $verbose = exists $opt{'v'};
+
+my $ip = exists $opt{'i'} ? $opt{'i'} : '0.0.0.0';
+my $port = exists $opt{'p'} ? $opt{'p'} : 10001;
+
+system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+  die "Setting serial port with stty failed: $!\n";
+my $fh = FileHandle->new;
+sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+  or die "Cannot open serial connection on device '$dev'\n";
+$fh->autoflush(1);
+binmode($fh);
+
+my %client;
+my $read_sel = IO::Select->new();
+my $write_sel = IO::Select->new();
+my $listen = IO::Socket::INET->new(LocalHost => $ip,
+                                   LocalPort => $port,
+                                   Listen => 10,
+                                   Proto => 'tcp',
+                                   ReuseAddr => 1)
+  or die "Failed to bind to $ip tcp port $port: $!\n";
+
+$read_sel->add($fh);
+$read_sel->add($listen);
+
+while (1) {
+  scalar $read_sel->handles()
+    or die "Aborting all file handles are closed; nothing to do\n";
+  my @ready = $read_sel->can_read();
+  foreach my $h (@ready) {
+    if ($h eq $listen) {
+      my $new = $listen->accept();
+      my $name = inet_ntoa($new->peeraddr).':'.$new->peerport;
+      $client{$new} =
+        {
+         fh => $new,
+         name => $name,
+        };
+      $read_sel->add($new);
+      $write_sel->add($new);
+      print STDERR "Added new client $name\n";
+    } elsif ($h eq $fh) {
+      my $buf = '';
+      my $bytes = $fh->sysread($buf,2048);
+      $bytes or die "Failed to read from device\n";
+      print STDERR "Read: ", (unpack "H*", $buf), "\n";
+      foreach my $c ($write_sel->can_write(0)) {
+        $c->syswrite($buf, $bytes);
+      }
+    } elsif (exists $client{$h}) {
+      my $name = $client{$h}->{name};
+      my $buf = '';
+      my $bytes = $h->sysread($buf,2048);
+      unless ($bytes) {
+        $read_sel->remove($h);
+        $write_sel->remove($h);
+        $h->close();
+        delete $client{$h};
+        print STDERR "Removed client $name\n";
+        next;
+      }
+      print STDERR "Received: ", (unpack "H*", $buf), "\n";
+      $fh->syswrite($buf, $bytes);
+    } else {
+      print STDERR "Unknown handle: $h\n";
+      $read_sel->remove($h);
+      $write_sel->remove($h);
+    }
+  }
+}
+
+=head1 SEE ALSO
+
+xpl-rfxcom(1)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2007 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
