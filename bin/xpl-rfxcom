@@ -25,6 +25,7 @@ use warnings;
 use English qw/-no_match_vars/;
 use FileHandle;
 use Getopt::Std;
+use IO::Socket::INET;
 use Time::HiRes;
 use xPL::Client;
 use xPL::RF qw/:all/;
@@ -76,14 +77,22 @@ my $buf = q{};
 my $rf = xPL::RF->new(source => $xpl->id) or
   die "Failed to create RF decode object\n";
 
-# TODO: use Device::SerialPort?
-system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
-  die "Setting serial port with stty failed: $!\n";
-my $fh = FileHandle->new;
-sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
-  or die "Cannot open serial connection on device '$dev'\n";
-$fh->autoflush(1);
-binmode($fh);
+my $fh;
+if ($dev =~ /\//) {
+  # TODO: use Device::SerialPort?
+  system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+    die "Setting serial port with stty failed: $!\n";
+  $fh = FileHandle->new;
+  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+    or die "Cannot open serial connection on device '$dev'\n";
+  $fh->autoflush(1);
+  binmode($fh);
+} else {
+  $dev .= ':10001' unless ($dev =~ /:/);
+  $fh = IO::Socket::INET->new($dev)
+    or die "Cannot TCP connection to device at '$dev'\n";
+}
+
 $xpl->add_input(handle => $fh, callback => \&rfxcom_reader);
 
 my @send = ("F020", "F02A", 'F02C');
