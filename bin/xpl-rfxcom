@@ -136,13 +136,17 @@ responsible for sending out the sensor.basic xpl-trig messages.
 =cut
 
 sub rfxcom_reader {
-  if ($last_read < Time::HiRes::time - 0.03) {
+  if ($buf ne '' and $last_read < Time::HiRes::time - 0.03) {
     # discard (incomplete) data in the buffer if last read was more than
     # 30ms ago - in line with Bert's comments on xPL list
     print "Discarding: ", hex_dump($buf), "\n";
     $buf = q{};
   }
   my $bytes = $fh->sysread($buf, 512, length($buf));
+  unless ($bytes) {
+    warn "Device closed\n";
+    exit;
+  }
   $last_read = Time::HiRes::time;
 
   my $res = $rf->process_variable_length($buf);
