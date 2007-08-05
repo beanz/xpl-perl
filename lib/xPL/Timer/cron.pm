@@ -59,7 +59,7 @@ value is omitted.
 sub init {
   my $self = shift;
   my $p = shift;
-  exists $p->{tz} or $p->{tz} = 'Europe/London';
+  exists $p->{tz} or $p->{tz} = $ENV{TZ} || 'Europe/London';
   my $set = DateTime::Event::Cron->from_cron($p->{crontab});
   $set->set_time_zone($p->{tz});
   $self->{_set} = $set;
