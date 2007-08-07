@@ -181,7 +181,10 @@ sub process_variable_length {
   }
   my $res = { length => $length+1, messages => [] };
   my $msg = substr $buf, 1, $length; # message from buffer
-  return $res if ($self->is_duplicate($length_bits, $msg));
+  if ($self->is_duplicate($length_bits, $msg)) {
+    $res->{duplicate} = 1;
+    return $res;
+  }
   my @msg_bytes = unpack 'C*', $msg;
   foreach my $parser ($self->parsers()) {
     my $messages = $parser->parse($self, $msg, \@msg_bytes, $length_bits);

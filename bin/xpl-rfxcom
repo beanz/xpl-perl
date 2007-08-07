@@ -153,7 +153,8 @@ sub rfxcom_reader {
   if (defined $res) {
     # truncate buffer by given length
     my $m = substr($buf, 0, $res->{length}, '') if ($res->{length});
-    print "Processed: ", unpack("H*", $m), "\n" if ($m && $verbose);
+    print "Processed: ", unpack("H*", $m), "\n"
+      if ($verbose && $m && !$res->{duplicate});
     return 1 unless ($res->{messages} && ref($res->{messages}));
     foreach my $msg (@{$res->{messages}}) {
       print $msg->summary,"\n";
