@@ -7,6 +7,7 @@ bin/xpl-digitemp
 bin/xpl-dmx
 bin/xpl-hddtemp
 bin/xpl-hub
+bin/xpl-linux-cpu
 bin/xpl-lirc
 bin/xpl-logger
 bin/xpl-monitor
@@ -44,7 +45,7 @@ lib/xPL/Message.pm
 lib/xPL/RF/Electrisave.pm
 lib/xPL/RF/Oregon.pm
 lib/xPL/RF.pm
-lib/xPL/RF/RFXPower.pm
+lib/xPL/RF/RFXMeter.pm
 lib/xPL/RF/RFXSensor.pm
 lib/xPL/RF/X10.pm
 lib/xPL/RF/X10Security.pm
@@ -65,6 +66,7 @@ lib/xPL/schema/hbeat.request.yaml
 lib/xPL/schema/osd.basic.yaml
 lib/xPL/schema/remote.basic.yaml
 lib/xPL/schema/remote.confirm.yaml
+lib/xPL/schema/security.zone.yaml
 lib/xPL/schema/sendmsg.basic.yaml
 lib/xPL/schema/sendmsg.confirm.yaml
 lib/xPL/schema/sensor.basic.yaml
@@ -122,8 +124,10 @@ t/09-hub-ignore-remote-hbeat.t
 t/09-targetting.t
 t/10-mainloop.t
 t/Helpers.pm
+t/interfaces/ifconfig.empty/ifconfig
 t/interfaces/ifconfig.linux/ifconfig
 t/interfaces/ifconfig.loopback.only/ifconfig
+t/interfaces/ifconfig.macosx/ifconfig
 t/interfaces/ip.addr.show.linux/ip
 t/msg/000.xpl.test.txt
 t/msg/001.hbeat.basic.txt
@@ -173,10 +177,10 @@ t/rf/oregon-uv138-03-dangerous.txt
 t/rf/oregon-wtgr800-01-wind.txt
 t/rf/oregon-wtgr800-02-temphydro.txt
 t/rf/oregon-wtgr800-03-low-battery.txt
-t/rf/rfxpower-01.txt
-t/rf/rfxpower-02-parity-error.txt
-t/rf/rfxpower-03-unsupported.txt
-t/rf/rfxpower-04-invalid.txt
+t/rf/rfxmeter-01.txt
+t/rf/rfxmeter-02-parity-error.txt
+t/rf/rfxmeter-03-unsupported.txt
+t/rf/rfxmeter-04-invalid.txt
 t/rf/rfxsensor-01-humidity.txt
 t/rf/rfxsensor-02-voltage.txt
 t/rf/rfxsensor-03-humidity.txt
@@ -186,6 +190,7 @@ t/rf/rfxsensor-06-unsupported-type.txt
 t/rf/rfxsensor-07-low-battery.txt
 t/rf/rfxsensor-08-error.txt
 t/rf/rfxsensor-09-unknown-status.txt
+t/rf/rfxsensor-10-negative-temp.txt
 t/rf/x10-01-a11-on-dup.txt
 t/rf/x10-01-a11-on-no-dup.txt
 t/rf/x10-01-a11-on.txt

@@ -513,7 +513,6 @@ sub xpl_message {
       foreach my $key (keys %{$rec->{filter}}) {
         next CB unless ($msg->can($key));
         my $match = $rec->{filter}->{$key};
-        print STDERR "M: $key == $match ?\n";
         if (ref($match) eq 'CODE') {
           next CB unless (&{$match}($msg->$key()));
         } else {
