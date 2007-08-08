@@ -12,8 +12,8 @@ target=*
 }
 sensor.basic
 {
-device=rfxpower.00
+device=rfxmeter.f000
 type=energy
-current=15.36
+current=0.06
 }
 

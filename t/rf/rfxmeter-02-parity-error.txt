@@ -6,4 +6,4 @@
 
 empty
 
-RFXPower parity error 10 != 11
+RFXMeter parity error 10 != 11
