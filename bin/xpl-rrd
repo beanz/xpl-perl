@@ -164,6 +164,13 @@ sub xpl_msg {
     $state{$dev} =
       join($c, $time, 'state', $msg->command eq "on" ? 1 : 0, 1, 'GAUGE', 0, 1);
     $tie_h->sync;
+  } elsif ($msg->class eq 'sensor' && $msg->class_type eq 'basic' &&
+           $msg->type eq 'count') {
+    my $dev = $msg->device;
+    $dev =~ s/-/\//;
+    $state{$dev} =
+      join($c, $time, 'count', $msg->current, 1, 'COUNTER', 0, 2**64);
+    $tie_h->sync;
   }
   return 1;
 }
