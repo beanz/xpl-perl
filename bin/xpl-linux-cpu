@@ -1,0 +1,147 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-linux-cpu 316 2007-07-13 18:21:37Z beanz $
+
+=head1 NAME
+
+xpl-linux-cpu - Perl script for an xPL Linux CPU monitor
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-linux-cpu -h
+
+  # start the Linux CPU monitor with poll interval of 120 seconds
+  xpl-linux-cpu -s 120
+
+  # start the Linux CPU monitor listening and broadcasting on first ethernet
+  # interface in verbose mode using poll interval of 120 seconds
+  xpl-linux-cpu -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that polls the Linux CPU stats in /proc/stat
+and sends them as C<sensor.basic> messages with C<type=count>.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+use POSIX qw/strftime/;
+use xPL::Client;
+use IO::Socket;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options]
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+  -s nn  - number of seconds between polling the linux-cpu daemon (120)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvs:i:', \%opt);
+if (exists $opt{'h'}) { HELP_MESSAGE() }
+my $interval = $opt{'s'} || 120;
+my $verbose = exists $opt{'v'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "linuxcpu",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $state = {};
+my $buf = "";
+
+# Add a timer to the xPL Client event loop to generate the
+# "linux-cpu.update" messages.  The negative interval causes the timer to
+# trigger immediately rather than waiting for the first interval.
+$xpl->add_timer(id => 'poll',
+                timeout => -$interval,
+                callback => \&poll_linux_cpu);
+
+$SIG{TERM} = \&end;
+$SIG{QUIT} = \&end;
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to connect to linux-cpu
+sub poll_linux_cpu {
+  my $fh = FileHandle->new('/proc/stat');
+  unless ($fh) {
+    warn "Failed to open /proc/stat: $!\n";
+    return 1;
+  }
+  my $line = <$fh>;
+  $fh->close;
+  my $type;
+  my %d;
+  ($type,@d{qw/user nice sys idle iowait irq softirq steal/}) =
+    split /\s+/, $line;
+  unless ($type eq 'cpu') {
+    warn "Format of /proc/stat not supported: $!\n";
+    return 1;
+  }
+  foreach my $k (sort keys %d) {
+    my $val = $d{$k};
+    next unless (defined $val);
+    my $device = $xpl->instance_id."-".$k;
+    my $old = $state->{$device};
+    $state->{$device} = $old;
+    my $type;
+    if (!defined $old || $val != $old) {
+      $type = 'xpl-trig';
+      print "$device $val\n" if ($verbose);
+    } else {
+      $type = 'xpl-stat';
+    }
+    $xpl->send(message_type => $type, class => 'sensor.basic',
+               body => {
+                        device => $device,
+                        type => 'count',
+                        current => $val,
+                       });
+  }
+  return 1;
+}
+
+# send a "hbeat.end" message on exit
+sub end { defined $xpl && undef $xpl;exit; }#->send_hbeat_end(); exit; }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), proc(5)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2007 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
