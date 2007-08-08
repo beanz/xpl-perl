@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 134;
+use Test::More tests => 141;
 use t::Helpers qw/test_error test_warn/;
 use Socket;
 use Time::HiRes;
@@ -207,6 +207,23 @@ $xpl->add_xpl_callback(id => 'hbeat4',
                        arguments => ["my test"],
                        self_skip => 0);
 
+my $cb5;
+$xpl->add_xpl_callback(id => 'hbeat5',
+                       callback => sub { my %p=@_; $cb5=\%p },
+                       filter => { class => sub { $_[0] eq 'hbeat' },
+                                   class_type => sub { $_[0] eq 'app' }
+                                 },
+                       arguments => ["my test"],
+                       self_skip => 0);
+my $cb6;
+$xpl->add_xpl_callback(id => 'hbeat6',
+                       callback => sub { my %p=@_; $cb6=\%p },
+                       filter => { class => sub { $_[0] eq 'hbeat' },
+                                   class_type => sub { $_[0] eq 'end' },
+                                 },
+                       arguments => ["my test"],
+                       self_skip => 0);
+
 $xpl->add_xpl_callback(id => 'null');
 
 is(test_error(sub { $xpl->add_xpl_callback(id => 'null') }),
@@ -234,6 +251,16 @@ is($xpl->xpl_callback_callback_count('hbeat3'), 0, "callback counter zero");
 
 ok(!$cb4);
 is($xpl->xpl_callback_callback_count('hbeat4'), 0, "callback counter zero");
+
+ok($cb5 && exists $cb5->{message}, "message returned");
+is(ref($cb5->{message}), "xPL::Message::hbeat::app::xplstat",
+   "correct message type");
+ok($cb5 && exists $cb5->{arguments}, "arguments passed");
+is($cb5->{arguments}->[0], "my test", "correct argument passed");
+is($xpl->xpl_callback_callback_count('hbeat5'), 1, "callback counter non-zero");
+
+ok(!$cb6);
+is($xpl->xpl_callback_callback_count('hbeat6'), 0, "callback counter zero");
 
 is($xpl->xpl_callback_callback_count('null'), 0, "callback counter zero");
 is($xpl->input_callback_count($xpl->{_listen_sock}), 1,
