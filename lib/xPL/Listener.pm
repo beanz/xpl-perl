@@ -416,7 +416,7 @@ the hash are:
   trigger messages.
 
     {
-     msg_type => 'xpl-trig',
+     message_type => 'xpl-trig',
      class => 'x10.basic',
     }
 
