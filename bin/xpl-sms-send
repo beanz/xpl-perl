@@ -1,0 +1,182 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-sms-send 244 2007-06-04 20:25:04Z beanz $
+
+=head1 NAME
+
+xpl-sms-send - Perl script for an xPL SMS message sender
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-sms-send -h
+
+  # start the send-sms on first ethernet interface in verbose mode
+  xpl-sms-send -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that sends SMS messages via SMS services
+supported by SMS::Send.  The format of the configuration file is:
+
+  driver=CSoft
+  _login=csoft-username
+  _password=csoft-pin
+
+  driver=Test
+  _login=username
+  _password=password
+
+The first driver is taken to be the default.  The driver name can be
+specified in the xPL sendmsg.basic message using the extra field
+driver.
+
+=cut
+
+use strict;
+use warnings;
+use FileHandle;
+use Getopt::Std;
+use xPL::Client;
+use SMS::Send;
+
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] <configuration-file>
+where valid flags are:
+  -h - show this help text
+and valid options are (default shown in brackets):
+  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:', \%opt);
+if (exists $opt{'h'}) { HELP_MESSAGE() }
+my $config_file = shift || HELP_MESSAGE('Configuration file is required');
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "sendsms",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+my %drivers = map { $_ => 1 } SMS::Send->installed_drivers();
+
+my $fh =
+  FileHandle->new($config_file) or die "Failed to read $config_file: $!\n";
+my $driver;
+my $default;
+while (<$fh>) {
+  if (/^driver\s*[:=]\s*(.*)\s*$/) {
+    unless (exists $drivers{$1}) {
+      warn "Driver, $1, is not installed\n";
+      next;
+    }
+    $driver = $1;
+    $default = $1 unless (defined $default);
+  } elsif ($driver) {
+    if (/^(\w+)\s*[:=]\s*(.*)\s*$/) {
+      $drivers{$driver} = {} unless (ref $drivers{$driver});
+      $drivers{$driver}->{$1} = $2;
+    }
+  }
+}
+$fh->close;
+die "No driver configuration found\n" unless (defined $default);
+
+foreach my $driver (keys %drivers) {
+  next unless (ref $drivers{$driver});
+  my $obj = SMS::Send->new($driver, %{$drivers{$driver}});
+  unless ($obj) {
+    warn "Failed to create SMS::Send object for driver $driver\n";
+    die "\n" if ($driver eq $default);
+    next;
+  }
+  print STDERR "Prepared driver, $driver\n";
+  $drivers{$driver} = $obj;
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'xpl', callback => \&xpl,
+                       filter => {
+                                  message_type => 'xpl-cmnd',
+                                  class => 'sendmsg',
+                                  class_type => 'basic',
+                                 });
+
+# Run the main loop
+$xpl->main_loop();
+
+sub xpl {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  unless ($msg->body) {
+    return send_conf("error", "null body");
+  }
+  print $msg->summary,"\n";
+
+  unless ($msg->to =~ /^\+?[-0-9 ]+$/) {
+    return send_conf("error", "invalid number, '".$msg->to."', in 'to' field");
+  }
+  my $driver = $msg->extra_field('driver') || $default;
+
+  print STDERR "Using driver, $driver, to send the following to, '",
+    $msg->to, "'\n  ", $msg->body, "\n";
+
+  my $response =
+    $drivers{$driver}->send_sms(text => $msg->body, to => $msg->to);
+
+  if ($response) {
+    return send_conf("success");
+  } else {
+    return send_conf("attempted", "failed");
+  }
+}
+
+sub send_conf {
+  my $status = shift;
+  my $error = shift;
+  my %body = ( status => $status );
+  $body{error} = $error if ($error);
+  return $xpl->send(class => 'sendmsg.confirm', body => \%body);
+}
+
+# send a "hbeat.end" message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), SMS::Send(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2007 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
