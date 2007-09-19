@@ -20,6 +20,7 @@ WriteMakefile(
                 PREREQ_PM => {
                   'YAML' => 0,
                   'Module::Pluggable' => 0,
+                  'Date::Parse' => 0,
                 },
                ) : ()),
              );

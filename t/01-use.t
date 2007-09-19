@@ -24,6 +24,8 @@ BEGIN {
 my %has;
 eval { require DateTime::Event::Cron; };
 $has{Cron}++ unless ($@);
+eval { require Date::Parse; };
+$has{Parse}++ unless ($@);
 eval { require DateTime::Event::Sunrise; };
 $has{Sunrise}++ unless ($@);
 eval { require DateTime::Event::Recurrence; };
@@ -36,6 +38,8 @@ foreach my $m (@modules) {
  SKIP: {
     skip 'no database defined, see xPL::SQL', 1
       if ($m eq 'xPL::SQL' && !exists $ENV{'XPL_DB_CONFIG'});
+    skip 'Date::Parse not available', 1
+      if ($m eq 'xPL::RF::Oregon' && !$has{Parse});
     skip 'DateTime::Event::Cron not available', 1
       if ($m eq 'xPL::Timer::cron' && !$has{Cron});
     skip 'DateTime::Event::Sunrise not available', 1
