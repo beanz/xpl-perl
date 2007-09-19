@@ -2,7 +2,7 @@ Source: libxpl-perl
 Section: perl
 Priority: optional
 Build-Depends: debhelper (>= 4.0.2)
-Build-Depends-Indep: perl (>= 5.8.0-7), libyaml-perl, libmodule-pluggable-perl, libtimedate-perl
+Build-Depends-Indep: perl (>= 5.8.0-7), libyaml-perl, libmodule-pluggable-perl, libtimedate-perl, net-tools, netbase
 Maintainer: Mark Hindess <debian@beanz.uklinux.net>
 Standards-Version: 3.6.1
 
