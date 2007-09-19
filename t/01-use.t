@@ -32,6 +32,8 @@ eval { require DateTime::Event::Recurrence; };
 $has{Recurrence}++ unless ($@);
 eval { require Gtk2; };
 $has{Gtk2}++ unless ($@);
+eval { require SMS::Send; };
+$has{SMS}++ unless ($@);
 
 
 foreach my $m (@modules) {
@@ -49,6 +51,8 @@ foreach my $m (@modules) {
     skip 'DateTime::Event::Recurrence not available', 1
       if ($m eq 'xPL::Timer::recurrence' && !$has{Recurrence});
     skip 'Gtk2 not available', 1 if ($m eq 'xPL::Gtk2Client' && !$has{Gtk2});
+    skip 'SMS::Send not available', 1
+      if ($m eq 'SMS::Send::CSoft' && !$has{SMS});
 
     require_ok($m);
   }
