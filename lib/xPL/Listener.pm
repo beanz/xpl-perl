@@ -417,7 +417,8 @@ the hash are:
 
     {
      message_type => 'xpl-trig',
-     class => 'x10.basic',
+     class => 'x10',
+     class_type => 'basic',
     }
 
   It is also possible, though not advisable in normal Perl code, to
