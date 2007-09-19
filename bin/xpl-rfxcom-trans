@@ -1,0 +1,285 @@
+#!/usr/bin/perl -w
+
+# $Id: xpl-rfxcom-trans 326 2007-08-07 16:23:58Z beanz $
+
+=head1 NAME
+
+xpl-rfxcom-trans - Perl script for an xPL RFXCOM RF transmitter application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-rfxcom-trans -h
+
+  # start the rfxcom-trans application on first ethernet interface in
+  # verbose mode
+  xpl-rfxcom-trans -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a RFXCOM RF
+transmitter.  It currently only suppports the 'number of bits to xmit
+and up to 48bits'-mode.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Std;
+use IO::Socket::INET;
+use Time::HiRes;
+use xPL::Client;
+use xPL::RF qw/:all/;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] <device>
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+  -r - receiver connected
+  -f - enable Flamingo/Koppla RF
+  -h - enable Harrison RF
+  -k - enable KlikOn-KlikOff, NEXA, ELRO AB600, Domia Lite RF
+  -x - DISable X10/security RF
+and valid options are (default shown in brackets):
+  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+  -B baud - the baud rate (4800)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:b:B:rfhkx', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $dev = shift or die HELP_MESSAGE("The device parameter is required");
+my $baud = exists $opt{'B'} ? $opt{'B'} : 4800;
+my $verbose = exists $opt{'v'};
+my $receiver_connected = exists $opt{'r'};
+my $flamingo = exists $opt{'f'};
+my $harrison = exists $opt{'h'};
+my $koko = exists $opt{'k'};
+my $no_x10 = exists $opt{'x'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "rfxcomt",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+if (exists $opt{'v'}) {
+  $args{verbose} = $opt{'v'};
+}
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'rfxcom', callback => \&xpl_in,
+                       filter =>
+                       {
+                        message_type => 'xpl-cmnd',
+                        class => 'x10',
+                        class_type => 'basic',
+                       });
+
+my $last_read = 0;
+my $buf = q{};
+my $rf = xPL::RF->new(source => $xpl->id) or
+  die "Failed to create RF decode object\n";
+
+my $fh;
+if ($dev =~ /\//) {
+  # TODO: use Device::SerialPort?
+  system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+    die "Setting serial port with stty failed: $!\n";
+  $fh = FileHandle->new;
+  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+    or die "Cannot open serial connection on device '$dev'\n";
+  $fh->autoflush(1);
+  binmode($fh);
+} else {
+  $dev .= ':10001' unless ($dev =~ /:/);
+  $fh = IO::Socket::INET->new($dev)
+    or die "Cannot TCP connection to device at '$dev'\n";
+}
+
+$xpl->add_input(handle => $fh, callback => \&rfxcom_reader);
+
+my $i = 0;
+my %house_to_byte = map { $_ => $i++ } ('m', 'e', 'c', 'k', 'o', 'g', 'a', 'i',
+                                        'n', 'f', 'd', 'l', 'p', 'h', 'b', 'j');
+
+{
+  package msg;
+  sub new {
+    my $pkg = shift;
+    my %p = @_;
+    bless \%p, $pkg;
+    unless (exists $p{hex} or exists $p{raw}) {
+      return;
+    }
+    return \%p;
+  }
+  sub hex {
+    $_[0]->{hex} or $_[0]->{hex} = unpack "H*", $_[0]->{raw};
+  }
+  sub raw {
+    $_[0]->{raw} or $_[0]->{raw} = pack "H*", $_[0]->{hex};
+  }
+  sub str {
+    $_[0]->hex.($_[0]->{desc} ? ": ".$_[0]->{desc} : '');
+  }
+  use overload ( '""'  => \&str);
+  1;
+}
+
+my @queue = ();
+push @queue,
+  $receiver_connected ?
+  msg->new(hex => 'F033F033', desc => 'receiver connected') :
+  msg->new(hex => 'F037F037', desc => 'no receiver connected');
+push @queue,
+  msg->new(hex => 'F03CF03C', desc => 'enabling harrison') if ($harrison);
+push @queue,
+  msg->new(hex => 'F03DF03D', desc => 'enabling klikon-klikoff') if ($koko);
+push @queue,
+  msg->new(hex => 'F03EF03E', desc => 'enabling flamingo') if ($flamingo);
+push @queue,
+  msg->new(hex => 'F03FF03F', desc => 'disabling x10') if ($no_x10);
+my $waiting = undef;
+send_rfxcom(msg->new(hex => 'F030F030', desc => 'init/version check'));
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming x10.basic schema messages.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  # Currently ignores target '*' messages so you need to set the target
+  # to be bzn-rfxcomt.hostname to get messages noticed.
+  return 1 unless ($msg->target eq $xpl->id);
+
+  if ($msg->house) {
+    foreach (split //, $msg->house) {
+      queue_rfxcom(msg->new(raw => encode(command => $msg->command,
+                                          house => $msg->house),
+                            desc => $msg->house.' '.$msg->command));
+    }
+  } elsif ($msg->device) {
+    foreach (split /,/, $msg->device) {
+      my ($house, $unit) = /^([a-p])(\d+)$/i or next;
+      queue_rfxcom(msg->new(raw => encode(command => $msg->command,
+                                          house => $house,
+                                          unit => $unit),
+                            desc => $house.$unit.' '.$msg->command));
+    }
+  } else {
+    warn "Invalid x10.basic message:\n  ", $msg->summary, "\n";
+  }
+  return 1;
+}
+
+=head2 C<rfxcom_reader()>
+
+This is the callback that processes output from the RFXCOM transmitter.
+It is responsible for reading the 'ACK' messages and sending out any
+queued transmit messages.
+
+=cut
+
+sub rfxcom_reader {
+  my $buf = '';
+  my $bytes = $fh->sysread($buf, 512, 0);
+  unless ($bytes) {
+    warn "Device closed\n";
+    exit;
+  }
+  print "received: ", unpack("H*", $buf), "\n";
+  $waiting = 0;
+  send_rfxcom() if (scalar @queue);
+  return 1;
+}
+
+sub queue_rfxcom {
+  my $msg = shift;
+  if (!$waiting) {
+    return send_rfxcom($msg);
+  }
+  print "queued:   ", $msg->str, "\n";
+  push @queue, $msg;
+  return -(scalar @queue);
+}
+
+sub send_rfxcom {
+  my $msg = shift || shift @queue;
+  print "sending:  ", $msg->str, "\n";
+  my $raw = $msg->raw;
+  syswrite($fh, $raw, length($raw));
+  $fh->flush();
+  $waiting = 1;
+}
+
+sub encode {
+  my %p = @_;
+  my $bytes = [ 0, 0, 0, 0 ];
+  $bytes->[2] |= { 'dim' => 0x9, 'bright' => 0x1,
+                   'on' => 0x0, 'off' => 0x4, }->{$p{command}};
+  $bytes->[0] |= $house_to_byte{lc $p{house}};
+  unless ($bytes->[2]&1) {
+    my $unit = $p{unit} - 1;
+    $bytes->[0] |= 0x20 if ($unit&0x8);
+    $bytes->[2] |= 0x2 if ($unit&0x4);
+    $bytes->[2] |= 0x8 if ($unit&0x1);
+    $bytes->[2] |= 0x10 if ($unit&0x2);
+  }
+  $bytes->[1] = $bytes->[0]^0xff;
+  $bytes->[3] = $bytes->[2]^0xff;
+  foreach (@$bytes) {
+    $_ = unpack 'C',(pack 'B8', (unpack 'b8', (pack 'C',$_)));
+  }
+  return pack "C5", 32, @$bytes;
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+W800 website: http://www.wgldesigns.com/w800.html
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2007 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
