@@ -20,6 +20,7 @@ bin/xpl-rfxcom-trans
 bin/xpl-rrd
 bin/xpl-rrd-graphs
 bin/xpl-sender
+bin/xpl-sms-send
 bin/xpl-sql-logger
 bin/xpl-tty-tcp
 bin/xpl-viom
@@ -36,6 +37,7 @@ debian/rules
 doc/footer.tex
 doc/header.tex
 doc/Makefile
+lib/SMS/Send/CSoft.pm
 lib/xPL/Base.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
