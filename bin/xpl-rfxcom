@@ -95,7 +95,7 @@ if ($dev =~ /\//) {
 
 $xpl->add_input(handle => $fh, callback => \&rfxcom_reader);
 
-my @send = ("F020", "F02A", 'F02C');
+my @send = ("F020", "F02A", 'F041');
 $xpl->add_timer(id => 'sender', timeout => -1,
                 callback => sub { my $m = shift @send;
                                   return 0 unless ($m);
