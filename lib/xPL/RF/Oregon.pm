@@ -61,7 +61,8 @@ my %types =
    0x1a3d => { part => 'THGR918', len => 80, },
    0x5a5d => { part => 'BTHR918', len => 88, },
    0x5a6d => { part => 'THGR918N', len => 96, },
-   0x3a0d => { part => 'STR918/WGR918', len => 80, },
+   0x3a0d => { part => 'WGR918',  checksum => \&checksum4,
+               method => 'wgr918_anemometer', },
    0x2a1d => { part => 'RGR126/RGR682/RGR918', len => 80, },
    0x0a4d => { part => 'THR128', len => 80,
                checksum => \&checksum2, method => 'common_temp', },
@@ -101,7 +102,7 @@ sub parse {
   my $len = $rec->{len};
   if ($len && $bits != $len) {
     warn "Unexpected length message from possible Oregon part \"",
-      $rec->{part},"\" with\n";
+      $rec->{part},"\" with length $bits not $len\n";
     return;
   }
   my $checksum = $rec->{checksum};
@@ -141,6 +142,59 @@ sub uv138 {
   return \@res;
 }
 
+=head2 C<wgr918_anemometer( $parent, $message, $bytes, $bits )>
+
+This method is called if the device type bytes indicate that the bytes
+might contain a wind speed/direction message from a WGR918 sensor.
+
+=cut
+
+sub wgr918_anemometer {
+  my $self = shift;
+  my $type = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  unless ($bits == 80 or $bits == 88) {
+    warn "Unexpected length message from possible Oregon part ",
+      "\"$type\" with length $bits not 80 or 88\n";
+    return;
+  }
+
+  my $device = sprintf "%02x", $bytes->[3];
+  my $dev_str = $type.$DOT.$device;
+  my $dir = $bytes->[5]*10 + hi_nibble($bytes->[4]);
+  my $speed = lo_nibble($bytes->[7]) * 10 + sprintf("%02x",$bytes->[6])/10;
+  #print "WGR918: $device $dir $speed\n";
+  my @res = ();
+  push @res,
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'speed',
+                               current => $speed,
+                               units => 'mps',
+                              }
+                     ),
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'direction',
+                               current => $dir,
+                              }
+                     );
+  percentage_battery($parent, $bytes, $dev_str, \@res);
+  return \@res;
+}
+
 =head2 C<wtgr800_anemometer( $parent, $message, $bytes, $bits )>
 
 This method is called if the device type bytes indicate that the bytes
@@ -160,7 +214,7 @@ sub wtgr800_anemometer {
   my $dev_str = $type.$DOT.$device;
   my $dir = hi_nibble($bytes->[4]) * 22.5;
   my $speed = lo_nibble($bytes->[7]) * 10 + sprintf("%02x",$bytes->[6])/10;
-  #print "WTGR800: $device $dir $speed $bat\n";
+  #print "WTGR800: $device $dir $speed\n";
   my @res = ();
   push @res,
     xPL::Message->new(
