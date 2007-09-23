@@ -1,17 +1,17 @@
-package SMS::Send::CSoft;
+package SMS::Send::SMSDiscount;
 
 # $Id: Base.pm 312 2007-06-18 19:20:09Z beanz $
 
 =head1 NAME
 
-SMS::Send::CSoft - SMS::Send CSoft Driver
+SMS::Send::SMSDiscount - SMS::Send SMS Discount Driver
 
 =head1 SYNOPSIS
 
   # Create a testing sender
-  my $send = SMS::Send->new( 'CSoft',
-                             _login => 'csoft username',
-                             _password => 'csoft pin' );
+  my $send = SMS::Send->new( 'SMSDiscount',
+                             _login => 'smsdiscount username',
+                             _password => 'smsdiscount pin' );
 
   # Send a message
   $send->send_sms(
@@ -21,8 +21,8 @@ SMS::Send::CSoft - SMS::Send CSoft Driver
 
 =head1 DESCRIPTION
 
-SMS::Send driver for sending SMS messages with the Connection
-Software (http://www.csoft.co.uk/) SMS service.
+SMS::Send driver for sending SMS messages with the SMS Discount
+Software (http://www.smsdiscount.com/) SMS service.
 
 =head1 METHODS
 
@@ -42,7 +42,7 @@ our @EXPORT = qw();
 our $VERSION = '0.05';
 our $SVNVERSION = qw/$Revision: 312 $/[1];
 
-my $URL = 'https://www.csoft.co.uk/sendsms';
+my $URL = 'https://myaccount.SMSDiscount.com/clx/sendsms.php';
 
 =head1 CONSTRUCTOR
 
@@ -68,10 +68,10 @@ sub send_sms {
   print STDERR "P: ", $_, " => ", $p{$_},"\n" foreach (sort keys %p);
   my $response = $self->{_ua}->post($URL,
                                     {
-                                     Username => $self->{_login},
-                                     PIN => $self->{_password},
-                                     Message => $p{text},
-                                     SendTo => $p{to},
+                                     username => $self->{_login},
+                                     password => $self->{_password},
+                                     text => $p{text},
+                                     to => $p{to},
                                     });
   unless ($response->is_success) {
     my $s = $response->as_string;
@@ -99,7 +99,7 @@ None by default.
 
 SMS::Send(3), SMS::Send::Driver(3)
 
-Connection Software Website: http://www.csoft.co.uk/
+SMS Discount Website: http://www.smsdiscount.com/
 
 =head1 AUTHOR
 
