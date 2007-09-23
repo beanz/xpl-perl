@@ -24,9 +24,6 @@ ok(!defined $res, 'ignores short message - version response');
 $res = $rf->process_variable_length(pack 'H*', '2c');
 ok(!defined $res, 'ignores short message - 2c response');
 
-$res = $rf->process_variable_length(pack 'H*', '2d');
-ok(!defined $res, 'ignores bogus short message - 2d');
-
 $res = $rf->process_variable_length(pack 'H*','00');
 ok($res, 'recognizes valid length - 0-bit null');
 is($res->{length}, 1, 'recognizes sufficient data - 0-bit null');
