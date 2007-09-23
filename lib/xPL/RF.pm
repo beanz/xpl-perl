@@ -166,10 +166,6 @@ sub process_variable_length {
   # TODO: master/slave ?
   my $length_bits = $hdr_byte & 0x7f;
   return { length => 1, messages => [] } if ($length_bits == 0);
-  unless ($length_bits == 0x29 || $length_bits%8 == 0) {
-    # not a length in bits
-    return;
-  }
   my $length = $length_bits / 8;
   if (scalar @bytes < $length) {
     # not enough data in buffer
