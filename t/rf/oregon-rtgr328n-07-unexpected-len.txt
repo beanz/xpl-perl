@@ -6,5 +6,5 @@
 
 empty
 
-Unexpected length message from possible Oregon part "RTGR328N" with
+Unexpected length message from possible Oregon part "RTGR328N" with length 48 not 80
 
