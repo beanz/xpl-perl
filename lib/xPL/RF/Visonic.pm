@@ -1,14 +1,14 @@
-package xPL::RF::X10Security;
+package xPL::RF::Visonic;
 
-# $Id$
+# $Id: Visonic.pm 347 2007-09-23 06:54:19Z beanz $
 
 =head1 NAME
 
-xPL::RF::X10Security - Perl extension for an xPL RF Class
+xPL::RF::Visonic - Perl extension for an xPL RF Class
 
 =head1 SYNOPSIS
 
-  use xPL::RF::X10Security;
+  use xPL::RF::Visonic;
 
 =head1 DESCRIPTION
 
@@ -23,7 +23,9 @@ use 5.006;
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
+use Date::Parse qw/str2time/;
 use xPL::Message;
+use xPL::Utils qw/:all/;
 use Exporter;
 #use AutoLoader qw(AUTOLOAD);
 
@@ -32,14 +34,14 @@ our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = '0.01';
-our $SVNVERSION = qw/$Revision$/[1];
+our $SVNVERSION = qw/$Revision: 347 $/[1];
 
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 
-TODO: POD
-
-TODO: The duplicates should probably be counted for bright and dim to set
-the level but they aren't yet.
+This method is called via the main C<xPL::RF> decode loop and it
+determines whether the bytes match the format of any supported Visonic
+devices.  It returns a list reference of containing xPL messages
+corresponding to the sensor readings.
 
 =cut
 
@@ -50,44 +52,32 @@ sub parse {
   my $bytes = shift;
   my $bits = shift;
 
-  ($bits == 32 || $bits == 41) or return;
-
-  # bits are not reversed yet!
-  (($bytes->[0]^0x0f) == $bytes->[1] && ($bytes->[2]^0xff) == $bytes->[3])
-    or return;
-
-  $parent->reverse_bits($bytes);
-
-  my $device = sprintf 'x10sec%02x', $bytes->[0];
-  my $short_device = $bytes->[0];
-  my $data = $bytes->[2];
-
-  my %not_supported_yet =
-    (
-     # See: http://www.wgldesigns.com/protocols/w800rf32_protocol.txt
-     0x70 => 'SH624 arm home (min)',
-     0x60 => 'SH624 arm away (min)',
-     0x50 => 'SH624 arm home (max)',
-     0x40 => 'SH624 arm away (max)',
-     0x41 => 'SH624 disarm',
-     0x42 => 'SH624 sec light on',
-     0x43 => 'SH624 sec light off',
-     0x44 => 'SH624 panic',
-     #0x60 => 'KF574 arm',
-     0x61 => 'KF574 disarm',
-     0x62 => 'KF574 lights on',
-     0x63 => 'KF574 lights off',
-    );
-
-  if (exists $not_supported_yet{$data}) {
-    warn sprintf "Not supported: %02x %s\n", $data, $not_supported_yet{$data};
-    return [];
+  unless ($bits == 36) {
+    # only support 36-bit message for now
+    return;
+  }
+  my $parity;
+  foreach (0 .. 3) {
+    $parity ^= hi_nibble($bytes->[$_]);
+    $parity ^= lo_nibble($bytes->[$_]);
+  }
+  unless ($parity == hi_nibble($bytes->[4])) {
+    # parity error
+    return;
   }
 
-  my $alert = !($data&0x1);
-  my $tamper = $data&0x2;
-  my $min_delay = $data&0x20;
-  my $low_battery = $data&0x80;
+  my $device = sprintf("%02x%02x%02x",
+                       $bytes->[0], $bytes->[1], $bytes->[2]);
+  $device .= "s" if (!$bytes->[3] & 0x4); # suffix s for secondary contact
+  my $restore = $bytes->[3] & 0x8;
+  my $event   = $bytes->[3] & 0x10;
+  my $low_bat = $bytes->[3] & 0x20;
+  my $alert   = $bytes->[3] & 0x40;
+  my $tamper  = $bytes->[3] & 0x80;
+
+  # I assume $event is to distinguish whether it's a new event of just a
+  # heartbeat message - perhaps we should send xpl-stat if it is just a
+  # heartbeat
 
   my @res;
   my %args =
@@ -97,17 +87,18 @@ sub parse {
      head => { source => $parent->source, },
      body => {
               event => 'alert',
-              zone  => $device,
+              zone  => 'powercode.'.$device,
               state => $alert ? 'true' : 'false',
              }
     );
   $args{'body'}->{'tamper'} = 'true' if ($tamper);
-  $args{'body'}->{'low-battery'} = 'true' if ($low_battery);
-  $args{'body'}->{'delay'} = $min_delay ? 'min' : 'max';
+  $args{'body'}->{'low-battery'} = 'true' if ($low_bat);
+  $args{'body'}->{'restore'} = 'true' if ($restore);
   push @res, xPL::Message->new(%args);
 #x10.security
 #{
-#command=alert|normal|motion|light|dark|arm-home|arm-away|disarm|panic|lights-on|lights-off
+#command=alert|normal|motion|light|dark|arm-home|arm-away|disarm|panic|lights-on
+#|lights-off
 #device=<device id>
 #[type=sh624|kr10|ds10|ds90|ms10|ms20|ms90|dm10|sd90|...]
 #[tamper=true|false]
@@ -121,12 +112,14 @@ sub parse {
      head => { source => $parent->source, },
      body => {
               command => $alert ? 'alert' : 'normal',
-              device  => $short_device,
+              device  => $device,
+              type => 'powercode',
              }
     );
   $args{'body'}->{'tamper'} = 'true' if ($tamper);
-  $args{'body'}->{'low-battery'} = 'true' if ($low_battery);
-  $args{'body'}->{'delay'} = $min_delay ? 'min' : 'max';
+  $args{'body'}->{'low-battery'} = 'true' if ($low_bat);
+  $args{'body'}->{'event'} = $event ? 'event' : 'alive';
+  $args{'body'}->{'restore'} = 'true' if ($restore);
   push @res, xPL::Message->new(%args);
   return \@res;
 }
