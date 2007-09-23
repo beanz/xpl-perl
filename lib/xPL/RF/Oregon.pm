@@ -165,8 +165,9 @@ sub wgr918_anemometer {
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
-  my $dir = $bytes->[5]*10 + hi_nibble($bytes->[4]);
+  my $dir = sprintf("%02x",$bytes->[5])*10 + hi_nibble($bytes->[4]);
   my $speed = lo_nibble($bytes->[7]) * 10 + sprintf("%02x",$bytes->[6])/10;
+  my $avspeed = sprintf("%02x",$bytes->[8]) + hi_nibble($bytes->[7]) / 10;
   #print "WGR918: $device $dir $speed\n";
   my @res = ();
   push @res,
@@ -178,6 +179,7 @@ sub wgr918_anemometer {
                                device => $dev_str,
                                type => 'speed',
                                current => $speed,
+                               avergage => $avspeed,
                                units => 'mps',
                               }
                      ),
