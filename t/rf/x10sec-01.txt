@@ -15,6 +15,7 @@ security.zone
 event=alert
 zone=x10sec7f
 state=false
+delay=max
 }
 xpl-trig
 {
