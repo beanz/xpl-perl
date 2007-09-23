@@ -3,7 +3,7 @@
 # Copyright (C) 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 26;
+use Test::More tests => 25;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::RF');
