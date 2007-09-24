@@ -174,10 +174,6 @@ sub xpl_in {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  # Currently ignores target '*' messages so you need to set the target
-  # to be bzn-rfxcomt.hostname to get messages noticed.
-  return 1 unless ($msg->target eq $xpl->id);
-
   if ($msg->house) {
     foreach (split //, $msg->house) {
       queue_rfxcom(msg->new(raw => encode(command => $msg->command,
