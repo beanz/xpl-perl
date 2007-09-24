@@ -179,7 +179,7 @@ sub wgr918_anemometer {
                                device => $dev_str,
                                type => 'speed',
                                current => $speed,
-                               avergage => $avspeed,
+                               average => $avspeed,
                                units => 'mps',
                               }
                      ),
@@ -191,6 +191,7 @@ sub wgr918_anemometer {
                                device => $dev_str,
                                type => 'direction',
                                current => $dir,
+                               units => 'degrees',
                               }
                      );
   percentage_battery($parent, $bytes, $dev_str, \@res);
