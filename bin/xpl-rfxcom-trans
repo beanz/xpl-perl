@@ -145,8 +145,10 @@ my %house_to_byte = map { $_ => $i++ } ('m', 'e', 'c', 'k', 'o', 'g', 'a', 'i',
 my @queue = ();
 push @queue,
   $receiver_connected ?
-  msg->new(hex => 'F033F033', desc => 'receiver connected') :
-  msg->new(hex => 'F037F037', desc => 'no receiver connected');
+  msg->new(hex => 'F033F033',
+           desc => 'variable length mode with receiver connected') :
+  msg->new(hex => 'F037F037',
+           desc => 'variable length mode with no receiver connected');
 push @queue,
   msg->new(hex => 'F03CF03C', desc => 'enabling harrison') if ($harrison);
 push @queue,
