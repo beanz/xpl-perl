@@ -99,7 +99,11 @@ returns the associated function.
 =cut
 
 sub function {
-  $_[0]&0x1 ? ($_[0]&0x8 ? 'dim' : 'bright') : ($_[0]&0x4 ? 'off' : 'on');
+  $_[0]&0x1
+    ? ($_[0]&0x10
+       ? $_[0]&0x8 ? 'dim' : 'bright'
+       : $_[0]&0x8 ? 'all_lights_on' : 'all_lights_off')
+    : ($_[0]&0x4 ? 'off' : 'on');
 }
 
 =head2 C<unit_code( $byte1, $byte3 )>
