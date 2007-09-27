@@ -16,7 +16,7 @@ device=wgr918.2d
 type=speed
 current=3.4
 units=mps
-avergage=3.2
+average=3.2
 }
 xpl-trig
 {
@@ -29,5 +29,6 @@ sensor.basic
 device=wgr918.2d
 type=direction
 current=241
+units=degrees
 }
 
