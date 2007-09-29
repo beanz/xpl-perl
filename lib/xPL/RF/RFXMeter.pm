@@ -55,7 +55,7 @@ sub parse {
 
   ($bytes->[0] == ($bytes->[1]^0xf0)) or return;
 
-  my $device = sprintf "%02x%02x", $bytes->[1], $bytes->[2];
+  my $device = sprintf "%02x%02x", $bytes->[0], $bytes->[1];
   my $type = hi_nibble($bytes->[5]);
   my $check = lo_nibble($bytes->[5]);
   my $nibble_sum = nibble_sum(5.5, $bytes);
