@@ -1,0 +1,19 @@
+c23ff39b5c01ba680400
+
+10 bytes
+
+1 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+x10.security
+{
+command=disarm
+device=01ba680
+type=codesecure
+}
+

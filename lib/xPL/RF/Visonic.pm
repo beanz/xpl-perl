@@ -36,6 +36,12 @@ our @EXPORT = qw();
 our $VERSION = '0.01';
 our $SVNVERSION = qw/$Revision: 347 $/[1];
 
+my %bits =
+  (
+   36 => 'powercode',
+   66 => 'codesecure',
+  );
+
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 
 This method is called via the main C<xPL::RF> decode loop and it
@@ -52,10 +58,61 @@ sub parse {
   my $bytes = shift;
   my $bits = shift;
 
-  unless ($bits == 36) {
-    # only support 36-bit message for now
+  my $method = $bits{$bits};
+  unless ($method) {
     return;
   }
+  return $self->$method($parent, $message, $bytes, $bits);
+}
+
+sub codesecure {
+  my $self = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  # parity check?
+
+  my $code =
+    sprintf "%02x%02x%02x%02x",
+      $bytes->[0], $bytes->[1], $bytes->[2], $bytes->[3];
+
+  my $device =
+    sprintf "%02x%02x%02x%x",
+      $bytes->[4], $bytes->[5], $bytes->[6], hi_nibble($bytes->[7]);
+  my $event =
+    { 0x1 => "light",
+      0x2 => "arm-away",
+      0x4 => "disarm",
+      0x8 => "arm-home",
+    }->{lo_nibble($bytes->[7])};
+  my $repeat = $bytes->[8]&0x4;
+  my $low_bat = $bytes->[8]&0x8;
+
+  my %args =
+    (
+     message_type => 'xpl-trig',
+     class => 'x10.security',
+     head => { source => $parent->source, },
+     body => {
+              command => $event,
+              device  => $device,
+              type => 'codesecure',
+             }
+    );
+  $args{'body'}->{'low-battery'} = 'true' if ($low_bat);
+  $args{'body'}->{'repeat'} = 'true' if ($repeat);
+  return [ xPL::Message->new(%args) ];
+}
+
+sub powercode {
+  my $self = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
   my $parity;
   foreach (0 .. 3) {
     $parity ^= hi_nibble($bytes->[$_]);
