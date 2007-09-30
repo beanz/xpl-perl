@@ -97,6 +97,7 @@ lib/xPL/Validation/Pattern.pm
 lib/xPL/Validation.pm
 lib/xPL/Validation/PositiveInteger.pm
 lib/xPL/Validation/Set.pm
+lib/xPL/X10.pm
 Makefile.PL
 MANIFEST
 META.yml                                 Module meta-data (added by MakeMaker)
@@ -110,6 +111,7 @@ t/01-xpl-utils.t
 t/01-xpl-validation.t
 t/02-message.t
 t/02-timer.t
+t/02-x10.t
 t/03-message-errors.t
 t/03-message-from-payload.t
 t/03-message-method-maker.t
@@ -212,4 +214,9 @@ t/rf/x10sec-02-alert-tamper-min.txt
 t/rf/x10sec-03-lowbat.txt
 t/rf/x10sec-04-unsupported.txt
 t/schema/test.basic.yaml
+t/x10/a10-on.txt
+t/x10/i5-off.txt
+t/x10/j-dim.txt
+t/x10/l-bright.txt
+t/x10/m4-off.txt
 xpl-perl.spec
