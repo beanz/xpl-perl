@@ -32,6 +32,7 @@ use IO::Socket::INET;
 use Time::HiRes;
 use xPL::Client;
 use xPL::RF qw/:all/;
+use xPL::X10 qw/:all/;
 $|=1; # autoflush helps debugging
 
 sub HELP_MESSAGE {
@@ -113,10 +114,6 @@ if ($dev =~ /\//) {
 }
 
 $xpl->add_input(handle => $fh, callback => \&rfxcom_reader);
-
-my $i = 0;
-my %house_to_byte = map { $_ => $i++ } ('m', 'e', 'c', 'k', 'o', 'g', 'a', 'i',
-                                        'n', 'f', 'd', 'l', 'p', 'h', 'b', 'j');
 
 {
   package msg;
@@ -237,25 +234,7 @@ sub send_rfxcom {
 }
 
 sub encode {
-  my %p = @_;
-  my $bytes = [ 0, 0, 0, 0 ];
-  $bytes->[2] |= { 'dim' => 0x19, 'bright' => 0x11,
-                   'all_lights_on' => 0x9, 'all_lights_off' => 0x1,
-                   'on' => 0x0, 'off' => 0x4, }->{$p{command}};
-  $bytes->[0] |= $house_to_byte{lc $p{house}};
-  unless ($bytes->[2]&1) {
-    my $unit = $p{unit} - 1;
-    $bytes->[0] |= 0x20 if ($unit&0x8);
-    $bytes->[2] |= 0x2 if ($unit&0x4);
-    $bytes->[2] |= 0x8 if ($unit&0x1);
-    $bytes->[2] |= 0x10 if ($unit&0x2);
-  }
-  $bytes->[1] = $bytes->[0]^0xff;
-  $bytes->[3] = $bytes->[2]^0xff;
-  foreach (@$bytes) {
-    $_ = unpack 'C',(pack 'B8', (unpack 'b8', (pack 'C',$_)));
-  }
-  return pack "C5", 32, @$bytes;
+  return pack "C5", 32, @{xPL::X10::to_rf(@_)};
 }
 
 # send a 'hbeat.end' message on exit
