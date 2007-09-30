@@ -87,7 +87,7 @@ sub to_rf {
 
 =head2 C<from_rf( $bytes )>
 
-Takes an array reference of bytes from an RF command and converts it
+Takes an array reference of bytes from an RF message and converts it
 in to an hash reference with the details.
 
 =cut
@@ -95,6 +95,7 @@ in to an hash reference with the details.
 sub from_rf {
   my $bytes = shift;
 
+  return unless (is_x10($bytes));
   my %r = ();
   my $mask = 0x98;
   unless ($bytes->[2]&0x80) {
@@ -106,6 +107,13 @@ sub from_rf {
   $r{command} = $byte_to_command{$bytes->[2]&$mask};
   return \%r;
 }
+
+=head2 C<is_x10( $bytes )>
+
+Takes an array reference of bytes from an RF message and returns true
+if it appears to be a valid X10 message.
+
+=cut
 
 sub is_x10 {
   my $bytes = shift;
