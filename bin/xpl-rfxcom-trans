@@ -210,6 +210,7 @@ sub rfxcom_reader {
   }
   print "received: ", unpack("H*", $buf), "\n";
   $waiting = 0;
+  $xpl->remove_timer("wait_for_ack");
   send_rfxcom() if (scalar @queue);
   return 1;
 }
@@ -231,6 +232,19 @@ sub send_rfxcom {
   syswrite($fh, $raw, length($raw));
   $fh->flush();
   $waiting = 1;
+  $xpl->add_timer(id => "wait_for_ack", timeout => 2,
+                  callback => sub {
+                    print STDERR "No ack!\n";
+                    $xpl->remove_timer("wait_for_ack");
+                    send_rfxcom($receiver_connected ?
+                                msg->new(hex => 'F033F033',
+                                         desc =>
+                                         'variable length mode with receiver connected') :
+                                msg->new(hex => 'F037F037',
+                                         desc =>
+                                         'variable length mode with no receiver connected'));
+                    1;
+              });
 }
 
 sub encode {
