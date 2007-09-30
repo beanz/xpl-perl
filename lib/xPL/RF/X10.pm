@@ -24,6 +24,7 @@ use strict;
 use warnings;
 use English qw/-no_match_vars/;
 use xPL::Message;
+use xPL::X10 qw/:all/;
 use Exporter;
 #use AutoLoader qw(AUTOLOAD);
 
@@ -52,73 +53,22 @@ sub parse {
   my $bytes = shift;
   my $bits = shift;
 
-  ($bits == 32) or return;
+  xPL::X10::is_x10($bytes) or return;
 
-  # bits are not reversed yet!
-  (($bytes->[2]^0xff) == $bytes->[3] &&
-   ($bytes->[0]^0xff) == $bytes->[1] &&
-   !($bytes->[2]&0x7)) or return;
-
-  $parent->reverse_bits($bytes);
-
-  my $byte1 = $bytes->[2];
-  my $byte3 = $bytes->[0];
+  my $res = xPL::X10::from_rf($bytes) or return;
 
   my $unit_cache = $parent->unstash('unit_cache');
   unless ($unit_cache) {
     $unit_cache = $parent->stash('unit_cache', {});
   }
-  my $h = house_code($byte3);
-  my $f = function($byte1);
-  unless ($byte1&1) {
-    $unit_cache->{$h} = unit_code($byte1, $byte3);
+  my $h = $res->{house};
+  my $f = $res->{command};
+  if (exists $res->{unit}) {
+    $unit_cache->{$h} = $res->{unit};
   }
   my $u = $unit_cache->{$h} or
     do { warn "Don't have unit code for: $h $f\n"; return [] };
-  my $k = $h.$u.$SPACE.$f;
   return [$self->x10_xpl_message($parent, $f, $h.$u)];
-}
-
-=head2 C<house_code( $byte1 )>
-
-This function takes byte 1 of a processed X10 message sequence and
-returns the associated house code.
-
-=cut
-
-sub house_code {
-  ('m', 'e', 'c', 'k', 'o', 'g', 'a', 'i',
-   'n', 'f', 'd', 'l', 'p', 'h', 'b', 'j')[$_[0] & 0xf];
-}
-
-=head2 C<function( $byte1 )>
-
-This function takes byte 1 of a processed X10 message sequence and
-returns the associated function.
-
-=cut
-
-sub function {
-  $_[0]&0x1
-    ? ($_[0]&0x10
-       ? $_[0]&0x8 ? 'dim' : 'bright'
-       : $_[0]&0x8 ? 'all_lights_on' : 'all_lights_off')
-    : ($_[0]&0x4 ? 'off' : 'on');
-}
-
-=head2 C<unit_code( $byte1, $byte3 )>
-
-This function takes bytes 1 and 3 of a processed X10 message sequence
-and returns the associated unit code.
-
-=cut
-
-sub unit_code {
-  my $b1 = shift;
-  my $b3 = shift;
-  return 1 + ((($b1&0x2) << 1) +
-              (($b1&0x18) >> 3) +
-              (($b3&0x20) >> 2));
 }
 
 =head2 C<x10_xpl_message( $parent, $command, $device, $level )>
