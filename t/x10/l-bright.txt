@@ -1,0 +1,8 @@
+d02f8877
+
+none
+
+command=bright
+house=l
+
+none
