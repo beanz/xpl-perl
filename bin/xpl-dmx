@@ -48,7 +48,7 @@ getopts('hvi:b:B:c:', \%opt);
 if (exists $opt{'h'}) {
   HELP_MESSAGE()
 }
-my $dev = shift or die HELP_MESSAGE("The device parameter is required");
+my $dev = shift or HELP_MESSAGE("The device parameter is required");
 my $baud = exists $opt{'B'} ? $opt{'B'} : 9600;
 my $verbose = exists $opt{'v'};
 my $rgb_txt = exists $opt{'c'} ? $opt{'c'} : "/etc/X11/rgb.txt";

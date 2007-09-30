@@ -50,7 +50,7 @@ getopts('hvi:b:B:', \%opt);
 if (exists $opt{'h'}) {
   HELP_MESSAGE()
 }
-my $dev = shift or die HELP_MESSAGE("The device parameter is required");
+my $dev = shift or HELP_MESSAGE("The device parameter is required");
 my $baud = exists $opt{'B'} ? $opt{'B'} : 4800;
 my $verbose = exists $opt{'v'};
 

@@ -47,7 +47,7 @@ getopts('hvi:b:B:', \%opt);
 if (exists $opt{'h'}) {
   HELP_MESSAGE()
 }
-my $ow_dir = shift or die HELP_MESSAGE("The owfs mount parameter is required");
+my $ow_dir = shift or HELP_MESSAGE("The owfs mount parameter is required");
 my $verbose = exists $opt{'v'};
 
 my %args =
