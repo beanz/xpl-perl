@@ -1,6 +1,6 @@
 package xPL::RF::RFXMeter;
 
-# $Id: RFXMeter.pm 281 2007-06-15 16:53:50Z beanz $
+# $Id$
 
 =head1 NAME
 
@@ -33,7 +33,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = '0.01';
-our $SVNVERSION = qw/$Revision: 281 $/[1];
+our $SVNVERSION = qw/$Revision$/[1];
 
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 

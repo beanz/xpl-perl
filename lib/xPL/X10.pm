@@ -1,6 +1,6 @@
 package xPL::X10;
 
-# $Id: X10.pm 360 2007-09-27 20:43:18Z beanz $
+# $Id$
 
 =head1 NAME
 
@@ -36,7 +36,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = '0.01';
-our $SVNVERSION = qw/$Revision: 360 $/[1];
+our $SVNVERSION = qw/$Revision$/[1];
 
 my $i = 0;
 my %house_to_byte =

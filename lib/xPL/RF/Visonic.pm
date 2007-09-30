@@ -1,6 +1,6 @@
 package xPL::RF::Visonic;
 
-# $Id: Visonic.pm 347 2007-09-23 06:54:19Z beanz $
+# $Id$
 
 =head1 NAME
 
@@ -34,7 +34,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = '0.01';
-our $SVNVERSION = qw/$Revision: 347 $/[1];
+our $SVNVERSION = qw/$Revision$/[1];
 
 my %bits =
   (

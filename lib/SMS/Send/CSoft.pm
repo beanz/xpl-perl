@@ -1,6 +1,6 @@
 package SMS::Send::CSoft;
 
-# $Id: Base.pm 312 2007-06-18 19:20:09Z beanz $
+# $Id$
 
 =head1 NAME
 
@@ -40,7 +40,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = '0.05';
-our $SVNVERSION = qw/$Revision: 312 $/[1];
+our $SVNVERSION = qw/$Revision$/[1];
 
 my $URL = 'https://www.csoft.co.uk/sendsms';
 
