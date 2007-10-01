@@ -62,6 +62,7 @@ my %types =
    0x5a5d => { part => 'BTHR918', len => 88, },
    0x5a6d => { part => 'THGR918N', len => 96, },
    0x3a0d => { part => 'WGR918',  checksum => \&checksum4,
+               len => { map { $_ => 1 } (80,88) },
                method => 'wgr918_anemometer', },
    0x2a1d => { part => 'RGR126/RGR682/RGR918', len => 80, },
    0x0a4d => { part => 'THR128', len => 80,
@@ -100,15 +101,26 @@ sub parse {
     return;
   }
   my $len = $rec->{len};
-  if ($len && $bits != $len) {
-    warn "Unexpected length message from possible Oregon part \"",
-      $rec->{part},"\" with length $bits not $len\n";
-    return;
+  if ($len) {
+    if (ref $len) {
+      if (!$len->{$bits}) {
+        warn "Unexpected length message from possible Oregon part \"",
+          $rec->{part},"\" with length $bits not ",
+            (join '/',sort keys %{$len}),"\n";
+        return;
+      }
+    } elsif ($bits != $len) {
+      warn "Unexpected length message from possible Oregon part \"",
+        $rec->{part},"\" with length $bits not $len\n";
+      return;
+    }
   }
+
   my $checksum = $rec->{checksum};
   if ($checksum && !$checksum->($bytes)) {
     return;
   }
+
   my $method = $rec->{method};
   unless ($method) {
     warn "Possible message from Oregon part \"",$rec->{part},"\"\n";
@@ -156,12 +168,6 @@ sub wgr918_anemometer {
   my $message = shift;
   my $bytes = shift;
   my $bits = shift;
-
-  unless ($bits == 80 or $bits == 88) {
-    warn "Unexpected length message from possible Oregon part ",
-      "\"$type\" with length $bits not 80 or 88\n";
-    return;
-  }
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
