@@ -52,7 +52,7 @@ foreach my $m (@modules) {
       if ($m eq 'xPL::Timer::recurrence' && !$has{Recurrence});
     skip 'Gtk2 not available', 1 if ($m eq 'xPL::Gtk2Client' && !$has{Gtk2});
     skip 'SMS::Send not available', 1
-      if ($m eq 'SMS::Send::CSoft' && !$has{SMS});
+      if ($m =~ /^SMS::Send::/ && !$has{SMS});
 
     require_ok($m);
   }
