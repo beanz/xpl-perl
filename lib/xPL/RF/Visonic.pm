@@ -93,6 +93,11 @@ sub codesecure {
       0x4 => "disarm",
       0x8 => "arm-home",
     }->{lo_nibble($bytes->[7])};
+  unless ($event) {
+    # probably invalid message
+    # TOFIX: figure out parity check so this isn't required
+    return;
+  }
   my $repeat = $bytes->[8]&0x4;
   my $low_bat = $bytes->[8]&0x8;
 
