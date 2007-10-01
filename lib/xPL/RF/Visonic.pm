@@ -65,6 +65,12 @@ sub parse {
   return $self->$method($parent, $message, $bytes, $bits);
 }
 
+=head2 C<codesecure( $parent, $message, $bytes, $bits )>
+
+This method decodes a message from a Visonic code secure keyfob.
+
+=cut
+
 sub codesecure {
   my $self = shift;
   my $parent = shift;
@@ -106,6 +112,12 @@ sub codesecure {
   return [ xPL::Message->new(%args) ];
 }
 
+=head2 C<powercode( $parent, $message, $bytes, $bits )>
+
+This method decodes a message from a Visonic powercode sensor.
+
+=cut
+
 sub powercode {
   my $self = shift;
   my $parent = shift;
@@ -119,7 +131,9 @@ sub powercode {
     $parity ^= lo_nibble($bytes->[$_]);
   }
   unless ($parity == hi_nibble($bytes->[4])) {
-    # parity error
+    warn
+      sprintf("Possible Visonic powercode with parity error %x != %x\n",
+              $parity, hi_nibble($bytes->[4]));
     return;
   }
 
