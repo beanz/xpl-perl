@@ -53,8 +53,6 @@ sub parse {
   my $bytes = shift;
   my $bits = shift;
 
-  xPL::X10::is_x10($bytes) or return;
-
   my $res = xPL::X10::from_rf($bytes) or return;
 
   my $unit_cache = $parent->unstash('unit_cache');
