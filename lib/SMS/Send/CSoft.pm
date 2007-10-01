@@ -65,7 +65,7 @@ sub send_sms {
   my %p = @_;
   $p{to} =~ s/^\+//;
   $p{to} =~ s/[- ]//g;
-  print STDERR "P: ", $_, " => ", $p{$_},"\n" foreach (sort keys %p);
+
   my $response = $self->{_ua}->post($URL,
                                     {
                                      Username => $self->{_login},
