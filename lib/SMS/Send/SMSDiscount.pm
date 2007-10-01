@@ -71,7 +71,7 @@ sub send_sms {
                                      username => $self->{_login},
                                      password => $self->{_password},
                                      text => $p{text},
-                                     to => $p{to},
+                                     to => '+'.$p{to},
                                     });
   unless ($response->is_success) {
     my $s = $response->as_string;
