@@ -77,15 +77,14 @@ is(test_error(sub { $bridge->main_loop(1) }),
 
 $ss->close;
 
-is(test_error(sub {
-     $bridge = xPL::Bridge->new(ip => "127.0.0.1",
-                                broadcast => "127.0.0.1",
-                                vendor_id => 'acme',
-                                device_id => 'bridge',
-                                bridge_port => 19_999,
-                                remote_ip => '127.0.0.1',
-                                verbose => 1);
-   }),
-   'xPL::Bridge->setup_client_mode: '.
-     'connect to remote peer failed: Connection refused',
+like(test_error(sub {
+                  $bridge = xPL::Bridge->new(ip => "127.0.0.1",
+                                             broadcast => "127.0.0.1",
+                                             vendor_id => 'acme',
+                                             device_id => 'bridge',
+                                             bridge_port => 19_999,
+                                             remote_ip => '127.0.0.1',
+                                             verbose => 1);
+                }),
+     qr/^xPL::Bridge->setup_client_mode: connect to remote peer failed:/,
    'connection to remote failed');
