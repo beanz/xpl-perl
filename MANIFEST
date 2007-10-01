@@ -182,6 +182,7 @@ t/rf/oregon-uv138-01.txt
 t/rf/oregon-uv138-02-invalid-checksum.txt
 t/rf/oregon-uv138-03-dangerous.txt
 t/rf/oregon-wgr918-01-wind.txt
+t/rf/oregon-wgr918-02-unexpected-length.txt
 t/rf/oregon-wtgr800-01-wind.txt
 t/rf/oregon-wtgr800-02-temphydro.txt
 t/rf/oregon-wtgr800-03-low-battery.txt
@@ -201,6 +202,8 @@ t/rf/rfxsensor-09-unknown-status.txt
 t/rf/rfxsensor-10-negative-temp.txt
 t/rf/visonic-01-codesecure.txt
 t/rf/visonic-02-powercode.txt
+t/rf/visonic-03-powercode-secondary.txt
+t/rf/visonic-04-powercode-parity-error.txt
 t/rf/x10-01-a11-on-dup.txt
 t/rf/x10-01-a11-on-no-dup.txt
 t/rf/x10-01-a11-on.txt
