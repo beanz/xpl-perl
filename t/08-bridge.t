@@ -84,7 +84,9 @@ $msg_str = $msg->string;
 ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)), "client sent message");
 ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)),
    "client sent message again");
+$cs->flush();
 
+$bridge->main_loop(1);
 $bridge->main_loop(1);
 
 my $md5 = xPL::Bridge::msg_hash($msg_str);
