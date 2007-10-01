@@ -125,7 +125,7 @@ sub powercode {
 
   my $device = sprintf("%02x%02x%02x",
                        $bytes->[0], $bytes->[1], $bytes->[2]);
-  $device .= "s" if (!$bytes->[3] & 0x4); # suffix s for secondary contact
+  $device .= 's' unless ($bytes->[3] & 0x4); # suffix s for secondary contact
   my $restore = $bytes->[3] & 0x8;
   my $event   = $bytes->[3] & 0x10;
   my $low_bat = $bytes->[3] & 0x20;
