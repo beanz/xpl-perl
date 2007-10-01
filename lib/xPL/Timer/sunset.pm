@@ -88,7 +88,7 @@ value is omitted.
 sub init {
   my $self = shift;
   my $p = shift;
-  exists $p->{tz} or $p->{tz} = $ENV{TZ} || 'Europe/London';
+
   exists $p->{latitude} or $p->{latitude} = $ENV{LATITUDE} or
     return $self->argh("requires 'latitude' parameter\n".
                        'or LATITUDE environment variable');

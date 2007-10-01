@@ -50,12 +50,15 @@ SKIP: {
   isa_ok($t, 'xPL::Timer::cron', 'cron timer type');
   is($t->next(23), 2820, 'cron timer next value');
 
-  $t = xPL::Timer->new(type => 'cron', crontab => '* * * * *', tz => 'UTC');
+  my $saved_tz = $ENV{TZ};
+  $ENV{TZ} = 'UTC';
+  $t = xPL::Timer->new(type => 'cron', crontab => '* * * * *');
   ok($t, 'create cron timer');
   isa_ok($t, 'xPL::Timer::cron', 'cron timer type');
   my $time = time;
   my $sec = (gmtime $time)[0];
   is($t->next(), $time + (60-$sec), 'cron timer next value');
+  $ENV{TZ} = $saved_tz if (defined $saved_tz);
 }
 
 SKIP: {

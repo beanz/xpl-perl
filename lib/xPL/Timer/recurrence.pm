@@ -59,7 +59,6 @@ value is omitted.
 sub init {
   my $self = shift;
   my $p = shift;
-  exists $p->{tz} or $p->{tz} = $ENV{TZ} || 'Europe/London';
   exists $p->{freq} or $p->{freq} = 'hourly';
   my $method = $p->{freq};
   my $set;

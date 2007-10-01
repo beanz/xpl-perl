@@ -76,6 +76,8 @@ sub new {
 
   $self->{_type} = $type;
 
+  exists $p{tz} or $p{tz} = $ENV{TZ} || 'Europe/London';
+
   $self->init(\%p);
 
   return $self;
