@@ -42,7 +42,7 @@ our @EXPORT = qw();
 our $VERSION = '0.05';
 our $SVNVERSION = qw/$Revision$/[1];
 
-my $URL = 'https://myaccount.SMSDiscount.com/clx/sendsms.php';
+our $URL = 'https://myaccount.SMSDiscount.com/clx/sendsms.php';
 
 =head1 CONSTRUCTOR
 
@@ -53,7 +53,7 @@ sub new {
   my %p = @_;
   exists $p{_login} or die $pkg."->new requires _login parameter\n";
   exists $p{_password} or die $pkg."->new requires _password parameter\n";
-  $p{_verbose} = 1;
+  exists $p{_verbose} or $p{_verbose} = 1;
   my $self = \%p;
   bless $self, $pkg;
   $self->{_ua} = LWP::UserAgent->new();
@@ -75,14 +75,14 @@ sub send_sms {
                                     });
   unless ($response->is_success) {
     my $s = $response->as_string;
-    print STDERR "HTTP failure: $s\n" if ($self->{_verbose});
+    warn "HTTP failure: $s\n" if ($self->{_verbose});
     return 0;
   }
   my $s = $response->as_string;
   $s =~ s/\r?\n$//;
   $s =~ s/^.*\r?\n//s;
   unless ($s =~ /Message Sent OK/i) {
-    print STDERR "Failed: $s\n" if ($self->{_verbose});
+    warn "Failed: $s\n" if ($self->{_verbose});
     return 0;
   }
   return 1;

@@ -130,6 +130,8 @@ t/08-bridge.t
 t/09-hub-ignore-remote-hbeat.t
 t/09-targetting.t
 t/10-mainloop.t
+t/11-sms-send-csoft.t
+t/11-sms-send-smsdiscount.t
 t/Helpers.pm
 t/interfaces/ifconfig.empty/ifconfig
 t/interfaces/ifconfig.linux/ifconfig
