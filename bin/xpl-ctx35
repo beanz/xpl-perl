@@ -1,0 +1,300 @@
+#!/usr/bin/perl -w
+
+# $Id$
+
+=head1 NAME
+
+xpl-ctx35 - Perl script for an xPL CTX35 application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-ctx35 -h
+
+  # start the ctx35 application on first ethernet interface in verbose mode
+  xpl-ctx35 -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a CTX35 controller.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Std;
+use IO::Socket::INET;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags] [options] <device>
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+and valid options are (default shown in brackets):
+  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+  -B baud - the baud rate (19200)
+$msg
+};
+}
+
+my %opt = ();
+getopts('hvi:B:', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $dev = shift or HELP_MESSAGE('Device parameter is required');
+my $baud = $opt{'B'} || 19200;
+my $verbose = exists $opt{'v'};
+
+my %args =
+  (
+   vendor_id => "bnz",
+   device_id => "ctx35",
+  );
+if (exists $opt{'i'}) {
+  $args{interface} = $opt{'i'};
+}
+$args{verbose} = 1 if ($verbose);
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'read', callback => \&xpl_in,
+                       filter => {
+                                  message_type => 'xpl-cmnd',
+                                  class => 'x10',
+                                  class_type => 'basic',
+                                 });
+
+my $buf = q{};
+my %unit = ();
+
+my %ctx_to_xpl =
+  (
+   ON => 'on',
+   OFF => 'off',
+   DIM => 'dim',
+   BGT => 'bright',
+   ALN => 'all_lights_on',
+   AUF => 'all_units_off',
+   ALF => 'all_lights_off',
+   HRQ => 'hail_req',
+   HAK => 'hail_ack',
+   SON => 'status_on',
+   SOF => 'status_off',
+   SRQ => 'status',
+  );
+my %xpl_to_ctx = reverse %ctx_to_xpl;
+
+my $fh;
+my $can_select;
+if ($dev =~ /\//) {
+  # TODO: use Device::SerialPort?
+#  system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+#    die "Setting serial port with stty failed: $!\n";
+  $fh = FileHandle->new;
+  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+    or die "Cannot open serial connection on device '$dev'\n";
+  $fh->autoflush(1);
+  binmode($fh);
+} else {
+  $can_select = 1;
+  $dev .= ':10001' unless ($dev =~ /:/);
+  $fh = IO::Socket::INET->new($dev)
+    or die "Cannot TCP connection to device at '$dev'\n";
+}
+$xpl->add_input(handle => $fh, callback => \&read_ctx35);
+$xpl->add_timer(id => 'poll', timeout => 0.5, callback => \&poll_ctx35);
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+a limited subset of the full x10.basic schema but could easily be
+extended.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  my @devices;
+  if ($msg->device) {
+    push @devices, map {  /^(.)(\d+)$/ && [ uc $1, sprintf "%02d", $2 ]
+                       } split /,/, $msg->device;
+  }
+  if ($msg->house) {
+    push @devices, map { [ uc $_, '00' ] } split //, $msg->house;
+  }
+  return 1 unless (scalar @devices);
+
+  if ($msg->command eq 'extended') {
+    my $data1 = $msg->data1;
+    my $data2 = $msg->data2;
+    return 1 unless (defined $data1 && defined $data2);
+    my $command = sprintf '%02X%02X', $data1, $data2;
+    foreach my $device (@devices) {
+      my ($house, $unit) = @$device;
+      my $string = ($house.'[1]'.$unit.$command) x 2;
+      command_ctx35($string) or next;
+      my %args = (
+                  message_type => 'xpl-trig',
+                  class => 'x10.confirm',
+                  body => { command => $msg->command,
+                            device => (lc $house).$unit,
+                            data1 => $msg->data1, data2 => $msg->data2 },
+                 );
+      $xpl->send(%args);
+    }
+    return 1;
+  }
+
+  my $command = $xpl_to_ctx{$msg->command};
+  return 1 unless ($command);
+
+  my $repeat = 2;
+  if ($command =~ /^BGT|DIM$/ && $msg->level) {
+    $repeat = 2*int(1+$msg->level/14); # fix scale?
+    $repeat = 6 if ($repeat > 6);
+  }
+
+  foreach my $device (@devices) {
+    my ($house, $unit) = @$device;
+    my $string = (($house.$unit) x 2).' '.(($house.$command) x $repeat);
+    command_ctx35($string) or next;
+    send_xpl_confirm((lc $house).$unit, $msg->command, $msg->level);
+  }
+  return 1;
+};
+
+
+=head2 C<send_xpl( $device, $command, [ $level ] )>
+
+This functions is used to send out x10.basic xpl-trig messages as a
+result of messages from "heyu monitor".
+
+=cut
+
+sub send_xpl {
+  return send_xpl_aux('x10.basic', @_);
+}
+
+=head2 C<send_xpl_confirm( $device, $command, [ $level ] )>
+
+This functions is used to send out x10.confirm xpl-trig messages in
+response to incoming xpl-cmnd messages.
+
+=cut
+
+sub send_xpl_confirm {
+  return send_xpl_aux('x10.confirm', @_);
+}
+
+=head2 C<send_xpl_aux( $message_type, $device, $command, [ $level ] )>
+
+This functions is used by the other two send functions to construct the
+parameters to send the actual xPL message.
+
+=cut
+
+sub send_xpl_aux {
+  my $class = shift;
+  my $device = shift;
+  my $command = shift;
+  my $level = shift;
+  my %args =
+    (
+     message_type => 'xpl-trig',
+     class => $class,
+     body => { command => $command, device => $device },
+    );
+  if ($verbose) {
+    print STDERR
+      "Sending $class $device $command", ($level ? " ".$level : ""), "\n";
+  }
+
+  $xpl->send(%args);
+}
+
+sub command_ctx35 {
+  send_ctx35('1'.$_[0]);
+  1;
+}
+
+sub poll_ctx35 {
+  send_ctx35('00',1);
+  1;
+}
+
+sub read_ctx35 {
+  my $bytes = $fh->sysread($buf, 512, length($buf));
+  unless ($bytes) {
+    die 'Device closed: ', (defined $bytes ? 'eof' : $!), "\n";
+  }
+  while ($buf =~ s/^([^#]*#)//) {
+    my $resp = $1;
+    if ($resp eq '$<2800!4B#') {
+      # nothing to report
+      next;
+    }
+    print "Received: $resp\n" if ($verbose);
+    next unless (test_checksum($resp));
+  }
+  return 1;
+}
+
+sub send_ctx35 {
+  my $msg = shift;
+  my $quiet = shift;
+  $msg = '$>2800'.$msg;
+  $msg .= checksum($msg).'#';
+  print "Sending '$msg' to ctx35\n" if (!$quiet && $verbose);
+  syswrite $fh, $msg, length($msg) or die "Write to ctx35 failed: $!\n";
+  $fh->flush();
+}
+
+sub test_checksum {
+  $_[0] =~ /^(.*)(..)#$/ or return;
+  (hex $2) == (unpack "%8C*", $1);
+}
+
+sub checksum {
+  sprintf "%02X", unpack "%8C*", $_[0];
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+CTX35 Documentation: http://www.bwired.nl/images/how/ctx35.pdf
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2007 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
