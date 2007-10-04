@@ -135,7 +135,7 @@ is($info->{broadcast}, '192.168.3.255', 'macosx default interface broadcast');
 $ENV{PATH} = 't/interfaces/ifconfig.freebsd';
 $test = xPL::Test->new();
 ok($test, "freebsd test object - main");
-my $info = $test->default_interface_info();
+$info = $test->default_interface_info();
 ok($info, "freebsd default interface");
 is($info->{device}, 'xl0', 'freebsd default interface device');
 is($info->{src}, 'ifconfig', 'freebsd default interface src');
