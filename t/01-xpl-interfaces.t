@@ -5,7 +5,7 @@
 use strict;
 use English qw/-no_match_vars/;
 use xPL::Base;
-use Test::More tests => 71;
+use Test::More tests => 90;
 use t::Helpers qw/test_error/;
 $| = 0;
 
@@ -83,6 +83,37 @@ foreach my $path (qw{t/interfaces/ifconfig.macosx}) {
      "interface broadcast lo - $path");
 }
 
+foreach my $path (qw{t/interfaces/ifconfig.freebsd}) {
+  $ENV{PATH} = $path;
+  my $test = xPL::Test->new();
+  ok($test, "test object - $path");
+  my $src = -f $path.'/ifconfig' ? 'ifconfig' : 'ip';
+  my $list = $test->interfaces();
+  ok($list, "interfaces - $path");
+  is(@$list, 2, "interfaces length - $path");
+  is($list->[1]->{device}, 'lo0', "interfaces device - $path");
+  is($list->[1]->{src}, $src, "interfaces src - $path");
+  is($list->[1]->{ip}, '127.0.0.1', "interfaces ip - $path");
+  is($list->[1]->{broadcast}, '127.0.0.1',"interfaces broadcast - $path");
+
+  # hack the cache because we didn't use the API properly
+  $test->{_interfaces} = $list;
+
+  is($test->interface_ip('xl0'), '192.168.3.13',
+     "interface ip xl0 - $path");
+  is($test->interface_broadcast('xl0'), '192.168.3.255',
+     "interface broadcast xl0 - $path");
+
+  is($test->interface_ip('lo0'), '127.0.0.1',
+     "interface ip lo0 - $path");
+  is($test->interface_broadcast('lo0'), '127.0.0.1',
+     "interface broadcast lo0 - $path");
+
+  is($test->interface_ip('lo'), '127.0.0.1',
+     "interface ip lo - $path");
+  is($test->interface_broadcast('lo'), '127.0.0.1',
+     "interface broadcast lo - $path");
+}
 
 $ENV{PATH} = 't/interfaces/ifconfig.empty';
 my $test = xPL::Test->new();
@@ -93,13 +124,23 @@ is(@$list, 0, "interfaces length - empty");
 
 $ENV{PATH} = 't/interfaces/ifconfig.macosx';
 $test = xPL::Test->new();
-ok($test, "test object - main");
+ok($test, "macosx test object - main");
 my $info = $test->default_interface_info();
-ok($info, "default interface");
-is($info->{device}, 'en0', 'default interface device');
-is($info->{src}, 'ifconfig', 'default interface src');
-is($info->{ip}, '192.168.3.13', 'default interface ip');
-is($info->{broadcast}, '192.168.3.255', 'default interface broadcast');
+ok($info, "macosx default interface");
+is($info->{device}, 'en0', 'macosx default interface device');
+is($info->{src}, 'ifconfig', 'macosx default interface src');
+is($info->{ip}, '192.168.3.13', 'macosx default interface ip');
+is($info->{broadcast}, '192.168.3.255', 'macosx default interface broadcast');
+
+$ENV{PATH} = 't/interfaces/ifconfig.freebsd';
+$test = xPL::Test->new();
+ok($test, "freebsd test object - main");
+my $info = $test->default_interface_info();
+ok($info, "freebsd default interface");
+is($info->{device}, 'xl0', 'freebsd default interface device');
+is($info->{src}, 'ifconfig', 'freebsd default interface src');
+is($info->{ip}, '192.168.3.13', 'freebsd default interface ip');
+is($info->{broadcast}, '192.168.3.255', 'freebsd default interface broadcast');
 
 # finally test the higher level methods with one of the paths
 $ENV{PATH} = 't/interfaces/ifconfig.linux';
