@@ -149,6 +149,7 @@ sub xpl_in {
       my ($house, $unit) = @$device;
       my $string = ($house.'[1]'.$unit.$command) x 2;
       command_ctx35($string) or next;
+      $unit =~ s/^0//;
       my %args = (
                   message_type => 'xpl-trig',
                   class => 'x10.confirm',
@@ -174,6 +175,7 @@ sub xpl_in {
     my ($house, $unit) = @$device;
     my $string = (($house.$unit) x 2).' '.(($house.$command) x $repeat);
     command_ctx35($string) or next;
+    $unit =~ s/^0//;
     send_xpl_confirm((lc $house).$unit, $msg->command, $msg->level);
   }
   return 1;
