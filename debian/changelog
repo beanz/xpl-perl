@@ -1,3 +1,50 @@
+libxpl-perl (0.06-1) unstable; urgency=low
+
+  * New mailing lists: announce@xpl-perl.org.uk, dev@xpl-perl.org.uk
+  * New client: xpl-ctx35 experimental (transmit only) support for
+    CTX35/TI103/TI203/TI213 X10 Transceiver.  Thanks to Eric-jan Riemers
+    for testing.
+  * New client: xpl-sms-send.  More generic SMS sending using SMS::Send
+    drivers from CPAN.
+  * Added to SMS::Send drivers one for CSoft (tested) and one for
+    SMSDiscount (untested since I don't have an account) both of these
+    will probably move to CPAN.
+  * New script: xpl-tty-tcp make a serial/USB device available on a TCP
+    port.  Allows multiple clients to connect at once though I don't
+    recemmend it.  It is primarily intended to allow me to emulate a
+    networked RFXCom transmitter/receiver for testing purposes.
+  * RFXCom: Experimental transmitter support.
+  * RFXCom: Several improvements to the receiver client.  Thanks to Bert
+    for his comments on the xpl-dev@xpl-home.org list on Wed, 04 Jul 2007
+    12:30:53 -0400.
+  * RFXCom: RFXSensor negative temperature support (untested).
+  * RFXCom: Oregon THWR288A support.  Thanks to Eric-jan Riemers for test
+    data and testing.
+  * RFXMeter/RFXPower: Bug fixing.  Thanks to Rick Klaassen.
+  * RFXCom: Support for WGR918.  Thanks to Rick Klaassen for test data,
+    testing and bug fixing.
+  * RFXCom: Visonic PowerCode and CodeSecure devices.  I'd still like to
+    implemente parity (or similar) checking for CodeSecure device if such
+    a thing is possible.
+  * RFXCom: Support for networked (as well as USB) receivers and
+    transmitters.  Thanks to Bert for allowing me access to a device for
+    testing.
+  * RFXCom: Improved handling of duplicate messages in RFXCom receiver code.
+  * Support for MacOS/X and FreeBSD
+  * Rewrite of X10 encoding/decoding and added tests to cover this code.
+  * Allow overriding of the default time zone using the TZ environment
+    variable.  Thanks to Eric-jan Riemers for bug reporting and testing.
+  * Allow clients to register callbacks for xPL messages using filters
+    defined using code references rather than simply regular expressions.
+  * Improved test coverage.
+  * Improved support for security.zone messages.
+  * Improved behaviour when using a loopback interface.
+  * Minor fix to hddtemp output parsing/reporting.
+  * Minor bug fixes to xPL::SQL - thanks to Eric for the bug reports.  It
+    might be worth noting that I don't actually use this code.
+
+ -- Mark Hindess <debian@beanz.uklinux.net>  Sat, 06 Oct 2007 07:53:01 +0100
+
 libxpl-perl (0.05-1) unstable; urgency=low
 
   * BIG CHANGE: Message schema are now encoded as YAML datafiles and
