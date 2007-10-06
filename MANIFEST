@@ -208,6 +208,7 @@ t/rf/visonic-01-codesecure.txt
 t/rf/visonic-02-powercode.txt
 t/rf/visonic-03-powercode-secondary.txt
 t/rf/visonic-04-powercode-parity-error.txt
+t/rf/visonic-05-codesecure-invalid.txt
 t/rf/x10-01-a11-on-dup.txt
 t/rf/x10-01-a11-on-no-dup.txt
 t/rf/x10-01-a11-on.txt
