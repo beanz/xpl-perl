@@ -135,6 +135,7 @@ t/11-sms-send-csoft.t
 t/11-sms-send-smsdiscount.t
 t/Helpers.pm
 t/interfaces/ifconfig.empty/ifconfig
+t/interfaces/ifconfig.freebsd/ifconfig
 t/interfaces/ifconfig.linux/ifconfig
 t/interfaces/ifconfig.loopback.only/ifconfig
 t/interfaces/ifconfig.macosx/ifconfig
