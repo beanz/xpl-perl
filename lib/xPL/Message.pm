@@ -741,7 +741,7 @@ It also creates a C<body_fields> method from the specification.
 
 sub make_body_fields {
   my @f = ();
-  foreach my $rec (@{$_[0]->field_spec()}) {
+  foreach my $rec (@{$_[0]->field_spec()||[]}) {
     $_[0]->make_body_field($rec);
     push @f, $rec->{name};
   }
