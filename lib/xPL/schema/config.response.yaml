@@ -1,0 +1,6 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/XPL_Specification_Document#Device_Configuration
+default_message_type: xpl-cmnd
+types:
+  xpl-cmnd:
+    fields: []
