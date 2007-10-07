@@ -68,7 +68,13 @@ if (exists $opt{'v'}) {
 my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in);
+$xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in,
+                       filter => {
+                                  message_type => 'xpl-cmnd',
+                                  class => 'control',
+                                  class_type => 'basic',
+                                  type => 'output',
+                                 });
 
 # sanity check the inputs immediately and periodically so we keep
 # the current state sane even when viom is unplugged, etc.
@@ -113,17 +119,6 @@ sub xpl_in {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  if ($msg->message_type ne 'xpl-cmnd' ||
-      $msg->class ne 'control' ||
-      $msg->class_type ne 'basic') {
-    return 1;
-  }
-
-  return 1 unless ($msg->type eq "output");
-  if ($msg->device =~ /debug/) { # hack to aid debug
-    send_viom($msg->current);
-    return 1;
-  }
   return 1 unless ($msg->device =~ /^o(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
   my $id = sprintf("o%02d", $num);

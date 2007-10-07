@@ -67,9 +67,6 @@ if (exists $opt{'v'}) {
 # Create an xPL Client object
 my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
-# Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'w800', callback => \&xpl_in);
-
 my $buf = q{};
 my $rf = xPL::RF->new(source => $xpl->id) or
   die "Failed to create RF decode object\n";
@@ -86,28 +83,6 @@ $xpl->add_input(handle => $fh, callback => \&w800_reader);
 
 # Run the main loop
 $xpl->main_loop();
-
-=head2 C<xpl_in(%xpl_callback_parameters)>
-
-This is the callback that processes incoming xPL messages.  It handles
-the incoming control.basic schema messages.
-
-=cut
-
-sub xpl_in {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  if ($msg->message_type ne 'xpl-cmnd' ||
-      $msg->class ne 'control' ||
-      $msg->class_type ne 'basic') {
-    return 1;
-  }
-
-  return 1;
-}
 
 =head2 C<w800_reader()>
 

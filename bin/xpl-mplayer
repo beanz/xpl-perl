@@ -54,7 +54,7 @@ if (exists $opt{'h'}) {
   HELP_MESSAGE()
 }
 $opt{'s'} = 1 unless (exists $opt{'s'});
-$opt{'l'} = "/etc/ha/conf/playlist.m3u" unless (exists $opt{'l'});
+$opt{'l'} = "/etc/xpl-perl/playlist.m3u" unless (exists $opt{'l'});
 $opt{'c'} = 0 unless (exists $opt{'c'});
 $opt{'C'} = 'PCM' unless (exists $opt{'C'});
 
@@ -77,7 +77,12 @@ load_list($opt{'l'}, $opt{'s'});
 my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'mplayer', callback => \&xpl_in);
+$xpl->add_xpl_callback(id => 'mplayer', callback => \&xpl_in,
+                       {
+                        message_type => 'xpl-cmnd',
+                        class => 'audio',
+                        class_type => 'basic',
+                       });
 
 my $mode = "idle";
 my $quick = 0;
@@ -204,11 +209,6 @@ sub xpl_in {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  if ($msg->message_type ne 'xpl-cmnd' ||
-      $msg->class ne 'audio' ||
-      $msg->class_type ne 'basic') {
-    return 1;
-  }
   my $command = $msg->command;
   print STDERR "Command: $command\n";
   if ($command =~ /^volume\s?\+(\d+)/) {
