@@ -77,9 +77,6 @@ if (exists $opt{'v'}) {
 # Create an xPL Client object
 my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
-# Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'digitemp', callback => \&xpl_in);
-
 my %state;
 my $buf = "";
 my $pid;
@@ -101,33 +98,6 @@ $xpl->add_input(handle => $fh, callback => \&digitemp_reader);
 
 # Run the main loop
 $xpl->main_loop();
-
-=head2 C<xpl_in(%xpl_callback_parameters)>
-
-This is the callback that processes incoming xPL messages.  It handles
-the incoming control.basic schema messages.
-
-=cut
-
-sub xpl_in {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  if ($msg->message_type ne 'xpl-cmnd' ||
-      $msg->class ne 'control' ||
-      $msg->class_type ne 'basic') {
-    return 1;
-  }
-
-  return 1 unless ($msg->type eq "output");
-  if ($msg->device =~ /debug/) { # hack to aid debug
-    # don't have any debug actions yet
-    return 1;
-  }
-  return 1;
-}
 
 =head2 C<digitemp_reader()>
 
