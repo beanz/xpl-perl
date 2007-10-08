@@ -39,6 +39,8 @@ our $SVNVERSION = qw/$Revision$/[1];
 
 my $EXCLAMATION = q{!};
 
+my @parsers = __PACKAGE__->parsers();
+
 =head2 C<new(%parameter_hash)>
 
 The constructor creates a new xPL::RF object.  The constructor takes a
@@ -182,7 +184,7 @@ sub process_variable_length {
     return $res;
   }
   my @msg_bytes = unpack 'C*', $msg;
-  foreach my $parser ($self->parsers()) {
+  foreach my $parser (@parsers) {
     my $messages = $parser->parse($self, $msg, \@msg_bytes, $length_bits);
     next unless (defined $messages);
     $res->{messages} = $messages;
