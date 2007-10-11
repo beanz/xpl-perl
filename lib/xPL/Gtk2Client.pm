@@ -82,6 +82,7 @@ sub add_input {
                         [$self, $p{handle}] );
   return 1;
 }
+
 sub remove_input {
   my $self = shift;
   my $handle = shift;
