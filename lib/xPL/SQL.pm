@@ -63,7 +63,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-my $db = $ENV{XPL_DB_CONFIG} || '/etc/ha/db.config';
+my $db = $ENV{XPL_DB_CONFIG} || '/etc/xpl-perl/db.config';
 my $fh = FileHandle->new($db) or die "Failed to open config, $db: $!\n";
 my %args = ();
 while (<$fh>) {
