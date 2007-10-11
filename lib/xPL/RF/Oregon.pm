@@ -95,6 +95,8 @@ sub parse {
   my $bytes = shift;
   my $bits = shift;
 
+  return unless (scalar @$bytes >= 2);
+
   my $type = ($bytes->[0] << 8) + $bytes->[1];
   my $rec = $types{$type} || $types{$type&0xfff};
   unless ($rec) {
