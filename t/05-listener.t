@@ -153,11 +153,12 @@ ok(!$xpl->exists_timer('null'), "timer triggered and removed by counter");
 
 is(test_error(sub { $xpl->add_timer(timeout => -1) }),
    ref($xpl)."->add_timer: requires 'id' parameter",
-   "adding existing timer");
+   "adding timer with no id");
 
 is(test_error(sub { $xpl->add_timer(id => 'null', timeout => 'tomorrow') }),
-   q{xPL::Timer->new_from_string: unknown timeout, 'tomorrow'},
-   "adding existing timer");
+   q{xPL::Timer->new: Failed to load xPL::Timer::tomorrow: }.
+     q{Can't locate xPL/Timer/tomorrow.pm in @INC},
+   "adding timer with bad timeout");
 
 is(test_error(sub { $xpl->add_timer(id => 'null') }),
    ref($xpl)."->add_timer: requires 'timeout' parameter",
