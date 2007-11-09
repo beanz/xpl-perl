@@ -35,6 +35,7 @@ my $DOT = q{.};
 
 use POSIX qw/uname/;
 use Socket;
+use Time::HiRes;
 use xPL::Listener;
 
 use Exporter;
@@ -168,6 +169,16 @@ sub new {
                            class_type => 'request',
                           },
                           callback => sub { $self->hbeat_request(@_) });
+
+  $self->add_xpl_callback(id => '!ping-request',
+                          self_skip => 0,
+                          filter =>
+                          {
+                           message_type => 'xpl-cmnd',
+                           class => 'ping',
+                           class_type => 'request',
+                          },
+                          callback => sub { $self->ping_request(@_) });
 
   $self->{_hbeat_mode} = 'fast';
 
@@ -323,6 +334,131 @@ sub hbeat_request {
                    timeout => 2 + rand 4,
                    callback => sub { $self->send_extra_hbeat(@_); return 0; },
                   );
+  return 1;
+}
+
+=head2 C<ping_request()>
+
+This method is the callback is used to handle C<ping.request> messages.
+
+=cut
+
+sub ping_request {
+  my $self = shift;
+  my %p = @_;
+  my $msg = $p{message};
+
+  if ($self->exists_timer('!ping-response')) {
+    # we are about to respond anyway so do nothing
+    return 1;
+  }
+  $self->ping_check();
+  my $delay = 2 + rand 4;
+  $self->add_timer(id => '!ping-response',
+                   timeout => $delay,
+                   callback =>
+                     sub { $self->send_ping_response($delay, @_); return 0; },
+                  );
+  return 1;
+}
+
+=head2 C<ping_action()>
+
+This method is intended to confirm that the client is functioning
+correctly.  The default implementation simply calls L<ping_done> with
+the string argument, 'ok'.  It is intended to be overriden by clients
+to provide more substancial functionality to confirm (or not) that the
+client is really functioning correctly.  It is intended that the
+checking is asynchonous so strictly-speaking this method should begin
+the checking process.
+
+=cut
+
+sub ping_action {
+  my $self = shift;
+  $self->ping_done('ok');
+}
+
+=head2 C<ping_kill_action()>
+
+This method is intended to be overriden by clients and should terminate
+any checking process that has been started.  It is called by the method
+that sends the ping response if the check is not finished sufficiently
+quickly.
+
+=cut
+
+sub ping_kill_action {
+  my $self = shift;
+  # nothing to kill
+  return 1;
+}
+
+=head2 C<ping_check()>
+
+This method is the used to perform any checks needed to confirm that the
+client is functioning correctly.  It calls L<ping_start> to record the
+time and then calls L<ping_action>.
+
+=cut
+
+sub ping_check {
+  my $self = shift;
+  $self->ping_start();
+  $self->ping_action();
+  return 1;
+}
+
+=head2 C<ping_start()>
+
+This method is the used to record the start time of the ping checking.
+
+=cut
+
+sub ping_start {
+  my $self = shift;
+  $self->{ping} =
+    {
+     start => Time::HiRes::time,
+    };
+  return 1;
+}
+
+=head2 C<ping_done()>
+
+This method is the used to record the end time and status of the ping
+checking.  The default status is 'ok'.
+
+=cut
+
+sub ping_done {
+  my $self = shift;
+  $self->{ping}->{state} = shift || 'ok';
+  my $end = $self->{ping}->{end} = Time::HiRes::time;
+  $self->{ping}->{time} = $end - $self->{ping}->{start};
+  return 1;
+}
+
+=head2 C<send_ping_response()>
+
+This method is the used to determine if the ping checking actions have
+succeeded and to send the response.  Or if the ping checking is still
+running to terminate it and send a C<ping.response> with state
+'timeout'.
+
+=cut
+
+sub send_ping_response {
+  my $self = shift;
+  my $delay = shift;
+  my %body =
+    (
+     delay => $delay,
+     state => $self->{ping}->{state} || 'timeout',
+    );
+  $body{time} = $self->{ping}->{time} if (exists $self->{ping}->{time});
+  $self->send(class => 'ping.response',
+              body => \%body);
   return 1;
 }
 
