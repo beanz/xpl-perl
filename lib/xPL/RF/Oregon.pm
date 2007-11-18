@@ -38,10 +38,11 @@ our $SVNVERSION = qw/$Revision$/[1];
 
 my %types =
   (
-   0xfa28 => { part => 'THGR810', len => 80, },
+   0xfa28 => { part => 'THGR810', len => 80,
+               checksum => \&checksum2, method => 'common_temphydro', },
    0xfab8 => { part => 'WTGR800',
                len => 80,  checksum => \&checksum2,
-               method => 'wtgr800_temphydro', },
+               method => 'alt_temphydro', },
    0x1a99 => { part => 'WTGR800',
                len => 88, checksum => \&checksum4,
                method => 'wtgr800_anemometer', },
@@ -58,9 +59,12 @@ my %types =
    0x1a2d => { part => 'THGR228N',
                len => 80, checksum => \&checksum2,
                method => 'common_temphydro', },
-   0x1a3d => { part => 'THGR918', len => 80, },
-   0x5a5d => { part => 'BTHR918', len => 88, },
-   0x5a6d => { part => 'THGR918N', len => 96, },
+   0x1a3d => { part => 'THGR918', len => 80,
+               checksum => \&checksum2, method => 'common_temphydro', },
+   0x5a5d => { part => 'BTHR918', len => 88,
+               checksum => \&checksum11, method => 'common_temphydrobaro', },
+   0x5a6d => { part => 'THGR918N', len => 96,
+               checksum => \&checksum11, method => 'alt_temphydro', },
    0x3a0d => { part => 'WGR918',  checksum => \&checksum4,
                len => { map { $_ => 1 } (80,88) },
                method => 'wgr918_anemometer', },
@@ -253,14 +257,14 @@ sub wtgr800_anemometer {
   return \@res;
 }
 
-=head2 C<wtgr800_temphydro( $parent, $message, $bytes, $bits )>
+=head2 C<alt_temphydro( $parent, $message, $bytes, $bits )>
 
 This method is called if the device type bytes indicate that the bytes
 might contain a temperature/humidity message from a WTGR800 sensor.
 
 =cut
 
-sub wtgr800_temphydro {
+sub alt_temphydro {
   my $self = shift;
   my $type = shift;
   my $parent = shift;
@@ -371,6 +375,31 @@ sub common_temphydro {
   return \@res;
 }
 
+=head2 C<common_temphydrobaro( $type, $parent, $message, $bytes, $bits )>
+
+This method is a generic device method for devices that report
+temperature, humidity and barometric pressure in a particular manner.
+
+=cut
+
+sub common_temphydrobaro {
+  my $self = shift;
+  my $type = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  my $device = sprintf "%02x", $bytes->[3];
+  my $dev_str = $type.$DOT.$device;
+  my @res = ();
+  temperature($parent, $bytes, $dev_str, \@res);
+  humidity($parent, $bytes, $dev_str, \@res);
+  pressure($parent, $bytes, $dev_str, \@res);
+  simple_battery($parent, $bytes, $dev_str, \@res);
+  return \@res;
+}
+
 =head1 CHECKSUM METHODS
 
 =head2 C<checksum1( $bytes )>
@@ -419,6 +448,17 @@ minus 10, which should equal the 10th byte.
 
 sub checksum4 {
   $_[0]->[9] == ((nibble_sum(9,$_[0]) - 0xa) & 0xff);
+}
+
+=head2 C<checksum11( $bytes )>
+
+This method is a byte checksum of all nibbles of the first 10 bytes
+minus 10, which should equal the 11th byte.
+
+=cut
+
+sub checksum11 {
+  $_[0]->[10] == ((nibble_sum(10,$_[0]) - 0xa) & 0xff);
 }
 
 my @uv_str =
@@ -521,6 +561,38 @@ sub humidity {
                                type => 'humidity',
                                current => $hum,
                                string => $hum_str,
+                              }
+                     );
+  1;
+}
+
+=head2 C<pressure( $parent, $bytes, $device, \@result)>
+
+This method processes a pressure reading.  It appends an xPL message
+to the result array.
+
+=cut
+
+sub pressure {
+  my ($parent, $bytes, $dev, $res) = @_;
+  my $hpa = $bytes->[8]+795;
+  my $forecast = { 0xc => 'sunny',
+                   0x6 => 'partly',
+                   0x2 => 'cloudy',
+                   0x3 => 'rain',
+                 }->{lo_nibble($bytes->[9])} || 'unknown';
+  #printf STDERR "%s baro: %d %s\n", $dev, $hpa, $forecast;
+  push @$res,
+    xPL::Message->new(
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev,
+                               type => 'pressure',
+                               current => $hpa,
+                               units => 'hPa',
+                               forecast => $forecast,
                               }
                      );
   1;

@@ -1,0 +1,32 @@
+501a3d10fb611350254355
+
+11 bytes
+
+2 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=thgr918.fb
+type=temp
+current=13.6
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=thgr918.fb
+type=humidity
+current=55
+string=normal
+}
+
