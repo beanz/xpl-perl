@@ -172,7 +172,10 @@ t/msg/018.osd.basic.txt
 t/rf/electrisave-01.txt
 t/rf/electrisave-02-invalid-byte1.txt
 t/rf/electrisave-03-invalid-byte2.txt
+t/rf/oregon-bthr918-01-bad-forecast.txt
+t/rf/oregon-bthr918-01.txt
 t/rf/oregon-device-test-01.txt
+t/rf/oregon-rgr918-01.txt
 t/rf/oregon-rtgr328n-01-temphydro.txt
 t/rf/oregon-rtgr328n-02-datetime.txt
 t/rf/oregon-rtgr328n-03-invalid-checksum.txt
@@ -181,6 +184,7 @@ t/rf/oregon-rtgr328n-05-negativetemp.txt
 t/rf/oregon-rtgr328n-06-low-battery.txt
 t/rf/oregon-rtgr328n-07-unexpected-len.txt
 t/rf/oregon-thgr228n-01-temphydro.txt
+t/rf/oregon-thgr810-01.txt
 t/rf/oregon-thr128-01-temp.txt
 t/rf/oregon-uv138-01.txt
 t/rf/oregon-uv138-02-invalid-checksum.txt
