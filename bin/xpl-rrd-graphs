@@ -45,7 +45,9 @@ my %rrds = ();
 {
   sub wanted {
     return unless (/^(.*)\.rrd$/);
-    $rrds{substr($File::Find::dir, length($data_dir)+1)}->{$1} =
+    my $base = $File::Find::dir eq $data_dir ?
+      "" : substr($File::Find::dir, length($data_dir)+1);
+    $rrds{$base}->{$1} =
       {
        rrd => $File::Find::name,
       };
