@@ -1,6 +1,6 @@
-605a6d00b110236046a3614e5c
+542a1d00863000815540031b
 
-13 bytes
+12 bytes
 
 4 messages
 
@@ -12,9 +12,10 @@ target=*
 }
 sensor.basic
 {
-device=bthr918n.b1
-type=temp
-current=23.1
+device=rgr918.86
+type=speed
+current=3
+units=mm/h
 }
 xpl-trig
 {
@@ -24,10 +25,10 @@ target=*
 }
 sensor.basic
 {
-device=bthr918n.b1
-type=humidity
-current=66
-string=comfortable
+device=rgr918.86
+type=distance
+current=558
+units=mm
 }
 xpl-trig
 {
@@ -37,11 +38,10 @@ target=*
 }
 sensor.basic
 {
-device=bthr918n.b1
-type=pressure
-current=1019
-units=hPa
-forecast=partly
+device=rgr918.86
+type=count
+current=1
+units=flips
 }
 xpl-trig
 {
@@ -51,9 +51,9 @@ target=*
 }
 sensor.basic
 {
-device=bthr918n.b1
+device=rgr918.86
 type=battery
-current=100
+current=90
 units=%
 }
 

@@ -2,7 +2,7 @@
 
 11 bytes
 
-2 messages
+3 messages
 
 xpl-trig
 {
@@ -28,5 +28,18 @@ device=wtgr800.2f
 type=humidity
 current=86
 string=wet
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=wtgr800.2f
+type=battery
+current=80
+units=%
 }
 

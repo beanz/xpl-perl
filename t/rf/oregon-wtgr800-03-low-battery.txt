@@ -29,16 +29,17 @@ type=humidity
 current=86
 string=wet
 }
-xpl-cmnd
+xpl-trig
 {
 hop=1
 source=bnz-rftest.default
 target=*
 }
-osd.basic
+sensor.basic
 {
-command=clear
-text=wtgr800.2f has low battery (10%)
-row=2
+device=wtgr800.2f
+type=battery
+current=10
+units=%
 }
 

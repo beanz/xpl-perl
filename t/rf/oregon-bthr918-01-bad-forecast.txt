@@ -2,7 +2,7 @@
 
 12 bytes
 
-3 messages
+4 messages
 
 xpl-trig
 {
@@ -42,5 +42,18 @@ type=pressure
 current=1001
 units=hPa
 forecast=unknown
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=bthr918.c2
+type=battery
+current=90
+units=%
 }
 

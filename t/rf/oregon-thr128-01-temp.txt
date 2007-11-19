@@ -2,7 +2,7 @@
 
 11 bytes
 
-1 messages
+2 messages
 
 xpl-trig
 {
@@ -15,5 +15,18 @@ sensor.basic
 device=thr128.0a
 type=temp
 current=23.9
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=thr128.0a
+type=battery
+current=90
+units=%
 }
 

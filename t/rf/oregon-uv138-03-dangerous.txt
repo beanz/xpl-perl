@@ -2,7 +2,7 @@
 
 16 bytes
 
-1 messages
+2 messages
 
 xpl-trig
 {
@@ -16,5 +16,18 @@ device=uv138.80
 type=uv
 current=12
 risk=dangerous
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=uv138.80
+type=battery
+current=90
+units=%
 }
 

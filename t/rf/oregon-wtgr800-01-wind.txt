@@ -2,7 +2,7 @@
 
 12 bytes
 
-2 messages
+3 messages
 
 xpl-trig
 {
@@ -28,5 +28,18 @@ sensor.basic
 device=wtgr800.2f
 type=direction
 current=22.5
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=wtgr800.2f
+type=battery
+current=100
+units=%
 }
 

@@ -62,13 +62,14 @@ my %types =
    0x1a3d => { part => 'THGR918', len => 80,
                checksum => \&checksum2, method => 'common_temphydro', },
    0x5a5d => { part => 'BTHR918', len => 88,
-               checksum => \&checksum11, method => 'common_temphydrobaro', },
-   0x5a6d => { part => 'THGR918N', len => 96,
-               checksum => \&checksum11, method => 'alt_temphydro', },
+               checksum => \&checksum5, method => 'common_temphydrobaro', },
+   0x5a6d => { part => 'BTHR918N', len => 96,
+               checksum => \&checksum5, method => 'alt_temphydrobaro', },
    0x3a0d => { part => 'WGR918',  checksum => \&checksum4,
                len => { map { $_ => 1 } (80,88) },
                method => 'wgr918_anemometer', },
-   0x2a1d => { part => 'RGR126/RGR682/RGR918', len => 80, },
+   0x2a1d => { part => 'RGR918', len => 84,
+               checksum => \&checksum6, method => 'common_rain', },
    0x0a4d => { part => 'THR128', len => 80,
                checksum => \&checksum2, method => 'common_temp', },
    #0x0a4d => { part => 'THR138', len => 80, method => 'common_temp', },
@@ -281,6 +282,31 @@ sub alt_temphydro {
   return \@res;
 }
 
+=head2 C<alt_temphydrobaro( $parent, $message, $bytes, $bits )>
+
+This method is called if the device type bytes indicate that the bytes
+might contain a temperature/humidity/baro message from a BTHR918N sensor.
+
+=cut
+
+sub alt_temphydrobaro {
+  my $self = shift;
+  my $type = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  my $device = sprintf "%02x", $bytes->[3];
+  my $dev_str = $type.$DOT.$device;
+  my @res = ();
+  temperature($parent, $bytes, $dev_str, \@res);
+  humidity($parent, $bytes, $dev_str, \@res);
+  pressure($parent, $bytes, $dev_str, \@res, hi_nibble($bytes->[9]), 856);
+  percentage_battery($parent, $bytes, $dev_str, \@res);
+  return \@res;
+}
+
 =head2 C<rtgr328n_datetime( $parent, $message, $bytes, $bits )>
 
 This method is called if the device type bytes indicate that the bytes
@@ -395,7 +421,73 @@ sub common_temphydrobaro {
   my @res = ();
   temperature($parent, $bytes, $dev_str, \@res);
   humidity($parent, $bytes, $dev_str, \@res);
-  pressure($parent, $bytes, $dev_str, \@res);
+  pressure($parent, $bytes, $dev_str, \@res, lo_nibble($bytes->[9]));
+  simple_battery($parent, $bytes, $dev_str, \@res);
+  return \@res;
+}
+
+=head2 C<common_rain( $type, $parent, $message, $bytes, $bits )>
+
+This method is a generic device method for devices that report
+temperature, humidity and barometric pressure in a particular manner.
+
+=cut
+
+sub common_rain {
+  my $self = shift;
+  my $type = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  my $device = sprintf "%02x", $bytes->[3];
+  my $dev_str = $type.$DOT.$device;
+  my @res = ();
+  my $rain = sprintf("%02x",$bytes->[5])*10 + hi_nibble($bytes->[4]);
+  my $train = lo_nibble($bytes->[8])*1000 +
+    sprintf("%02x", $bytes->[7])*10 + hi_nibble($bytes->[6]);
+  my $flip = lo_nibble($bytes->[6]);
+  #print STDERR "$dev_str rain = $rain, total = $train, flip = $flip\n";
+  push @res,
+    xPL::Message->new(
+                      strict => 0,
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'speed',
+                               current => $rain,
+                               units => 'mm/h',
+                              }
+                     );
+  push @res,
+    xPL::Message->new(
+                      strict => 0,
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'distance',
+                               current => $train,
+                               units => 'mm',
+                              }
+                     );
+  push @res,
+    xPL::Message->new(
+                      strict => 0,
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'count',
+                               current => $flip,
+                               units => 'flips',
+                              }
+                     );
   simple_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
 }
@@ -450,15 +542,27 @@ sub checksum4 {
   $_[0]->[9] == ((nibble_sum(9,$_[0]) - 0xa) & 0xff);
 }
 
-=head2 C<checksum11( $bytes )>
+=head2 C<checksum5( $bytes )>
 
 This method is a byte checksum of all nibbles of the first 10 bytes
 minus 10, which should equal the 11th byte.
 
 =cut
 
-sub checksum11 {
+sub checksum5 {
   $_[0]->[10] == ((nibble_sum(10,$_[0]) - 0xa) & 0xff);
+}
+
+=head2 C<checksum6( $bytes )>
+
+This method is a byte checksum of all nibbles of the first 10 bytes
+minus 10, which should equal the 11th byte.
+
+=cut
+
+sub checksum6 {
+  hi_nibble($_[0]->[8])+(lo_nibble($_[0]->[9])<<4) ==
+    ((nibble_sum(8,$_[0]) - 0xa) & 0xff);
 }
 
 my @uv_str =
@@ -566,7 +670,8 @@ sub humidity {
   1;
 }
 
-=head2 C<pressure( $parent, $bytes, $device, \@result)>
+=head2 C<pressure( $parent, $bytes, $device, \@result, $forecast_nibble,
+                   $offset )>
 
 This method processes a pressure reading.  It appends an xPL message
 to the result array.
@@ -574,13 +679,14 @@ to the result array.
 =cut
 
 sub pressure {
-  my ($parent, $bytes, $dev, $res) = @_;
-  my $hpa = $bytes->[8]+795;
+  my ($parent, $bytes, $dev, $res, $forecast_nibble, $offset) = @_;
+  $offset = 795 unless ($offset);
+  my $hpa = $bytes->[8]+$offset;
   my $forecast = { 0xc => 'sunny',
                    0x6 => 'partly',
                    0x2 => 'cloudy',
                    0x3 => 'rain',
-                 }->{lo_nibble($bytes->[9])} || 'unknown';
+                 }->{$forecast_nibble} || 'unknown';
   #printf STDERR "%s baro: %d %s\n", $dev, $hpa, $forecast;
   push @$res,
     xPL::Message->new(
@@ -608,17 +714,19 @@ message to the result array if the battery is low.
 sub simple_battery {
   my ($parent, $bytes, $dev, $res) = @_;
   my $battery_low = $bytes->[4]&0x4;
+  my $bat = $battery_low ? 10 : 90;
   push @$res,
     xPL::Message->new(
-                      message_type => 'xpl-cmnd',
-                      class => 'osd.basic',
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
                       head => { source => $parent->source, },
                       body => {
-                               command => 'clear',
-                               text => $dev.' has low battery',
-                               row => 2,
+                               device => $dev,
+                               type => 'battery',
+                               current => $bat,
+                               units => '%',
                               }
-                     ) if ($battery_low);
+                     );
   $battery_low;
 }
 
@@ -634,15 +742,16 @@ sub percentage_battery {
   my $bat = 100-10*lo_nibble($bytes->[4]);
   push @$res,
     xPL::Message->new(
-                      message_type => 'xpl-cmnd',
-                      class => 'osd.basic',
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
                       head => { source => $parent->source, },
                       body => {
-                               command => 'clear',
-                               text => $dev.' has low battery ('.$bat.'%)',
-                               row => 2,
+                               device => $dev,
+                               type => 'battery',
+                               current => $bat,
+                               units => '%',
                               }
-                     ) if ($bat < 20);
+                     );
   $bat < 20;
 }
 

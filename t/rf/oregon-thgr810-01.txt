@@ -2,7 +2,7 @@
 
 11 bytes
 
-2 messages
+3 messages
 
 xpl-trig
 {
@@ -28,5 +28,18 @@ device=thgr810.e6
 type=humidity
 current=45
 string=comfortable
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=thgr810.e6
+type=battery
+current=90
+units=%
 }
 

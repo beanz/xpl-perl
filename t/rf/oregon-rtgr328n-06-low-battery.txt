@@ -29,16 +29,17 @@ type=humidity
 current=42
 string=comfortable
 }
-xpl-cmnd
+xpl-trig
 {
 hop=1
 source=bnz-rftest.default
 target=*
 }
-osd.basic
+sensor.basic
 {
-command=clear
-text=rtgr328n.4d has low battery
-row=2
+device=rtgr328n.4d
+type=battery
+current=10
+units=%
 }
 
