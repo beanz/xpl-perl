@@ -59,6 +59,8 @@ lib/xPL/schema/audio.basic.yaml
 lib/xPL/schema/audio.request.yaml
 lib/xPL/schema/cid.basic.yaml
 lib/xPL/schema/clock.update.yaml
+lib/xPL/schema/config.list.yaml
+lib/xPL/schema/config.response.yaml
 lib/xPL/schema/control.basic.yaml
 lib/xPL/schema/datetime.basic.yaml
 lib/xPL/schema/datetime.request.yaml
@@ -70,6 +72,8 @@ lib/xPL/schema/hbeat.basic.yaml
 lib/xPL/schema/hbeat.end.yaml
 lib/xPL/schema/hbeat.request.yaml
 lib/xPL/schema/osd.basic.yaml
+lib/xPL/schema/ping.request.yaml
+lib/xPL/schema/ping.response.yaml
 lib/xPL/schema/remote.basic.yaml
 lib/xPL/schema/remote.confirm.yaml
 lib/xPL/schema/security.zone.yaml
@@ -125,6 +129,7 @@ t/04-osd-errors.t
 t/05-listener-send-methods.t
 t/05-listener.t
 t/06-hub.t
+t/07-client-ping.t
 t/07-client.t
 t/08-bridge-client.t
 t/08-bridge.t
