@@ -78,7 +78,7 @@ my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'mplayer', callback => \&xpl_in,
-                       {
+                       filter => {
                         message_type => 'xpl-cmnd',
                         class => 'audio',
                         class_type => 'basic',
