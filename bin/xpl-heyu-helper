@@ -1,0 +1,77 @@
+#!/usr/bin/perl -w
+
+# $Id$
+
+=head1 NAME
+
+xpl-heyu-helper - Perl script for an xPL X10 application
+
+=head1 SYNOPSIS
+
+  # show usage message
+  xpl-heyu-helper -h
+
+  # start the heyu helper
+  echo -e '1\0turn\0a1\0on' | xpl-heyu-helper |sed -e's/\0/ /g;'
+
+=head1 DESCRIPTION
+
+This script is wrapper script that reads heyu command lines from stdin and
+outputs acknowledgements on stdout.  For example, it might accept:
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Std;
+$|=1; # autoflush - essential here
+
+sub HELP_MESSAGE {
+  my $msg = shift || q{};
+  die
+qq{Usage: $0 [flags]
+where valid flags are:
+  -h - show this help text
+  -v - verbose mode
+$msg
+};
+}
+
+my %opt = ();
+getopts('hv', \%opt);
+if (exists $opt{'h'}) {
+  HELP_MESSAGE()
+}
+my $verbose = $opt{'v'};
+my $chr0 = chr(0);
+
+while (<>) {
+  chomp;
+  my ($seq, @args) = split $chr0;
+  print STDERR "$seq < @args\n" if ($verbose);
+  my $rc = system('heyu', @args);
+  my @res = ();
+  push @res, $chr0, $? == -1 ? $! : $? if ($rc != 0);
+  print STDERR "$seq > $rc @res\n" if ($verbose);
+  print $seq, $chr0, $rc, @res, "\n";
+}
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), heyu(1), xpl-x10(1)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2005, 2007 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
