@@ -136,17 +136,17 @@ sub xpl_in {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  my $heyu_command = xpl_to_heyu($msg->command);
+  my $heyu_command = xpl_command_to_heyu($msg->command);
   return 1 unless ($heyu_command);
 
   my @devices;
   my $data1;
   my $data2;
   if ($msg->device) {
-    push @devices, split /,/, $msg->device;
+    xpl_device_to_heyu($msg->device, \@devices);
   }
   if ($msg->house) {
-    push @devices, map { $_.'1' } split //, $msg->house;
+    xpl_house_to_heyu($msg->house, \@devices);
   }
   my @args = ();
   if ($heyu_command =~ /^bright|dim$/ && $msg->level) {
@@ -163,7 +163,8 @@ sub xpl_in {
       my %args = (
                   message_type => 'xpl-trig',
                   class => 'x10.confirm',
-                  body => { command => $msg->command, device => $device,
+                  body => { command => $msg->command,
+                            device => heyu_device_to_xpl($device),
                             data1 => $msg->data1, data2 => $msg->data2 },
                  );
       $xpl->send(%args);
@@ -173,7 +174,7 @@ sub xpl_in {
 
   foreach my $device (@devices) {
     heyu_helper_queue($heyu_command, $device, @args);
-    send_xpl_confirm($device, $msg->command, @args);
+    send_xpl_confirm(heyu_device_to_xpl($device), $msg->command, @args);
   }
   return 1;
 }
@@ -322,11 +323,40 @@ sub send_xpl_aux {
   $xpl->send(%args);
 }
 
+sub xpl_house_to_heyu {
+  my $house = shift;
+  my $result = shift;
+  foreach (split//,$house) {
+    push @{$result},$_.'1';
+  }
+  return $result;
+}
+
+sub xpl_device_to_heyu {
+  my $device = shift;
+  my $result = shift;
+  my %h = ();
+  foreach (split/,/, $device) {
+    my ($h,$u) = split//,$_, 2;
+    push@{$h{$h}},$u;
+  }
+  foreach (keys %h) {
+    push @$result, $_.(join",",sort { $a <=> $b } @{$h{$_}})
+  }
+  return $result;
+}
+
+sub heyu_device_to_xpl {
+  my $dev = shift;
+  my $house = substr($dev,0,1,q{});
+  return $house.(join ",".$house, split/,/,$dev);
+}
+
 # data1=0x31 data2=0x00-0x3f - dim on/off to specific level
 # data2 & 0x40 = at 30 second rate
 #       & 0x80 = at 1 minute rate
 #       & 0xc0 = at 5 minute rate
-sub xpl_to_heyu {
+sub xpl_command_to_heyu {
   my $command = shift;
   return {
           all_units_off => "alloff", all_units_on => "allon",
