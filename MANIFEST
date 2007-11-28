@@ -7,6 +7,7 @@ bin/xpl-dg834
 bin/xpl-digitemp
 bin/xpl-dmx
 bin/xpl-hddtemp
+bin/xpl-heyu-helper
 bin/xpl-hub
 bin/xpl-linux-cpu
 bin/xpl-lirc
