@@ -48,6 +48,7 @@ $msg
 };
 }
 
+my %args = ( vendor_id => 'bnz', device_id => 'mplayer', );
 my %opt = ();
 getopts('hvi:b:l:s:c:C:', \%opt);
 if (exists $opt{'h'}) {
@@ -58,11 +59,6 @@ $opt{'l'} = "/etc/xpl-perl/playlist.m3u" unless (exists $opt{'l'});
 $opt{'c'} = 0 unless (exists $opt{'c'});
 $opt{'C'} = 'PCM' unless (exists $opt{'C'});
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "mplayer",
-  );
 if (exists $opt{'i'}) {
   $args{interface} = $opt{'i'};
 }

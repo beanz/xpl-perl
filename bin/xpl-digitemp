@@ -45,6 +45,7 @@ $msg
 };
 }
 
+my %args = ( vendor_id => 'bnz', device_id => 'digitemp', );
 my %opt = ();
 getopts('hvi:', \%opt);
 if (exists $opt{'h'}) {
@@ -62,11 +63,6 @@ while (<$fh>) {
 }
 $fh->close;
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "digitemp",
-  );
 if (exists $opt{'i'}) {
   $args{interface} = $opt{'i'};
 }

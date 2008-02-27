@@ -51,17 +51,13 @@ $msg
 };
 }
 
+my %args = ( vendor_id => 'bnz', device_id => 'clock', );
 my %opt = ();
 getopts('hvs:i:f:', \%opt);
 if (exists $opt{'h'}) { HELP_MESSAGE() }
 my $tick_interval = $opt{'s'} || 10;
 my $time_format = $opt{'f'} || '%Y%m%d%H%M%S';
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "clock",
-  );
 if (exists $opt{'i'}) {
   $args{interface} = $opt{'i'};
 }

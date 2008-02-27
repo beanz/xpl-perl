@@ -52,16 +52,12 @@ $msg
 };
 }
 
+my %args = ( vendor_id => 'bnz', device_id => 'sender', );
 my %opt = ();
 getopts('hvi:m:c:s:t:w:', \%opt);
 
 if (exists $opt{'h'}) { HELP_MESSAGE() }
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "sender",
-  );
 if (exists $opt{'i'}) {
   $args{interface} = $opt{'i'};
 }

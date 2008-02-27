@@ -43,6 +43,7 @@ $msg
 };
 }
 
+my %args = ( vendor_id => 'bnz', device_id => 'dmx', );
 my %opt = ();
 getopts('hvi:b:B:c:', \%opt);
 if (exists $opt{'h'}) {
@@ -53,11 +54,6 @@ my $baud = exists $opt{'B'} ? $opt{'B'} : 9600;
 my $verbose = exists $opt{'v'};
 my $rgb_txt = exists $opt{'c'} ? $opt{'c'} : "/etc/X11/rgb.txt";
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "dmx",
-  );
 if (exists $opt{'i'}) {
   $args{interface} = $opt{'i'};
 }

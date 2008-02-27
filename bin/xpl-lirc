@@ -49,6 +49,7 @@ $msg
 };
 }
 
+my %args = ( vendor_id => 'bnz', device_id => 'lirc', );
 my %opt = ();
 getopts('hvi:s:', \%opt);
 if (exists $opt{'h'}) {
@@ -56,11 +57,6 @@ if (exists $opt{'h'}) {
 }
 my $verbose = exists $opt{'v'};
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "lirc",
-  );
 if (exists $opt{'i'}) {
   $args{interface} = $opt{'i'};
 }

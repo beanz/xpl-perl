@@ -42,6 +42,7 @@ $msg
 };
 }
 
+my %args = ( vendor_id => 'bnz', device_id => 'owfs', );
 my %opt = ();
 getopts('hvi:b:B:', \%opt);
 if (exists $opt{'h'}) {
@@ -50,11 +51,6 @@ if (exists $opt{'h'}) {
 my $ow_dir = shift or HELP_MESSAGE("The owfs mount parameter is required");
 my $verbose = exists $opt{'v'};
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "owfs",
-  );
 if (exists $opt{'i'}) {
   $args{interface} = $opt{'i'};
 }

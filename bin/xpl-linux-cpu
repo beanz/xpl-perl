@@ -47,17 +47,13 @@ $msg
 };
 }
 
+my %args = ( vendor_id => 'bnz', device_id => 'linuxcpu', );
 my %opt = ();
 getopts('hvs:i:', \%opt);
 if (exists $opt{'h'}) { HELP_MESSAGE() }
 my $interval = $opt{'s'} || 120;
 my $verbose = exists $opt{'v'};
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "linuxcpu",
-  );
 if (exists $opt{'i'}) {
   $args{interface} = $opt{'i'};
 }
