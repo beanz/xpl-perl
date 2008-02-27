@@ -47,6 +47,8 @@ foreach my $m (@modules) {
     skip 'DateTime::Event::Sunrise not available', 1
       if ($m eq 'xPL::Timer::sunrise' && !$has{Sunrise});
     skip 'DateTime::Event::Sunrise not available', 1
+      if ($m eq 'xPL::Client::DawnDusk' && !$has{Sunrise});
+    skip 'DateTime::Event::Sunrise not available', 1
       if ($m eq 'xPL::Timer::sunset' && !$has{Sunrise});
     skip 'DateTime::Event::Recurrence not available', 1
       if ($m eq 'xPL::Timer::recurrence' && !$has{Recurrence});
