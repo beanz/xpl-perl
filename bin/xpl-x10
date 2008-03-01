@@ -29,6 +29,7 @@ use FileHandle;
 use IO::Pipe;
 use POSIX ":sys_wait_h";
 use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 my $path = ($0=~m!^(.*/)!) ? $1 : '';

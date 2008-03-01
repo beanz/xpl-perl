@@ -42,6 +42,7 @@ correctly.
 use strict;
 use warnings;
 use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 use X::Osd;
 $|=1; # autoflush helps debugging

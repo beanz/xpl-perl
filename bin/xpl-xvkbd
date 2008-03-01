@@ -26,6 +26,7 @@ use warnings;
 use English qw/-no_match_vars/;
 use FileHandle;
 use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
