@@ -41,48 +41,40 @@ correctly.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
 use xPL::Client;
 use X::Osd;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options]
-where valid flags are:
-  -h - show this help text
-and valid options are (default shown in brackets):
-  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
-  -d nnn - the maximum delay in seconds that a message is allowed to remain
-           on screen for (10)
-$msg
-};
-}
-
+my %args = ( vendor_id => 'bnz', device_id => 'osd', );
 my %opt = ();
-getopts('hvi:b:d:', \%opt);
-if (exists $opt{'h'}) { HELP_MESSAGE() }
-my $max_delay = exists $opt{'d'} ? $opt{'d'} : 10;
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $max_delay = 10;
 my $rows = 4;
+my $font = '-adobe-courier-bold-r-normal--72-0-0-0-p-0-iso8859-1';
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'delay=i' => \$max_delay,
+           'rows=i' => \$rows,
+           'font=s' => \$font,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "osd",
-  );
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 my $xosd = X::Osd->new($rows);
-$xosd->set_font('-adobe-courier-bold-r-normal--72-0-0-0-p-0-iso8859-1');
+$xosd->set_font($font);
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'xosd', self_skip => 0, callback => \&osd,
