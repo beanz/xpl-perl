@@ -25,43 +25,30 @@ use strict;
 use warnings;
 use English qw/-no_match_vars/;
 use FileHandle;
-use Getopt::Std;
+use Getopt::Long;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options]
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-and valid options are (default shown in brackets):
-  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
-$msg
-};
-}
-
+my %args = ( vendor_id => 'bnz', device_id => 'xvkbd', );
 my %opt = ();
-getopts('hvi:b:', \%opt);
-if (exists $opt{'h'}) {
-  HELP_MESSAGE()
-}
+my $verbose;
+my $interface;
+my $help;
+my $man;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "xvkbd",
-  );
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'xvkbd', callback => \&xpl_in,
@@ -73,7 +60,6 @@ $xpl->add_xpl_callback(id => 'xvkbd', callback => \&xpl_in,
 
 # Run the main loop
 $xpl->main_loop();
-
 
 =head2 C<xpl_in(%xpl_callback_parameters)>
 
@@ -91,7 +77,7 @@ sub xpl_in {
 
   my @cmd = qw/xvkbd -text/;
   push @cmd, $msg->keys;
-  print STDERR "Executing '@cmd'\n" if ($opt{'v'});
+  print STDERR "Executing '@cmd'\n" if ($verbose);
   system(@cmd);
   return 1;
 }
