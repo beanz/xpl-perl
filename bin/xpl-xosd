@@ -8,8 +8,13 @@ xpl-xosd - Perl script for an xPL X OSD application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-xosd -h
+  xpl-xosd [flags] [options]
+  where valid flags are:
+    -h - show this help text
+  and valid options are (default shown in brackets):
+    -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+    -d nnn - the maximum delay in seconds that a message is allowed to remain
+             on screen for (10)
 
   # start the xosd on first ethernet interface in verbose mode
   xpl-xosd -i eth0 -v

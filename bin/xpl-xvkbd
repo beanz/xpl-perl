@@ -8,8 +8,12 @@ xpl-xvkbd - Perl script for an xPL virtual keyboard application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-xvkbd -h
+  xpl-xvkbd [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the inferface for xPL messages (first non-loopback or loopback)
 
   # start the xvkbd application on first ethernet interface in verbose mode
   xpl-xvkbd -i eth0 -v

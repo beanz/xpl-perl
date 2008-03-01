@@ -8,8 +8,13 @@ xpl-w800 - Perl script for an xPL W800 RF receiver application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-w800 -h
+  xpl-w800 [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+    -B baud - the baud rate (4800)
 
   # start the w800 application on first ethernet interface in verbose mode
   xpl-w800 -i eth0 -v
