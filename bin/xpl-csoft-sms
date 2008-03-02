@@ -12,7 +12,7 @@ xpl-csoft-sms - Perl script for an xPL X OSD application
   where valid flags are:
     -h - show this help text
   and valid options are (default shown in brackets):
-    -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
     -u name - your csoft username
     -p pin  - your csoft pin
 

@@ -13,7 +13,7 @@ xpl-x10 - Perl script for an xPL X10 application
     -h - show this help text
     -v - verbose mode
   and valid options are (default shown in brackets):
-    -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
 
   # start the x10 application on first ethernet interface in verbose mode
   xpl-x10 -i eth0 -v

@@ -13,7 +13,7 @@ xpl-dawndusk - Perl script for an xPL dawndusk application
     -h - show this help text
     -v - verbose mode
   and valid options are (default shown in brackets):
-    -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
 
   # start the dawndusk application listening and broadcasting on first
   # ethernet interface in verbose mode

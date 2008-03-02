@@ -12,7 +12,7 @@ xpl-xosd - Perl script for an xPL X OSD application
   where valid flags are:
     -h - show this help text
   and valid options are (default shown in brackets):
-    -i if0 - the inferface for xPL messages (first non-loopback or loopback)
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
     -d nnn - the maximum delay in seconds that a message is allowed to remain
              on screen for (10)
 
