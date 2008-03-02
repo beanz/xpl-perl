@@ -8,17 +8,31 @@ xpl-sender - Perl script for an xPL message sender application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-sender -h
+  xpl-sender [flags] [options] -m <msg.type> -c <class.type> [param=value ... ]
 
-  # start the send listening and broadcasting on the loopback interface
-  xpl-sender -i eth0 -c osd.basic command=clear text=Boo
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0        - the interface for xPL messages
+                    (first non-loopback or loopback)
+    -m xpl-type   - the xPL message type (xpl-cmnd, xpl-stat, or xpl-trig)
+    -c class.type - the schema type
+    -s source     - the source type
+    -t target     - the target type
+    -w time       - time to wait for a response (0 - don't wait)
+
+  # send the text 'Boo' to all devices supporting osd.basic
+  xpl-sender -c osd.basic command=clear text=Boo
+
+  # send a heartbeat request and wait 10 seconds for any responses
+  xpl-sender -c hbeat.request -w 10
 
   # something to go in /etc/apcupsd/mainsback perhaps:
-  xpl-sender -i eth0 -m xpl-trig -c ups.basic status=mains event=onmains
+  xpl-sender -m xpl-trig -c ups.basic status=mains event=onmains
 
   # something to go in /etc/apcupsd/onbattery perhaps:
-  xpl-sender -i eth0 -m xpl-trig -c ups.basic status=battery event=onbattery
+  xpl-sender -m xpl-trig -c ups.basic status=battery event=onbattery
 
 =head1 DESCRIPTION
 
@@ -29,55 +43,48 @@ command line arguments.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options] -m <msg.type> -c <class.type> [param=value ... ]
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-and valid options are (default shown in brackets):
-  -i if0        - the inferface for xPL messages
-                  (first non-loopback or loopback)
-  -m xpl-type   - the xPL message type (xpl-cmnd, xpl-stat, or xpl-trig)
-  -c class.type - the schema type
-  -s source     - the source type
-  -t target     - the target type
-  -w time       - time to wait for a response (0 - don't wait)
-$msg
-};
-}
-
 my %args = ( vendor_id => 'bnz', device_id => 'sender', );
 my %opt = ();
-getopts('hvi:m:c:s:t:w:', \%opt);
-
-if (exists $opt{'h'}) { HELP_MESSAGE() }
-
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
-my $wait = $opt{'w'};
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $message_type;
+my $class;
+my $source;
+my $target;
+my $wait;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'message_type|m=s' => \$message_type,
+           'class=s' => \$class,
+           'source=s' => \$source,
+           'target=s' => \$target,
+           'wait=i' => \$wait,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
 my %msg_args = ();
-
-exists $opt{'c'} or HELP_MESSAGE(q{Requires '-c' class type parameter});
-
-foreach (qw/m c s t/) {
-  if (exists $opt{$_}) {
-    $msg_args{'-'.$_} = $opt{$_};
-  }
-}
+defined $class or pod2usage(-message => q{Requires '-c' class type parameter},
+                            -exitstatus => 1);
+$msg_args{'-m'} = $message_type if (defined $message_type);
+$msg_args{'-c'} = $class if (defined $class);
+$msg_args{'-s'} = $source if (defined $source);
+$msg_args{'-t'} = $target if (defined $target);
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 unless ($wait) {
   $xpl->send_from_arg_list(%msg_args, @ARGV);
@@ -102,14 +109,14 @@ sub xpl_hub_response {
   my $peerport = $p{peerport};
 
   print STDERR "Sending\n";
-  my $class = $opt{'c'};
-  $class =~ s/\..*$//;
+  my $c = $class;
+  $c =~ s/\..*$//;
   $xpl->remove_xpl_callback('wait_for_hub');
   $xpl->send_from_arg_list(%msg_args, @ARGV);
   $xpl->add_xpl_callback(id => 'wait_for_response',
                          filter =>
                          {
-                          class => $class,
+                          class => $c,
                          },
                          callback => \&xpl_response);
   $xpl->add_timer(id => 'timeout', timeout => $wait, callback => \&give_up);
@@ -122,7 +129,7 @@ sub xpl_response {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  print $opt{'v'} ? $msg->string : $msg->summary ,"\n";
+  print $verbose ? $msg->string : $msg->summary, "\n";
 }
 
 sub give_up {
