@@ -8,8 +8,15 @@ xpl-clock - Perl script for an example xPL clock application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-clock -h
+  xpl-clock [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -s nn  - number of seconds the xPL clock should wait between messages (10)
+    -f str - time format string ("%Y%m%d%H%M%S") - see the man page for
+             strftime(3) or date(1) for details.
 
   # start the clock application with "tick" interval of 60 seconds
   xpl-clock -s 60
@@ -30,43 +37,36 @@ to use, with the L<xpl-logger>, for testing purposes.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use POSIX qw/strftime/;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options]
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-and valid options are (default shown in brackets):
-  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
-  -s nn  - number of seconds the xPL clock should wait between messages (10)
-  -f str - time format string ("%Y%m%d%H%M%S") - see the man page for
-           strftime(3) or date(1) for details.
-$msg
-};
-}
-
 my %args = ( vendor_id => 'bnz', device_id => 'clock', );
 my %opt = ();
-getopts('hvs:i:f:', \%opt);
-if (exists $opt{'h'}) { HELP_MESSAGE() }
-my $tick_interval = $opt{'s'} || 10;
-my $time_format = $opt{'f'} || '%Y%m%d%H%M%S';
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $tick_interval = 10;
+my $time_format = '%Y%m%d%H%M%S';
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'tick_interval=i' => \$tick_interval,
+           'time_format=s' => \$time_format,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
 
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a timer to the xPL Client event loop to generate the
 # "clock.update" messages.  The negative interval causes the timer to
