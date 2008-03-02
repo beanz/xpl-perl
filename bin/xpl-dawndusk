@@ -8,8 +8,12 @@ xpl-dawndusk - Perl script for an xPL dawndusk application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-dawndusk -h
+  xpl-dawndusk [flags] [options] latitude longitude
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the inferface for xPL messages (first non-loopback or loopback)
 
   # start the dawndusk application listening and broadcasting on first
   # ethernet interface in verbose mode
@@ -28,41 +32,34 @@ This script requires the DateTime::Event::Sunrise perl module.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options] latitude longitude
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-and valid options are (default shown in brackets):
-  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
-$msg
-};
-}
-
 my %args = ( vendor_id => 'bnz', device_id => 'dawndusk', );
 my %opt = ();
-getopts('hvi:', \%opt);
-if (exists $opt{'h'}) { HELP_MESSAGE() }
-
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+my $verbose;
+my $interface;
+my $help;
+my $man;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
 my $latitude = shift  || 51;
 my $longitude = shift || -1;
 my $state = "day";
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # set up each new day at midnight
 $xpl->add_timer(id => 'dawn',
@@ -98,14 +95,14 @@ sub send_dawndusk {
 
 sub dawn {
   $state = "day";
-  print "Dawn\n" if ($opt{'v'});
+  print "Dawn\n" if ($verbose);
   send_dawndusk('dawn');
   return 1;
 }
 
 sub dusk {
   $state = "night";
-  print "Dusk\n" if ($opt{'v'});
+  print "Dusk\n" if ($verbose);
   send_dawndusk('dusk');
   return 1;
 }
