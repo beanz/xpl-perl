@@ -8,8 +8,13 @@ xpl-hddtemp - Perl script for an xPL hddtemp monitor
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-hddtemp -h
+  xpl-hddtemp [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -s nn  - number of seconds between polling the hddtemp daemon (120)
 
   # start the hddtemp application with poll interval of 120 seconds
   xpl-hddtemp -s 120
@@ -28,42 +33,35 @@ disks.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use POSIX qw/strftime/;
 use xPL::Client;
 use IO::Socket;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options]
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-and valid options are (default shown in brackets):
-  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
-  -s nn  - number of seconds between polling the hddtemp daemon (120)
-$msg
-};
-}
-
 my %args = ( vendor_id => 'bnz', device_id => 'hddtemp', );
 my %opt = ();
-getopts('hvs:i:', \%opt);
-if (exists $opt{'h'}) { HELP_MESSAGE() }
-my $interval = $opt{'s'} || 120;
-my $verbose = exists $opt{'v'};
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $interval = 120;
+GetOptions('verbose+' => \$verbose,
+           'interface|i=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'interval|s=i' => \$interval,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
 
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 my $state = {};
 my $buf = "";
 
