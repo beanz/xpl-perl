@@ -8,8 +8,12 @@ xpl-owfs - Perl script for an xPL interface to the one-wire filesystem
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-owfs -h
+  xpl-owfs [flags] [options] <owfs-mountpoint>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
 
   # start the owfs application on first ethernet interface in verbose mode
   xpl-owfs -i eth0 -v
@@ -25,41 +29,34 @@ use warnings;
 use English qw/-no_match_vars/;
 use DirHandle;
 use FileHandle;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options] <owfs-mountpoint>
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-and valid options are (default shown in brackets):
-  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
-$msg
-};
-}
-
 my %args = ( vendor_id => 'bnz', device_id => 'owfs', );
 my %opt = ();
-getopts('hvi:b:B:', \%opt);
-if (exists $opt{'h'}) {
-  HELP_MESSAGE()
-}
-my $ow_dir = shift or HELP_MESSAGE("The owfs mount parameter is required");
-my $verbose = exists $opt{'v'};
+my $verbose;
+my $interface;
+my $help;
+my $man;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+my $ow_dir = shift or
+ pod2usage(-message => 'The owfs mount parameter is required',
+           -exitstatus => 1);
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'owfs', callback => \&xpl_in,
