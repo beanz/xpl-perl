@@ -8,8 +8,10 @@ xpl-heyu-helper - Perl script for an xPL X10 application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-heyu-helper -h
+  xpl-heyu-helper [flags]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
 
   # start the heyu helper
   echo -e '1\0turn\0a1\0on' | xpl-heyu-helper |sed -e's/\0/ /g;'
@@ -23,26 +25,21 @@ outputs acknowledgements on stdout.  For example, it might accept:
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 $|=1; # autoflush - essential here
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags]
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-$msg
-};
-}
-
 my %opt = ();
-getopts('hv', \%opt);
-if (exists $opt{'h'}) {
-  HELP_MESSAGE()
-}
-my $verbose = $opt{'v'};
+my $verbose;
+my $help;
+my $man;
+GetOptions('verbose+' => \$verbose,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+
 my $chr0 = chr(0);
 
 while (<>) {
