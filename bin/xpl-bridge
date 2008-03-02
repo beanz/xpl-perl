@@ -8,8 +8,18 @@ xpl-bridge - Perl script for a simple xPL bridge application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-bridge -h
+  xpl-bridge [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -H - dump the head of all xPL messages
+    -B - dump the body of all xPL messages
+  and valid options are (default shown in brackets):
+    -i ip  - the IP address the bridge should listen on (127.0.0.1)
+    -b ip  - the broadcast address for bridge hbeat messages (127.255.255.255)
+    -l ip  - the bridge should go in to listen mode listening on this
+             local address
+    -r ip  - the bridge should go in to client mode connecting to this
+             remote address
 
   # start the bridge in listen mode waiting for clients on 10.0.0.1
   xpl-bridge -i eth0 -v -l 10.0.0.1
@@ -35,55 +45,45 @@ will be added shortly.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use xPL::Bridge;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || '';
-  die
-qq{Usage: $0 [flags] [options]
-where valid flags are:
-  -h - show this help text
-  -H - dump the head of all xPL messages
-  -B - dump the body of all xPL messages
-and valid options are (default shown in brackets):
-  -i ip  - the IP address the bridge should listen on (127.0.0.1)
-  -b ip  - the broadcast address for bridge hbeat messages (127.255.255.255)
-  -l ip  - the bridge should go in to listen mode listening on this
-           local address
-  -r ip  - the bridge should go in to client mode connecting to this
-           remote address
-$msg
-};
-}
-
 my %args = ( vendor_id => 'bnz', device_id => 'bridge', );
 my %opt = ();
-getopts('hvi:Pr:l:', \%opt);
-exists $opt{'h'} and HELP_MESSAGE();
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $bridge_port;
+my $local_ip;
+my $remote_ip;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'local_ip=s' => \$local_ip,
+           'remote_ip=s' => \$remote_ip,
+           'bridge_port|p=i' => \$bridge_port,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
 
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+$args{'bridge_port'} = $bridge_port if ($bridge_port);
+
+unless (defined $local_ip or defined $remote_ip) {
+  pod2usage(-exitstatus => 1,
+            -message => 'One of -local_ip or -remote_ip is required.');
 }
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
-if (exists $opt{'P'}) {
-  $args{bridge_port} = $opt{'P'};
-}
-unless (exists $opt{'l'} or exists $opt{'r'}) {
-  HELP_MESSAGE('One of -l or -r is required.');
-}
-if (exists $opt{'l'}) {
-  $args{local_ip} = $opt{'l'};
-}
-if (exists $opt{'r'}) {
-  $args{remote_ip} = $opt{'r'};
-}
+$args{'local_ip'} = $local_ip if ($local_ip);
+$args{'remote_ip'} = $remote_ip if ($remote_ip);
 
 # Create an xPL Client object
-my $xpl = xPL::Bridge->new(%args) or die "Failed to create xPL::Bridge\n";
+my $xpl = xPL::Bridge->new(%args, %opt) or die "Failed to create xPL::Bridge\n";
 
 # Run the main loop
 $xpl->main_loop();
