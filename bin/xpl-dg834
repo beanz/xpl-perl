@@ -8,8 +8,19 @@ xpl-dg834 - Perl script for an xPL DG834 monitor
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-dg834 -h
+  xpl-dg834 [flags] [options] <host>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0           - the interface for xPL messages (first non-loopback
+                       or loopback)
+    -s nn            - number of seconds between polling the Netgear
+                       DG834 (120)
+    -c cfg           - configuration file ('~/.dg834rc', '/etc/dg834rc', or
+                       './dg834rc')
+    -instance_id id  - instance name (<host> or "default" if <host> is an
+                       ip address)
 
   # start the dg834 application with poll interval of 120 seconds
   xpl-dg834 -s 120
@@ -28,37 +39,41 @@ disks.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use FileHandle;
 use LWP::UserAgent;
 use POSIX qw/strftime/;
 use xPL::Client;
-
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options] <host>
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-and valid options are (default shown in brackets):
-  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
-  -s nn  - number of seconds between polling the Netgear DG834 (120)
-  -c cfg - configuration file ('~/.dg834rc', '/etc/dg834rc', or './dg834rc')
-  -I id  - instance name
-$msg
-};
-}
-
+my %args = ( vendor_id => 'bnz', device_id => 'dg834', );
 my %opt = ();
-getopts('hvs:i:c:I:', \%opt);
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $instance_id;
+my $interval = 120;
+my $conf;
+GetOptions('verbose+' => \$verbose,
+           'interface|i=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'instance_id=s' => \$instance_id,
+           'interval|s=i' => \$interval,
+           'config=s' => \$conf,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
 my $host = shift || '192.168.0.1';
-if (exists $opt{'h'}) { HELP_MESSAGE() }
-my $interval = $opt{'s'} || 120;
-my $verbose = exists $opt{'v'};
-my $conf = $opt{'c'};
+$args{instance_id} = ($instance_id ? $instance_id :
+                      ($host !~ /^(\d+\.){3}\d+$/ ? $host : "default"));
+
 unless ($conf) {
   foreach ($ENV{HOME}.'/.dg834rc', '/etc/dg834rc', 'dg834rc') {
     next unless (-f $_);
@@ -76,22 +91,8 @@ $fh->close;
 
 my $ua = LWP::UserAgent->new;
 
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "dg834",
-   instance_id => (exists $opt{'I'} ? $opt{'I'} :
-                   ($host !~ /^(\d+\.){3}\d+$/ ? $host : "default")),
-  );
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
-
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 my $state = {};
 my $buf = "";
 
