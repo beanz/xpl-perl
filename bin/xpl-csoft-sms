@@ -8,8 +8,14 @@ xpl-csoft-sms - Perl script for an xPL X OSD application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-csoft-sms -h
+  xpl-csoft-sms [flags] [options]
+  where valid flags are:
+    -h - show this help text
+  and valid options are (default shown in brackets):
+    -i if0  - the inferface for xPL messages (first non-loopback or loopback)
+    -u name - your csoft username
+    -p pin  - your csoft pin
+
 
   # start the csoft-sms on first ethernet interface in verbose mode
   xpl-csoft-sms -i eth0 -v
@@ -24,7 +30,8 @@ the LWP modules and one of the SSL implementations.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 use LWP::UserAgent;
 use HTTP::Request::Common qw(POST);
@@ -33,40 +40,36 @@ $|=1; # autoflush helps debugging
 
 my $URL = 'https://www.csoft.co.uk/sendsms';
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options]
-where valid flags are:
-  -h - show this help text
-and valid options are (default shown in brackets):
-  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
-  -u name - your csoft username
-  -p pin  - your csoft pin
-$msg
-};
-}
-
 my %args = ( vendor_id => 'bnz', device_id => 'csoftsms', );
 my %opt = ();
-getopts('hvi:u:p:', \%opt);
-if (exists $opt{'h'}) { HELP_MESSAGE() }
-my $username =
-  exists $opt{'u'} ? $opt{'u'} : HELP_MESSAGE("Username is required");
-my $pin =
-  exists $opt{'p'} ? $opt{'p'} : HELP_MESSAGE("PIN is required");
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $username;
+my $pin;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'username=s' => \$username,
+           'pin=s' => \$pin,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+pod2usage(-message => 'Username is required',
+          -exitstatus => 1) unless ($username);
+pod2usage(-message => 'PIN is required',
+          -exitstatus => 1) unless ($pin);
 
 my $ua = LWP::UserAgent->new();
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'xpl', callback => \&xpl,
