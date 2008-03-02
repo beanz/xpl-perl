@@ -8,8 +8,14 @@ xpl-logger - Perl script for an example xPL logger application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-logger -h
+  xpl-logger [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -head - dump the head of all xPL messages
+    -body - dump the body of all xPL messages
+    -v - verbose client mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
 
   # start the logger listening and broadcasting on first ethernet
   # interface in verbose mode
@@ -23,45 +29,35 @@ This script is an xPL client that logs all xPL incoming messages.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || "";
-  die
-qq{Usage: $0 [flags] [options]
-where valid flags are:
-  -h - show this help text
-  -H - dump the head of all xPL messages
-  -B - dump the body of all xPL messages
-  -v - verbose client mode
-and valid options are (default shown in brackets):
-  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
-$msg
-};
-}
-
+my %args = ( vendor_id => 'bnz', device_id => 'listener', );
 my %opt = ();
-getopts('hvi:BH', \%opt);
-HELP_MESSAGE() if (exists $opt{'h'});
-my %args =
-  (
-   vendor_id => "bnz",
-   device_id => "listener",
-  );
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+my $verbose_head;
+my $verbose_body;
+my $verbose;
+my $interface;
+my $help;
+my $man;
+GetOptions('verbose+' => \$verbose,
+           'head' => \$verbose_head,
+           'body' => \$verbose_body,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
 
-my $verbose_head = exists $opt{'H'};
-my $verbose_body = exists $opt{'B'};
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => "logger",
