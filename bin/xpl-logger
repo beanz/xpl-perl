@@ -36,19 +36,19 @@ $|=1; # autoflush helps debugging
 
 my %args = ( vendor_id => 'bnz', device_id => 'listener', );
 my %opt = ();
-my $verbose_head;
-my $verbose_body;
 my $verbose;
 my $interface;
 my $help;
 my $man;
+my $verbose_head;
+my $verbose_body;
 GetOptions('verbose+' => \$verbose,
-           'head' => \$verbose_head,
-           'body' => \$verbose_body,
            'interface=s' => \$interface,
            'define=s' => \%opt,
            'help|?|h' => \$help,
            'man' => \$man,
+           'head' => \$verbose_head,
+           'body' => \$verbose_body,
            ) or pod2usage(2);
 pod2usage(1) if ($help);
 pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
