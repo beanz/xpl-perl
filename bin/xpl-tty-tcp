@@ -8,8 +8,14 @@ xpl-tty-tcp - Perl script to make a tty serial port available as TCP socket
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-tty-tcp -h
+  xpl-tty-tcp [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -B baud - the baud rate (4800)
+    -i ip   - the IP address to listen on (0.0.0.0)
+    -p port - the port to listen on (10001)
 
   # start the tty to TCP script reading the device /dev/ttyUSB4 and
   # listening on 192.168.0.10 port 10001
@@ -32,38 +38,31 @@ use strict;
 use warnings;
 use English qw/-no_match_vars/;
 use FileHandle;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use IO::Select;
 use IO::Socket::INET;
 use Socket;
-
 $|=1; # autoflush to help with debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options] <device>
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-and valid options are (default shown in brackets):
-  -B baud - the baud rate (4800)
-  -i ip   - the IP address to listen on (0.0.0.0)
-  -p port - the port to listen on (10001)
-$msg
-};
-}
-my %opt = ();
-getopts('hvi:p:B:', \%opt);
-if (exists $opt{'h'}) {
-  HELP_MESSAGE()
-}
-my $dev = shift or HELP_MESSAGE('The device parameter is required');
-my $baud = exists $opt{'B'} ? $opt{'B'} : 4800;
-my $verbose = exists $opt{'v'};
+my $verbose;
+my $help;
+my $man;
+my $baud = 4800;
+my $ip = '0.0.0.0';
+my $port = 10001;
+GetOptions('verbose+' => \$verbose,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'baud=i' => \$baud,
+           'ip=s' => \$ip,
+           'port=i' => \$port,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
 
-my $ip = exists $opt{'i'} ? $opt{'i'} : '0.0.0.0';
-my $port = exists $opt{'p'} ? $opt{'p'} : 10001;
+my $dev = shift or pod2usage(-message => "The device parameter is required",
+                             -exitstatus => 1);
 
 system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
   die "Setting serial port with stty failed: $!\n";

@@ -8,8 +8,16 @@ xpl-mplayer - Perl script for an xPL mplayer application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-mplayer -h
+  xpl-mplayer [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0     - the interface for xPL messages (first non-loopback or loopback)
+    -l list    - the playlist
+    -s 0/1     - shuffle mode (1=shuffle)
+    -c 0/1/... - ALSA card number (0)
+    -C ctrl    - ALSA mixer control ('PCM')
 
   # start the mplayer application on first ethernet interface in verbose mode
   xpl-mplayer -i eth0 -v
@@ -26,51 +34,43 @@ use English qw/-no_match_vars/;
 use DirHandle;
 use FileHandle;
 use IO::Pipe;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use POSIX ":sys_wait_h";
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options]
-where valid flags are:
-  -h - show this help text
-  -v - verbose mode
-and valid options are (default shown in brackets):
-  -i if0     - the inferface for xPL messages (first non-loopback or loopback)
-  -l list    - the playlist
-  -s 0/1     - shuffle mode (1=shuffle)
-  -c 0/1/... - ALSA card number (0)
-  -C ctrl    - ALSA mixer control ('PCM')
-$msg
-};
-}
-
 my %args = ( vendor_id => 'bnz', device_id => 'mplayer', );
 my %opt = ();
-getopts('hvi:b:l:s:c:C:', \%opt);
-if (exists $opt{'h'}) {
-  HELP_MESSAGE()
-}
-$opt{'s'} = 1 unless (exists $opt{'s'});
-$opt{'l'} = "/etc/xpl-perl/playlist.m3u" unless (exists $opt{'l'});
-$opt{'c'} = 0 unless (exists $opt{'c'});
-$opt{'C'} = 'PCM' unless (exists $opt{'C'});
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $shuffle = 1;
+my $playlist = '/etc/xplperl/playlist.m3u';
+my $card = 0;
+my $ctrl = 'PCM';
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'shuffle:i' => \$shuffle,
+           'playlist|l=s' => \$playlist,
+           'card|c=s' => \$card,
+           'control|ctrl|C=s' => \$ctrl,
+           ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
 
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
 my $pl = {};
-load_list($opt{'l'}, $opt{'s'});
+load_list($playlist, $shuffle);
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'mplayer', callback => \&xpl_in,
@@ -95,7 +95,7 @@ sub sigchld {
   my $child;
   while (($waitedpid = waitpid(-1,WNOHANG)) > 0) {
     print STDERR "Reaped ", $waitedpid, ($? ? " with exit $?" : '')
-      if ($opt{'v'});
+      if ($verbose);
     if (defined $pid && $waitedpid == $pid) {
       undef $pid;
       cleanup();
@@ -255,7 +255,7 @@ This method changes the current mixer volume.
 sub set_volume {
   my $vol = shift;
   my $pipe = IO::Pipe->new;
-  $pipe->reader('amixer','-c', $opt{'c'}, 'sset', $opt{'C'}, $vol.'%');
+  $pipe->reader('amixer','-c', $card, 'sset', $ctrl, $vol.'%');
   my $percent = 0;
   my $count = 0;
   while(<$pipe>) {
@@ -278,7 +278,7 @@ This method returns the current mixer volume.
 
 sub get_volume {
   my $pipe = IO::Pipe->new;
-  $pipe->reader('amixer','-c', $opt{'c'}, 'sget', $opt{'C'});
+  $pipe->reader('amixer','-c', $card, 'sget', $ctrl);
   my $percent = 0;
   my $count = 0;
   while(<$pipe>) {

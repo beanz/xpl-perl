@@ -8,8 +8,12 @@ xpl-sql-logger - Perl script for an xPL log to database application
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-sql-logger -h
+  xpl-sql-logger [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose client mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
 
   # start the logger listening and broadcasting on first ethernet
   # interface in verbose mode
@@ -26,39 +30,33 @@ information.
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use Time::HiRes qw/gettimeofday/;
 use xPL::Client;
 use xPL::SQL;
-
 $|=1; # autoflush helps debugging
-
-sub HELP_MESSAGE {
-  my $msg = shift || "";
-  die
-qq{Usage: $0 [flags] [options]
-where valid flags are:
-  -h - show this help text
-  -v - verbose client mode
-and valid options are (default shown in brackets):
-  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
-$msg
-};
-}
 
 my %args = ( vendor_id => 'bnz', device_id => 'dblogger', );
 my %opt = ();
-getopts('hvi:', \%opt);
-HELP_MESSAGE() if (exists $opt{'h'});
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+my $verbose;
+my $interface;
+my $help;
+my $man;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => "logger",

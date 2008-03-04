@@ -8,8 +8,15 @@ xpl-rrd - Perl script for an xPL application that logs data to rrd files
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-rrd -h
+  xpl-rrd [flags] [options] <rrd-dir>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose client mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -x map - map device names to more friendly aliases (none)
+             N.B. This is a temporary hack to get around lack of config
+             support this will be removed in future.
 
   # start the rrd listening and broadcasting on first ethernet
   # interface in verbose mode
@@ -23,7 +30,8 @@ This script is an xPL client that logs known message types
 
 use strict;
 use warnings;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 use DB_File;
 use RRDs;
@@ -32,34 +40,26 @@ use FileHandle;
 
 $|=1; # autoflush helps debugging
 
-sub HELP_MESSAGE {
-  my $msg = shift || "";
-  die
-qq{Usage: $0 [flags] [options] <rrd-dir>
-where valid flags are:
-  -h - show this help text
-  -v - verbose client mode
-and valid options are (default shown in brackets):
-  -i if0 - the inferface for xPL messages (first non-loopback or loopback)
-  -x map - map device names to more friendly aliases (none)
-           N.B. This is a temporary hack to get around lack of config
-           support this will be removed in future.
-$msg
-};
-}
-
 my %args = ( vendor_id => 'bnz', device_id => 'rrdgraph', );
 my %opt = ();
-getopts('hvi:x:', \%opt);
-HELP_MESSAGE() if (exists $opt{'h'});
-my $verbose = exists $opt{'v'};
-my $device_map = $opt{'x'};
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if ($verbose) {
-  $args{verbose} = $opt{'v'};
-}
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $device_map;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'device_map|x=s' => \$device_map,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
 my $rrd_dir =
   shift or HELP_MESSAGE("Requires path to rrd directory parameter");
 my $state_db = $rrd_dir.'/state.db';
@@ -88,7 +88,7 @@ if ($device_map) {
 my %last;
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => "xpl",

@@ -8,9 +8,6 @@ xpl-rrd-graphs - Perl script for producing graphs from xpl-rrd directory.
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-rrd -h
-
   # search for rrd files under /var/lib/rrd and create graphs in /var/www/rrd
   xpl-rrd-graphs /var/lib/rrd /var/www/rrd
 

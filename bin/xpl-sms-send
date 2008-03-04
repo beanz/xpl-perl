@@ -8,8 +8,11 @@ xpl-sms-send - Perl script for an xPL SMS message sender
 
 =head1 SYNOPSIS
 
-  # show usage message
-  xpl-sms-send -h
+  xpl-sms-send [flags] [options] <configuration-file>
+  where valid flags are:
+    -h - show this help text
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
 
   # start the send-sms on first ethernet interface in verbose mode
   xpl-sms-send -i eth0 -v
@@ -36,36 +39,31 @@ driver.
 use strict;
 use warnings;
 use FileHandle;
-use Getopt::Std;
+use Getopt::Long;
+use Pod::Usage;
 use xPL::Client;
 use SMS::Send;
-
 $|=1; # autoflush helps debugging
-
-sub HELP_MESSAGE {
-  my $msg = shift || q{};
-  die
-qq{Usage: $0 [flags] [options] <configuration-file>
-where valid flags are:
-  -h - show this help text
-and valid options are (default shown in brackets):
-  -i if0  - the inferface for xPL messages (first non-loopback or loopback)
-$msg
-};
-}
 
 my %args = ( vendor_id => 'bnz', device_id => 'sendsms', );
 my %opt = ();
-getopts('hvi:', \%opt);
-if (exists $opt{'h'}) { HELP_MESSAGE() }
-my $config_file = shift || HELP_MESSAGE('Configuration file is required');
+my $verbose;
+my $interface;
+my $help;
+my $man;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
 
-if (exists $opt{'i'}) {
-  $args{interface} = $opt{'i'};
-}
-if (exists $opt{'v'}) {
-  $args{verbose} = $opt{'v'};
-}
+my $config_file = shift or
+  pod2usage(-message => 'Configuration file is required', -exitstatus => 1);
 
 my %drivers = map { $_ => 1 } SMS::Send->installed_drivers();
 
@@ -104,7 +102,7 @@ foreach my $driver (keys %drivers) {
 }
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'xpl', callback => \&xpl,
