@@ -128,21 +128,21 @@ sub xpl_in {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  my $heyu_command = xpl_command_to_heyu($msg->command);
+  my $heyu_command = command_xpl_to_heyu($msg->command);
   return 1 unless ($heyu_command);
 
   my @devices;
   my $data1;
   my $data2;
   if ($msg->device) {
-    xpl_device_to_heyu($msg->device, \@devices);
+    device_xpl_to_heyu($msg->device, \@devices);
   }
   if ($msg->house) {
-    xpl_house_to_heyu($msg->house, \@devices);
+    house_xpl_to_heyu($msg->house, \@devices);
   }
   my @args = ();
   if ($heyu_command =~ /^bright|dim$/ && $msg->level) {
-    push @args, int $msg->level*22/100;
+    push @args, level_xpl_to_heyu($msg->level);
   }
   if ($heyu_command eq 'xfunc') {
     $data1 = $msg->data1;
@@ -156,7 +156,7 @@ sub xpl_in {
                   message_type => 'xpl-trig',
                   class => 'x10.confirm',
                   body => { command => $msg->command,
-                            device => heyu_device_to_xpl($device),
+                            device => device_heyu_to_xpl($device),
                             data1 => $msg->data1, data2 => $msg->data2 },
                  );
       $xpl->send(%args);
@@ -166,7 +166,7 @@ sub xpl_in {
 
   foreach my $device (@devices) {
     heyu_helper_queue($heyu_command, $device, @args);
-    send_xpl_confirm(heyu_device_to_xpl($device), $msg->command, @args);
+    send_xpl_confirm(device_heyu_to_xpl($device), $msg->command, @args);
   }
   return 1;
 }
@@ -190,7 +190,7 @@ sub heyu_monitor {
       my $h = lc($2);
       my $level = $4;
       my $u = $unit{$h} || 'X';
-      my $xpl_command = heyu_to_xpl($f);
+      my $xpl_command = command_heyu_to_xpl($f);
       next unless ($xpl_command);
       send_xpl($h.$u, $xpl_command, $level);
     } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
@@ -304,8 +304,7 @@ sub send_xpl_aux {
      body => { command => $command, device => $device },
     );
   if ($level) {
-    # convert level from 0-22 range for heyu to 0-100 range for xPL
-    $args{body}->{level} = int $level*100/22;
+    $args{body}->{level} = level_heyu_to_xpl($level);
   }
   if ($verbose) {
     print STDERR
@@ -315,7 +314,17 @@ sub send_xpl_aux {
   $xpl->send(%args);
 }
 
-sub xpl_house_to_heyu {
+# convert level from 0-100 range for xPL to 0-22 range for heyu
+sub level_xpl_to_heyu {
+  int $_[0]*22/100
+}
+
+# convert level from 0-22 range for heyu to 0-100 range for xPL
+sub level_heyu_to_xpl {
+  int $_[0]*100/22
+}
+
+sub house_xpl_to_heyu {
   my $house = shift;
   my $result = shift;
   foreach (split//,$house) {
@@ -324,7 +333,7 @@ sub xpl_house_to_heyu {
   return $result;
 }
 
-sub xpl_device_to_heyu {
+sub device_xpl_to_heyu {
   my $device = shift;
   my $result = shift;
   my %h = ();
@@ -338,7 +347,7 @@ sub xpl_device_to_heyu {
   return $result;
 }
 
-sub heyu_device_to_xpl {
+sub device_heyu_to_xpl {
   my $dev = shift;
   my $house = substr($dev,0,1,q{});
   return $house.(join ",".$house, split/,/,$dev);
@@ -348,7 +357,7 @@ sub heyu_device_to_xpl {
 # data2 & 0x40 = at 30 second rate
 #       & 0x80 = at 1 minute rate
 #       & 0xc0 = at 5 minute rate
-sub xpl_command_to_heyu {
+sub command_xpl_to_heyu {
   my $command = shift;
   return {
           all_units_off => "alloff", all_units_on => "allon",
@@ -359,7 +368,7 @@ sub xpl_command_to_heyu {
          }->{$command};
 }
 
-sub heyu_to_xpl {
+sub command_heyu_to_xpl {
   my $command = shift;
   return {
           alloff => "all_units_off", allon => "all_units_on",
