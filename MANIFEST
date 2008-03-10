@@ -69,6 +69,7 @@ lib/xPL/schema/datetime.request.yaml
 lib/xPL/schema/dawndusk.basic.yaml
 lib/xPL/schema/dawndusk.request.yaml
 lib/xPL/schema/dmx.basic.yaml
+lib/xPL/schema/dmx.confirm.yaml
 lib/xPL/schema/hbeat.app.yaml
 lib/xPL/schema/hbeat.basic.yaml
 lib/xPL/schema/hbeat.end.yaml
