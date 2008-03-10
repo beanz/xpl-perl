@@ -359,15 +359,17 @@ sub parse_head_parameters {
            [ target => $STAR ],
           ) {
     my ($param, $default) = @$_;
-    unless (exists $head->{$param}) {
+    my $value;
+    if (exists $head->{$param}) {
+      $value = $head->{$param};
+    } else {
       if (defined $default) {
-        $head->{$param} = $default;
+        $value = $default;
       } else {
         $self->argh("requires '$param' parameter");
       }
     }
-    $self->$param($head->{$param});
-    delete $head->{$param};
+    $self->$param($value);
   }
   return 1;
 }
@@ -383,12 +385,13 @@ message type.
 sub parse_body_parameters {
   my ($self, $body, $body_order) = @_;
   my $spec = $self->field_spec();
+  my %processed = ();
   foreach my $field_rec (@$spec) {
-    $self->process_field_record($body, $field_rec);
+    $self->process_field_record($body, $field_rec, \%processed);
   }
   $self->{_extra_order} = [];
   foreach ($body_order ? @{$body_order} : sort keys %{$body}) {
-    next unless (exists $body->{$_});
+    next if (exists $processed{$_});
     $self->extra_field($_, $body->{$_});
   }
   return 1;
@@ -406,6 +409,7 @@ sub process_field_record {
   my $self = shift;
   my $body = shift;
   my $rec = shift;
+  my $processed = shift;
   my $name = $rec->{name};
   unless (exists $body->{$name}) {
     if (exists $rec->{default}) {
@@ -421,7 +425,7 @@ sub process_field_record {
     }
   }
   $self->$name($body->{$name});
-  delete $body->{$name};
+  $processed->{$name}++;
   return 1;
 }
 

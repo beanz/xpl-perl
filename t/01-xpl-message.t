@@ -3,7 +3,8 @@
 # Copyright (C) 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 10;
+use Test::More tests => 12;
+use Data::Dumper;
 use t::Helpers qw/test_warn test_error/;
 
 use_ok('xPL::Message');
@@ -34,3 +35,19 @@ is((join ',', $msg->extra_fields()), 'field1,field2', 'testing extra_fields');
 ok($msg = xPL::Message->new_from_payload($payload),'new from payload');
 is($msg->extra_field_string(),
    "field1=value1\nfield2=value2\n", 'testing extra_field_string');
+
+# regression test for http://www.xpl-perl.org.uk/ticket/24
+# xPL::Message->new(...) corrupts the body argument
+my %args = (message_type => 'xpl-cmnd',
+            class => 'x10.basic',
+            head => { source => 'bnz-acme.test' },
+            body => {
+                     command => 'on',
+                     device => 'a1',
+                     extra => 'test',
+                    }
+           );
+my $before = Data::Dumper->Dump([\%args], [qw/args/]);
+ok(xPL::Message->new(%args), 'creating message to check corruption');
+my $after = Data::Dumper->Dump([\%args], [qw/args/]);
+is($after, $before, 'checking for corruption');
