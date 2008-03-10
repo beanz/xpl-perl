@@ -48,6 +48,7 @@ lib/xPL/Gtk2Client.pm
 lib/xPL/Hub.pm
 lib/xPL/Listener.pm
 lib/xPL/Message.pm
+lib/xPL/Queue.pm
 lib/xPL/RF/Electrisave.pm
 lib/xPL/RF/Oregon.pm
 lib/xPL/RF.pm
