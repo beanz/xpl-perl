@@ -35,6 +35,7 @@ use POSIX ":sys_wait_h";
 use Getopt::Long;
 use Pod::Usage;
 use xPL::Client;
+use xPL::Queue;
 $|=1; # autoflush helps debugging
 my $path = ($0=~m!^(.*/)!) ? $1 : '';
 
@@ -71,7 +72,7 @@ my $buf = q{};
 my $helperbuf = q{};
 my $helperseq = 0;
 my $waiting;
-my @queue = ();
+my $queue = xPL::Queue->new();
 my %unit = ();
 
 my $fh = new FileHandle;
@@ -223,7 +224,7 @@ sub heyu_helper_read {
       print STDERR "Received $recvseq: $rc ", $err||"", "\n";
     }
     undef $waiting;
-    heyu_helper_write() if (scalar @queue);
+    heyu_helper_write();
   }
   return 1;
 }
@@ -238,12 +239,10 @@ sub heyu_helper_queue {
   my $seq_str = sprintf "%08x", $helperseq++;
   my $msg = join chr(0), $seq_str, @_;
   $msg .= "\n";
-  if (!defined $waiting) {
-    return heyu_helper_write([$seq_str, $msg])
-  }
-  push @queue, [$seq_str, $msg];
+  $queue->enqueue([$seq_str, $msg]);
   $msg =~ s/\0/ /g;
   print STDERR "queued: $msg" if ($verbose);
+  return heyu_helper_write() if (!defined $waiting);
   return $seq_str;
 }
 
@@ -254,7 +253,8 @@ This method is used to send commands to the heyu helper.
 =cut
 
 sub heyu_helper_write {
-  my $item = shift || shift @queue;
+  my $item = $queue->dequeue;
+  return unless (defined $item);
   my ($seq_str, $msg) = @$item;
   $wh->syswrite($msg);
   $msg =~ s/\0/ /g;
