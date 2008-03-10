@@ -41,7 +41,7 @@ my $verbose;
 my $interface;
 my $help;
 my $man;
-my $baud = 4800;
+my $baud = 9600;
 GetOptions('verbose+' => \$verbose,
            'interface=s' => \$interface,
            'baud=i' => \$baud,
