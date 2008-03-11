@@ -190,7 +190,7 @@ sub heyu_monitor {
       my $f = lc($1);
       my $h = lc($2);
       my $level = $4;
-      my $u = join ',', sort @{$unit{$h}|| ['X']};
+      my $u = join ',', sort { $a <=> $b } @{$unit{$h}|| ['X']};
       send_xpl($class, $h.$u, $f, $level);
       delete $unit{$h};
     } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
