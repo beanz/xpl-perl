@@ -167,7 +167,6 @@ sub xpl_in {
 
   foreach my $device (@devices) {
     heyu_helper_queue($heyu_command, $device, @args);
-    send_xpl_confirm(device_heyu_to_xpl($device), $msg->command, @args);
   }
   return 1;
 }
@@ -184,18 +183,18 @@ sub heyu_monitor {
   my $bytes = $fh->sysread($buf, 512, length($buf));
   while ($buf =~ s/^(.*?)\n//) {
     $_ = $LAST_PAREN_MATCH;
-    next if (/sndc/); # ignore what we send to avoid loops
+    my $class = 'x10.basic';
+    $class = 'x10.confirm' if (/sndc/);
     # TOFIX: process timestamps
     if (m!function\s+(\S+)\s+:\s+housecode\s+(\w+)(.*\s+by\s+%(\d+))?!) {
       my $f = lc($1);
       my $h = lc($2);
       my $level = $4;
-      my $u = $unit{$h} || 'X';
-      my $xpl_command = command_heyu_to_xpl($f);
-      next unless ($xpl_command);
-      send_xpl($h.$u, $xpl_command, $level);
+      my $u = join ',', @{$unit{$h}|| ['X']};
+      send_xpl($class, $h.$u, $f, $level);
+      delete $unit{$h};
     } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
-      $unit{lc($2)} = $1;
+      push @{$unit{lc($2)}}, $1;
     }
   }
   return 1;
@@ -263,7 +262,7 @@ sub heyu_helper_write {
   return $seq_str;
 }
 
-=head2 C<send_xpl( $device, $command, [ $level ] )>
+=head2 C<send_xpl( $class, $device, $command, [ $level ] )>
 
 This functions is used to send out x10.basic xpl-trig messages as a
 result of messages from "heyu monitor".
@@ -271,37 +270,20 @@ result of messages from "heyu monitor".
 =cut
 
 sub send_xpl {
-  return send_xpl_aux('x10.basic', @_);
-}
-
-=head2 C<send_xpl_confirm( $device, $command, [ $level ] )>
-
-This functions is used to send out x10.confirm xpl-trig messages in
-response to incoming xpl-cmnd messages.
-
-=cut
-
-sub send_xpl_confirm {
-  return send_xpl_aux('x10.confirm', @_);
-}
-
-=head2 C<send_xpl_aux( $message_type, $device, $command, [ $level ] )>
-
-This functions is used by the other two send functions to construct the
-parameters to send the actual xPL message.
-
-=cut
-
-sub send_xpl_aux {
   my $class = shift;
   my $device = shift;
   my $command = shift;
   my $level = shift;
+  my $command = command_heyu_to_xpl($command);
+  return unless ($xpl_command);
   my %args =
     (
      message_type => 'xpl-trig',
      class => $class,
-     body => { command => $command, device => $device },
+     body => {
+              command => $xpl_command,
+              device => device_heyu_to_xpl($device),
+             },
     );
   if ($level) {
     $args{body}->{level} = level_heyu_to_xpl($level);
