@@ -274,7 +274,7 @@ sub send_xpl {
   my $device = shift;
   my $command = shift;
   my $level = shift;
-  my $command = command_heyu_to_xpl($command);
+  my $xpl_command = command_heyu_to_xpl($command);
   return unless ($xpl_command);
   my %args =
     (
