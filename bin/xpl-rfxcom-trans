@@ -219,9 +219,9 @@ sub rfxcom_reader {
 sub queue_rfxcom {
   my $msg = shift;
   print "queued:   ", $msg->str, "\n";
-  push @queue, $msg;
+  $queue->enqueue($msg);
   return send_rfxcom() if (!defined $waiting);
-  return -(scalar @queue);
+  return -$queue->length();
 }
 
 sub send_rfxcom {
