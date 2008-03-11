@@ -114,64 +114,62 @@ sub xpl_msg {
     delete $state{$dev};
     $state{$dev.'/temp'} =
       join($c, $time, $msg->type, $msg->current, 1, 'GAUGE', -20, 120);
-    $tie_h->sync;
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
       $msg->device && $msg->type eq "humidity") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};
     $state{$dev.'/humidity'} =
       join($c, $time, $msg->type, $msg->current, 1, 'GAUGE', 0, 100);
-    $tie_h->sync;
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
       $msg->device && $msg->type eq "current") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};
     $state{$dev.'/current'} =
       join($c, $time, $msg->type, $msg->current, 1, 'GAUGE', 0, 80);
-    $tie_h->sync;
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
       $msg->device && $msg->type eq "uv") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};
     $state{$dev.'/uv'} =
       join($c, $time, $msg->type, $msg->current, 1, 'GAUGE', 0, 40);
-    $tie_h->sync;
+  } elsif ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
+      $msg->device && $msg->type eq "battery") {
+    my $dev = $msg->device;
+    delete $state{$dev};
+    $state{$dev.'/battery'} =
+      join($c, $time, $msg->type, $msg->current, 1, 'GAUGE', 0, 100);
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "basic" &&
       $msg->device && $msg->type eq "energy") {
     my $dev = exists $map{$msg->device} ? $map{$msg->device} : $msg->device;
     delete $state{$dev};
     $state{$dev.'/kwh'} =
       join($c, $time, $msg->type, $msg->current, 1, 'COUNTER', 0, 100);
-    $tie_h->sync;
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "network" &&
       $msg->device && $msg->type eq "db") {
     my $dev = $msg->source;
     $dev =~ s/.*?\.//;
     $state{$dev.'/'.$msg->device.'-db'} =
       join($c, $time, 'db' , $msg->current, 1, 'GAUGE', -10, 200);
-    $tie_h->sync;
   } elsif ($msg->class eq "sensor" && $msg->class_type eq "network" &&
       $msg->device && $msg->type eq "bps") {
     my $dev = $msg->source;
     $dev =~ s/.*?\.//;
     $state{$dev.'/'.$msg->device.'-bps'} =
       join($c, $time, 'bps' , $msg->current, 1, 'GAUGE', -10, 209715200);
-    $tie_h->sync;
   } elsif ($msg->class eq 'x10' && $msg->class_type eq 'basic' &&
            $msg->command =~ /^(on|off)$/) {
     my $dev =
       'x10/'.(exists $map{$msg->device} ? $map{$msg->device} : $msg->device);
     $state{$dev} =
       join($c, $time, 'state', $msg->command eq "on" ? 1 : 0, 1, 'GAUGE', 0, 1);
-    $tie_h->sync;
   } elsif ($msg->class eq 'sensor' && $msg->class_type eq 'basic' &&
            $msg->type eq 'count') {
     my $dev = $msg->device;
     $dev =~ s/-/\//;
     $state{$dev} =
       join($c, $time, 'count', $msg->current, 0, 'COUNTER', 0, 2**64);
-    $tie_h->sync;
   }
+  $tie_h->sync;
   return 1;
 }
 
