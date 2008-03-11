@@ -42,6 +42,7 @@ use Pod::Usage;
 use IO::Socket::INET;
 use Time::HiRes;
 use xPL::Client;
+use xPL::Queue;
 use xPL::RF qw/:all/;
 use xPL::X10 qw/:all/;
 $|=1; # autoflush helps debugging
@@ -137,23 +138,25 @@ $xpl->add_input(handle => $fh, callback => \&rfxcom_reader);
   1;
 }
 
-my @queue = ();
-push @queue,
-  $receiver_connected ?
-  msg->new(hex => 'F033F033',
-           desc => 'variable length mode with receiver connected') :
-  msg->new(hex => 'F037F037',
-           desc => 'variable length mode with no receiver connected');
-push @queue,
-  msg->new(hex => 'F03CF03C', desc => 'enabling harrison') if ($harrison);
-push @queue,
-  msg->new(hex => 'F03DF03D', desc => 'enabling klikon-klikoff') if ($koko);
-push @queue,
-  msg->new(hex => 'F03EF03E', desc => 'enabling flamingo') if ($flamingo);
-push @queue,
-  msg->new(hex => 'F03FF03F', desc => 'disabling x10') if ($no_x10);
+my $queue = xPL::Queue->new();
+$queue->enqueue(msg->new(hex => 'F030F030', desc => 'init/version check'));
+$queue->enqueue($receiver_connected ?
+                msg->new(hex => 'F033F033',
+                         desc => 'variable length mode w/receiver connected') :
+                msg->new(hex => 'F037F037',
+                         desc => 'variable length mode w/o receiver connected')
+               );
+$queue->enqueue(msg->new(hex => 'F03CF03C', desc => 'enabling harrison'))
+  if ($harrison);
+$queue->enqueue(msg->new(hex => 'F03DF03D', desc => 'enabling klikon-klikoff'))
+  if ($koko);
+$queue->enqueue(msg->new(hex => 'F03EF03E', desc => 'enabling flamingo'))
+  if ($flamingo);
+$queue->enqueue(msg->new(hex => 'F03FF03F', desc => 'disabling x10'))
+  if ($no_x10);
+
 my $waiting = undef;
-send_rfxcom(msg->new(hex => 'F030F030', desc => 'init/version check'));
+send_rfxcom();
 
 # Run the main loop
 $xpl->main_loop();
@@ -209,22 +212,21 @@ sub rfxcom_reader {
   print "received: ", unpack("H*", $buf), "\n";
   $waiting = 0;
   $xpl->remove_timer("wait_for_ack");
-  send_rfxcom() if (scalar @queue);
+  send_rfxcom();
   return 1;
 }
 
 sub queue_rfxcom {
   my $msg = shift;
-  if (!$waiting) {
-    return send_rfxcom($msg);
-  }
   print "queued:   ", $msg->str, "\n";
   push @queue, $msg;
+  return send_rfxcom() if (!defined $waiting);
   return -(scalar @queue);
 }
 
 sub send_rfxcom {
-  my $msg = shift || shift @queue;
+  my $msg = $queue->dequeue();
+  return unless (defined $msg);
   print "sending:  ", $msg->str, "\n";
   my $raw = $msg->raw;
   syswrite($fh, $raw, length($raw));
