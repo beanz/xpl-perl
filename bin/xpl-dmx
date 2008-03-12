@@ -16,6 +16,9 @@ xpl-dmx - Perl script for an xPL DMX Transmitter application
     -i if0    - the interface for xPL messages (first non-loopback or loopback)
     -B baud   - the baud rate (9600)
     -c colors - rgb.txt file to use for colours (/etc/X11/rgb.txt)
+                If this doesn't exist, then only the colours red,
+                green, blue, cyan, magenta, yellow, black, and white
+                are supported.
 
   # start the dmx application on first ethernet interface in verbose mode
   xpl-dmx -i eth0 -v
@@ -207,7 +210,7 @@ to rrggbb hex values.
 sub read_rgb_txt {
   my $file = shift;
   my %rgb;
-  my $rgb = FileHandle->new($file) || return;
+  my $rgb = FileHandle->new($file) || \*DATA || return;
   while (<$rgb>) {
     next unless (/^(\d+)\s+(\d+)\s+(\d+)\s+(.*)\s*$/);
     $rgb{lc $4} = sprintf "%02x%02x%02x", $1, $2, $3;
@@ -240,3 +243,14 @@ it under the same terms as Perl itself, either Perl version 5.8.7 or,
 at your option, any later version of Perl 5 you may have available.
 
 =cut
+
+__DATA__
+# Simple default colour database
+  0   0   0             black
+255   0   0             red
+  0 255   0             green
+255 255   0             yellow
+  0   0 255             blue
+255   0 255             magenta
+  0 255 255             cyan
+255 255 255             white
