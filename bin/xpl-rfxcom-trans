@@ -225,7 +225,7 @@ sub queue_rfxcom {
 }
 
 sub send_rfxcom {
-  my $msg = $queue->dequeue();
+  my $msg = shift || $queue->dequeue();
   return unless (defined $msg);
   print "sending:  ", $msg->str, "\n";
   my $raw = $msg->raw;
@@ -239,10 +239,10 @@ sub send_rfxcom {
                     send_rfxcom($receiver_connected ?
                                 msg->new(hex => 'F033F033',
                                          desc =>
-                                         'variable length mode with receiver connected') :
+                                         'variable length mode w/receiver connected') :
                                 msg->new(hex => 'F037F037',
                                          desc =>
-                                         'variable length mode with no receiver connected'));
+                                         'variable length mode w/o receiver connected'));
                     1;
               });
 }
