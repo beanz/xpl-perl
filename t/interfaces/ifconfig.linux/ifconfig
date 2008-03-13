@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (C) 2005 by Mark Hindess
+# Copyright (C) 2005, 2007 by Mark Hindess
 /bin/cat <<EOF
           inet addr:192.168.99.13  Bcast:192.168.99.255  Mask:255.255.255.0
 eth0      Link encap:Ethernet  HWaddr 00:0D:60:77:63:5B  

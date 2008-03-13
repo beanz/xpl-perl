@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (C) 2005 by Mark Hindess
+# Copyright (C) 2007 by Mark Hindess
 /bin/cat <<EOF
 xl0: flags=8843<UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST> mtu 1500
         options=1<RXCSUM>

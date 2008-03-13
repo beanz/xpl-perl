@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (C) 2005 by Mark Hindess
+# Copyright (C) 2007 by Mark Hindess
 /bin/cat <<EOF
 lo0: flags=8049<UP,LOOPBACK,RUNNING,MULTICAST> mtu 16384
 	inet6 ::1 prefixlen 128 
