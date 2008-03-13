@@ -31,8 +31,10 @@ use warnings;
 use English qw/-no_match_vars/;
 use FileHandle;
 use Getopt::Long;
+use IO::Socket::INET;
 use Pod::Usage;
 use xPL::Client;
+use xPL::Queue;
 $|=1; # autoflush helps debugging
 
 my %args = ( vendor_id => 'bnz', device_id => 'viom', );
@@ -60,6 +62,9 @@ my $dev = shift or pod2usage(-message => "The device parameter is required",
 # Create an xPL Client object
 my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
+my $queue = xPL::Queue->new;
+my $waiting = undef;
+
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in,
                        filter => {
@@ -72,28 +77,35 @@ $xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in,
 # sanity check the inputs immediately and periodically so we keep
 # the current state sane even when viom is unplugged, etc.
 $xpl->add_timer(id => 'input-check', timeout => -631,
-                callback => sub { send_viom("CIN",1); 1; });
+                callback => sub { queue_viom("CIN", 1); 1; });
 
 # sanity check the outputs immediately and periodically so we keep
 # the current state sane even when viom is unplugged, etc.
 $xpl->add_timer(id => "temp", timeout => 2, count => 1,
                 callback => sub {
                   $xpl->add_timer(id => 'output-check', timeout => -641,
-                                  callback => sub { send_viom("COR",1); 1; });
+                                  callback => sub { queue_viom("COR", 1); 1; });
                   return;
                 });
 
 my $buf = q{};
 my %state;
 
-# TODO: use Device::SerialPort?
-system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
-  die "Setting serial port with stty failed: $!\n";
-my $fh = FileHandle->new;
-sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
-  or die "Cannot open serial connection on device '$dev'\n";
-$fh->autoflush(1);
-binmode($fh);
+my $fh;
+if ($dev =~ /\//) {
+  # TODO: use Device::SerialPort?
+  system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+    die "Setting serial port with stty failed: $!\n";
+  $fh = FileHandle->new;
+  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+    or die "Cannot open serial connection on device '$dev'\n";
+  $fh->autoflush(1);
+  binmode($fh);
+} else {
+  $dev .= ':10001' unless ($dev =~ /:/);
+  $fh = IO::Socket::INET->new($dev)
+    or die "Cannot TCP connection to device at '$dev'\n";
+}
 $xpl->add_input(handle => $fh, callback => \&viom_reader);
 
 # Run the main loop
@@ -117,24 +129,24 @@ sub xpl_in {
   my $id = sprintf("o%02d", $num);
   my $command = lc $msg->current;
   if ($command eq "high") {
-    send_viom(sprintf("XA%d", $num));
+    queue_viom(sprintf("XA%d", $num));
     $state{$id} = 'high:'.time;
   } elsif ($command eq "low") {
-    send_viom(sprintf("XB%d", $num));
+    queue_viom(sprintf("XB%d", $num));
     $state{$id} = 'low:'.time;
   } elsif ($command eq "pulse") {
-    send_viom(sprintf("XA%d", $num));
+    queue_viom(sprintf("XA%d", $num));
     select(undef,undef,undef,0.15);
-    send_viom(sprintf("XB%d", $num));
+    queue_viom(sprintf("XB%d", $num));
     $state{$id} = 'low:'.time;
   } elsif ($command eq "toggle") {
     my ($old,$prev_time) = split(/:/,$state{$id}||"");
     # assume low
     if ($old eq "high") {
-      send_viom(sprintf("XB%d", $num));
+      queue_viom(sprintf("XB%d", $num));
       $state{$id} = 'low:'.time;
     } else {
-      send_viom(sprintf("XA%d", $num));
+      queue_viom(sprintf("XA%d", $num));
       $state{$id} = 'high:'.time;
     }
   }
@@ -151,6 +163,7 @@ responsible for sending out the sensor.basic xpl-trig messages.
 sub viom_reader {
   my $bytes = $fh->sysread($buf, 512, length($buf));
   while ($buf =~ s/^(.*?)\r?\n//) {
+    undef $waiting;
     my $line = $LAST_PAREN_MATCH;
     my $time = time;
     if ($line =~ /[01]{16}/) {
@@ -186,6 +199,7 @@ sub viom_reader {
     }
     print $line,"\n" if ($verbose);
   }
+  send_viom();
   return 1;
 }
 
@@ -209,6 +223,22 @@ sub send_xpl {
   return $xpl->send(%args);
 }
 
+=head2 C<queue_viom( $message )>
+
+This functions is used to queue text commands to be sent to the VIOM.
+
+=cut
+
+sub queue_viom {
+  my $msg = shift;
+  $queue->enqueue($msg);
+  print "queued: $msg\n" if ($verbose);
+  if (!defined $waiting) {
+    return send_viom();
+  }
+  return 1;
+}
+
 =head2 C<send_viom( $message )>
 
 This functions is used to send text commands to the VIOM.
@@ -216,12 +246,13 @@ This functions is used to send text commands to the VIOM.
 =cut
 
 sub send_viom {
-  my $msg = shift;
-  my $quiet = shift;
-  print "Sending '$msg' to viom\n" if (!$quiet && $verbose);
+  my $msg = $queue->dequeue;
+  return if (!defined $msg);
+  print "sending: $msg\n" if ($verbose);
   $msg .= "\r\n";
   syswrite($fh, $msg, length($msg));
   $fh->flush();
+  $waiting = 1;
 }
 
 # send a 'hbeat.end' message on exit
