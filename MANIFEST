@@ -51,6 +51,7 @@ lib/xPL/Message.pm
 lib/xPL/Queue.pm
 lib/xPL/RF/Electrisave.pm
 lib/xPL/RF/Oregon.pm
+lib/xPL/RF/OregonScale.pm
 lib/xPL/RF.pm
 lib/xPL/RF/RFXMeter.pm
 lib/xPL/RF/RFXSensor.pm
@@ -182,6 +183,7 @@ t/rf/electrisave-02-invalid-byte1.txt
 t/rf/electrisave-03-invalid-byte2.txt
 t/rf/oregon-bthr918-01-bad-forecast.txt
 t/rf/oregon-bthr918-01.txt
+t/rf/oregon-bwr102-01.txt
 t/rf/oregon-device-test-01.txt
 t/rf/oregon-rgr918-01.txt
 t/rf/oregon-rtgr328n-01-temphydro.txt
