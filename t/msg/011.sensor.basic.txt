@@ -57,4 +57,4 @@ current[blah]=blah
 
 type[scent]=scent
 xPL::Message::sensor::basic::xpltrig->type: type, scent, is invalid.
-It should be one of 'battery', 'count', 'current', 'direction', 'distance', 'energy', 'fan', 'generic', 'humidity', 'input', 'pressure', 'speed', 'temp', 'voltage' or 'volume'.
+It should be one of 'battery', 'count', 'current', 'direction', 'distance', 'energy', 'fan', 'generic', 'humidity', 'input', 'pressure', 'speed', 'temp', 'uv', 'voltage', 'volume' or 'weight'.
