@@ -47,7 +47,7 @@ GetOptions('verbose+' => \$verbose,
            'define=s' => \%opt,
            'help|?|h' => \$help,
            'man' => \$man,
-           'baud=i|B' => \$baud,
+           'baud=i' => \$baud,
           ) or pod2usage(2);
 pod2usage(1) if ($help);
 pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
