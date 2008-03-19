@@ -57,6 +57,7 @@ sub parse {
   my $weight =
     sprintf "%x%02x%x", $bytes->[5]&0x1, $bytes->[4], hi_nibble($bytes->[3]);
   return unless ($weight =~ /^\d+$/);
+  $weight /= 10;
   my $dev_str = sprintf 'bwr102.%02x', hi_nibble($bytes->[1]);
   my $unknown = sprintf "%x%x", lo_nibble($bytes->[3]), hi_nibble($bytes->[2]);
   return [xPL::Message->new(

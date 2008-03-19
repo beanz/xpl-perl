@@ -14,7 +14,7 @@ sensor.basic
 {
 device=bwr102.06
 type=weight
-current=0929
+current=92.9
 unknown=3d
 }
 
