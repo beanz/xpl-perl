@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 141;
+use Test::More tests => 147;
 use t::Helpers qw/test_error test_warn/;
 use Socket;
 use Time::HiRes;
@@ -70,6 +70,8 @@ $xpl->add_timer(id => 'tick', callback => sub { my %p=@_; $cb=\%p; },
 
 $to = $xpl->timer_minimum_timeout;
 ok(defined $to && $to > 0 && $to < $timeout, "timer minimum timeout - ".$to);
+ok(!defined $xpl->timer_callback_time_average('tick'),
+   "timer callback time average - undef");
 
 $xpl->main_loop(1) until ($cb);
 
@@ -78,6 +80,8 @@ is($cb->{id}, 'tick', "correct timer argument");
 ok($cb && exists $cb->{arguments}, "arguments passed");
 is($cb->{arguments}->[0], "grr argh", "correct argument passed");
 is($xpl->timer_callback_count('tick'), 1, "timer callback counter");
+ok(defined $xpl->timer_callback_time_average('tick'),
+   "timer callback time average");
 
 my $now = time;
 is(&{$xpl->timer_attrib('tick', 'next_fn')}($now), $now+$timeout,
@@ -231,6 +235,9 @@ is(test_error(sub { $xpl->add_xpl_callback(id => 'null') }),
    ref($xpl)."->add_item: xpl_callback item 'null' already registered",
    "adding existing xpl callback");
 
+ok(!defined $xpl->xpl_callback_callback_time_average('hbeat'),
+   "xpl callback callback time average - undef");
+
 $xpl->main_loop(1);
 
 ok($cb && exists $cb->{message}, "message returned");
@@ -239,6 +246,8 @@ is(ref($cb->{message}), "xPL::Message::hbeat::app::xplstat",
 ok($cb && exists $cb->{arguments}, "arguments passed");
 is($cb->{arguments}->[0], "my test", "correct argument passed");
 is($xpl->xpl_callback_callback_count('hbeat'), 1, "callback counter non-zero");
+ok(defined $xpl->xpl_callback_callback_time_average('hbeat'),
+   "xpl callback callback time average");
 
 ok($cb2 && exists $cb2->{message}, "message returned");
 is(ref($cb2->{message}), "xPL::Message::hbeat::app::xplstat",
@@ -360,6 +369,9 @@ ok($xpl->remove_input($handle), "remove input");
 is(scalar @h, 0, "inputs count");
 
 ok($xpl->add_input(handle => $handle), "add input with null callback");
+ok(!defined $xpl->input_callback_time_average($handle),
+   "input callback time average - undef");
+
 $xpl->send(head =>
             {
              source => "acme-clock.dingus",
@@ -375,6 +387,8 @@ $xpl->send(head =>
 $xpl->main_loop(1);
 
 is($xpl->input_callback_count($handle), 1, "input callback count");
+ok(defined $xpl->input_callback_time_average($handle),
+   "input callback time average");
 ok($xpl->remove_input($handle), "remove input");
 
 is(test_error(sub { $xpl->send(invalid => 'messagedata'); }),

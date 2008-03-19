@@ -58,9 +58,15 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-__PACKAGE__->make_collection(input => [qw/callback_count handle/],
-                             timer => [qw/next timeout callback_count/],
-                             xpl_callback => [qw/filter callback_count/],
+__PACKAGE__->make_collection(input => [qw/handle callback_count
+                                         callback_time_total
+                                         callback_time_max/],
+                             timer => [qw/next timeout callback_count
+                                          callback_time_total
+                                          callback_time_max/],
+                             xpl_callback => [qw/filter callback_count
+                                                 callback_time_total
+                                                 callback_time_max/],
                             );
 __PACKAGE__->make_readonly_accessor(qw/ip broadcast interface
                                        listen_port port
@@ -475,6 +481,31 @@ the given id.
 This method returns the callback count of the xPL callback with
 the given id.
 
+=head2 C<xpl_callback_callback_time_total($id)>
+
+This method returns the total time spent inside the xPL callback with
+the given id.
+
+=head2 C<xpl_callback_callback_time_max($id)>
+
+This method returns the maximum time spent during a single execution
+of the xPL callback with the given id.
+
+=head2 C<xpl_callback_callback_time_average($id)>
+
+This method returns the average time spent during a single execution
+of the xPL callback with the given id.  It returns undef if the
+callback has never been called.
+
+=cut
+
+sub xpl_callback_callback_time_average {
+  my $self = shift;
+  my $count = $self->xpl_callback_callback_count(@_);
+  return unless ($count);
+  return $self->xpl_callback_callback_time_total(@_)/$count;
+}
+
 =head2 C<xpl_callbacks()>
 
 This method returns a list of the registered xPL callbacks.
@@ -521,14 +552,14 @@ sub xpl_message {
         }
       }
     }
-    &{$rec->{callback}}(message => $msg,
-                        peeraddr => $peeraddr,
-                        peerport => $peerport,
-                        xpl => $self,
-                        id => $id,
-                        arguments => $rec->{arguments},
+    $self->call_callback($rec,
+                         message => $msg,
+                         peeraddr => $peeraddr,
+                         peerport => $peerport,
+                         xpl => $self,
+                         id => $id,
+                         arguments => $rec->{arguments},
                         );
-    $rec->{callback_count}++;
   }
 
   return 1;
@@ -637,45 +668,56 @@ sub add_timer {
 This method returns true if the timer with the given id is registered
 with the event loop.
 
-=cut
-
 =head2 C<remove_timer($id)>
 
 This method drops the timer with the given id from the event loop.
 
-=cut
-
 =head2 C<timers()>
 
 This method returns the ids of all the registered timers.
-
-=cut
 
 =head2 C<timer_attrib($id, $attrib)>
 
 This method returns the value of the attribute of the timer with the
 given id.
 
-=cut
-
 =head2 C<timer_next($id)>
 
 This method returns the time that the timer with the given id is next
 due to expire.
 
-=cut
-
 =head2 C<timer_callback_count($id)>
 
 This method returns the callback count of the timer with the given id.
 
+=head2 C<timer_callback_time_total($id)>
+
+This method returns the total time spent inside the timer callback with
+the given id.
+
+=head2 C<timer_callback_time_max($id)>
+
+This method returns the maximum time spent during a single execution
+of the timer callback with the given id.
+
+=head2 C<timer_callback_time_average($id)>
+
+This method returns the average time spent during a single execution
+of the timer callback with the given id.  It returns undef if the
+callback has never been called.
+
 =cut
+
+sub timer_callback_time_average {
+  my $self = shift;
+  my $count = $self->timer_callback_count(@_);
+  return unless ($count);
+  return $self->timer_callback_time_total(@_)/$count;
+}
 
 =head2 C<timer_timeout($id)>
 
 This method returns the timeout of the timer with the given id.
-
-=cut
 
 =head2 C<timer_next_ticks()>
 
@@ -734,8 +776,7 @@ sub dispatch_timer {
     return $self->ouch("timer '$id' is not registered");
 
   my $r = $self->{_col}->{timer}->{$id};
-  my $res = &{$r->{callback}}(id => $id, arguments => $r->{arguments});
-  $r->{callback_count}++;
+  my $res = $self->call_callback($r, id => $id, arguments => $r->{arguments});
   if (!defined $res) {
     $self->remove_timer($id);
     return;
@@ -860,14 +901,35 @@ sub remove_input {
 This method returns the value of the attribute of the registered input with
 the given handle.
 
-=cut
-
 =head2 C<input_callback_count($handle)>
 
 This method returns the callback count of the registered input with
 the given handle.
 
+=head2 C<input_callback_time_total($id)>
+
+This method returns the total time spent inside the input callback with
+the given id.
+
+=head2 C<input_callback_time_max($id)>
+
+This method returns the maximum time spent during a single execution
+of the input callback with the given id.
+
+=head2 C<input_callback_time_average($id)>
+
+This method returns the average time spent during a single execution
+of the input callback with the given id.  It returns undef if the
+callback has never been called.
+
 =cut
+
+sub input_callback_time_average {
+  my $self = shift;
+  my $count = $self->input_callback_count(@_);
+  return unless ($count);
+  return $self->input_callback_time_total(@_)/$count;
+}
 
 =head2 C<dispatch_input($handle)>
 
@@ -882,9 +944,7 @@ sub dispatch_input {
     return $self->ouch("input '$handle' is not registered");
 
   my $r = $self->{_col}->{input}->{$handle};
-  my $res = &{$r->{callback}}($r->{handle}, $r->{arguments});
-  $r->{callback_count}++;
-  return $res;
+  return $self->call_callback($r, $r->{handle}, $r->{arguments});
 }
 
 1;

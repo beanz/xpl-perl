@@ -27,6 +27,7 @@ use English qw/-no_match_vars/;
 use FileHandle;
 use Socket;
 use Text::Balanced qw/extract_quotelike/;
+use Time::HiRes;
 
 use Exporter;
 #use AutoLoader qw(AUTOLOAD);
@@ -176,7 +177,27 @@ sub add_callback_item {
   exists $attribs->{callback} or $attribs->{callback} = sub { 1; };
   exists $attribs->{arguments} or $attribs->{arguments} = [];
   $attribs->{callback_count} = 0;
+  $attribs->{callback_time_total} = 0;
+  $attribs->{callback_time_max} = 0;
   return $attribs;
+}
+
+=head2 C<call_callback($handle)>
+
+This method wraps calls to callbacks in order to collect statistics.
+
+=cut
+
+sub call_callback {
+  my $self = shift;
+  my $r = shift;
+  my $t = Time::HiRes::time;
+  my $res = &{$r->{callback}}(@_);
+  $t = Time::HiRes::time - $t;
+  $r->{callback_time_total} += $t;
+  $r->{callback_time_max} = $t if ($r->{callback_time_max} < $t);
+  $r->{callback_count}++;
+  return $res;
 }
 
 =head1 METHOD MAKER METHODS
