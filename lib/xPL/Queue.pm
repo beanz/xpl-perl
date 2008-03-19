@@ -18,10 +18,9 @@ xPL::Queue - Perl extension for xPL timer base class
 
 =head1 DESCRIPTION
 
-This module provides some simple utility functions for use by other
-modules.
+This module provides a simple queue abstraction for use by other modules.
 
-=head1 FUNCTIONS
+=head1 METHODS
 
 =cut
 
@@ -45,11 +44,24 @@ sub new {
   bless $self, $pkg;
 }
 
+=head2 C<queue($item)>
+
+This method adds an item to the queue.
+
+=cut
+
 sub enqueue {
   my ($self, $item) = @_;
   push @{$self->{_q}}, [ $item, Time::HiRes::time ];
   return scalar @{$self->{_q}};
 }
+
+=head2 C<dequeue()>
+
+This method returns the oldest item from the queue or returns undef if
+the queue contains no items.
+
+=cut
 
 sub dequeue {
   my $self = shift;
@@ -59,15 +71,37 @@ sub dequeue {
   return $rec->[0];
 }
 
+=head2 C<is_empty()>
+
+This method returns true if the queue is empty.
+
+=cut
+
 sub is_empty {
   my $self = shift;
   return !scalar @{$self->{_q}};
 }
 
+=head2 C<length()>
+
+This method returns the length of the queue.
+
+=cut
+
 sub length {
   my $self = shift;
   return scalar @{$self->{_q}};
 }
+
+
+=head2 C<average_queue_time()>
+
+This method returns the average time that the most recently removed
+items spent in the queue.  It returns undef if no items have been
+removed from the queue since it was created.  By default 50 samples
+are kept.
+
+=cut
 
 sub average_queue_time {
   my $self = shift;
@@ -79,10 +113,24 @@ sub average_queue_time {
   return $sum / scalar @{$self->{_stats}};
 }
 
+=head2 C<number_of_queue_time_samples()>
+
+This method returns the number of queue time samples for dequeued
+items that have been collected.
+
+=cut
+
 sub number_of_queue_time_samples {
   my $self = shift;
   return scalar @{$self->{_stats}};
 }
+
+=head2 C<_record_queue_time()>
+
+This internal method is used to record a new queue time sample as a
+item is removed from the queue.
+
+=cut
 
 sub _record_queue_time {
   my ($self, $delta) = @_;
