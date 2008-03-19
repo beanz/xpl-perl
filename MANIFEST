@@ -130,6 +130,7 @@ t/04-clock.t
 t/04-collection-api.t
 t/04-hbeat-errors.t
 t/04-osd-errors.t
+t/04-queue.t
 t/05-listener-send-methods.t
 t/05-listener.t
 t/06-hub.t
