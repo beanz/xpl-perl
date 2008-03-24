@@ -179,7 +179,7 @@ sub xpl_in {
       my $rf_msg =
         msg->new(raw => encode(command => $msg->command, house => $msg->house),
                  desc => $msg->house.' '.$msg->command);
-      foreach (1..$msg->extra_field('count')||1) {
+      foreach (1..$msg->extra_field('repeat')||1) {
         queue_rfxcom($rf_msg);
       }
     }
@@ -191,7 +191,7 @@ sub xpl_in {
                                house => $house,
                                unit => $unit),
                  desc => $house.$unit.' '.$msg->command);
-      foreach (1..$msg->extra_field('count')||1) {
+      foreach (1..$msg->extra_field('repeat')||1) {
         queue_rfxcom($rf_msg);
       }
     }
