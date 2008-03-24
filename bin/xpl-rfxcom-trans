@@ -176,17 +176,24 @@ sub xpl_in {
 
   if ($msg->house) {
     foreach (split //, $msg->house) {
-      queue_rfxcom(msg->new(raw => encode(command => $msg->command,
-                                          house => $msg->house),
-                            desc => $msg->house.' '.$msg->command));
+      my $rf_msg =
+        msg->new(raw => encode(command => $msg->command, house => $msg->house),
+                 desc => $msg->house.' '.$msg->command);
+      foreach (1..$msg->extra_field('count')||1) {
+        queue_rfxcom($rf_msg);
+      }
     }
   } elsif ($msg->device) {
     foreach (split /,/, $msg->device) {
       my ($house, $unit) = /^([a-p])(\d+)$/i or next;
-      queue_rfxcom(msg->new(raw => encode(command => $msg->command,
-                                          house => $house,
-                                          unit => $unit),
-                            desc => $house.$unit.' '.$msg->command));
+      my $rf_msg =
+        msg->new(raw => encode(command => $msg->command,
+                               house => $house,
+                               unit => $unit),
+                 desc => $house.$unit.' '.$msg->command);
+      foreach (1..$msg->extra_field('count')||1) {
+        queue_rfxcom($rf_msg);
+      }
     }
   } else {
     warn "Invalid x10.basic message:\n  ", $msg->summary, "\n";
