@@ -200,7 +200,7 @@ sub call_callback {
   $r->{callback_time_total} += $t;
   if ($r->{callback_time_max} < $t) {
     $r->{callback_time_max} = $t;
-    print STDERR "New callback maximum: ", $r->{'!debug!'}, " = ", $t, "\n";
+#    print STDERR "New callback maximum: ", $r->{'!debug!'}, " = ", $t, "\n";
   }
   $r->{callback_count}++;
   return $res;
