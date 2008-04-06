@@ -21,9 +21,7 @@ daemontools being installed.  On a Debian system either:
 
 or:
 
-  apt-get install daemontools-installer
-  build-daemontools
-
+  apt-get install daemontools-run
 
 
 This script will attempt to set up a group 'xplperl' and two users
@@ -49,6 +47,10 @@ This script will attempt to set up a group 'xplperl' and two users
   xpl-rfxcom - if the environment variable XPL_RFXCOM_TTY is defined with
     the name of the tty device that an RFXCOM receiver is attached to.
 
+  xpl-rfxcom-trans - if the environment variable XPL_RFXCOM_TRANS_TTY is
+    defined with the name of the tty device that an RFXCOM transmitter
+    is attached to.
+
   xpl-viom - if the environment variable XPL_VIOM_TTY is defined with
     the name of the tty device that a VIOM IO controller is attached to.
 
@@ -61,10 +63,18 @@ EOF
     exit 1
 fi 
 
-
+BIN=${0%/xpl-perl-setup}
 ETC=${1:-/etc/xplperl}
 SVDIR=${2:-/var/service}
 TYPE=${3:-RUNIT}
+
+if [ \! -d "$BIN" ]; then
+    echo Cannot determine bin directory name from executable.  Please run
+    ${0##*/} using the full path name of the executable.
+fi
+
+echo Using $BIN as directory for xpl-perl scripts
+echo
 
 if [ -z "$XPL_OWFS" ]; then
     XPL_OWFS=/ow
@@ -82,16 +92,20 @@ if test \! -e /var/www ; then
 fi
 
 if test \! -e $SVDIR ; then
-    SVDIR=/service
+    SVDIR=/etc/service
     TYPE=daemontools
     if test \! -e $SVDIR ; then
-        SVDIR=/var/lib/svscan
+        SVDIR=/service
         TYPE=daemontools
         if test \! -e $SVDIR ; then
-            echo $0: requires a runit/daemontools service directory
-            echo perhaps you need to install either runit or daemontools
-            echo "See the usage (\"$0 -h\") for more details."
-            exit
+            SVDIR=/var/lib/svscan
+            TYPE=daemontools
+            if test \! -e $SVDIR ; then
+                echo $0: requires a runit/daemontools service directory
+                echo perhaps you need to install either runit or daemontools
+                echo "See the usage (\"$0 -h\") for more details."
+                exit
+            fi
         fi
     fi
 fi
@@ -176,31 +190,31 @@ EOF
 if grep -q '^xplperl:' /etc/group ; then
     echo group 'xplperl' already exists
 else
-    addgroup --system xplperl
+    groupadd -K GID_MIN=100 -K GID_MAX=499 xplperl
 fi
 
 if id xplperl >/dev/null 2>&1 ; then
     echo user 'xplperl' already exists
 else
-    adduser --system --home $ETC --shell /bin/sh --no-create-home \
-        --gecos 'xPL Perl' --disabled-login --disabled-password \
-        --ingroup xplperl xplperl
+    useradd -K UID_MIN=100 -K UID_MAX=499 --home $ETC --shell /bin/sh \
+        --comment 'xPL Perl' --gid xplperl xplperl
 fi
 
 if id xplperllog >/dev/null 2>&1 ; then
     echo user 'xplperllog' already exists
 else
-    adduser --system --home $ETC --shell /bin/sh --no-create-home \
-        --gecos 'xPL Perl Logs' --disabled-login --disabled-password \
-        --ingroup xplperl xplperllog
+    useradd -K UID_MIN=100 -K UID_MAX=499 --home $ETC --shell /bin/sh \
+        --comment 'xPL Perl Logs' --gid xplperl xplperllog
 fi
 
 make_dir $ETC
 
 if test -f $ETC/devices.txt ; then
-    echo $ETC/devices.txt already exists
+    echo $ETC/devices.txt exists but its use is no longer recommended
 else
     cat >$ETC/devices.txt <<EOF
+# Use of this file is no longer recommended but the functionality will remain
+x#
 # mappings (one-per line) of device names to "friendly" names
 # for instance, some rfxcom sensors:
 #
@@ -224,14 +238,14 @@ if netstat -na|grep -q '^udp.*:3865' ; then
     echo Not configuring the xpl-hub service.
 else
     echo Setting up xpl-hub service
-    make_service xpl-hub "/usr/bin/xpl-hub -v"
+    make_service xpl-hub "$BIN/xpl-hub -v"
     link_service xpl-hub
 fi
     echo
 
 echo Setting up xpl-rrd service
 make_dir /var/lib/rrd xplperl:xplperl
-make_service xpl-rrd "/usr/bin/xpl-rrd -v -x $ETC/devices.txt /var/lib/rrd"
+make_service xpl-rrd "$BIN/xpl-rrd -v -x $ETC/devices.txt /var/lib/rrd"
 link_service xpl-rrd
 make_dir /var/www/rrd xplperl:xplperl
 echo
@@ -241,9 +255,9 @@ if test -e /etc/cron.d/xpl-rrd ; then
     echo /etc/cron.d/xpl-rrd already exists
 else
     echo /etc/cron.d/xpl-rrd created
-    cat >/etc/cron.d/xpl-rrd <<EOF
-7,12,17,22,27,32,37,42,47,52,57 * * * * xplperl /usr/bin/xpl-rrd-graphs /var/lib/rrd /var/www/rrd 1h >/dev/null
-2 * * * * xplperl /usr/bin/xpl-rrd-graphs /var/lib/rrd /var/www/rrd >/dev/null
+    sed -e"s_BIN_$BIN_g" >/etc/cron.d/xpl-rrd <<EOF
+7,12,17,22,27,32,37,42,47,52,57 * * * * xplperl BIN/xpl-rrd-graphs /var/lib/rrd /var/www/rrd 1h >/dev/null
+2 * * * * xplperl BIN/xpl-rrd-graphs /var/lib/rrd /var/www/rrd >/dev/null
 EOF
     chmod a+rx /etc/cron.d/xpl-rrd
 fi
@@ -251,7 +265,7 @@ echo
 
 if test -e /etc/heyu ; then
     echo /etc/heyu exists will configure xpl-x10
-    make_service xpl-x10 "/usr/bin/xpl-x10 -v"
+    make_service xpl-x10 "$BIN/xpl-x10 -v"
     link_service xpl-x10
 else
     echo heyu not install not setting up xpl-x10
@@ -260,7 +274,7 @@ echo
 
 if perl -e 'use DateTime::Event::Sunrise;' 2>/dev/null ; then
     echo DateTime::Event::Sunrise available, installing xpl-dawndusk service
-    make_service xpl-dawndusk "/usr/bin/xpl-dawndusk -v"
+    make_service xpl-dawndusk "$BIN/xpl-dawndusk -v"
     link_service xpl-dawndusk
 else
     echo DateTime::Event::Sunrise not available, not configuring xpl-dawndusk
@@ -271,7 +285,7 @@ if test -e $XPL_OWFS && \
   test -e $XPL_OWFS/settings && \
   test -e $XPL_OWFS/uncached ; then
     echo found $XPL_OWFS setting up xpl-owfs for 1-wire filesystem
-    make_service xpl-owfs "/usr/bin/xpl-owfs -v $XPL_OWFS"
+    make_service xpl-owfs "$BIN/xpl-owfs -v $XPL_OWFS"
     link_service xpl-owfs
 else
     echo 1-wire filesystem, $XPL_OWFS, not available, not configuring xpl-owfs
@@ -281,16 +295,26 @@ echo
 
 if test -n "$XPL_RFXCOM_TTY" ;then
     echo Setting up xpl-rfxcom using $XPL_RFXCOM_TTY
-    make_service xpl-rfxcom "/usr/bin/xpl-rfxcom -v $XPL_RFXCOM_TTY"
+    make_service xpl-rfxcom "$BIN/xpl-rfxcom -v $XPL_RFXCOM_TTY"
     link_service xpl-rfxcom
 else
     echo XPL_RFXCOM_TTY not defined, not configuring xpl-rfxcom
 fi
 echo
 
+if test -n "$XPL_RFXCOM_TRANS_TTY" ;then
+    echo Setting up xpl-rfxcom-trans using $XPL_RFXCOM_TRANS_TTY
+    make_service xpl-rfxcom-trans \
+                 "$BIN/xpl-rfxcom-trans -v $XPL_RFXCOM_TRANS_TTY"
+    link_service nxpl-rfxcom-trans
+else
+    echo XPL_RFXCOM_TRANS_TTY not defined, not configuring xpl-rfxcom-trans
+fi
+echo
+
 if test -n "$XPL_VIOM_TTY" ;then
     echo Setting up xpl-viom using $XPL_VIOM_TTY
-    make_service xpl-viom "/usr/bin/xpl-viom -v $XPL_VIOM_TTY"
+    make_service xpl-viom "$BIN/xpl-viom -v $XPL_VIOM_TTY"
     link_service xpl-viom
 else
     echo XPL_VIOM_TTY not defined, not configuring xpl-viom
@@ -299,7 +323,7 @@ echo
 
 if test -n "$XPL_W800_TTY" ;then
     echo Setting up xpl-w800 using $XPL_W800_TTY
-    make_service xpl-w800 "/usr/bin/xpl-w800 -v $XPL_W800_TTY"
+    make_service xpl-w800 "$BIN/xpl-w800 -v $XPL_W800_TTY"
     link_service xpl-w800
 else
     echo XPL_W800_TTY not defined, not configuring xpl-w800
@@ -308,7 +332,7 @@ echo
 
 if netstat -na |grep -q '^tcp.*:7634.*LISTEN' ;then
     echo hddtemp daemon running, configuring xpl-hddtemp
-    make_service xpl-hddtemp "/usr/bin/xpl-hddtemp -v"
+    make_service xpl-hddtemp "$BIN/xpl-hddtemp -v"
     link_service xpl-hddtemp
 else
     echo hddtemp daemon not running, not configuring xpl-hddtemp
