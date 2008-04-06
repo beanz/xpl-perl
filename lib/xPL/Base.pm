@@ -36,7 +36,7 @@ our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw(simple_tokenizer) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 our $SVNVERSION = qw/$Revision$/[1];
 
 my $EMPTY = q{};
@@ -84,6 +84,9 @@ sub add_item {
   if ($self->exists_item($type, $id)) {
     $self->argh("$type item '$id' already registered");
   }
+  $attribs->{'!type!'} = $type;
+  $attribs->{'!id!'} = $id;
+  $attribs->{'!debug!'} = $type.'|'.$id;
   return $self->{_col}->{$type}->{$id} = $attribs;
 }
 
@@ -195,7 +198,10 @@ sub call_callback {
   my $res = &{$r->{callback}}(@_);
   $t = Time::HiRes::time - $t;
   $r->{callback_time_total} += $t;
-  $r->{callback_time_max} = $t if ($r->{callback_time_max} < $t);
+  if ($r->{callback_time_max} < $t) {
+    $r->{callback_time_max} = $t;
+    print STDERR "New callback maximum: ", $r->{'!debug!'}, " = ", $t, "\n";
+  }
   $r->{callback_count}++;
   return $res;
 }
