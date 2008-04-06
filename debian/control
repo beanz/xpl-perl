@@ -9,7 +9,7 @@ Standards-Version: 3.6.1
 Package: libxpl-perl
 Architecture: all
 Depends: ${perl:Depends}, ${misc:Depends}, libyaml-perl, libmodule-pluggable-perl
-Suggests: librrds-perl, libx-osd-perl, libgtk2-perl, libdatetime-event-sunrise-perl, libdatetime-event-recurrence-perl, libdatetime-event-cron-perl, libtimedate-perl, rrdtool, runit | daemontools, hddtemp
+Suggests: librrds-perl, libx-osd-perl, libgtk2-perl, libdatetime-event-sunrise-perl, libdatetime-event-recurrence-perl, libdatetime-event-cron-perl, libtimedate-perl, rrdtool, runit | daemontools, hddtemp, libwww-perl, libsms-send-perl
 Description:  Perl extension for xPL Protocol
  These modules are intended to provide a framework for writing xPL
  applications (see http://wiki.xplproject.org.uk/) in Perl.  A number
