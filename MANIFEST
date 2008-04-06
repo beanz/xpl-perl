@@ -185,6 +185,9 @@ t/rf/electrisave-03-invalid-byte2.txt
 t/rf/oregon-bthr918-01-bad-forecast.txt
 t/rf/oregon-bthr918-01.txt
 t/rf/oregon-bwr102-01.txt
+t/rf/oregon-bwr102-02-invalid.txt
+t/rf/oregon-bwr102-03-invalid.txt
+t/rf/oregon-bwr102-04-invalid.txt
 t/rf/oregon-device-test-01.txt
 t/rf/oregon-rgr918-01.txt
 t/rf/oregon-rtgr328n-01-temphydro.txt
