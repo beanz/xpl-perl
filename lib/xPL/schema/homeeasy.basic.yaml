@@ -1,0 +1,33 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_HOMEEASY.BASIC
+default_message_type: xpl-cmnd
+types:
+  xpl-cmnd:
+    fields:
+      - name: address
+        die: 1
+      - name: unit
+        die: 1
+        error: 'The unit should be a value from 0 to 15 or the word "group".'
+        validation:
+          type: Pattern
+          pattern: '([0-9]|1[0-5]|group)'
+      - name: command
+        die: 1
+        validation: 
+          type: Set
+          set:
+            - on
+            - off
+            - preset
+      - name: level
+        validation: 
+          type: IntegerRange
+          min: 0
+          max: 15
+    summary:
+      - name: command
+      - name: address
+        prefix: "/"
+      - name: unit
+        prefix: " "
