@@ -66,11 +66,8 @@ sub to_rf {
   $bytes[1] = ($addr >> 10) & 0xff;
   $bytes[2] = ($addr >> 2) & 0xff;
   $bytes[3] = (($addr & 0x3) << 6);
-  printf "%08b\n", $bytes[3];
   $bytes[3] |= $p{unit};
-  printf "%08b\n", $bytes[3];
   $bytes[3] |= ($command << 4);
-  printf "%08b\n", $bytes[3];
   return [ $length, \@bytes ];
 }
 
@@ -112,21 +109,25 @@ sub is_homeeasy {
   return (($length == 33 and $bytes->[4] == 0) or $length == 36);
 }
 
+=head2 C<encode_address( $addr )>
+
+Takes a 26-bit address in the form of a hex string prefixed by '0x' or
+an arbitrary string.  A hex string is converted in the obvious way.
+An arbitrary string is hashed to a 26-bit value.
+
+=cut
+
 sub encode_address {
   my $addr = shift;
   return hex($addr) & 0x3ffffff if ($addr =~ /^0x[0-9a-f]{1,8}$/i);
   my $val = 0;
-  while ($addr =~ s/^(.{1,5})//) {
-    my @b = ( (map { ord $_ } split //, $1), 0, 0, 0, 0, 0);
-    $val ^= ($b[0] & 0x1f) ;
-    $val ^= ($b[1] & 0x1f) << 5;
-    $val ^= ($b[2] & 0x1f) << 10;
-    $val ^= ($b[3] & 0x1f) << 15;
-    $val ^= ($b[4] & 0x1f) << 20;
-    $val ^= ( ($b[0] & 0x40) ^ ($b[1] & 0x40) ^ ($b[2] & 0x40) ^
-              ($b[3] & 0x40) ^ ($b[4] & 0x40) ) << 19;
+  my $offset = 0;
+  foreach my $b (map { ord $_ } split //, $addr) {
+    $val ^= ($b&0x7f) << $offset;
+    $offset += 4;
+    $offset = 0 if ($offset > 20);
   }
-  return $val;
+  return $val & 0x3ffffff;
 }
 
 1;
