@@ -45,6 +45,7 @@ use xPL::Client;
 use xPL::Queue;
 use xPL::RF qw/:all/;
 use xPL::X10 qw/:all/;
+use xPL::HomeEasy qw/:all/;
 $|=1; # autoflush helps debugging
 
 my %args = ( vendor_id => 'bnz', device_id => 'rfxcomt', );
@@ -83,11 +84,19 @@ my $dev = shift or pod2usage(-message => "The device parameter is required",
 my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'rfxcom', callback => \&xpl_in,
+$xpl->add_xpl_callback(id => 'xpl-x10', callback => \&xpl_x10,
                        filter =>
                        {
                         message_type => 'xpl-cmnd',
                         class => 'x10',
+                        class_type => 'basic',
+                       });
+
+$xpl->add_xpl_callback(id => 'xpl-homeeasy', callback => \&xpl_homeeasy,
+                       filter =>
+                       {
+                        message_type => 'xpl-cmnd',
+                        class => 'homeeasy',
                         class_type => 'basic',
                        });
 
@@ -161,14 +170,14 @@ send_rfxcom();
 # Run the main loop
 $xpl->main_loop();
 
-=head2 C<xpl_in(%xpl_callback_parameters)>
+=head2 C<xpl_x10(%xpl_callback_parameters)>
 
 This is the callback that processes incoming xPL messages.  It handles
 the incoming x10.basic schema messages.
 
 =cut
 
-sub xpl_in {
+sub xpl_x10 {
   my %p = @_;
   my $msg = $p{message};
   my $peeraddr = $p{peeraddr};
@@ -177,7 +186,8 @@ sub xpl_in {
   if ($msg->house) {
     foreach (split //, $msg->house) {
       my $rf_msg =
-        msg->new(raw => encode(command => $msg->command, house => $msg->house),
+        msg->new(raw => encode_x10(command => $msg->command,
+                                   house => $msg->house),
                  desc => $msg->house.' '.$msg->command);
       foreach (1..$msg->extra_field('repeat')||1) {
         queue_rfxcom($rf_msg);
@@ -187,9 +197,9 @@ sub xpl_in {
     foreach (split /,/, $msg->device) {
       my ($house, $unit) = /^([a-p])(\d+)$/i or next;
       my $rf_msg =
-        msg->new(raw => encode(command => $msg->command,
-                               house => $house,
-                               unit => $unit),
+        msg->new(raw => encode_x10(command => $msg->command,
+                                   house => $house,
+                                   unit => $unit),
                  desc => $house.$unit.' '.$msg->command);
       foreach (1..$msg->extra_field('repeat')||1) {
         queue_rfxcom($rf_msg);
@@ -197,6 +207,43 @@ sub xpl_in {
     }
   } else {
     warn "Invalid x10.basic message:\n  ", $msg->summary, "\n";
+  }
+  return 1;
+}
+
+=head2 C<xpl_homeeasy(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming homeeasy.basic schema messages.
+
+=cut
+
+sub xpl_homeeasy {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  my %args = ();
+  foreach (qw/address unit command/) {
+    my $val = $msg->$_ or do {
+      warn "Invalid homeeasy.basic message:\n  ", $msg->summary, "\n";
+      return;
+    };
+    $args{$_} = $val;
+  }
+  if ($args{command} eq 'preset') {
+    my $level = $msg->level;
+    unless (defined $level) {
+      warn "homeeasy.basic 'preset' message is missing 'level':\n  ",
+        $msg->summary, "\n";
+      return;
+    }
+    $args{level} = $level;
+  }
+  my $rf_msg = msg->new(raw => encode_homeeasy(%args), desc => $msg->summary);
+  foreach (1..$msg->extra_field('repeat')||1) {
+    queue_rfxcom($rf_msg);
   }
   return 1;
 }
@@ -254,8 +301,13 @@ sub send_rfxcom {
               });
 }
 
-sub encode {
+sub encode_x10 {
   return pack "C5", 32, @{xPL::X10::to_rf(@_)};
+}
+
+sub encode_homeeasy {
+  my ($length, $bytes) = @{xPL::HomeEasy::to_rf(@_)};
+  return pack "C6", $length, @$bytes;
 }
 
 # send a 'hbeat.end' message on exit
