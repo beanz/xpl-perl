@@ -74,6 +74,10 @@ my %types =
                checksum => \&checksum2, method => 'common_temp', },
    #0x0a4d => { part => 'THR138', len => 80, method => 'common_temp', },
 
+   0xca2c => { part => 'THGR328N',
+               len => 80, checksum => \&checksum2,
+               method => 'common_temphydro', },
+
    # masked
    0x0acc => { part => 'RTGR328N', len => 80, checksum => \&checksum2,
                method => 'common_temphydro', },
