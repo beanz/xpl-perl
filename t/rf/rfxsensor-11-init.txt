@@ -6,5 +6,5 @@
 
 empty
 
-RFXSensor Type-3, version 0a, initialized
+RFXSensor Type-3, version 0a, transmit mode fast, initialized
 

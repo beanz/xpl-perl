@@ -53,6 +53,13 @@ my %error =
    0x87 => "A/D conversion not ready in time",
   );
 
+my %types = (
+             'RFX' => { fun => \&parse_init, len => 32 },
+             'RF2' => { fun => \&parse_init, len => 32 },
+             'RF3' => { fun => \&parse_init, len => 32 },
+             'SEN' => { fun => \&parse_sen, len => 40 },
+);
+
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 
 TODO: POD
@@ -66,11 +73,11 @@ sub parse {
   my $bytes = shift;
   my $bits = shift;
 
-  $bits == 32 or return;
-  if ($bytes->[0] == 0x52 && $bytes->[1] == 0x46 &&
-      ( $bytes->[2] == 0x58 || $bytes->[2] == 0x32 || $bytes->[2] == 0x33 ) ) {
-    return $self->parse_init($parent, $message, $bytes, $bits);
+  my $str = substr $message, 0, 3;
+  if (exists $types{$str} && $bits == $types{$str}->{len}) {
+    return $types{$str}->{fun}->($self, $parent, $message, $bytes, $bits, $str);
   }
+  $bits == 32 or return;
   (($bytes->[0]^0xf0) == $bytes->[1]) or return;
   ((nibble_sum(3.5, $bytes)&0xf)^0xf) == lo_nibble($bytes->[3]) or return;
   my $device = sprintf("rfxsensor%02x%02x", $bytes->[0], $bytes->[1]);
@@ -181,10 +188,24 @@ sub parse_init {
   my $message = shift;
   my $bytes = shift;
   my $bits = shift;
+  my $type = shift;
 
-  warn sprintf "RFXSensor %s, version %02x, initialized\n",
+  warn sprintf "RFXSensor %s, version %02x, transmit mode %s, initialized\n",
     { 0x58 => 'Type-1', 0x32 => 'Type-2', 0x33 => 'Type-3' }->{$bytes->[2]},
-      $bytes->[3];
+      $bytes->[3]&0x7f, $bytes->[3]&0x80 ? 'slow' : 'fast';
+  return [];
+}
+
+sub parse_sen {
+  my $self = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+  my $str = shift;
+
+  warn sprintf "RFXSensor SEN%d, type %02x (%s)\n", $bytes->[3], $bytes->[4],
+    { 0x26 => 'DS2438', 0x28 => 'DS18B20' }->{$bytes->[4]} || 'unknown';
   return [];
 }
 
