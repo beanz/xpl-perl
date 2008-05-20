@@ -67,6 +67,10 @@ sub parse {
   my $bits = shift;
 
   $bits == 32 or return;
+  if ($bytes->[0] == 0x52 && $bytes->[1] == 0x46 &&
+      ( $bytes->[2] == 0x58 || $bytes->[2] == 0x32 || $bytes->[2] == 0x33 ) ) {
+    return $self->parse_init($parent, $message, $bytes, $bits);
+  }
   (($bytes->[0]^0xf0) == $bytes->[1]) or return;
   ((nibble_sum(3.5, $bytes)&0xf)^0xf) == lo_nibble($bytes->[3]) or return;
   my $device = sprintf("rfxsensor%02x%02x", $bytes->[0], $bytes->[1]);
@@ -169,6 +173,19 @@ sub parse {
     }
   }
   return;
+}
+
+sub parse_init {
+  my $self = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  warn sprintf "RFXSensor %s, version %02x, initialized\n",
+    { 0x58 => 'Type-1', 0x32 => 'Type-2', 0x33 => 'Type-3' }->{$bytes->[2]},
+      $bytes->[3];
+  return [];
 }
 
 1;
