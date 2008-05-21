@@ -45,6 +45,7 @@ lib/xPL/Base.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
 lib/xPL/Gtk2Client.pm
+lib/xPL/HomeEasy.pm
 lib/xPL/Hub.pm
 lib/xPL/Listener.pm
 lib/xPL/Message.pm
@@ -75,6 +76,7 @@ lib/xPL/schema/hbeat.app.yaml
 lib/xPL/schema/hbeat.basic.yaml
 lib/xPL/schema/hbeat.end.yaml
 lib/xPL/schema/hbeat.request.yaml
+lib/xPL/schema/homeeasy.basic.yaml
 lib/xPL/schema/osd.basic.yaml
 lib/xPL/schema/ping.request.yaml
 lib/xPL/schema/ping.response.yaml
@@ -222,6 +224,9 @@ t/rf/rfxsensor-07-low-battery.txt
 t/rf/rfxsensor-08-error.txt
 t/rf/rfxsensor-09-unknown-status.txt
 t/rf/rfxsensor-10-negative-temp.txt
+t/rf/rfxsensor-11-init.txt
+t/rf/rfxsensor-12-init-slow.txt
+t/rf/rfxsensor-13-sensor-info.txt
 t/rf/visonic-01-codesecure.txt
 t/rf/visonic-02-powercode.txt
 t/rf/visonic-03-powercode-secondary.txt
