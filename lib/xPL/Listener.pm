@@ -777,7 +777,7 @@ sub dispatch_timer {
 
   my $r = $self->{_col}->{timer}->{$id};
   my $res = $self->call_callback($r, id => $id, arguments => $r->{arguments});
-  if (!defined $res) {
+  if (!defined $res or !$res) {
     $self->remove_timer($id);
     return;
   } elsif ($res == -1) {
