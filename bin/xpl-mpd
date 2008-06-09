@@ -1,0 +1,171 @@
+#!/usr/bin/perl -w
+
+# $Id$
+
+=head1 NAME
+
+xpl-mpd - Perl script for an xPL mpd application
+
+=head1 SYNOPSIS
+
+  xpl-mpd [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0       - interface for xPL messages (first non-loopback or loopback)
+    -s ip[:port] - ip address (and optional port number) of the mpd server
+                   (loopback:6600)
+
+  # start the mpd application on first ethernet interface in verbose mode
+  xpl-mpd -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with an mpd controller.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use Getopt::Long;
+use Pod::Usage;
+use POSIX ":sys_wait_h";
+use xPL::Client;
+use Audio::MPD;
+$|=1; # autoflush helps debugging
+
+my %args = ( vendor_id => 'bnz', device_id => 'mpd', );
+my %opt = ();
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $server = '127.0.0.1';
+my $port = 6600;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'server=s' => \$server,
+           'port=i' => \$port,
+           ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
+my $mpd = Audio::MPD->new(host => $server, # MPD POD has 'hostname'
+                          port => $port);
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'mpd', callback => \&xpl_in,
+                       filter => {
+                        message_type => 'xpl-cmnd',
+                        class => 'audio',
+                        class_type => 'basic',
+                       });
+$xpl->main_loop();
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+a limited subset of the full audio.basic schema but could easily be
+extended.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  my $command = $msg->command;
+  if ($command =~ /^volume\s?([-+]?\d+)/) {
+    $mpd->volume($1);
+  } elsif ($command eq 'play') {
+    my $status = $mpd->status;
+    my $state = $status->state;
+    if ($state eq "play") {
+      $mpd->next();
+    } else {
+      $mpd->play();
+    }
+  } elsif ($command eq "skip") {
+    $mpd->next();
+    setup_timer_to_check_song_details();
+  } elsif ($command eq "pause") {
+    $mpd->pause();
+  } elsif ($command eq "back") {
+    $mpd->prev();
+    setup_timer_to_check_song_details();
+  } elsif ($command =~ /^stop$/) {
+    $mpd->stop();
+  }
+  return 1;
+}
+
+sub setup_timer_to_check_song_details {
+  $xpl->exists_timer('get_current') or
+    $xpl->add_timer(id => 'get_current',
+                    timeout => 1,
+                    callback => sub {
+                      my $current = $mpd->current() or return;
+                      $xpl->send(message_type => 'xpl-cmnd',
+                                 class => 'osd.basic',
+                                 body =>
+                                 {
+                                  command => 'clear',
+                                  row => 1,
+                                  text => $current->title,
+                                 });
+                      $xpl->send(message_type => 'xpl-cmnd',
+                                 class => 'osd.basic',
+                                 body =>
+                                 {
+                                  command => 'write',
+                                  row => 2,
+                                  text => $current->artist,
+                                 });
+                      return 0;
+                    });
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 TODO
+
+=over 4
+
+=item
+  support 'requests'
+
+=back
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), Audio::Mixer(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+
+=head1 COPYRIGHT AND LICENSE
+
+Copyright (C) 2007, 2008 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
