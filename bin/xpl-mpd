@@ -98,6 +98,7 @@ sub xpl_in {
     } else {
       $mpd->play();
     }
+    setup_timer_to_check_song_details();
   } elsif ($command eq "skip") {
     $mpd->next();
     setup_timer_to_check_song_details();
@@ -134,7 +135,7 @@ sub setup_timer_to_check_song_details {
                                   row => 2,
                                   text => $current->artist,
                                  });
-                      return 0;
+                      return;
                     });
 }
 
