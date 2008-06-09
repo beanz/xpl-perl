@@ -148,11 +148,15 @@ END { defined $xpl && $xpl->send_hbeat_end(); }
 =item
   support 'requests'
 
+=item consider writing asynchronous mpd protocol implementation
+
 =back
 
 =head1 SEE ALSO
 
-xPL::Client(3), xPL::Listener(3), Audio::Mixer(3)
+xPL::Client(3), xPL::Listener(3), Audio::MPD(3)
+
+Music Player Daemon website: http://www.musicpd.org/
 
 Project website: http://www.xpl-perl.org.uk/
 
