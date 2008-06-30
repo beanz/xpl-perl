@@ -31,7 +31,7 @@ types:
         prefix: "/"
       - name: unit
         prefix: " "
-  xpl-cmnd:
+  xpl-trig:
     fields:
       - name: address
         die: 1
