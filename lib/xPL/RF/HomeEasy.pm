@@ -57,8 +57,8 @@ sub parse {
 
   my $res = xPL::HomeEasy::from_rf($bits, $bytes);
 
-  printf "homeeasy c=%s u=%d a=%x\n",
-    $res->{command}, $res->{unit}, $res->{address};
+#  printf "homeeasy c=%s u=%d a=%x\n",
+#    $res->{command}, $res->{unit}, $res->{address};
   my %body = (
               command => $res->{command},
               unit => $res->{unit},
