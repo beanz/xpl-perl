@@ -139,7 +139,7 @@ sub xpl_in {
     my $data1 = $msg->data1;
     my $data2 = $msg->data2;
     return 1 unless (defined $data1 && defined $data2);
-    my $command = sprintf '%02X%02X', $data1, $data2;
+    my $command = sprintf '%02X%02X', $data2, $data1;
     foreach my $device (@devices) {
       my ($house, $unit) = @$device;
       my $string = ($house.'[1]'.$unit.$command) x 2;
