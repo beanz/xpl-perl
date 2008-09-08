@@ -129,7 +129,7 @@ t/03-message-errors.t
 t/03-message-from-payload.t
 t/03-message-method-maker.t
 t/03-rf.t
-t/03-rf-x10.t
+t/03-rf-misc.t
 t/04-clock.t
 t/04-collection-api.t
 t/04-hbeat-errors.t
