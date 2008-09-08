@@ -1,0 +1,10 @@
+2853454e0010
+
+6 bytes
+
+0 messages
+
+empty
+
+RFXSensor SEN0, type 10 (unknown)
+

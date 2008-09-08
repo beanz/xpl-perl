@@ -52,8 +52,12 @@ sub parse {
 
   # HomeEasy devices seem to send duplicates with different byte[4] high nibble
   my @b = @{$bytes};
+  my $b4 = $b[4];
   $b[4] &= 0xf;
-  $parent->is_duplicate($bits, pack "C*", @b) and return [];
+  if ($b[4] != $b4) {
+    $parent->is_duplicate($bits, pack "C*", @b) and return [];
+    $b[4] = $b4;
+  }
 
   my $res = xPL::HomeEasy::from_rf($bits, $bytes);
 

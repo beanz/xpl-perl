@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2007 by Mark Hindess
+# Copyright (C) 2007, 2008 by Mark Hindess
 
 use strict;
-use Test::More tests => 25;
+use Test::More tests => 33;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::RF');
@@ -63,3 +63,19 @@ $res = $rf->process_32bit(pack 'H*','010e45fa');
 ok($res, 'recognizes valid message - non-x10sec');
 is(scalar @$res, 0, 'array has no messages - non-x10sec');
 
+$res = $rf->process_variable_length(pack 'H*', '2201136f90f0');
+ok($res, 'homeeasy command recognized');
+is(scalar @{$res->{messages}}, 1, 'homeeasy.basic message generated');
+
+$res = $rf->process_variable_length(pack 'H*', '2201136f90c0');
+ok($res, 'duplicate homeeasy command recognized');
+is(scalar @{$res->{messages}}, 0,
+   'homeeasy.basic message for dup not generated');
+
+# to get coverage of the short circuit for parsing in Oregon plugin.
+is(test_warn(sub { $res = $rf->process_variable_length(pack 'H*','0710'); }),
+   "Unknown message, len=7:\n  10\n", 'short unrecognized - warning');
+ok($res, 'short unrecognized but valid command');
+is($res->{length}, 2, 'short unrecognized but valid command - two bytes');
+is(scalar @{$res->{messages}}, 0,
+   'short unrecognized but valid command - no messages');

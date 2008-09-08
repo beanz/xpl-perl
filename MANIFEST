@@ -121,6 +121,7 @@ t/01-xpl-interfaces.t
 t/01-xpl-message.t
 t/01-xpl-utils.t
 t/01-xpl-validation.t
+t/02-homeeasy.t
 t/02-message.t
 t/02-timer.t
 t/02-x10.t
@@ -185,6 +186,8 @@ t/msg/018.osd.basic.txt
 t/rf/electrisave-01.txt
 t/rf/electrisave-02-invalid-byte1.txt
 t/rf/electrisave-03-invalid-byte2.txt
+t/rf/homeeasy-01-off.txt
+t/rf/homeeasy-02-group-on.txt
 t/rf/oregon-bthr918-01-bad-forecast.txt
 t/rf/oregon-bthr918-01.txt
 t/rf/oregon-bwr102-01.txt
@@ -228,6 +231,8 @@ t/rf/rfxsensor-10-negative-temp.txt
 t/rf/rfxsensor-11-init.txt
 t/rf/rfxsensor-12-init-slow.txt
 t/rf/rfxsensor-13-sensor-info.txt
+t/rf/rfxsensor-14-sensor-unknown.txt
+t/rf/rfxsensor-15-sensor-bad-len.txt
 t/rf/visonic-01-codesecure.txt
 t/rf/visonic-02-powercode.txt
 t/rf/visonic-03-powercode-secondary.txt

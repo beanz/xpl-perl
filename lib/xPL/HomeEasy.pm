@@ -10,14 +10,17 @@ xPL::HomeEasy - Perl extension for xPL HomeEasy Encoding/Decoding
 
   use xPL::HomeEasy;
 
-  my $rfcode = xPL::HomeEasy::to_rf(house => 'a', unit => '1', command => 'on');
+  my $rfcode = xPL::HomeEasy::to_rf(address => "0x31f8177",
+                                    unit => '1',
+                                    command => 'on');
 
   my $res = xPL::HomeEasy::from_rf($rfcode);
 
 =head1 DESCRIPTION
 
 This is a module contains a module for handling the encoding/decoding
-of HomeEasy messages.
+of HomeEasy messages.  These methods are not symmetrical because the
+RFXCOM receiver and RFXCOM transmitter use different length parameters.
 
 =head1 METHODS
 
@@ -52,7 +55,7 @@ sub to_rf {
   my $command;
   if ($p{command} eq 'preset') {
     $length = 36;
-    $bytes[4] = $p{level} << 3;
+    $bytes[4] = $p{level} << 4;
     $command = 0;
   } else {
     $command = $p{command} eq 'on' ? 1 : 0;
@@ -93,20 +96,6 @@ sub from_rf {
     $p{command} = ($command & 0x1) ? 'on' : 'off';
   }
   return \%p;
-}
-
-=head2 C<is_homeeasy( $bytes )>
-
-Takes a length and an array reference of bytes from an RF message and
-returns true if it I<might> be a valid HomeEasy message.
-
-=cut
-
-sub is_homeeasy {
-  my $length = shift;
-  my $bytes = shift;
-
-  return (($length == 33 and $bytes->[4] == 0) or $length == 36);
 }
 
 =head2 C<encode_address( $addr )>

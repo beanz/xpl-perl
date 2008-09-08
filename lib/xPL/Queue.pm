@@ -38,13 +38,19 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision: 281 $/[1];
 
+=head2 C<new()>
+
+This method is the constructor.  It takes no arguments.
+
+=cut
+
 sub new {
   my $pkg = shift;
   my $self = { _q => [], _max_stats => 50, _stats => [], };
   bless $self, $pkg;
 }
 
-=head2 C<queue($item)>
+=head2 C<enqueue($item)>
 
 This method adds an item to the queue.
 

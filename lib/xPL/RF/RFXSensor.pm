@@ -182,6 +182,12 @@ sub parse {
   return;
 }
 
+=head2 C<parse_init( $parent, $message, $bytes, $bits, $type )>
+
+Parse RFX Sensor initialization messages and output information to STDERR.
+
+=cut
+
 sub parse_init {
   my $self = shift;
   my $parent = shift;
@@ -195,6 +201,12 @@ sub parse_init {
       $bytes->[3]&0x7f, $bytes->[3]&0x80 ? 'slow' : 'fast';
   return [];
 }
+
+=head2 C<parse_sen( $parent, $message, $bytes, $bits, $str )>
+
+Parse RFX Sensor version messages and output information to STDERR.
+
+=cut
 
 sub parse_sen {
   my $self = shift;

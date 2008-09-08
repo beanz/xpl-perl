@@ -1,0 +1,19 @@
+22c7e05dca00
+
+6 bytes
+
+1 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+homeeasy.basic
+{
+address=0x31f8177
+unit=10
+command=off
+}
+
