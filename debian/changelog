@@ -1,5 +1,19 @@
 libxpl-perl (0.07-1) unstable; urgency=low
 
+  * xpl-ctx35: Fix bug in extended function handling.  Thanks to Jeroen
+    Hendriks for the patch.
+  * xpl-mpd: Simple media.basic client for the music player daemon from
+    from http://www.musicpd.org/
+  * xpl-rfxcom, xpl-rfxcom-trans: Support for homeeasy.basic.
+  * xpl-rfxcom: Support for RFXSensor informational/diagnostic
+    messages.
+  * xpl-rfxcom: Improved RTGR328N date/time support.
+  * xpl-rfxcom: THGR328N support.
+
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Sun,  7 Sep 2008 22:47:12 +0100
+
+libxpl-perl (0.07-1) unstable; urgency=low
+
   * All clients are converted to use Getopt::Long and now support
     passing arbitrary parameters to the xPL::Client constructor using
     '--define key=value' options on the command line.
