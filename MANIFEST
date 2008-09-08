@@ -52,6 +52,7 @@ lib/xPL/Listener.pm
 lib/xPL/Message.pm
 lib/xPL/Queue.pm
 lib/xPL/RF/Electrisave.pm
+lib/xPL/RF/HomeEasy.pm
 lib/xPL/RF/Oregon.pm
 lib/xPL/RF/OregonScale.pm
 lib/xPL/RF.pm
@@ -128,8 +129,8 @@ t/02-x10.t
 t/03-message-errors.t
 t/03-message-from-payload.t
 t/03-message-method-maker.t
-t/03-rf.t
 t/03-rf-misc.t
+t/03-rf.t
 t/04-clock.t
 t/04-collection-api.t
 t/04-hbeat-errors.t
