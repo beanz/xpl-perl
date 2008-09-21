@@ -1,0 +1,19 @@
+40d36c421406388406
+
+9 bytes
+
+1 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=gr101.6c
+type=weight
+current=62.1
+}
+

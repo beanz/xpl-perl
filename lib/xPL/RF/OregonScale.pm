@@ -51,6 +51,9 @@ sub parse {
   my $bytes = shift;
   my $bits = shift;
 
+  if ($bits == 64 && lo_nibble($bytes->[0]) == 3) {
+    return parse_gr101($self, $parent, $message, $bytes, $bits);
+  }
   return unless (scalar @$bytes == 7);
   return unless (($bytes->[0]&0xf0) == ($bytes->[5]&0xf0) &&
                  ($bytes->[1]&0xf) == ($bytes->[6]&0xf));
@@ -69,6 +72,29 @@ sub parse {
                                      type => 'weight',
                                      current => $weight,
                                      unknown => $unknown,
+                                    }
+                           )];
+}
+
+sub parse_gr101 {
+  my $self = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  my $weight =
+    (lo_nibble($bytes->[4])<<12) + ($bytes->[3]<<4) + ($bytes->[2]>>4);
+  $weight = sprintf "%.1f", $weight/400.8;
+  my $dev_str = sprintf 'gr101.%02x', $bytes->[1];
+  return [xPL::Message->new(
+                            message_type => 'xpl-trig',
+                            class => 'sensor.basic',
+                            head => { source => $parent->source, },
+                            body => {
+                                     device => $dev_str,
+                                     type => 'weight',
+                                     current => $weight,
                                     }
                            )];
 }
