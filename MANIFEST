@@ -116,6 +116,7 @@ MANIFEST
 META.yml                                 Module meta-data (added by MakeMaker)
 README
 t/00-helpers.t
+t/01-pod.t
 t/01-use.t
 t/01-xpl-base.t
 t/01-xpl-interfaces.t
@@ -196,6 +197,7 @@ t/rf/oregon-bwr102-02-invalid.txt
 t/rf/oregon-bwr102-03-invalid.txt
 t/rf/oregon-bwr102-04-invalid.txt
 t/rf/oregon-device-test-01.txt
+t/rf/oregon-gr101-01.txt
 t/rf/oregon-rgr918-01.txt
 t/rf/oregon-rtgr328n-01-temphydro.txt
 t/rf/oregon-rtgr328n-02-datetime.txt
@@ -250,7 +252,9 @@ t/rf/x10-06-non-x10.txt
 t/rf/x10sec-01.txt
 t/rf/x10sec-02-alert-tamper-min.txt
 t/rf/x10sec-03-lowbat.txt
-t/rf/x10sec-04-unsupported.txt
+t/rf/x10sec-04-kr21-arm-away.txt
+t/rf/x10sec-05-kr21-lights-on.txt
+t/rf/x10sec-06-unsupported.txt
 t/schema/test.basic.yaml
 t/x10/a10-on.txt
 t/x10/i5-off.txt
