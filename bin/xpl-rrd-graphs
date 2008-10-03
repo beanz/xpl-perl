@@ -23,6 +23,7 @@ This script is an xPL client that logs known message types
 use strict;
 use File::Find;
 use FileHandle;
+use File::Path qw/mkpath/;
 use POSIX qw/strftime/;
 use RRDs;
 
@@ -104,7 +105,7 @@ foreach my $dir (sort keys %rrds) {
 
   print "D: ", $dir, "\n";
   my $gd = $graph_dir."/".$dir;
-  mkdir($gd, 0755) unless (-d $gd);
+  mkpath($gd, 0, 0755) unless (-d $gd);
 
   foreach my $a (sort keys %{$rrds{$dir}}) {
 
@@ -112,7 +113,7 @@ foreach my $dir (sort keys %rrds) {
       print "  ", $a, " ";
       my $rrd = $rrds{$dir}->{$a}->{rrd};
       my $gb = $gd."/".$a;
-      mkdir($gb, 0755) unless (-d $gb);
+      mkpath($gb, 0, 0755) unless (-d $gb);
       my $sources = rrd_data_sources($rrd);
       foreach my $var (@$sources) {
         print $var, ": ";
