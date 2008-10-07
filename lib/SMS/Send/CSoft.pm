@@ -103,9 +103,9 @@ Connection Software Website: http://www.csoft.co.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright (C) 2007 by Mark Hindess
 

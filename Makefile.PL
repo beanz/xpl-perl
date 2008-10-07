@@ -16,7 +16,7 @@ WriteMakefile(
               EXE_FILES => \@exe,
               ($] >= 5.005 ? ## Add these new keywords supported since 5.005
                (ABSTRACT => 'lib/xPL/Listener.pm',
-                AUTHOR  => 'Mark Hindess <xpl-perl@beanz.uklinux.net>',
+                AUTHOR  => 'Mark Hindess <soft-xpl-perl@temporalanomaly.com>',
                 PREREQ_PM => {
                   'YAML' => 0,
                   'Module::Pluggable' => 0,

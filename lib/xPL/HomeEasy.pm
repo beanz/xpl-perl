@@ -18,9 +18,9 @@ xPL::HomeEasy - Perl extension for xPL HomeEasy Encoding/Decoding
 
 =head1 DESCRIPTION
 
-This is a module contains a module for handling the encoding/decoding
-of HomeEasy messages.  These methods are not symmetrical because the
-RFXCOM receiver and RFXCOM transmitter use different length parameters.
+This is a module for handling the encoding/decoding of HomeEasy
+messages.  These methods are not symmetrical because the RFXCOM
+receiver and RFXCOM transmitter use different length parameters.
 
 =head1 METHODS
 
@@ -132,11 +132,11 @@ Project website: http://www.xpl-perl.org.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
-Copyright (C) 2007 by Mark Hindess
+Copyright (C) 2007, 2008 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,

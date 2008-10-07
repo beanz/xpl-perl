@@ -4,7 +4,7 @@
 
 =head1 NAME
 
-xpl-csoft-sms - Perl script for an xPL X OSD application
+xpl-csoft-sms - Perl script for an xPL SMS message sender
 
 =head1 SYNOPSIS
 
@@ -25,6 +25,9 @@ xpl-csoft-sms - Perl script for an xPL X OSD application
 This script is an xPL client that sends messages via the Connection
 Software (http://www.csoft.co.uk/) SMS service.  This script requires
 the LWP modules and one of the SSL implementations.
+
+B<This script is deprecated and will not be in the next release.
+L<xpl-sms-send> should be used instead.>
 
 =cut
 
@@ -143,9 +146,9 @@ Connection Software Website: http://www.csoft.co.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright (C) 2007, 2008 by Mark Hindess
 

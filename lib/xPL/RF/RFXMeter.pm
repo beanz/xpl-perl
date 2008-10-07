@@ -4,7 +4,7 @@ package xPL::RF::RFXMeter;
 
 =head1 NAME
 
-xPL::RF::RFXMeter - Perl extension for an xPL RF Class
+xPL::RF::RFXMeter - Perl extension for decoding RFXCOM Meter RF messages
 
 =head1 SYNOPSIS
 
@@ -12,8 +12,7 @@ xPL::RF::RFXMeter - Perl extension for an xPL RF Class
 
 =head1 DESCRIPTION
 
-This is a module contains a module for handling the decoding of RF
-messages.
+This is a module for decoding RF messages from RFXCOM RFXMeter devices.
 
 =head1 METHODS
 
@@ -37,10 +36,10 @@ our $SVNVERSION = qw/$Revision$/[1];
 
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 
-TODO: POD
-
-TODO: The duplicates should probably be counted for bright and dim to set
-the level but they aren't yet.
+This method attempts to recognize and parse RF messages corresponding
+to RFXMeter messages.  If messages are identified a reference to a
+list of xPL::Message objects is returned.  If the message is not
+recognized, undef is returned.
 
 =cut
 
@@ -133,11 +132,11 @@ Project website: http://www.xpl-perl.org.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
-Copyright (C) 2007 by Mark Hindess
+Copyright (C) 2007, 2008 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,

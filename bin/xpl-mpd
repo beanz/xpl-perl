@@ -4,7 +4,7 @@
 
 =head1 NAME
 
-xpl-mpd - Perl script for an xPL mpd application
+xpl-mpd - Perl script for an xPL Music Player Daemon application
 
 =head1 SYNOPSIS
 
@@ -22,7 +22,8 @@ xpl-mpd - Perl script for an xPL mpd application
 
 =head1 DESCRIPTION
 
-This script is an xPL client that interfaces with an mpd controller.
+This script is an xPL client that interfaces with a server running
+the Music Player Daemon (mpd from http://www.musicpd.org).
 
 =cut
 
@@ -163,9 +164,9 @@ Project website: http://www.xpl-perl.org.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright (C) 2007, 2008 by Mark Hindess
 

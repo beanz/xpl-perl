@@ -4,7 +4,7 @@ package xPL::Queue;
 
 =head1 NAME
 
-xPL::Queue - Perl extension for xPL timer base class
+xPL::Queue - Perl extension for simple queue for use by xPL clients
 
 =head1 SYNOPSIS
 
@@ -158,9 +158,9 @@ Project website: http://www.xpl-perl.org.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright (C) 2008 by Mark Hindess
 

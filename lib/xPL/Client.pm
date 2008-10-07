@@ -263,10 +263,10 @@ messages.
 
 =head2 C<hub_response_timeout()>
 
-TOFIX: Wrong doc.
-Returns the hopeful hbeat interval (in seconds) for this source.
-This is used if the hub fails to respond to the initial fast hbeat
-messages.
+Returns the hub response timeout (in seconds) for this source.  This
+is the amount of time that fast hbeat messages are sent before the
+client backs off and sends hbeat messages at the slower hopeful hbeat
+interval.
 
 =head2 C<fast_hbeat()>
 
@@ -551,9 +551,9 @@ Project website: http://www.xpl-perl.org.uk/
 
 Mark Hindess, E<lt>xpl@beanz.uklinux.netE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
-Copyright (C) 2005, 2007 by Mark Hindess
+Copyright (C) 2005, 2008 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,

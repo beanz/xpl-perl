@@ -22,7 +22,12 @@ xpl-viom - Perl script for an xPL VIOM IO controller application
 =head1 DESCRIPTION
 
 This script is an xPL client that interfaces with a VIOM IO
-controller.
+controller.  It supports the use of control.basic messages with
+current fields set to 'high', 'low', 'pulse' or 'toggle' with devices
+of the form 'oNN' where NN is a number from 1 to 16.  It also reports
+changes to the status of inputs as sensor.basic messages of type input
+with device names of the for 'iNN' whiere NN is a number from 1 to 16
+and single digit numbers are prefixed by 0.
 
 =cut
 
@@ -268,9 +273,9 @@ VIOM website: http://www.phaedrusltd.com/pages/html/viom.html
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright (C) 2006, 2008 by Mark Hindess
 

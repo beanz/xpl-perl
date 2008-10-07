@@ -1,0 +1,5581 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{fullpage}
+\usepackage[dvips]{graphicx}
+\usepackage{epsfig}
+
+\title{xPL Perl Toolkit}
+\author{Mark Hindess\\
+  \texttt{soft-xpl-perl@temporalanomaly.com}\\
+  Copyright (C) 2005, 2008}
+
+\begin{document}
+
+% Use the following defn. for drafts
+%\newcommand{\comment}[1]{\footnote{#1}}
+% otherwise use this...
+\newcommand{\comment}[1]{}
+\setlength{\parindent}{0pt}
+\addtolength{\parskip}{5pt}
+
+% Macro for http reference inclusion, per hypertex.
+\def\href#1#2{\special{html:<a href="#1">}{#2}\special{html:</a>}}
+\def\url#1{\special{html:<a href="#1">}{\tt{#1}}\special{html:</a>}}
+\def\msg#1{\texttt{#1}}
+\def\method#1{\texttt{#1}}
+\def\field#1{\texttt{#1}}
+\def\cmd#1{\texttt{#1}}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+\section{xpl-bridge\label{xpl-bridge}\index{xpl-bridge}}
+
+
+Perl script for a simple xPL bridge application
+
+\subsection*{SYNOPSIS\label{xpl-bridge_SYNOPSIS}\index{xpl-bridge!SYNOPSIS}}
+\begin{verbatim}
+  xpl-bridge [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -H - dump the head of all xPL messages
+    -B - dump the body of all xPL messages
+  and valid options are (default shown in brackets):
+    -i ip  - the IP address the bridge should listen on (127.0.0.1)
+    -b ip  - the broadcast address for bridge hbeat messages (127.255.255.255)
+    -l ip  - the bridge should go in to listen mode listening on this
+             local address
+    -r ip  - the bridge should go in to client mode connecting to this
+             remote address
+\end{verbatim}
+\begin{verbatim}
+  # start the bridge in listen mode waiting for clients on 10.0.0.1
+  xpl-bridge -i eth0 -v -l 10.0.0.1
+\end{verbatim}
+\begin{verbatim}
+  # start a client bridge connecting to the remote bridge on 10.0.0.1
+  xpl-bridge -i eth0 -v -r 10.0.0.1
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-bridge_DESCRIPTION}\index{xpl-bridge!DESCRIPTION}}
+
+
+This script is an xPL bridge.  It has two modes.  If the '-l' option
+is given it acts as a server ("listen mode").  If the '-r' option is
+given, it acts as a client ("client/remote mode").  Listen mode causes
+the bridge to listen on the specified address waiting for client mode
+bridges to connect.  Once a client connects the bridge forwards local
+messages to the client and the client forwards its local messages
+back.
+
+
+
+Currently, the bridge in listen mode does not redistribute messages it
+receives from one remote client to another however this functionality
+will be added shortly.
+
+\subsection*{SEE ALSO\label{xpl-bridge_SEE_ALSO}\index{xpl-bridge!SEE ALSO}}
+
+
+xPL::Bridge(3), xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+Notes about xPL bridges:
+http://wiki.xplproject.org.uk/index.php/Notes\_On\_Bridge\_Implementation
+
+\newpage
+\section{xpl-clock\label{xpl-clock}\index{xpl-clock}}
+
+
+Perl script for an example xPL clock application
+
+\subsection*{SYNOPSIS\label{xpl-clock_SYNOPSIS}\index{xpl-clock!SYNOPSIS}}
+\begin{verbatim}
+  xpl-clock [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -s nn  - number of seconds the xPL clock should wait between messages (10)
+    -f str - time format string ("%Y%m%d%H%M%S") - see the man page for
+             strftime(3) or date(1) for details.
+\end{verbatim}
+\begin{verbatim}
+  # start the clock application with "tick" interval of 60 seconds
+  xpl-clock -s 60
+\end{verbatim}
+\begin{verbatim}
+  # start the clock listening and broadcasting on first ethernet
+  # interface in verbose mode using the default "tick" interval of 10
+  # seconds
+  xpl-clock -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-clock_DESCRIPTION}\index{xpl-clock!DESCRIPTION}}
+
+
+This script is an xPL client that periodically sends out
+"clock.update" messages.  There doesn't seem to be an official
+schema for these messages but this example client was created
+to use, with the \emph{xpl-logger}, for testing purposes.
+
+\subsection*{SEE ALSO\label{xpl-clock_SEE_ALSO}\index{xpl-clock!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), strftime(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-csoft-sms\label{xpl-csoft-sms}\index{xpl-csoft-sms}}
+
+
+Perl script for an xPL SMS message sender
+
+\subsection*{SYNOPSIS\label{xpl-csoft-sms_SYNOPSIS}\index{xpl-csoft-sms!SYNOPSIS}}
+\begin{verbatim}
+  xpl-csoft-sms [flags] [options]
+  where valid flags are:
+    -h - show this help text
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+    -u name - your csoft username
+    -p pin  - your csoft pin
+\end{verbatim}
+\begin{verbatim}
+  # start the csoft-sms on first ethernet interface in verbose mode
+  xpl-csoft-sms -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-csoft-sms_DESCRIPTION}\index{xpl-csoft-sms!DESCRIPTION}}
+
+
+This script is an xPL client that sends messages via the Connection
+Software (http://www.csoft.co.uk/) SMS service.  This script requires
+the LWP modules and one of the SSL implementations.
+
+
+
+\textbf{This script is deprecated and will not be in the next release.
+\emph{xpl-sms-send} should be used instead.}
+
+\subsection*{SEE ALSO\label{xpl-csoft-sms_SEE_ALSO}\index{xpl-csoft-sms!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+Connection Software Website: http://www.csoft.co.uk/
+
+\newpage
+\section{xpl-ctx35\label{xpl-ctx35}\index{xpl-ctx35}}
+
+
+Perl script for an xPL CTX35 application
+
+\subsection*{SYNOPSIS\label{xpl-ctx35_SYNOPSIS}\index{xpl-ctx35!SYNOPSIS}}
+\begin{verbatim}
+  xpl-ctx35 [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+    -B baud - the baud rate (19200)
+\end{verbatim}
+\begin{verbatim}
+  # start the ctx35 application on first ethernet interface in verbose mode
+  xpl-ctx35 -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-ctx35_DESCRIPTION}\index{xpl-ctx35!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with a CTX35 controller.
+
+\subsubsection*{\texttt{xpl\_in(\%xpl\_callback\_parameters)}\label{xpl-ctx35_xpl_in_xpl_callback_parameters_}\index{xpl-ctx35!xpl\ in(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+a limited subset of the full x10.basic schema but could easily be
+extended.
+
+\subsubsection*{\texttt{send\_xpl( \$device, \$command, [ \$level ] )}\label{xpl-ctx35_send_xpl_device_command_level_}\index{xpl-ctx35!send\ xpl( \$device, \$command, [ \$level ] )}}
+
+
+This functions is used to send out x10.basic xpl-trig messages as a
+result of messages from "heyu monitor".
+
+\subsubsection*{\texttt{send\_xpl\_confirm( \$device, \$command, [ \$level ] )}\label{xpl-ctx35_send_xpl_confirm_device_command_level_}\index{xpl-ctx35!send\ xpl\ confirm( \$device, \$command, [ \$level ] )}}
+
+
+This functions is used to send out x10.confirm xpl-trig messages in
+response to incoming xpl-cmnd messages.
+
+\subsubsection*{\texttt{send\_xpl\_aux( \$message\_type, \$device, \$command, [ \$level ] )}\label{xpl-ctx35_send_xpl_aux_message_type_device_command_level_}\index{xpl-ctx35!send\ xpl\ aux( \$message\ type, \$device, \$command, [ \$level ] )}}
+
+
+This functions is used by the other two send functions to construct the
+parameters to send the actual xPL message.
+
+\subsection*{SEE ALSO\label{xpl-ctx35_SEE_ALSO}\index{xpl-ctx35!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+CTX35 Documentation: http://www.bwired.nl/images/how/ctx35.pdf
+
+\newpage
+\section{xpl-dawndusk\label{xpl-dawndusk}\index{xpl-dawndusk}}
+
+
+Perl script for an xPL dawndusk application
+
+\subsection*{SYNOPSIS\label{xpl-dawndusk_SYNOPSIS}\index{xpl-dawndusk!SYNOPSIS}}
+\begin{verbatim}
+  xpl-dawndusk [flags] [options] latitude longitude
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+\end{verbatim}
+\begin{verbatim}
+  # start the dawndusk application listening and broadcasting on first
+  # ethernet interface in verbose mode
+  xpl-dawndusk -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-dawndusk_DESCRIPTION}\index{xpl-dawndusk!DESCRIPTION}}
+
+
+This script is an xPL client that implements the dawn/dusk schema.
+It sends of dawn and dusk 'xpl-trig' messages at the appropriate times
+and it responds to 'dawndusk.request' queries for 'daynight'.
+
+
+
+This script requires the \emph{DateTime::Event::Sunrise} perl module.
+
+\subsection*{SEE ALSO\label{xpl-dawndusk_SEE_ALSO}\index{xpl-dawndusk!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), DateTime::Event::Sunrise(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-dg834\label{xpl-dg834}\index{xpl-dg834}}
+
+
+Perl script for an xPL DG834 monitor
+
+\subsection*{SYNOPSIS\label{xpl-dg834_SYNOPSIS}\index{xpl-dg834!SYNOPSIS}}
+\begin{verbatim}
+  xpl-dg834 [flags] [options] <host>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0           - the interface for xPL messages (first non-loopback
+                       or loopback)
+    -s nn            - number of seconds between polling the Netgear
+                       DG834 (120)
+    -c cfg           - configuration file ('~/.dg834rc', '/etc/dg834rc', or
+                       './dg834rc')
+    -instance_id id  - instance name (<host> or "default" if <host> is an
+                       ip address)
+\end{verbatim}
+\begin{verbatim}
+  # start the dg834 application with poll interval of 120 seconds
+  xpl-dg834 -s 120
+\end{verbatim}
+\begin{verbatim}
+  # start the dg834 listening and broadcasting on first ethernet
+  # interface in verbose mode using poll interval of 120 seconds
+  xpl-dg834 -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-dg834_DESCRIPTION}\index{xpl-dg834!DESCRIPTION}}
+
+
+This script is an xPL client that polls a DG834 router and generates
+xpl-trig messages for noise, bytes and packet statistics.
+
+\subsection*{SEE ALSO\label{xpl-dg834_SEE_ALSO}\index{xpl-dg834!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-digitemp\label{xpl-digitemp}\index{xpl-digitemp}}
+
+
+Perl script for an xPL interface to the DigiTemp 1-wire software
+
+\subsection*{SYNOPSIS\label{xpl-digitemp_SYNOPSIS}\index{xpl-digitemp!SYNOPSIS}}
+\begin{verbatim}
+  xpl-digitemp [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+\end{verbatim}
+\begin{verbatim}
+  # start the digitemp client on first ethernet interface in verbose mode
+  xpl-digitemp -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-digitemp_DESCRIPTION}\index{xpl-digitemp!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with the DigiTemp 1-wire
+software from;
+
+\begin{verbatim}
+  http://www.digitemp.com/
+\end{verbatim}
+
+
+\textbf{This script is deprecated and will not be in the next release.
+\emph{xpl-owfs} should be used instead.}
+
+\subsubsection*{\texttt{digitemp\_reader()}\label{xpl-digitemp_digitemp_reader_}\index{xpl-digitemp!digitemp\ reader()}}
+
+
+This is the callback that processes output from DigiTemp.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+\subsubsection*{\texttt{process\_sensor\_value( \$sensor, \$key, \$value, \$index)}\label{xpl-digitemp_process_sensor_value_sensor_key_value_index_}\index{xpl-digitemp!process\ sensor\ value( \$sensor, \$key, \$value, \$index)}}
+
+
+This method is a helper for some common logic for sending values
+from sensors.
+
+\subsubsection*{\texttt{send\_xpl( \$message\_type, \$device, \$type, \$current )}\label{xpl-digitemp_send_xpl_message_type_device_type_current_}\index{xpl-digitemp!send\ xpl( \$message\ type, \$device, \$type, \$current )}}
+
+
+This functions is used to send out sensor.basic xPL messages with
+the state of one-wire sensors.
+
+\subsection*{SEE ALSO\label{xpl-digitemp_SEE_ALSO}\index{xpl-digitemp!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+DigiTemp website: http://www.digitemp.com/
+
+\newpage
+\section{xpl-dmx\label{xpl-dmx}\index{xpl-dmx}}
+
+
+Perl script for an xPL DMX Transmitter application
+
+\subsection*{SYNOPSIS\label{xpl-dmx_SYNOPSIS}\index{xpl-dmx!SYNOPSIS}}
+\begin{verbatim}
+  xpl-dmx [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0    - the interface for xPL messages (first non-loopback or loopback)
+    -B baud   - the baud rate (9600)
+    -c colors - rgb.txt file to use for colours (/etc/X11/rgb.txt)
+                If this doesn't exist, then only the colours red,
+                green, blue, cyan, magenta, yellow, black, and white
+                are supported.
+\end{verbatim}
+\begin{verbatim}
+  # start the dmx application on first ethernet interface in verbose mode
+  xpl-dmx -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-dmx_DESCRIPTION}\index{xpl-dmx!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with DMX Transmitter from
+Milford Instruments.
+
+\subsubsection*{\texttt{xpl\_in(\%xpl\_callback\_parameters)}\label{xpl-dmx_xpl_in_xpl_callback_parameters_}\index{xpl-dmx!xpl\ in(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming control.basic schema messages.
+
+\subsubsection*{\texttt{dmx\_reader()}\label{xpl-dmx_dmx_reader_}\index{xpl-dmx!dmx\ reader()}}
+
+
+This is the callback that processes output from the DMX transmitter.
+It is responsible for sending out the sensor.basic xpl-trig messages.
+
+\subsubsection*{\texttt{queue\_dmx( \$dmx\_message, \$xpl\_message )}\label{xpl-dmx_queue_dmx_dmx_message_xpl_message_}\index{xpl-dmx!queue\ dmx( \$dmx\ message, \$xpl\ message )}}
+
+
+This functions is used to queue text commands to the DMX transmitter.
+
+\subsubsection*{\texttt{send\_dmx( )}\label{xpl-dmx_send_dmx_}\index{xpl-dmx!send\ dmx( )}}
+
+
+This functions is used to send text commands to the DMX transmitter.
+
+\subsubsection*{\texttt{read\_rgb\_txt( \$file )}\label{xpl-dmx_read_rgb_txt_file_}\index{xpl-dmx!read\ rgb\ txt( \$file )}}
+
+
+This function reads the rgb.txt file to create a mapping of colour names
+to rrggbb hex values.
+
+\subsection*{SEE ALSO\label{xpl-dmx_SEE_ALSO}\index{xpl-dmx!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+Milford Instruments website: http://www.milinst.com/
+
+\newpage
+\section{xpl-hddtemp\label{xpl-hddtemp}\index{xpl-hddtemp}}
+
+
+Perl script for an xPL hddtemp monitor
+
+\subsection*{SYNOPSIS\label{xpl-hddtemp_SYNOPSIS}\index{xpl-hddtemp!SYNOPSIS}}
+\begin{verbatim}
+  xpl-hddtemp [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -s nn  - number of seconds between polling the hddtemp daemon (120)
+\end{verbatim}
+\begin{verbatim}
+  # start the hddtemp application with poll interval of 120 seconds
+  xpl-hddtemp -s 120
+\end{verbatim}
+\begin{verbatim}
+  # start the hddtemp listening and broadcasting on first ethernet
+  # interface in verbose mode using poll interval of 120 seconds
+  xpl-hddtemp -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-hddtemp_DESCRIPTION}\index{xpl-hddtemp!DESCRIPTION}}
+
+
+This script is an xPL client that polls the hddtemp daemon (listening
+on the loopback interface) to check for temperature changes of hard
+disks.
+
+\subsection*{SEE ALSO\label{xpl-hddtemp_SEE_ALSO}\index{xpl-hddtemp!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), hddtemp(8)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-heyu-helper\label{xpl-heyu-helper}\index{xpl-heyu-helper}}
+
+
+Perl script for an xPL X10 application
+
+\subsection*{SYNOPSIS\label{xpl-heyu-helper_SYNOPSIS}\index{xpl-heyu-helper!SYNOPSIS}}
+\begin{verbatim}
+  xpl-heyu-helper [flags]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+\end{verbatim}
+\begin{verbatim}
+  # start the heyu helper
+  echo -e '1\0turn\0a1\0on' | xpl-heyu-helper |sed -e's/\0/ /g;'
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-heyu-helper_DESCRIPTION}\index{xpl-heyu-helper!DESCRIPTION}}
+
+
+This script is wrapper script that reads heyu command lines from stdin
+and outputs acknowledgements on stdout.  The command lines are encoded
+using the byte zero, \texttt{$\backslash$0}, as a separator and are prefixed by a
+sequence number.  Responses are prefixed by the requests sequence
+number, the return code of the heyu command and optionally followed by
+an error message.  These items are again separated by zero bytes.
+
+
+
+For example, it might accept:
+
+\begin{verbatim}
+  1\0turn\0al\0on
+\end{verbatim}
+
+
+and return:
+
+\begin{verbatim}
+  1\00
+\end{verbatim}
+\subsection*{SEE ALSO\label{xpl-heyu-helper_SEE_ALSO}\index{xpl-heyu-helper!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), heyu(1), xpl-x10(1)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-hub\label{xpl-hub}\index{xpl-hub}}
+
+
+Perl script for an xPL hub application
+
+\subsection*{SYNOPSIS\label{xpl-hub_SYNOPSIS}\index{xpl-hub!SYNOPSIS}}
+\begin{verbatim}
+  xpl-hub [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+\end{verbatim}
+\begin{verbatim}
+  # start the hub listening and broadcasting on first ethernet
+  # interface in verbose mode
+  xpl-hub -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-hub_DESCRIPTION}\index{xpl-hub!DESCRIPTION}}
+
+
+This script is an simple xPL hub that routes incoming xPL messages to
+local clients.
+
+\subsection*{SEE ALSO\label{xpl-hub_SEE_ALSO}\index{xpl-hub!SEE ALSO}}
+
+
+xPL::Hub(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+Hub Spec.: http://wiki.xplproject.org.uk/index.php/XPL\_hubs\_specification
+
+\newpage
+\section{xpl-linux-cpu\label{xpl-linux-cpu}\index{xpl-linux-cpu}}
+
+
+Perl script for an xPL Linux CPU monitor
+
+\subsection*{SYNOPSIS\label{xpl-linux-cpu_SYNOPSIS}\index{xpl-linux-cpu!SYNOPSIS}}
+\begin{verbatim}
+  xpl-linux-cpu [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -s nn  - number of seconds between polling the linux-cpu daemon (120)
+\end{verbatim}
+\begin{verbatim}
+  # start the Linux CPU monitor with poll interval of 120 seconds
+  xpl-linux-cpu -s 120
+\end{verbatim}
+\begin{verbatim}
+  # start the Linux CPU monitor listening and broadcasting on first ethernet
+  # interface in verbose mode using poll interval of 120 seconds
+  xpl-linux-cpu -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-linux-cpu_DESCRIPTION}\index{xpl-linux-cpu!DESCRIPTION}}
+
+
+This script is an xPL client that polls the Linux CPU stats in /proc/stat
+and sends them as \texttt{sensor.basic} messages with \texttt{type=count}.
+
+\subsection*{SEE ALSO\label{xpl-linux-cpu_SEE_ALSO}\index{xpl-linux-cpu!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), proc(5)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-lirc\label{xpl-lirc}\index{xpl-lirc}}
+
+
+Perl script for an xPL interface to an LIRC daemon
+
+\subsection*{SYNOPSIS\label{xpl-lirc_SYNOPSIS}\index{xpl-lirc!SYNOPSIS}}
+\begin{verbatim}
+  xpl-lirc [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0    - the interface for xPL messages (first non-loopback or loopback)
+    -s server - server to connect to.  A _full_ path to unix domain socket
+                a host or a host:port pair (/dev/lircd)
+\end{verbatim}
+\begin{verbatim}
+  # start the lirc client on first ethernet interface in verbose mode
+  # using socket /dev/lircd
+  xpl-lirc -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-lirc_DESCRIPTION}\index{xpl-lirc!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with the lirc client that
+comes with lirc.  It reads the remote control signals that are reported
+and transmits them as xPL \texttt{remote.basic} messages.
+
+\subsubsection*{\texttt{lirc\_reader()}\label{xpl-lirc_lirc_reader_}\index{xpl-lirc!lirc\ reader()}}
+
+
+This is the callback that processes output from the \texttt{lirc} program.
+It is responsible for sending out the remote.basic xpl-trig messages.
+
+\subsection*{SEE ALSO\label{xpl-lirc_SEE_ALSO}\index{xpl-lirc!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+DigiTemp website: http://www.digitemp.com/
+
+\newpage
+\section{xpl-logger\label{xpl-logger}\index{xpl-logger}}
+
+
+Perl script for an example xPL logger application
+
+\subsection*{SYNOPSIS\label{xpl-logger_SYNOPSIS}\index{xpl-logger!SYNOPSIS}}
+\begin{verbatim}
+  xpl-logger [flags] [options] [filter...]
+  where valid flags are:
+    -h - show this help text
+    -head - dump the head of all xPL messages
+    -body - dump the body of all xPL messages
+    -v - verbose client mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+  Any filter arguments are concatenated with space and passed to the
+  xPL callback setup.
+\end{verbatim}
+\begin{verbatim}
+  # start the logger listening and broadcasting on first ethernet
+  # interface in verbose mode
+  xpl-logger -i eth0 -v
+\end{verbatim}
+\begin{verbatim}
+  # start but only log "x10.*" messages
+  xpl-logger -i eth0 -v class=x10
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-logger_DESCRIPTION}\index{xpl-logger!DESCRIPTION}}
+
+
+This script is an xPL client that logs xPL incoming messages.  By
+default it logs all incoming messages but filter arguments can be
+passed on the command line which are concatenated (with spaces) and
+passed to the xPL callback setup.  See \emph{xPL::Listener} man page for
+more details of filters.
+
+\subsection*{SEE ALSO\label{xpl-logger_SEE_ALSO}\index{xpl-logger!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-monitor\label{xpl-monitor}\index{xpl-monitor}}
+
+
+Perl script for monitoring xPL clients
+
+\subsection*{SYNOPSIS\label{xpl-monitor_SYNOPSIS}\index{xpl-monitor!SYNOPSIS}}
+\begin{verbatim}
+  # start monitor
+  xpl-monitor
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-monitor_DESCRIPTION}\index{xpl-monitor!DESCRIPTION}}
+
+
+This script is an xPL client that records xPL message in a GUI.  It is
+really just a toy for debugging at the moment, not a serious
+application.
+
+\subsection*{SEE ALSO\label{xpl-monitor_SEE_ALSO}\index{xpl-monitor!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-mpd\label{xpl-mpd}\index{xpl-mpd}}
+
+
+Perl script for an xPL Music Player Daemon application
+
+\subsection*{SYNOPSIS\label{xpl-mpd_SYNOPSIS}\index{xpl-mpd!SYNOPSIS}}
+\begin{verbatim}
+  xpl-mpd [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0       - interface for xPL messages (first non-loopback or loopback)
+    -s ip[:port] - ip address (and optional port number) of the mpd server
+                   (loopback:6600)
+\end{verbatim}
+\begin{verbatim}
+  # start the mpd application on first ethernet interface in verbose mode
+  xpl-mpd -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-mpd_DESCRIPTION}\index{xpl-mpd!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with a server running
+the Music Player Daemon (mpd from http://www.musicpd.org).
+
+\subsubsection*{\texttt{xpl\_in(\%xpl\_callback\_parameters)}\label{xpl-mpd_xpl_in_xpl_callback_parameters_}\index{xpl-mpd!xpl\ in(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+a limited subset of the full audio.basic schema but could easily be
+extended.
+
+\subsection*{TODO\label{xpl-mpd_TODO}\index{xpl-mpd!TODO}}
+\begin{description}
+
+\item[{support 'requests'}] \mbox{}
+\item[{consider writing asynchronous mpd protocol}] \textbf{implementation}\end{description}
+\subsection*{SEE ALSO\label{xpl-mpd_SEE_ALSO}\index{xpl-mpd!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), Audio::MPD(3)
+
+
+
+Music Player Daemon website: http://www.musicpd.org/
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-mplayer\label{xpl-mplayer}\index{xpl-mplayer}}
+
+
+Perl script for an xPL mplayer application
+
+\subsection*{SYNOPSIS\label{xpl-mplayer_SYNOPSIS}\index{xpl-mplayer!SYNOPSIS}}
+\begin{verbatim}
+  xpl-mplayer [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0     - the interface for xPL messages (first non-loopback or loopback)
+    -l list    - the playlist
+    -s 0/1     - shuffle mode (1=shuffle)
+    -c 0/1/... - ALSA card number (0)
+    -C ctrl    - ALSA mixer control ('PCM')
+\end{verbatim}
+\begin{verbatim}
+  # start the mplayer application on first ethernet interface in verbose mode
+  xpl-mplayer -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-mplayer_DESCRIPTION}\index{xpl-mplayer!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with an mplayer controller.
+
+
+
+\textbf{This script is deprecated and will not be in the next release unless
+someone asks me to continue maintaining it.  \emph{xpl-mpd} is recommended
+instead.}
+
+\subsubsection*{\texttt{mplayer\_reader( )}\label{xpl-mplayer_mplayer_reader_}\index{xpl-mplayer!mplayer\ reader( )}}
+
+
+This is the callback that reads the output from the mplayer process.
+
+\subsubsection*{\texttt{xpl\_in(\%xpl\_callback\_parameters)}\label{xpl-mplayer_xpl_in_xpl_callback_parameters_}\index{xpl-mplayer!xpl\ in(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+a limited subset of the full audio.basic schema but could easily be
+extended.
+
+\subsubsection*{\texttt{change\_volume( \$inc )}\label{xpl-mplayer_change_volume_inc_}\index{xpl-mplayer!change\ volume( \$inc )}}
+
+
+This method increments/decrements the current mixer volume.
+
+\subsubsection*{\texttt{set\_volume( \$vol )}\label{xpl-mplayer_set_volume_vol_}\index{xpl-mplayer!set\ volume( \$vol )}}
+
+
+This method changes the current mixer volume.
+
+\subsubsection*{\texttt{get\_volume( )}\label{xpl-mplayer_get_volume_}\index{xpl-mplayer!get\ volume( )}}
+
+
+This method returns the current mixer volume.
+
+\subsubsection*{\texttt{play( )}\label{xpl-mplayer_play_}\index{xpl-mplayer!play( )}}
+
+
+This method plays the next song from the playlist.
+
+\subsubsection*{\texttt{next\_list( )}\label{xpl-mplayer_next_list_}\index{xpl-mplayer!next\ list( )}}
+
+
+This method switches to the next play list.
+
+\subsubsection*{\texttt{skip( )}\label{xpl-mplayer_skip_}\index{xpl-mplayer!skip( )}}
+
+
+This method skips the current song.
+
+\subsubsection*{\texttt{stop( )}\label{xpl-mplayer_stop_}\index{xpl-mplayer!stop( )}}
+
+
+This method stops the mplayer player.
+
+\subsubsection*{\texttt{load\_list( \$file, [ \$shuffle ])}\label{xpl-mplayer_load_list_file_shuffle_}\index{xpl-mplayer!load\ list( \$file, [ \$shuffle ])}}
+
+
+This method loads a playlist.
+
+\subsubsection*{\texttt{\_load\_list( \$playlist, \$file, [ \$shuffle ])}\label{xpl-mplayer__load_list_playlist_file_shuffle_}\index{xpl-mplayer!\ load\ list( \$playlist, \$file, [ \$shuffle ])}}
+
+
+This method loads a playlist.
+
+\subsubsection*{\texttt{fisher\_yates\_shuffle( $\backslash$@array )}\label{xpl-mplayer_fisher_yates_shuffle_backslash_array_}\index{xpl-mplayer!fisher\ yates\ shuffle( $\backslash$@array )}}
+
+
+This method is the shuffle described in the Perl Cookbook.
+
+\subsection*{TODO\label{xpl-mplayer_TODO}\index{xpl-mplayer!TODO}}
+\begin{description}
+
+\item[{cache volume if we read it recently to avoid}] \textbf{having to fork for reading if multiple small increments are message are received in quick succession.}
+\item[{support 'back' command}] \mbox{}
+\item[{support 'requests'}] \mbox{}
+\item[{support 'status=next' request by parsing}] \textbf{output from:}\begin{verbatim}
+   mplayer -no... -frames 0 -ao null -vo null file' output
+\end{verbatim}
+\end{description}
+\subsection*{SEE ALSO\label{xpl-mplayer_SEE_ALSO}\index{xpl-mplayer!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), Audio::Mixer(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-owfs\label{xpl-owfs}\index{xpl-owfs}}
+
+
+Perl script for an xPL interface to the one-wire filesystem
+
+\subsection*{SYNOPSIS\label{xpl-owfs_SYNOPSIS}\index{xpl-owfs!SYNOPSIS}}
+\begin{verbatim}
+  xpl-owfs [flags] [options] <owfs-mountpoint>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+\end{verbatim}
+\begin{verbatim}
+  # start the owfs application on first ethernet interface in verbose mode
+  xpl-owfs -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-owfs_DESCRIPTION}\index{xpl-owfs!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with the one-wire
+filesystem.  It supports the use of control.basic messages with
+current fields set to 'high', 'low' or 'pulse' of devices with PIO
+files.  It also sends sensor.basic messages for devices with
+'temperature', 'humidity', 'current', 'counters.A' or 'counters.B'
+files.  For more details, see the table at http://owfs.sourceforge.net/ow\_table.html
+
+\subsubsection*{\texttt{xpl\_in(\%xpl\_callback\_parameters)}\label{xpl-owfs_xpl_in_xpl_callback_parameters_}\index{xpl-owfs!xpl\ in(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming control.basic schema messages.
+
+\subsubsection*{\texttt{owfs\_write( \$file, \$value )}\label{xpl-owfs_owfs_write_file_value_}\index{xpl-owfs!owfs\ write( \$file, \$value )}}
+
+
+This function writes the given value to the named file in the 1-wire
+file system.
+
+\subsubsection*{\texttt{owfs\_reader()}\label{xpl-owfs_owfs_reader_}\index{xpl-owfs!owfs\ reader()}}
+
+
+This is the callback that processes output from the OWFS.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+\subsubsection*{\texttt{send\_xpl( \$message\_type, \$device, \$type, \$current, \$index )}\label{xpl-owfs_send_xpl_message_type_device_type_current_index_}\index{xpl-owfs!send\ xpl( \$message\ type, \$device, \$type, \$current, \$index )}}
+
+
+This functions is used to send out sensor.basic xPL messages with
+the state of one-wire sensors.
+
+\subsubsection*{\texttt{find\_ow\_devices( \$ow\_dir )}\label{xpl-owfs_find_ow_devices_ow_dir_}\index{xpl-owfs!find\ ow\ devices( \$ow\ dir )}}
+
+
+This functions is used to find all devices present in the one-wire
+file system.  It returns a list reference of paths to device
+directories.
+
+\subsection*{SEE ALSO\label{xpl-owfs_SEE_ALSO}\index{xpl-owfs!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+OWFS website: http://owfs.sourceforge.net/
+
+\newpage
+\section{xpl-packet-trace\label{xpl-packet-trace}\index{xpl-packet-trace}}
+
+
+Perl script for decoding xPL messages from IP packets
+
+\subsection*{SYNOPSIS\label{xpl-packet-trace_SYNOPSIS}\index{xpl-packet-trace!SYNOPSIS}}
+\begin{verbatim}
+  # live decode
+  # decode xPL packets that are visible on the interface eth0
+  xpl-packet-trace eth0
+\end{verbatim}
+\begin{verbatim}
+  # batch decode
+  # sniff 100 xPL packets from eth0 and write them to xpl.tcp
+  # then later decode xPL messages from tcpdump file
+  tcpdump -w xpl.tcp -i eth0 -c 100 -s 2048 udp and port 3865
+  xpl-packet-trace xpl.tcp
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-packet-trace_DESCRIPTION}\index{xpl-packet-trace!DESCRIPTION}}
+
+
+This script is an xPL message decoder for IP packets.  Packets can be
+decoded live by sniffing traffic on a network interface or they can be
+batched processed by reading them from a tcpdump file.
+
+\subsection*{SEE ALSO\label{xpl-packet-trace_SEE_ALSO}\index{xpl-packet-trace!SEE ALSO}}
+
+
+xPL::Message(3), Net::Pcap(3), tcpdump(8)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-rfxcom\label{xpl-rfxcom}\index{xpl-rfxcom}}
+
+
+Perl script for an xPL RFXCOM RF receiver application
+
+\subsection*{SYNOPSIS\label{xpl-rfxcom_SYNOPSIS}\index{xpl-rfxcom!SYNOPSIS}}
+\begin{verbatim}
+  xpl-rfxcom [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+    -B baud - the baud rate (4800)
+\end{verbatim}
+\begin{verbatim}
+  # start the rfxcom application on first ethernet interface in verbose mode
+  xpl-rfxcom -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-rfxcom_DESCRIPTION}\index{xpl-rfxcom!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with an RFXCOM RF receiver.
+
+\subsubsection*{\texttt{rfxcom\_reader()}\label{xpl-rfxcom_rfxcom_reader_}\index{xpl-rfxcom!rfxcom\ reader()}}
+
+
+This is the callback that processes output from the RFXCOM.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+\subsection*{BUGS\label{xpl-rfxcom_BUGS}\index{xpl-rfxcom!BUGS}}
+
+
+Not all devices supported by an RFXCOM receiver are currently
+supported.  Support can usually be added quite easily if example data
+can be provided - such as the output of the sample RFreceiver.exe.
+
+\subsection*{SEE ALSO\label{xpl-rfxcom_SEE_ALSO}\index{xpl-rfxcom!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+RFXCOM website: http://www.rfxcom.com/
+
+\newpage
+\section{xpl-rfxcom-trans\label{xpl-rfxcom-trans}\index{xpl-rfxcom-trans}}
+
+
+Perl script for an xPL RFXCOM RF transmitter application
+
+\subsection*{SYNOPSIS\label{xpl-rfxcom-trans_SYNOPSIS}\index{xpl-rfxcom-trans!SYNOPSIS}}
+\begin{verbatim}
+  xpl-rfxcom-trans [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+    -r - receiver connected
+    -f - enable Flamingo/Koppla RF
+    -h - enable Harrison RF
+    -k - enable KlikOn-KlikOff, NEXA, ELRO AB600, Domia Lite RF
+    -x - DISable X10/security RF
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+    -B baud - the baud rate (4800)
+\end{verbatim}
+\begin{verbatim}
+  # start the rfxcom-trans application on first ethernet interface in
+  # verbose mode
+  xpl-rfxcom-trans -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-rfxcom-trans_DESCRIPTION}\index{xpl-rfxcom-trans!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with an RFXCOM RF
+transmitter.  It currently only suppports the 'number of bits to xmit
+and up to 48bits'-mode.
+
+\subsubsection*{\texttt{xpl\_x10(\%xpl\_callback\_parameters)}\label{xpl-rfxcom-trans_xpl_x10_xpl_callback_parameters_}\index{xpl-rfxcom-trans!xpl\ x10(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming x10.basic schema messages.
+
+\subsubsection*{\texttt{xpl\_homeeasy(\%xpl\_callback\_parameters)}\label{xpl-rfxcom-trans_xpl_homeeasy_xpl_callback_parameters_}\index{xpl-rfxcom-trans!xpl\ homeeasy(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming homeeasy.basic schema messages.
+
+\subsubsection*{\texttt{rfxcom\_reader()}\label{xpl-rfxcom-trans_rfxcom_reader_}\index{xpl-rfxcom-trans!rfxcom\ reader()}}
+
+
+This is the callback that processes output from the RFXCOM transmitter.
+It is responsible for reading the 'ACK' messages and sending out any
+queued transmit messages.
+
+\subsection*{SEE ALSO\label{xpl-rfxcom-trans_SEE_ALSO}\index{xpl-rfxcom-trans!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+RFXCOM website: http://www.rfxcom.com/
+
+\newpage
+\section{xpl-rrd\label{xpl-rrd}\index{xpl-rrd}}
+
+
+Perl script for an xPL application that logs data to rrd files
+
+\subsection*{SYNOPSIS\label{xpl-rrd_SYNOPSIS}\index{xpl-rrd!SYNOPSIS}}
+\begin{verbatim}
+  xpl-rrd [flags] [options] <rrd-dir>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose client mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -x map - map device names to more friendly aliases (none)
+             N.B. This is a temporary hack to get around lack of config
+             support this will be removed in future.
+\end{verbatim}
+\begin{verbatim}
+  # start the rrd listening and broadcasting on first ethernet
+  # interface in verbose mode
+  xpl-rrd -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-rrd_DESCRIPTION}\index{xpl-rrd!DESCRIPTION}}
+
+
+This script is an xPL client that logs known message types to RRD
+database files.  Use of the \emph{ZenAH} engine RRD functions is the
+preferred method of generating RRD files since this offers greater
+integration with different output formats.
+
+\subsection*{SEE ALSO\label{xpl-rrd_SEE_ALSO}\index{xpl-rrd!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), rrdtool(1), RRDs(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+ZenAH Project website: http://www.zenah.org.uk/
+
+\newpage
+\section{xpl-rrd-graphs\label{xpl-rrd-graphs}\index{xpl-rrd-graphs}}
+
+
+Perl script for producing graphs from xpl-rrd directory.
+
+\subsection*{SYNOPSIS\label{xpl-rrd-graphs_SYNOPSIS}\index{xpl-rrd-graphs!SYNOPSIS}}
+\begin{verbatim}
+  # search for rrd files under /var/lib/rrd and create graphs in /var/www/rrd
+  xpl-rrd-graphs /var/lib/rrd /var/www/rrd
+\end{verbatim}
+\begin{verbatim}
+  # same again but only produce the hourly graphs
+  xpl-rrd-graphs /var/lib/rrd /var/www/rrd 1h
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-rrd-graphs_DESCRIPTION}\index{xpl-rrd-graphs!DESCRIPTION}}
+
+
+This script is produces image files containing graphs of data stored
+in RRD database files.
+
+\subsection*{SEE ALSO\label{xpl-rrd-graphs_SEE_ALSO}\index{xpl-rrd-graphs!SEE ALSO}}
+
+
+xpl-rrd(1), rrdtool(1), RRDs(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-sender\label{xpl-sender}\index{xpl-sender}}
+
+
+Perl script for an xPL message sender application
+
+\subsection*{SYNOPSIS\label{xpl-sender_SYNOPSIS}\index{xpl-sender!SYNOPSIS}}
+\begin{verbatim}
+  xpl-sender [flags] [options] -m <msg.type> -c <class.type> [param=value ... ]
+\end{verbatim}
+\begin{verbatim}
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0        - the interface for xPL messages
+                    (first non-loopback or loopback)
+    -m xpl-type   - the xPL message type (xpl-cmnd, xpl-stat, or xpl-trig)
+    -c class.type - the schema type
+    -s source     - the source type
+    -t target     - the target type
+    -w time       - time to wait for a response (0 - don't wait)
+\end{verbatim}
+\begin{verbatim}
+  # send the text 'Boo' to all devices supporting osd.basic
+  xpl-sender -c osd.basic command=clear text=Boo
+\end{verbatim}
+\begin{verbatim}
+  # send a heartbeat request and wait 10 seconds for any responses
+  xpl-sender -c hbeat.request -w 10
+\end{verbatim}
+\begin{verbatim}
+  # something to go in /etc/apcupsd/mainsback perhaps:
+  xpl-sender -m xpl-trig -c ups.basic status=mains event=onmains
+\end{verbatim}
+\begin{verbatim}
+  # something to go in /etc/apcupsd/onbattery perhaps:
+  xpl-sender -m xpl-trig -c ups.basic status=battery event=onbattery
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-sender_DESCRIPTION}\index{xpl-sender!DESCRIPTION}}
+
+
+This script is an xPL client that sends an xPL message based on
+command line arguments.
+
+\subsection*{SEE ALSO\label{xpl-sender_SEE_ALSO}\index{xpl-sender!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-sms-send\label{xpl-sms-send}\index{xpl-sms-send}}
+
+
+Perl script for an xPL SMS message sender
+
+\subsection*{SYNOPSIS\label{xpl-sms-send_SYNOPSIS}\index{xpl-sms-send!SYNOPSIS}}
+\begin{verbatim}
+  xpl-sms-send [flags] [options] <configuration-file>
+  where valid flags are:
+    -h - show this help text
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+\end{verbatim}
+\begin{verbatim}
+  # start the send-sms on first ethernet interface in verbose mode
+  xpl-sms-send -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-sms-send_DESCRIPTION}\index{xpl-sms-send!DESCRIPTION}}
+
+
+This script is an xPL client that sends SMS messages via SMS services
+supported by SMS::Send.  The format of the configuration file is:
+
+\begin{verbatim}
+  driver=CSoft
+  _login=csoft-username
+  _password=csoft-pin
+\end{verbatim}
+\begin{verbatim}
+  driver=Test
+  _login=username
+  _password=password
+\end{verbatim}
+
+
+The first driver is taken to be the default.  The driver name can be
+specified in the xPL sendmsg.basic message using the extra field
+driver.
+
+\subsection*{SEE ALSO\label{xpl-sms-send_SEE_ALSO}\index{xpl-sms-send!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), SMS::Send(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-sql-logger\label{xpl-sql-logger}\index{xpl-sql-logger}}
+
+
+Perl script for an xPL log to database application
+
+\subsection*{SYNOPSIS\label{xpl-sql-logger_SYNOPSIS}\index{xpl-sql-logger!SYNOPSIS}}
+\begin{verbatim}
+  xpl-sql-logger [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose client mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+\end{verbatim}
+\begin{verbatim}
+  # start the logger listening and broadcasting on first ethernet
+  # interface in verbose mode
+  xpl-sql-logger -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-sql-logger_DESCRIPTION}\index{xpl-sql-logger!DESCRIPTION}}
+
+
+This script is an xPL client that logs all xPL incoming messages to an
+SQL database.  Currently, it requires a database configuration file to
+be specified with the \texttt{XPL\_DB\_CONFIG}, see \emph{xPL::SQL} for more
+information.
+
+
+
+\textbf{This script is deprecated and will not be in the next release unless
+someone asks me to continue maintaining it.  The volume of data
+generated by this script is too great and most of it is not useful.
+\emph{ZenAH} rules can be used to log data for specific (interesting!)
+message types.}
+
+\subsection*{SEE ALSO\label{xpl-sql-logger_SEE_ALSO}\index{xpl-sql-logger!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+ZenAH Project website: http://www.zenah.org.uk/
+
+\newpage
+\section{xpl-tty-tcp\label{xpl-tty-tcp}\index{xpl-tty-tcp}}
+
+
+Perl script to make a tty serial port available as TCP socket
+
+\subsection*{SYNOPSIS\label{xpl-tty-tcp_SYNOPSIS}\index{xpl-tty-tcp!SYNOPSIS}}
+\begin{verbatim}
+  xpl-tty-tcp [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -B baud - the baud rate (4800)
+    -i ip   - the IP address to listen on (0.0.0.0)
+    -p port - the port to listen on (10001)
+\end{verbatim}
+\begin{verbatim}
+  # start the tty to TCP script reading the device /dev/ttyUSB4 and
+  # listening on 192.168.0.10 port 10001
+  xpl-tty-tcp -v -i 192.168.0.10 /dev/ttyUSB4
+\end{verbatim}
+\begin{verbatim}
+  # supposing /dev/ttyUSB4 had an rfxcom receiver attached to it, then
+  # it might make sense to then run:
+  xpl-rfxcom -v 192.168.0.10:10001
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-tty-tcp_DESCRIPTION}\index{xpl-tty-tcp!DESCRIPTION}}
+
+
+Surprisingly, this is \textbf{not} an xPL client.  This script is a utility
+to make a serial port available to (multiple) clients over a TCP
+socket.  It is primarily intended to help me test the xpl-rfxcom TCP
+socket code but it might be useful for other clients too.
+
+\subsection*{SEE ALSO\label{xpl-tty-tcp_SEE_ALSO}\index{xpl-tty-tcp!SEE ALSO}}
+
+
+xpl-rfxcom(1)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-viom\label{xpl-viom}\index{xpl-viom}}
+
+
+Perl script for an xPL VIOM IO controller application
+
+\subsection*{SYNOPSIS\label{xpl-viom_SYNOPSIS}\index{xpl-viom!SYNOPSIS}}
+\begin{verbatim}
+  xpl-viom [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+    -B baud - the baud rate (9600)
+\end{verbatim}
+\begin{verbatim}
+  # start the viom application on first ethernet interface in verbose mode
+  xpl-viom -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-viom_DESCRIPTION}\index{xpl-viom!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with a VIOM IO
+controller.  It supports the use of control.basic messages with
+current fields set to 'high', 'low', 'pulse' or 'toggle' with devices
+of the form 'oNN' where NN is a number from 1 to 16.  It also reports
+changes to the status of inputs as sensor.basic messages of type input
+with device names of the for 'iNN' whiere NN is a number from 1 to 16
+and single digit numbers are prefixed by 0.
+
+\subsubsection*{\texttt{xpl\_in(\%xpl\_callback\_parameters)}\label{xpl-viom_xpl_in_xpl_callback_parameters_}\index{xpl-viom!xpl\ in(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming control.basic schema messages.
+
+\subsubsection*{\texttt{viom\_reader()}\label{xpl-viom_viom_reader_}\index{xpl-viom!viom\ reader()}}
+
+
+This is the callback that processes output from the VIOM.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+\subsubsection*{\texttt{send\_xpl( \$device, \$level )}\label{xpl-viom_send_xpl_device_level_}\index{xpl-viom!send\ xpl( \$device, \$level )}}
+
+
+This functions is used to send out sensor.basic xpl-trig messages as a
+result of changes to the VIOM inputs.
+
+\subsubsection*{\texttt{queue\_viom( \$message )}\label{xpl-viom_queue_viom_message_}\index{xpl-viom!queue\ viom( \$message )}}
+
+
+This functions is used to queue text commands to be sent to the VIOM.
+
+\subsubsection*{\texttt{send\_viom( \$message )}\label{xpl-viom_send_viom_message_}\index{xpl-viom!send\ viom( \$message )}}
+
+
+This functions is used to send text commands to the VIOM.
+
+\subsection*{SEE ALSO\label{xpl-viom_SEE_ALSO}\index{xpl-viom!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+VIOM website: http://www.phaedrusltd.com/pages/html/viom.html
+
+\newpage
+\section{xpl-w800\label{xpl-w800}\index{xpl-w800}}
+
+
+Perl script for an xPL W800 RF receiver application
+
+\subsection*{SYNOPSIS\label{xpl-w800_SYNOPSIS}\index{xpl-w800!SYNOPSIS}}
+\begin{verbatim}
+  xpl-w800 [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+    -B baud - the baud rate (4800)
+\end{verbatim}
+\begin{verbatim}
+  # start the w800 application on first ethernet interface in verbose mode
+  xpl-w800 -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-w800_DESCRIPTION}\index{xpl-w800!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with a W800 RF receiver.
+
+\subsubsection*{\texttt{w800\_reader()}\label{xpl-w800_w800_reader_}\index{xpl-w800!w800\ reader()}}
+
+
+This is the callback that processes output from the W800.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+\subsection*{SEE ALSO\label{xpl-w800_SEE_ALSO}\index{xpl-w800!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+W800 website: http://www.wgldesigns.com/w800.html
+
+\newpage
+\section{xpl-x10\label{xpl-x10}\index{xpl-x10}}
+
+
+Perl script for an xPL X10 application
+
+\subsection*{SYNOPSIS\label{xpl-x10_SYNOPSIS}\index{xpl-x10!SYNOPSIS}}
+\begin{verbatim}
+  xpl-x10 [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+\end{verbatim}
+\begin{verbatim}
+  # start the x10 application on first ethernet interface in verbose mode
+  xpl-x10 -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-x10_DESCRIPTION}\index{xpl-x10!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with an X10 controller.
+At the moment, this script uses heyu (version 2) to communicate with
+the controller.
+
+\subsubsection*{\texttt{xpl\_in(\%xpl\_callback\_parameters)}\label{xpl-x10_xpl_in_xpl_callback_parameters_}\index{xpl-x10!xpl\ in(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+a limited subset of the full x10.basic schema but could easily be
+extended.
+
+\subsubsection*{\texttt{heyu\_monitor()}\label{xpl-x10_heyu_monitor_}\index{xpl-x10!heyu\ monitor()}}
+
+
+This is the callback that processes output from the "heyu monitor"
+command.  It is responsible for sending out x10.basic xpl-trig
+messages.
+
+\subsubsection*{\texttt{heyu\_helper\_read()}\label{xpl-x10_heyu_helper_read_}\index{xpl-x10!heyu\ helper\ read()}}
+
+
+This is the callback that processes output from the "heyu helper"
+command.  It is responsible for reading the results of heyu commands.
+
+\subsubsection*{\texttt{heyu\_helper\_queue()}\label{xpl-x10_heyu_helper_queue_}\index{xpl-x10!heyu\ helper\ queue()}}
+
+
+This method is used to queue commands to the heyu helper.
+
+\subsubsection*{\texttt{heyu\_helper\_write()}\label{xpl-x10_heyu_helper_write_}\index{xpl-x10!heyu\ helper\ write()}}
+
+
+This method is used to send commands to the heyu helper.
+
+\subsubsection*{\texttt{send\_xpl( \$class, \$device, \$command, [ \$level ] )}\label{xpl-x10_send_xpl_class_device_command_level_}\index{xpl-x10!send\ xpl( \$class, \$device, \$command, [ \$level ] )}}
+
+
+This functions is used to send out x10.basic xpl-trig messages as a
+result of messages from "heyu monitor".
+
+\subsection*{SEE ALSO\label{xpl-x10_SEE_ALSO}\index{xpl-x10!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), heyu(1)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xpl-xosd\label{xpl-xosd}\index{xpl-xosd}}
+
+
+Perl script for an xPL X OSD application
+
+\subsection*{SYNOPSIS\label{xpl-xosd_SYNOPSIS}\index{xpl-xosd!SYNOPSIS}}
+\begin{verbatim}
+  xpl-xosd [flags] [options]
+  where valid flags are:
+    -h - show this help text
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -d nnn - the maximum delay in seconds that a message is allowed to remain
+             on screen for (10)
+\end{verbatim}
+\begin{verbatim}
+  # start the xosd on first ethernet interface in verbose mode
+  xpl-xosd -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-xosd_DESCRIPTION}\index{xpl-xosd!DESCRIPTION}}
+
+
+This script is an xPL client that displays OSD messages using the X OSD
+library.  This script requires:
+
+\begin{description}
+
+\item[{the X OSD library}] \mbox{}
+
+Most Linux distributions will probably provide a package for this.
+
+
+\item[{the X OSD Perl module}] \mbox{}
+
+Most Linux distributions probably don't provide a package for this.  It
+can be installed from CPAN using:
+
+\begin{verbatim}
+  perl -MCPAN -e 'install X::Osd'
+\end{verbatim}
+
+
+This may require an X OSD library development package in order to build
+correctly.
+
+\end{description}
+\subsection*{SEE ALSO\label{xpl-xosd_SEE_ALSO}\index{xpl-xosd!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+
+
+X OSD website: http://www.ignavus.net/software.html
+
+\newpage
+\section{xpl-xvkbd\label{xpl-xvkbd}\index{xpl-xvkbd}}
+
+
+Perl script for an xPL virtual keyboard application
+
+\subsection*{SYNOPSIS\label{xpl-xvkbd_SYNOPSIS}\index{xpl-xvkbd!SYNOPSIS}}
+\begin{verbatim}
+  xpl-xvkbd [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+\end{verbatim}
+\begin{verbatim}
+  # start the xvkbd application on first ethernet interface in verbose mode
+  xpl-xvkbd -i eth0 -v
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xpl-xvkbd_DESCRIPTION}\index{xpl-xvkbd!DESCRIPTION}}
+
+
+This script is an xPL client that interfaces with xvkbd to send key strokes
+to an X11 application.
+
+\subsubsection*{\texttt{xpl\_in(\%xpl\_callback\_parameters)}\label{xpl-xvkbd_xpl_in_xpl_callback_parameters_}\index{xpl-xvkbd!xpl\ in(\%xpl\ callback\ parameters)}}
+
+
+This is the callback that processes incoming xPL messages.  It handles
+a limited subset of the full remote.basic schema but could easily be
+extended.
+
+\subsection*{SEE ALSO\label{xpl-xvkbd_SEE_ALSO}\index{xpl-xvkbd!SEE ALSO}}
+
+
+xPL::Client(3), xPL::Listener(3), heyu(1)
+
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{SMS::Send::CSoft\label{SMS::Send::CSoft}\index{SMS::Send::CSoft}}
+
+
+SMS::Send CSoft Driver
+
+\subsection*{SYNOPSIS\label{SMS::Send::CSoft_SYNOPSIS}\index{SMS::Send::CSoft!SYNOPSIS}}
+\begin{verbatim}
+  # Create a testing sender
+  my $send = SMS::Send->new( 'CSoft',
+                             _login => 'csoft username',
+                             _password => 'csoft pin' );
+\end{verbatim}
+\begin{verbatim}
+  # Send a message
+  $send->send_sms(
+     text => 'Hi there',
+     to   => '+61 (4) 1234 5678',
+  );
+\end{verbatim}
+\subsection*{DESCRIPTION\label{SMS::Send::CSoft_DESCRIPTION}\index{SMS::Send::CSoft!DESCRIPTION}}
+
+
+SMS::Send driver for sending SMS messages with the Connection
+Software (http://www.csoft.co.uk/) SMS service.
+
+\subsection*{METHODS\label{SMS::Send::CSoft_METHODS}\index{SMS::Send::CSoft!METHODS}}
+\subsection*{CONSTRUCTOR\label{SMS::Send::CSoft_CONSTRUCTOR}\index{SMS::Send::CSoft!CONSTRUCTOR}}
+\subsection*{EXPORT\label{SMS::Send::CSoft_EXPORT}\index{SMS::Send::CSoft!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{SMS::Send::CSoft_SEE_ALSO}\index{SMS::Send::CSoft!SEE ALSO}}
+
+
+SMS::Send(3), SMS::Send::Driver(3)
+
+
+
+Connection Software Website: http://www.csoft.co.uk/
+
+\newpage
+\section{SMS::Send::SMSDiscount\label{SMS::Send::SMSDiscount}\index{SMS::Send::SMSDiscount}}
+
+
+SMS::Send SMS Discount Driver
+
+\subsection*{SYNOPSIS\label{SMS::Send::SMSDiscount_SYNOPSIS}\index{SMS::Send::SMSDiscount!SYNOPSIS}}
+\begin{verbatim}
+  # Create a testing sender
+  my $send = SMS::Send->new( 'SMSDiscount',
+                             _login => 'smsdiscount username',
+                             _password => 'smsdiscount pin' );
+\end{verbatim}
+\begin{verbatim}
+  # Send a message
+  $send->send_sms(
+     text => 'Hi there',
+     to   => '+61 (4) 1234 5678',
+  );
+\end{verbatim}
+\subsection*{DESCRIPTION\label{SMS::Send::SMSDiscount_DESCRIPTION}\index{SMS::Send::SMSDiscount!DESCRIPTION}}
+
+
+SMS::Send driver for sending SMS messages with the SMS Discount
+Software (http://www.smsdiscount.com/) SMS service.
+
+\subsection*{METHODS\label{SMS::Send::SMSDiscount_METHODS}\index{SMS::Send::SMSDiscount!METHODS}}
+\subsection*{CONSTRUCTOR\label{SMS::Send::SMSDiscount_CONSTRUCTOR}\index{SMS::Send::SMSDiscount!CONSTRUCTOR}}
+\subsection*{EXPORT\label{SMS::Send::SMSDiscount_EXPORT}\index{SMS::Send::SMSDiscount!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{SMS::Send::SMSDiscount_SEE_ALSO}\index{SMS::Send::SMSDiscount!SEE ALSO}}
+
+
+SMS::Send(3), SMS::Send::Driver(3)
+
+
+
+SMS Discount Website: http://www.smsdiscount.com/
+
+\newpage
+\section{xPL::Base\label{xPL::Base}\index{xPL::Base}}
+
+
+Perl extension for an xPL Base Class
+
+\subsection*{SYNOPSIS\label{xPL::Base_SYNOPSIS}\index{xPL::Base!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Base;
+  our @ISA = qw/xPL::Base/;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Base_DESCRIPTION}\index{xPL::Base!DESCRIPTION}}
+
+
+This is a module for a common base class for the xPL modules.  It
+contains a number of helper methods.
+
+\subsection*{METHODS\label{xPL::Base_METHODS}\index{xPL::Base!METHODS}}
+\subsection*{COLLECTION STRUCTURE API\label{xPL::Base_COLLECTION_STRUCTURE_API}\index{xPL::Base!COLLECTION STRUCTURE API}}
+
+
+A number of the classes maintain collections of items.  For instance,
+the \emph{xPL::Hub} maintains a collection of clientsa and the
+\emph{xPL::Listener} maintains a collection for timers and another for
+callbacks for xPL Messages.  These methods provide the basic interface
+for those collections.
+
+\subsubsection*{\texttt{init\_items(\$type)}\label{xPL::Base_init_items_type_}\index{xPL::Base!init\ items(\$type)}}
+
+
+This method must be called before a collection is used.  It
+is typically called from the constructor.
+
+\subsubsection*{\texttt{add\_item(\$type, \$id, $\backslash$\%attributes)}\label{xPL::Base_add_item_type_id_backslash_attributes_}\index{xPL::Base!add\ item(\$type, \$id, $\backslash$\%attributes)}}
+
+
+This method is used by \textsf{add\_input}, \textsf{add\_timer}, etc. to add
+items to their respective collections.
+
+\subsubsection*{\texttt{exists\_item(\$type, \$id)}\label{xPL::Base_exists_item_type_id_}\index{xPL::Base!exists\ item(\$type, \$id)}}
+
+
+This method is used by \textsf{exists\_input}, \textsf{exists\_timer}, etc. to check
+for existence of items in their respective collections.
+
+\subsubsection*{\texttt{remove\_item(\$type, \$id)}\label{xPL::Base_remove_item_type_id_}\index{xPL::Base!remove\ item(\$type, \$id)}}
+
+
+This method is used by \textsf{remove\_input}, \textsf{remove\_timer}, etc. to remove
+items from their respective collections.
+
+\subsubsection*{\texttt{item\_attrib(\$type, \$id, \$attrib)}\label{xPL::Base_item_attrib_type_id_attrib_}\index{xPL::Base!item\ attrib(\$type, \$id, \$attrib)}}
+
+
+This method is used by \textsf{input\_attrib}, \textsf{timer\_attrib}, etc. to query
+the value of attributes of registered items in their respective
+collections.
+
+\subsubsection*{\texttt{items(\$type)}\label{xPL::Base_items_type_}\index{xPL::Base!items(\$type)}}
+
+
+This method is used by \emph{timers}, \emph{inputs}, etc. to query
+the ids of registered items in their respective collections.
+
+\subsubsection*{\texttt{add\_callback\_item(\$type, \$id, $\backslash$\%attributes)}\label{xPL::Base_add_callback_item_type_id_backslash_attributes_}\index{xPL::Base!add\ callback\ item(\$type, \$id, $\backslash$\%attributes)}}
+
+
+This method is a wrapper around \textsf{add\_item} to handle some
+functionality for adding items that happen to be callbacks - which
+most of the items used internally by this module are at the moment.
+
+\subsubsection*{\texttt{call\_callback(\$handle)}\label{xPL::Base_call_callback_handle_}\index{xPL::Base!call\ callback(\$handle)}}
+
+
+This method wraps calls to callbacks in order to collect statistics.
+
+\subsection*{METHOD MAKER METHODS\label{xPL::Base_METHOD_MAKER_METHODS}\index{xPL::Base!METHOD MAKER METHODS}}
+\subsubsection*{\texttt{make\_collection(collection1 =} [attrib1, attrib2]);\label{xPL::Base_make_collection_collection1_attrib1_attrib2_}\index{xPL::Base!make\ collection(collection1 = [attrib1, attrib2]);}}
+
+
+This method creates some wrapper methods for a collection.  For instance,
+if called as:
+
+\begin{verbatim}
+  __PACKAGE__->make_collection_method('client' => ['source', 'identity']);
+\end{verbatim}
+
+
+it creates a set of methods called "add\_client", "exists\_client", ...
+corresponding to the collection methods above.  It also creates methods
+"client\_source" and "client\_identity" to retrieve client item attributes.
+
+\subsubsection*{\texttt{make\_collection\_method(\$collection\_type, \$method\_template)}\label{xPL::Base_make_collection_method_collection_type_method_template_}\index{xPL::Base!make\ collection\ method(\$collection\ type, \$method\ template)}}
+
+
+This class method makes a type safe method to wrap the collection api.
+For instance, if called as:
+
+\begin{verbatim}
+  __PACKAGE__->make_collection_method('peer', 'add_X');
+\end{verbatim}
+
+
+it creates a method that can be called as:
+
+\begin{verbatim}
+  $obj->add_peer($peer_id, { attr1 => $val1, attr2 => $val2 });
+\end{verbatim}
+
+
+which is 'mapped' to a call to:
+
+\begin{verbatim}
+  $obj->add_item('peer', $peer_id, { attr1 => $val1, attr2 => $val2 });
+\end{verbatim}
+\subsubsection*{\texttt{make\_item\_attribute\_method(\$collection\_type, \$attribute\_name)}\label{xPL::Base_make_item_attribute_method_collection_type_attribute_name_}\index{xPL::Base!make\ item\ attribute\ method(\$collection\ type, \$attribute\ name)}}
+
+
+This class method makes a type safe method to wrap the collection api.
+For instance, called as:
+
+\begin{verbatim}
+  __PACKAGE__->make_item_attribute_method('peer', 'name');
+\end{verbatim}
+
+
+it creates a method that can be called as:
+
+\begin{verbatim}
+  $obj->peer_name($peer_id);
+\end{verbatim}
+
+
+or as:
+
+\begin{verbatim}
+  $obj->peer_name($peer_id, $name);
+\end{verbatim}
+\subsubsection*{\texttt{make\_readonly\_accessor(\$attrib)}\label{xPL::Base_make_readonly_accessor_attrib_}\index{xPL::Base!make\ readonly\ accessor(\$attrib)}}
+
+
+This class method makes a type safe method to access object attributes.
+For instance, called as:
+
+\begin{verbatim}
+  __PACKAGE__->make_item_attribute_method('listen_port');
+\end{verbatim}
+
+
+it creates a method that can be called as:
+
+\begin{verbatim}
+  $obj->listen_port();
+\end{verbatim}
+\subsection*{HELPERS\label{xPL::Base_HELPERS}\index{xPL::Base!HELPERS}}
+\subsubsection*{\texttt{default\_interface\_info()}\label{xPL::Base_default_interface_info_}\index{xPL::Base!default\ interface\ info()}}
+
+
+This method returns a hash reference containing keys for 'device',
+'address', 'broadcast', and 'netmask' for the interface that the
+simple heuristic thinks would be a good default.  The heuristic
+is currently first interface that isn't loopback.
+
+\subsubsection*{\texttt{is\_local\_address( \$ip )}\label{xPL::Base_is_local_address_ip_}\index{xPL::Base!is\ local\ address( \$ip )}}
+
+
+This method returns true if the given IP address is one of the
+addresses of our interfaces.
+
+\subsubsection*{\texttt{interface\_ip(\$if)}\label{xPL::Base_interface_ip_if_}\index{xPL::Base!interface\ ip(\$if)}}
+
+
+This method returns the ip address associated with the named interface.
+
+\subsubsection*{\texttt{interface\_broadcast(\$if)}\label{xPL::Base_interface_broadcast_if_}\index{xPL::Base!interface\ broadcast(\$if)}}
+
+
+This method returns the broadcast address associated with the named
+interface.
+
+\subsubsection*{\texttt{interface\_info(\$if)}\label{xPL::Base_interface_info_if_}\index{xPL::Base!interface\ info(\$if)}}
+
+
+This method returns a hash reference containing keys for 'device',
+'address', 'broadcast', and 'netmask' for the named interface.
+
+\subsubsection*{\texttt{interfaces()}\label{xPL::Base_interfaces_}\index{xPL::Base!interfaces()}}
+
+
+This method returns a list reference of network interfaces.  Each
+element of the list is a hash reference containing keys for
+'device', 'address', 'broadcast', and 'netmask'.
+
+\subsubsection*{\texttt{interfaces\_ip()}\label{xPL::Base_interfaces_ip_}\index{xPL::Base!interfaces\ ip()}}
+
+
+This method returns a list reference of network interfaces.  Each
+element of the list is a hash reference containing keys for
+'device', 'address', 'broadcast', and 'netmask'.  It is implemented
+using the modern \texttt{ip} command.
+
+\subsubsection*{\texttt{interfaces\_ifconfig()}\label{xPL::Base_interfaces_ifconfig_}\index{xPL::Base!interfaces\ ifconfig()}}
+
+
+This method returns a list reference of network interfaces.  Each
+element of the list is a hash reference containing keys for
+'device', 'address', 'broadcast', and 'netmask'.  It is implemented
+using the traditional \texttt{ifconfig} command.
+
+\subsubsection*{\texttt{broadcast\_from\_mask( \$ip, \$mask )}\label{xPL::Base_broadcast_from_mask_ip_mask_}\index{xPL::Base!broadcast\ from\ mask( \$ip, \$mask )}}
+
+
+This function returns the broadcast address based on a given ip address
+and netmask.
+
+\subsubsection*{\texttt{broadcast\_from\_class( \$ip, \$class )}\label{xPL::Base_broadcast_from_class_ip_class_}\index{xPL::Base!broadcast\ from\ class( \$ip, \$class )}}
+
+
+This function returns the broadcast address based on a given ip address
+and an number of bits representing the address class.
+
+\subsubsection*{\texttt{find\_in\_path( \$command )}\label{xPL::Base_find_in_path_command_}\index{xPL::Base!find\ in\ path( \$command )}}
+
+
+This method is use to find commands in the PATH.  It is mostly
+here to avoid the error messages that might appear if you try
+to execute something that isn't in the PATH.
+
+\subsubsection*{\texttt{module\_available( \$module, [ @import\_arguments ])}\label{xPL::Base_module_available_module_import_arguments_}\index{xPL::Base!module\ available( \$module, [ @import\ arguments ])}}
+
+
+This method returns true if the named module is available.
+Any optional additional arguments are passed to import
+when loading the module.
+
+\subsubsection*{\texttt{simple\_tokenizer( \$string )}\label{xPL::Base_simple_tokenizer_string_}\index{xPL::Base!simple\ tokenizer( \$string )}}
+
+
+This function takes a string of the form:
+
+\begin{verbatim}
+  "-a setting1 -b setting2 key1=val1 key2=val2"
+\end{verbatim}
+
+
+and returns a list like:
+
+\begin{verbatim}
+  '-a', 'setting1', '-b', 'setting2', 'key1', 'val1', 'key2', 'val2'
+\end{verbatim}
+
+
+It attempts to handle quoted values.  It is expected that the list
+will be cast in to a hash.
+
+\subsubsection*{\texttt{verbose( [ \$new\_verbose\_setting ] )}\label{xPL::Base_verbose_new_verbose_setting_}\index{xPL::Base!verbose( [ \$new\ verbose\ setting ] )}}
+
+
+The method sets the verbose setting on the object.  Setting it to zero
+should mean little or no output.  Setting it to 1 or more should
+result in more messages.
+
+\subsubsection*{\texttt{info(@message)}\label{xPL::Base_info_message_}\index{xPL::Base!info(@message)}}
+
+
+Helper method to output informational messages if verbose mode is enabled.
+
+\subsubsection*{\texttt{argh(@message)}\label{xPL::Base_argh_message_}\index{xPL::Base!argh(@message)}}
+
+
+This methods is just a helper to 'die' a helpful error messages.
+
+\subsubsection*{\texttt{ouch(@message)}\label{xPL::Base_ouch_message_}\index{xPL::Base!ouch(@message)}}
+
+
+This methods is just a helper to 'warn' a helpful error messages.
+
+\subsubsection*{\texttt{argh\_named(@message)}\label{xPL::Base_argh_named_message_}\index{xPL::Base!argh\ named(@message)}}
+
+
+This methods is just another helper to 'die' a helpful error messages.
+
+\subsubsection*{\texttt{ouch\_named(@message)}\label{xPL::Base_ouch_named_message_}\index{xPL::Base!ouch\ named(@message)}}
+
+
+This methods is just another helper to 'warn' a helpful error messages.
+
+\subsection*{EXPORT\label{xPL::Base_EXPORT}\index{xPL::Base!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Base_SEE_ALSO}\index{xPL::Base!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Bridge\label{xPL::Bridge}\index{xPL::Bridge}}
+
+
+Perl extension for an xPL Bridge
+
+\subsection*{SYNOPSIS\label{xPL::Bridge_SYNOPSIS}\index{xPL::Bridge!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Bridge;
+\end{verbatim}
+\begin{verbatim}
+  # server mode
+  my $xpl = xPL::Bridge->new(vendor_id => 'acme',
+                             device_id => 'bridge',
+                             local_ip => '0.0.0.0');
+  $xpl->main_loop();
+\end{verbatim}
+\begin{verbatim}
+  # client mode
+  my $xpl = xPL::Bridge->new(vendor_id => 'acme',
+                             device_id => 'bridge',
+                             remote_ip => '10.0.0.2');
+  $xpl->main_loop();
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Bridge_DESCRIPTION}\index{xPL::Bridge!DESCRIPTION}}
+
+
+This module creates an xPL bridge.
+
+\subsection*{METHODS\label{xPL::Bridge_METHODS}\index{xPL::Bridge!METHODS}}
+\subsubsection*{\texttt{new(\%params)}\label{xPL::Bridge_new_params_}\index{xPL::Bridge!new(\%params)}}
+
+
+The constructor creates a new xPL::Bridge object.  The constructor
+takes a parameter hash as arguments.  Valid parameters in the hash
+are:
+
+\begin{description}
+
+\item[{id}] \mbox{}\begin{verbatim}
+  The identity for this source.
+\end{verbatim}
+
+\item[{interface}] \mbox{}\begin{verbatim}
+  The interface to use.  The default is to use the first active
+  interface that isn't the loopback interface if there is one, or the
+  loopback interface if that is the only one.  (Not yet implemented.)
+\end{verbatim}
+
+\item[{ip}] \mbox{}\begin{verbatim}
+  The IP address to bind to.  This can be used instead of the
+  'interface' parameter and will take precedent over the 'interface'
+  parameter if they are in conflict.
+\end{verbatim}
+
+\item[{broadcast}] \mbox{}\begin{verbatim}
+  The broadcast address to use.  This is required if the 'ip'
+  parameter has been given.
+\end{verbatim}
+\end{description}
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{setup\_client\_mode( $\backslash$\%parameters )}\label{xPL::Bridge_setup_client_mode_backslash_parameters_}\index{xPL::Bridge!setup\ client\ mode( $\backslash$\%parameters )}}
+
+
+This method connects to a remote bridge and registers the socket to
+wait for incoming messages.
+
+\subsubsection*{\texttt{setup\_server\_mode( $\backslash$\%parameters )}\label{xPL::Bridge_setup_server_mode_backslash_parameters_}\index{xPL::Bridge!setup\ server\ mode( $\backslash$\%parameters )}}
+
+
+This method bindes to a local port and registers the socket to wait
+for incoming connections from client mode bridges.
+
+\subsubsection*{\texttt{bridge( $\backslash$\%parameters )}\label{xPL::Bridge_bridge_backslash_parameters_}\index{xPL::Bridge!bridge( $\backslash$\%parameters )}}
+
+
+This method is the callback which receives incoming local xPL messages
+and forwards them to any remote bridges.  It does not forward any
+messages that arrive with a hop count of 9 (or invalid messages with
+large hop counts).  It also checks that messages it forwards to remote
+bridges have not come from a remote bridge.
+
+\subsubsection*{\texttt{peers()}\label{xPL::Bridge_peers_}\index{xPL::Bridge!peers()}}
+
+
+This method returns the sockets of any remote peers.
+
+\subsubsection*{\texttt{sock\_accept( \$listen\_socket )}\label{xPL::Bridge_sock_accept_listen_socket_}\index{xPL::Bridge!sock\ accept( \$listen\ socket )}}
+
+
+This method is the callback on the listen mode bridge that handles the
+incoming connections from client bridges.
+
+\subsubsection*{\texttt{sock\_read( \$peer\_socket )}\label{xPL::Bridge_sock_read_peer_socket_}\index{xPL::Bridge!sock\ read( \$peer\ socket )}}
+
+
+This method is the callback that handles incoming messages from remote
+bridges.  Any messages with large or invalid hop counts are dropped.
+All other messages are broadcast locally.
+
+\subsubsection*{\texttt{add\_peer( \$peer\_socket )}\label{xPL::Bridge_add_peer_peer_socket_}\index{xPL::Bridge!add\ peer( \$peer\ socket )}}
+
+
+This method registers a new peer.
+
+\subsubsection*{\texttt{remove\_peer( \$peer\_socket )}\label{xPL::Bridge_remove_peer_peer_socket_}\index{xPL::Bridge!remove\ peer( \$peer\ socket )}}
+
+
+This method removes a peer from the registered list.
+
+\subsubsection*{\texttt{pack\_message( \$message\_string )}\label{xPL::Bridge_pack_message_message_string_}\index{xPL::Bridge!pack\ message( \$message\ string )}}
+
+
+This function takes an xPL message string and returns an encoded
+version for sending to remote bridges.  The encoding is simple using a
+4-byte network order length followed by the message string.
+
+\subsubsection*{\texttt{unpack\_message( \$buffer )}\label{xPL::Bridge_unpack_message_buffer_}\index{xPL::Bridge!unpack\ message( \$buffer )}}
+
+
+This function removes a message from the start of the buffer and
+returns it.  If there isn't enough data in the buffer it returns
+undef.
+
+\subsubsection*{\texttt{msg\_hash( \$string )}\label{xPL::Bridge_msg_hash_string_}\index{xPL::Bridge!msg\ hash( \$string )}}
+
+
+This function takes an xPL message string and returns a hash to
+represent the message in the cache that prevents looping for remote
+messages when they are received back from the local hub.
+
+\subsubsection*{\texttt{mark\_seen( \$string )}\label{xPL::Bridge_mark_seen_string_}\index{xPL::Bridge!mark\ seen( \$string )}}
+
+
+This method records that an incoming remote message has been seen.
+
+\subsubsection*{\texttt{seen\_local( \$string )}\label{xPL::Bridge_seen_local_string_}\index{xPL::Bridge!seen\ local( \$string )}}
+
+
+This method returns true if the incoming local message has already been
+received from a remote bridge.
+
+\subsubsection*{\texttt{clean\_seen\_cache()}\label{xPL::Bridge_clean_seen_cache_}\index{xPL::Bridge!clean\ seen\ cache()}}
+
+
+This method is a timer callback that periodically clears out any
+old keys from the duplicate detection cache.
+
+\subsubsection*{\texttt{seen\_cache\_remove( \$hash )}\label{xPL::Bridge_seen_cache_remove_hash_}\index{xPL::Bridge!seen\ cache\ remove( \$hash )}}
+
+
+This method is used to remove an entry from the duplicate detection
+cache.
+
+\subsection*{TODO\label{xPL::Bridge_TODO}\index{xPL::Bridge!TODO}}
+
+
+There are some 'todo' items for this module:
+
+\begin{description}
+
+\item[{Send incoming remote messages to all remote}] \textbf{peers except the sender.}\end{description}
+\subsection*{EXPORT\label{xPL::Bridge_EXPORT}\index{xPL::Bridge!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Bridge_SEE_ALSO}\index{xPL::Bridge!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Client\label{xPL::Client}\index{xPL::Client}}
+
+
+Perl extension for an xPL Client
+
+\subsection*{SYNOPSIS\label{xPL::Client_SYNOPSIS}\index{xPL::Client!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Client;
+\end{verbatim}
+\begin{verbatim}
+  my $xpl = xPL::Client->new(id => 'acme-clock.default');
+  $xpl->add_timer(name => 'tick',
+                  timeout => 1,
+                  callback => sub { $xpl->tick(@_) },
+                  );
+\end{verbatim}
+\begin{verbatim}
+  $xpl->main_loop();
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Client_DESCRIPTION}\index{xPL::Client!DESCRIPTION}}
+
+
+This module creates an xPL client.
+
+\subsection*{METHODS\label{xPL::Client_METHODS}\index{xPL::Client!METHODS}}
+\subsubsection*{\texttt{new(\%params)}\label{xPL::Client_new_params_}\index{xPL::Client!new(\%params)}}
+
+
+The constructor creates a new xPL::Client object.  The constructor
+takes a parameter hash as arguments.  Valid parameters in the hash
+are:
+
+\begin{description}
+
+\item[{id}] \mbox{}\begin{verbatim}
+  The identity for this client.
+\end{verbatim}
+
+\item[{interface}] \mbox{}\begin{verbatim}
+  The interface to use.  The default is to use the first active
+  interface that isn't the loopback interface if there is one, or the
+  loopback interface if that is the only one.  (Not yet implemented.)
+\end{verbatim}
+
+\item[{ip}] \mbox{}\begin{verbatim}
+  The IP address to bind to.  This can be used instead of the
+  'interface' parameter and will take precedent over the 'interface'
+  parameter if they are in conflict.
+\end{verbatim}
+
+\item[{broadcast}] \mbox{}\begin{verbatim}
+  The broadcast address to use.  This is required if the 'ip'
+  parameter has been given.
+\end{verbatim}
+\end{description}
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{hbeat\_mode()}\label{xPL::Client_hbeat_mode_}\index{xPL::Client!hbeat\ mode()}}
+
+
+Returns the current hbeat mode for this client.  Possible values
+are:
+
+\begin{description}
+
+\item[{fast}] \mbox{}\begin{verbatim}
+  During the initial interval when hbeats are sent quickly.
+\end{verbatim}
+
+\item[{hopeful}] \mbox{}\begin{verbatim}
+  When the hub has failed to respond to the initial fast hbeats
+  and hbeats are being sent at a moderate rate in the hope that
+  the hub might appear.
+\end{verbatim}
+
+\item[{standard}] \mbox{}\begin{verbatim}
+  When the hub has responded and hbeats are being sent at the
+  standard interval.
+\end{verbatim}
+\end{description}
+\subsubsection*{\texttt{id()}\label{xPL::Client_id_}\index{xPL::Client!id()}}
+
+
+Returns the identity for this source.
+
+\subsubsection*{\texttt{vendor\_id()}\label{xPL::Client_vendor_id_}\index{xPL::Client!vendor\ id()}}
+
+
+Returns the vendor ID for this source.
+
+\subsubsection*{\texttt{device\_id()}\label{xPL::Client_device_id_}\index{xPL::Client!device\ id()}}
+
+
+Returns the device ID for this source.
+
+\subsubsection*{\texttt{instance\_id()}\label{xPL::Client_instance_id_}\index{xPL::Client!instance\ id()}}
+
+
+Returns the instance ID for this source.
+
+\subsubsection*{\texttt{hbeat\_interval()}\label{xPL::Client_hbeat_interval_}\index{xPL::Client!hbeat\ interval()}}
+
+
+Returns the hbeat interval (in minutes) for this source.
+
+\subsubsection*{\texttt{fast\_hbeat\_interval()}\label{xPL::Client_fast_hbeat_interval_}\index{xPL::Client!fast\ hbeat\ interval()}}
+
+
+Returns the fast/initial hbeat interval (in seconds) for this source.
+
+\subsubsection*{\texttt{hopeful\_hbeat\_interval()}\label{xPL::Client_hopeful_hbeat_interval_}\index{xPL::Client!hopeful\ hbeat\ interval()}}
+
+
+Returns the hopeful hbeat interval (in seconds) for this source.
+This is used if the hub fails to respond to the initial fast hbeat
+messages.
+
+\subsubsection*{\texttt{hub\_response\_timeout()}\label{xPL::Client_hub_response_timeout_}\index{xPL::Client!hub\ response\ timeout()}}
+
+
+Returns the hub response timeout (in seconds) for this source.  This
+is the amount of time that fast hbeat messages are sent before the
+client backs off and sends hbeat messages at the slower hopeful hbeat
+interval.
+
+\subsubsection*{\texttt{fast\_hbeat()}\label{xPL::Client_fast_hbeat_}\index{xPL::Client!fast\ hbeat()}}
+
+
+This method is the callback that sends the hbeats when the
+client is in fast and hopeful mode.  It is also responsible
+for reducing the frequency of the hbeat messages if the
+hub fails to respond.
+
+\subsubsection*{\texttt{hub\_response()}\label{xPL::Client_hub_response_}\index{xPL::Client!hub\ response()}}
+
+
+This method is the callback is used to check for a response from the
+local hub.  If it sees the hub response, it removes itself and the
+fast (or hopeful) hbeat timer from the main loop and adds the
+standard rate hbeat timer.
+
+\subsubsection*{\texttt{hbeat\_request()}\label{xPL::Client_hbeat_request_}\index{xPL::Client!hbeat\ request()}}
+
+
+This method is the callback is used to handle \texttt{hbeat.request} messages.
+
+\subsubsection*{\texttt{ping\_request()}\label{xPL::Client_ping_request_}\index{xPL::Client!ping\ request()}}
+
+
+This method is the callback is used to handle \texttt{ping.request} messages.
+
+\subsubsection*{\texttt{ping\_action()}\label{xPL::Client_ping_action_}\index{xPL::Client!ping\ action()}}
+
+
+This method is intended to confirm that the client is functioning
+correctly.  The default implementation simply calls \textsf{ping\_done} with
+the string argument, 'ok'.  It is intended to be overriden by clients
+to provide more substancial functionality to confirm (or not) that the
+client is really functioning correctly.  It is intended that the
+checking is asynchonous so strictly-speaking this method should begin
+the checking process.
+
+\subsubsection*{\texttt{ping\_kill\_action()}\label{xPL::Client_ping_kill_action_}\index{xPL::Client!ping\ kill\ action()}}
+
+
+This method is intended to be overriden by clients and should terminate
+any checking process that has been started.  It is called by the method
+that sends the ping response if the check is not finished sufficiently
+quickly.
+
+\subsubsection*{\texttt{ping\_check()}\label{xPL::Client_ping_check_}\index{xPL::Client!ping\ check()}}
+
+
+This method is the used to perform any checks needed to confirm that the
+client is functioning correctly.  It calls \textsf{ping\_start} to record the
+time and then calls \textsf{ping\_action}.
+
+\subsubsection*{\texttt{ping\_start()}\label{xPL::Client_ping_start_}\index{xPL::Client!ping\ start()}}
+
+
+This method is the used to record the start time of the ping checking.
+
+\subsubsection*{\texttt{ping\_done()}\label{xPL::Client_ping_done_}\index{xPL::Client!ping\ done()}}
+
+
+This method is the used to record the end time and status of the ping
+checking.  The default status is 'ok'.
+
+\subsubsection*{\texttt{send\_ping\_response()}\label{xPL::Client_send_ping_response_}\index{xPL::Client!send\ ping\ response()}}
+
+
+This method is the used to determine if the ping checking actions have
+succeeded and to send the response.  Or if the ping checking is still
+running to terminate it and send a \texttt{ping.response} with state
+'timeout'.
+
+\subsection*{COMMON MESSAGE METHODS\label{xPL::Client_COMMON_MESSAGE_METHODS}\index{xPL::Client!COMMON MESSAGE METHODS}}
+\subsubsection*{\texttt{send\_extra\_hbeat()}\label{xPL::Client_send_extra_hbeat_}\index{xPL::Client!send\ extra\ hbeat()}}
+
+
+This method is called when the client wants to send an extra heartbeat
+message.  For example, it is used to respond to a \texttt{hbeat.request}
+message.
+
+\subsubsection*{\texttt{send\_hbeat()}\label{xPL::Client_send_hbeat_}\index{xPL::Client!send\ hbeat()}}
+
+
+This method is called periodically to send hbeat messages.
+
+\subsubsection*{\texttt{send\_hbeat\_end()}\label{xPL::Client_send_hbeat_end_}\index{xPL::Client!send\ hbeat\ end()}}
+
+
+This method is called to send a dying hbeat message.
+
+\subsection*{TODO\label{xPL::Client_TODO}\index{xPL::Client!TODO}}
+
+
+There are some 'todo' items for this module:
+
+\begin{description}
+
+\item[{Callbacks}] \mbox{}
+
+The client should have callbacks for significant events like finding a
+hub.
+
+\end{description}
+\subsection*{EXPORT\label{xPL::Client_EXPORT}\index{xPL::Client!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Client_SEE_ALSO}\index{xPL::Client!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Gtk2Client\label{xPL::Gtk2Client}\index{xPL::Gtk2Client}}
+
+
+Perl extension for a graphical xPL Client
+
+\subsection*{SYNOPSIS\label{xPL::Gtk2Client_SYNOPSIS}\index{xPL::Gtk2Client!SYNOPSIS}}
+\begin{verbatim}
+  use Gtk2 -init;
+  use Gtk2::SimpleList;
+  use xPL::Gtk2Client;
+\end{verbatim}
+\begin{verbatim}
+  my $xpl = xPL::Gtk2Client->new(vendor_id => 'acme', device_id => 'monitor',
+                                 @ARGV);
+  $xpl->add_xpl_callback(id => "logger", self_skip => 0, targetted => 0,
+                         callback => \&log);
+  my %seen;
+  my $win = Gtk2::Window->new('toplevel');
+  my $vbox = Gtk2::VBox->new(0,0);
+  $win->add($vbox);
+  my $slist = Gtk2::SimpleList->new('Id' => 'text',
+                                    'Last Message' => 'text',
+                                    'Last Time' => 'text');
+  $vbox->add($slist);
+  foreach (['Send Request' => sub { $xpl->send(class=>'hbeat.request') }],
+           ['Quit' => sub { Gtk2->main_quit }]) {
+    my $button = Gtk2::Button->new($_->[0]);
+    $button->signal_connect(clicked => $_->[1]);
+    $vbox->add($button);
+  }
+  $win->show_all;
+  Gtk2->main;
+\end{verbatim}
+\begin{verbatim}
+  sub log {
+    my %p = @_;
+    my $msg = $p{message};
+    $seen{$msg->source} = [ $msg->summary, scalar localtime(time) ];
+    @{$slist->{data}} = map { [$_ => @{$seen{$_}}] } sort keys %seen;
+    return 1;
+  }
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Gtk2Client_DESCRIPTION}\index{xPL::Gtk2Client!DESCRIPTION}}
+
+
+This module creates a graphical xPL client.
+
+\subsection*{METHODS\label{xPL::Gtk2Client_METHODS}\index{xPL::Gtk2Client!METHODS}}
+\subsection*{EXPORT\label{xPL::Gtk2Client_EXPORT}\index{xPL::Gtk2Client!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Gtk2Client_SEE_ALSO}\index{xPL::Gtk2Client!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::HomeEasy\label{xPL::HomeEasy}\index{xPL::HomeEasy}}
+
+
+Perl extension for xPL HomeEasy Encoding/Decoding
+
+\subsection*{SYNOPSIS\label{xPL::HomeEasy_SYNOPSIS}\index{xPL::HomeEasy!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::HomeEasy;
+\end{verbatim}
+\begin{verbatim}
+  my $rfcode = xPL::HomeEasy::to_rf(address => "0x31f8177",
+                                    unit => '1',
+                                    command => 'on');
+\end{verbatim}
+\begin{verbatim}
+  my $res = xPL::HomeEasy::from_rf($rfcode);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::HomeEasy_DESCRIPTION}\index{xPL::HomeEasy!DESCRIPTION}}
+
+
+This is a module for handling the encoding/decoding of HomeEasy
+messages.  These methods are not symmetrical because the RFXCOM
+receiver and RFXCOM transmitter use different length parameters.
+
+\subsection*{METHODS\label{xPL::HomeEasy_METHODS}\index{xPL::HomeEasy!METHODS}}
+\subsubsection*{\texttt{to\_rf( \%parameter\_hash )}\label{xPL::HomeEasy_to_rf_parameter_hash_}\index{xPL::HomeEasy!to\ rf( \%parameter\ hash )}}
+
+
+Takes a parameter hash describing an HomeEasy command returns an array
+reference of bytes containing the command in RF encoded form.
+
+\subsubsection*{\texttt{from\_rf( \$bytes )}\label{xPL::HomeEasy_from_rf_bytes_}\index{xPL::HomeEasy!from\ rf( \$bytes )}}
+
+
+Takes an array reference of bytes from an RF message and converts it
+in to an hash reference with the details.
+
+\subsubsection*{\texttt{encode\_address( \$addr )}\label{xPL::HomeEasy_encode_address_addr_}\index{xPL::HomeEasy!encode\ address( \$addr )}}
+
+
+Takes a 26-bit address in the form of a hex string prefixed by '0x' or
+an arbitrary string.  A hex string is converted in the obvious way.
+An arbitrary string is hashed to a 26-bit value.
+
+\subsection*{EXPORT\label{xPL::HomeEasy_EXPORT}\index{xPL::HomeEasy!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::HomeEasy_SEE_ALSO}\index{xPL::HomeEasy!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Hub\label{xPL::Hub}\index{xPL::Hub}}
+
+
+Perl extension for an xPL Hub
+
+\subsection*{SYNOPSIS\label{xPL::Hub_SYNOPSIS}\index{xPL::Hub!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Hub;
+\end{verbatim}
+\begin{verbatim}
+  my $xpl = xPL::Hub->new();
+  $xpl->add_timer(name => 'tick',
+                  timeout => 1,
+                  callback => sub { $xpl->tick(@_) },
+                  );
+\end{verbatim}
+\begin{verbatim}
+  $xpl->main_loop();
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Hub_DESCRIPTION}\index{xPL::Hub!DESCRIPTION}}
+
+
+This module creates an xPL client.
+
+\subsection*{METHODS\label{xPL::Hub_METHODS}\index{xPL::Hub!METHODS}}
+\subsubsection*{\texttt{new(\%params)}\label{xPL::Hub_new_params_}\index{xPL::Hub!new(\%params)}}
+
+
+The constructor creates a new xPL::Hub object.  The constructor
+takes a parameter hash as arguments.  Valid parameters in the hash
+are:
+
+\begin{description}
+
+\item[{interface}] \mbox{}\begin{verbatim}
+  The interface to use.  The default is to use the first active
+  interface that isn't the loopback interface if there is one, or the
+  loopback interface if that is the only one.  (Not yet implemented.)
+\end{verbatim}
+
+\item[{ip}] \mbox{}\begin{verbatim}
+  The IP address to bind to.  This can be used instead of the
+  'interface' parameter and will take precedent over the 'interface'
+  parameter if they are in conflict.
+\end{verbatim}
+
+\item[{broadcast}] \mbox{}\begin{verbatim}
+  The broadcast address to use.  This is required if the 'ip'
+  parameter has been given.
+\end{verbatim}
+
+\item[{port}] \mbox{}\begin{verbatim}
+  The port to listen on.  Default is 3865.
+\end{verbatim}
+\end{description}
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{listen\_addr()}\label{xPL::Hub_listen_addr_}\index{xPL::Hub!listen\ addr()}}
+
+
+Returns the listen port for this source.
+
+\subsubsection*{\texttt{hub(\%params)}\label{xPL::Hub_hub_params_}\index{xPL::Hub!hub(\%params)}}
+
+
+This method is the xPL message callback that performs the hub actions
+of registering clients and forwarding messages.
+
+\subsubsection*{\texttt{clients()}\label{xPL::Hub_clients_}\index{xPL::Hub!clients()}}
+
+
+This methods returns the list of currently registered clients.  Each
+client in this list is identified by a string of the form "ip:port".
+This will be unique even if for some reason the identifier ('source')
+for the client is not.  The client identifier can be obtained using
+the \textsf{client\_identity()} method.
+
+\subsubsection*{\texttt{client\_identity( \$client )}\label{xPL::Hub_client_identity_client_}\index{xPL::Hub!client\ identity( \$client )}}
+
+
+This methods returns the identity ('source') of the given client.
+
+\subsubsection*{\texttt{client\_info( \$client )}\label{xPL::Hub_client_info_client_}\index{xPL::Hub!client\ info( \$client )}}
+
+
+This methods return a string summarising the details of the given
+client.
+
+\subsubsection*{\texttt{update\_client( \$client, \$msg )}\label{xPL::Hub_update_client_client_msg_}\index{xPL::Hub!update\ client( \$client, \$msg )}}
+
+
+This methods takes a client and a message received and updates the information
+stored about that client with the details from the message.
+
+\subsubsection*{\texttt{exists\_client( \$client )}\label{xPL::Hub_exists_client_client_}\index{xPL::Hub!exists\ client( \$client )}}
+
+
+This methods returns true if the given client is registered.
+
+\subsubsection*{\texttt{client\_last( \$client, [ \$new\_value ] )}\label{xPL::Hub_client_last_client_new_value_}\index{xPL::Hub!client\ last( \$client, [ \$new\ value ] )}}
+
+
+This methods returns the time in seconds since epoch that the hub last
+received a hbeat message from the registered client.  If the optional
+new value is given the time is updated before it is returned.
+
+\subsubsection*{\texttt{client\_interval( \$client, [ \$new\_value ] )}\label{xPL::Hub_client_interval_client_new_value_}\index{xPL::Hub!client\ interval( \$client, [ \$new\ value ] )}}
+
+
+This methods returns the interval (in minutes) as it appeared in the
+last hbeat message the hub received from the registered client.  If
+the optional new value is given the interval is updated before it is
+returned.
+
+\subsubsection*{\texttt{client\_identity( \$client, [ \$new\_value ] )}\label{xPL::Hub_client_identity_client_new_value_}\index{xPL::Hub!client\ identity( \$client, [ \$new\ value ] )}}
+
+
+This methods returns the identity as it appeared in the last hbeat
+message the hub received from the registered client.  If the optional
+new value is given the identity is updated before it is returned.
+
+\subsubsection*{\texttt{add\_client( \$client, \$message )}\label{xPL::Hub_add_client_client_message_}\index{xPL::Hub!add\ client( \$client, \$message )}}
+
+
+This method is called by the \textsf{update\_client()} method to add clients
+that aren't already registered.
+
+\subsubsection*{\texttt{remove\_client( \$client )}\label{xPL::Hub_remove_client_client_}\index{xPL::Hub!remove\ client( \$client )}}
+
+
+This method is called to remove a client.  For instance, when a "hbeat.end"
+message is received.
+
+\subsubsection*{\texttt{clean\_client\_list( )}\label{xPL::Hub_clean_client_list_}\index{xPL::Hub!clean\ client\ list( )}}
+
+
+This method is called periodically to remove clients that have failed
+to send hbeat messages recently.
+
+\subsection*{TODO\label{xPL::Hub_TODO}\index{xPL::Hub!TODO}}
+
+
+There are some 'todo' items for this module:
+
+\begin{description}
+
+\item[{Callbacks}] \mbox{}
+
+The hub should have callbacks for clients coming and going.
+
+\end{description}
+\subsection*{EXPORT\label{xPL::Hub_EXPORT}\index{xPL::Hub!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Hub_SEE_ALSO}\index{xPL::Hub!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Listener\label{xPL::Listener}\index{xPL::Listener}}
+
+
+Perl extension for an xPL Listener
+
+\subsection*{SYNOPSIS\label{xPL::Listener_SYNOPSIS}\index{xPL::Listener!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Listener;
+\end{verbatim}
+\begin{verbatim}
+  my $xpl = xPL::Listener->new(ip => $ip, broadcast => $broadcast) or
+      die "Failed to create xPL::Client\n";
+\end{verbatim}
+\begin{verbatim}
+  $xpl->add_timer(id => 'tick',
+                  timeout => 1,
+                  callback => sub { $xpl->tick(@_) },
+                 );
+\end{verbatim}
+\begin{verbatim}
+  $xpl->main_loop();
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Listener_DESCRIPTION}\index{xPL::Listener!DESCRIPTION}}
+
+
+This is a module for creating xPL listeners.  Typically, the
+subclasses xPL::Client and xPL::Hub would be used rather than this
+module.  It provides a main loop and allows callbacks to be registered
+for events that occur.
+
+
+
+The listener does not fork.  Therefore all callbacks must either be
+short or they should fork.  For example, a callback that needed to
+make an HTTP request could connect and send the request then add the
+socket handle to receive the response to the listener event loop with a
+suitable callback to handle the reply.
+
+\subsection*{METHODS\label{xPL::Listener_METHODS}\index{xPL::Listener!METHODS}}
+\subsubsection*{\texttt{new(\%params)}\label{xPL::Listener_new_params_}\index{xPL::Listener!new(\%params)}}
+
+
+The constructor creates a new xPL::Listener object.  The constructor
+takes a parameter hash as arguments.  Valid parameters in the hash
+are:
+
+\begin{description}
+
+\item[{interface}] \mbox{}\begin{verbatim}
+  The interface to use.  The default is to use the first active
+  interface that isn't the loopback interface if there is one, or the
+  loopback interface if that is the only one.  (Not yet implemented.)
+\end{verbatim}
+
+\item[{ip}] \mbox{}\begin{verbatim}
+  The IP address to bind to.  This can be used instead of the
+  'interface' parameter and will take precedent over the 'interface'
+  parameter if they are in conflict.
+\end{verbatim}
+
+\item[{broadcast}] \mbox{}\begin{verbatim}
+  The broadcast address to use.  This is required if the 'ip'
+  parameter has been given.
+\end{verbatim}
+
+\item[{xpl\_port}] \mbox{}\begin{verbatim}
+  The port to use for xPL broadcast messages to use.  This is required
+  if the 'ip' parameter has been given.
+\end{verbatim}
+\end{description}
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsection*{ATTRIBUTE METHODS\label{xPL::Listener_ATTRIBUTE_METHODS}\index{xPL::Listener!ATTRIBUTE METHODS}}
+\subsubsection*{\texttt{ip()}\label{xPL::Listener_ip_}\index{xPL::Listener!ip()}}
+
+
+Returns the IP address of this source.
+
+\subsubsection*{\texttt{broadcast()}\label{xPL::Listener_broadcast_}\index{xPL::Listener!broadcast()}}
+
+
+Returns the broadcast address for this source.
+
+\subsubsection*{\texttt{port()}\label{xPL::Listener_port_}\index{xPL::Listener!port()}}
+
+
+Returns the port that this client will try to listen on.  This is distinct
+from \textsf{listen\_port} in that it might be 0 and \textsf{listen\_port} would be the
+port that was allocated by the OS at bind time.
+
+\subsubsection*{\texttt{listen\_port()}\label{xPL::Listener_listen_port_}\index{xPL::Listener!listen\ port()}}
+
+
+Returns the listen port for this source.
+
+\subsubsection*{\texttt{listen\_addr()}\label{xPL::Listener_listen_addr_}\index{xPL::Listener!listen\ addr()}}
+
+
+Returns the listen port for this source.
+
+\subsection*{SOCKET METHODS\label{xPL::Listener_SOCKET_METHODS}\index{xPL::Listener!SOCKET METHODS}}
+\subsubsection*{\texttt{create\_listen\_socket()}\label{xPL::Listener_create_listen_socket_}\index{xPL::Listener!create\ listen\ socket()}}
+
+
+This method creates the socket to listen for incoming messages.
+
+\subsubsection*{\texttt{create\_send\_socket()}\label{xPL::Listener_create_send_socket_}\index{xPL::Listener!create\ send\ socket()}}
+
+
+This method creates the socket used to send outgoing messages.
+
+\subsubsection*{\texttt{send\_aux(\$sin, \$msg $|$ \%params )}\label{xPL::Listener_send_aux_sin_msg_params_}\index{xPL::Listener!send\ aux(\$sin, \$msg $|$ \%params )}}
+
+
+This method sends a message using the given \texttt{sockaddr\_in} structure.
+The \emph{xPL::Message} is either passed directly or constructed from the
+given parameters.  The advantage of passing parameters is that the
+\texttt{source} value will be filled in for objects for which it is defined.
+
+\subsubsection*{\texttt{send( \$msg $|$ \%params )}\label{xPL::Listener_send_msg_params_}\index{xPL::Listener!send( \$msg $|$ \%params )}}
+
+
+This method sends a message using the default sending socket.  The
+\emph{xPL::Message} is either passed directly or constructed from the
+given parameters.  The advantage of passing parameters is that the
+\texttt{source} value will be filled in for objects for which it is defined.
+
+\subsubsection*{\texttt{send\_from\_string( \$simple\_string )}\label{xPL::Listener_send_from_string_simple_string_}\index{xPL::Listener!send\ from\ string( \$simple\ string )}}
+
+
+This method takes a simple string representing details of a message
+and tries to send an xPL message from using a message constructed
+from those details.  For instance, the string:
+
+\begin{verbatim}
+  -m xpl-cmnd -c x10.basic command=on device=e3
+\end{verbatim}
+
+
+would try create and 'xpl-cmnd'-type message with a schema/class of
+'x10.basic' with 'command' set to 'on' and 'device' set to 'e3' in the
+body.  It tries to correctly handle balanced quotes such as:
+
+\begin{verbatim}
+  -m xpl-cmnd -c osd.basic command=write text="This is a 'test'!"
+\end{verbatim}
+
+
+and even:
+
+\begin{verbatim}
+  -m xpl-cmnd -c osd.basic command=write text="This is a \"test\"!"
+\end{verbatim}
+
+
+It is intended to be used to construct messages from simple string
+based input sources such as instant messages.
+
+\subsubsection*{\texttt{send\_from\_arg\_list( @argv\_style\_list )}\label{xPL::Listener_send_from_arg_list_argv_style_list_}\index{xPL::Listener!send\ from\ arg\ list( @argv\ style\ list )}}
+
+
+This method takes a list representing details of a message
+and tries to send an xPL message from using a message constructed
+from those details.  For instance, the list:
+
+\begin{verbatim}
+  '-m', 'xpl-cmnd', '-c','x10.basic', 'command=on', 'device=e3'
+\end{verbatim}
+
+
+would try create and 'xpl-cmnd'-type message with a schema/class of
+'x10.basic' with 'command' set to 'on' and 'device' set to 'e3' in the
+body.  It is intended to be used to construct messages from lists
+such as \texttt{@ARGV}.
+
+\subsubsection*{\texttt{send\_from\_list( @list\_of\_tokens )}\label{xPL::Listener_send_from_list_list_of_tokens_}\index{xPL::Listener!send\ from\ list( @list\ of\ tokens )}}
+
+
+This method takes a simple list representing details of a message
+and tries to send an xPL message from using a message constructed
+from those details.  For instance, the list of the form:
+
+\begin{verbatim}
+  '-m', 'xpl-cmnd', '-c', 'x10.basic', 'command', 'on', 'device', 'e3'
+\end{verbatim}
+
+
+would try create and 'xpl-cmnd'-type message with a schema/class of
+'x10.basic' with 'command=on' and 'device=e3' in the body.
+
+
+
+This method is used by \textsf{send\_from\_string()} and
+\textsf{send\_from\_arg\_list()}.
+
+\subsection*{MESSAGE CALLBACK METHODS\label{xPL::Listener_MESSAGE_CALLBACK_METHODS}\index{xPL::Listener!MESSAGE CALLBACK METHODS}}
+\subsubsection*{\texttt{add\_xpl\_callback(\%params)}\label{xPL::Listener_add_xpl_callback_params_}\index{xPL::Listener!add\ xpl\ callback(\%params)}}
+
+
+This method defines a callback that should receive xPL messages.
+This method takes a parameter hash as arguments.  Valid parameters in
+the hash are:
+
+\begin{description}
+
+\item[{id}] \mbox{}\begin{verbatim}
+  A unique id for this message callback - used to identify the
+  callback, for instance to remove it.  This parameter is required.
+\end{verbatim}
+
+\item[{callback}] \mbox{}\begin{verbatim}
+  A code reference to be executed with incoming xPL messages.
+  The default is the emtpy code reference.
+\end{verbatim}
+
+\item[{arguments}] \mbox{}\begin{verbatim}
+  An array reference of arguments to be passed to the callback.  The
+  default is the empty array reference.
+\end{verbatim}
+
+\item[{filter}] \mbox{}\begin{verbatim}
+  A hash reference containing keys matching xPL::Message methods with
+  values that are regular expressions to match against the message
+  attribute.  For example, the following will match C<x10.basic>
+  trigger messages.
+\end{verbatim}
+\begin{verbatim}
+    {
+     message_type => 'xpl-trig',
+     class => 'x10',
+     class_type => 'basic',
+    }
+\end{verbatim}
+\begin{verbatim}
+  It is also possible, though not advisable in normal Perl code, to
+  provide a filter as a string that is parsed using
+  L<simple_tokenizer> to produce a hash like the reference described
+  above.  This syntax is intended to be used where the natural source
+  format is a string - such as when the filter is obtained from a
+  database.
+\end{verbatim}
+\end{description}
+\subsubsection*{\texttt{exists\_xpl\_callback(\$id)}\label{xPL::Listener_exists_xpl_callback_id_}\index{xPL::Listener!exists\ xpl\ callback(\$id)}}
+
+
+This method returns true if an xPL message callback with the given id
+is registered.
+
+\subsubsection*{\texttt{remove\_xpl\_callback(\$id)}\label{xPL::Listener_remove_xpl_callback_id_}\index{xPL::Listener!remove\ xpl\ callback(\$id)}}
+
+
+This method removes the registered xPL message callback for the given
+id.
+
+\subsubsection*{\texttt{xpl\_callback\_attrib(\$id, \$attrib)}\label{xPL::Listener_xpl_callback_attrib_id_attrib_}\index{xPL::Listener!xpl\ callback\ attrib(\$id, \$attrib)}}
+
+
+This method returns the value of the attribute of the callback with
+the given id.
+
+\subsubsection*{\texttt{xpl\_callback\_callback\_count(\$id)}\label{xPL::Listener_xpl_callback_callback_count_id_}\index{xPL::Listener!xpl\ callback\ callback\ count(\$id)}}
+
+
+This method returns the callback count of the xPL callback with
+the given id.
+
+\subsubsection*{\texttt{xpl\_callback\_callback\_time\_total(\$id)}\label{xPL::Listener_xpl_callback_callback_time_total_id_}\index{xPL::Listener!xpl\ callback\ callback\ time\ total(\$id)}}
+
+
+This method returns the total time spent inside the xPL callback with
+the given id.
+
+\subsubsection*{\texttt{xpl\_callback\_callback\_time\_max(\$id)}\label{xPL::Listener_xpl_callback_callback_time_max_id_}\index{xPL::Listener!xpl\ callback\ callback\ time\ max(\$id)}}
+
+
+This method returns the maximum time spent during a single execution
+of the xPL callback with the given id.
+
+\subsubsection*{\texttt{xpl\_callback\_callback\_time\_average(\$id)}\label{xPL::Listener_xpl_callback_callback_time_average_id_}\index{xPL::Listener!xpl\ callback\ callback\ time\ average(\$id)}}
+
+
+This method returns the average time spent during a single execution
+of the xPL callback with the given id.  It returns undef if the
+callback has never been called.
+
+\subsubsection*{\texttt{xpl\_callbacks()}\label{xPL::Listener_xpl_callbacks_}\index{xPL::Listener!xpl\ callbacks()}}
+
+
+This method returns a list of the registered xPL callbacks.
+
+\subsubsection*{\texttt{xpl\_message(\$file\_handle)}\label{xPL::Listener_xpl_message_file_handle_}\index{xPL::Listener!xpl\ message(\$file\ handle)}}
+
+
+This method is called when another xPL message has arrived.  It handles
+the dispatch of the message to any registered xpl\_callbacks.
+
+\subsection*{EVENT LOOP METHODS\label{xPL::Listener_EVENT_LOOP_METHODS}\index{xPL::Listener!EVENT LOOP METHODS}}
+\subsubsection*{\texttt{main\_loop( [ \$count ] )}\label{xPL::Listener_main_loop_count_}\index{xPL::Listener!main\ loop( [ \$count ] )}}
+
+
+This is the main event loop.  This method handles waiting on the
+registered input handles and subsequent dispatch of callbacks.  It
+also handles the dispatch of timer events.  Normally the main loop
+should be run forever, but an optional count can be passed to
+force the loop to exit after that number of iterations.
+
+\subsection*{TIMER METHODS\label{xPL::Listener_TIMER_METHODS}\index{xPL::Listener!TIMER METHODS}}
+\subsubsection*{\texttt{add\_timer(\%params)}\label{xPL::Listener_add_timer_params_}\index{xPL::Listener!add\ timer(\%params)}}
+
+
+This method registers a timer with the event loop.  It takes a parameter
+hash as arguments.  The valid keys are:
+
+\begin{description}
+
+\item[{id}] \mbox{}
+
+This is a unique identifier used to manage this timer record.
+
+
+\item[{timeout}] \mbox{}
+
+The interval in seconds between dispatch of this timer.  Negative
+values mean that the timer should be triggered for the first time as
+soon as possible rather than after the given interval.  Timeouts
+beginning with "C " have these characters removed and then the
+remaining string is passed to a \emph{DateTime::Event::Cron} object for
+processing.
+
+
+\item[{callback}] \mbox{}
+
+This is the callback to executed when the timer is dispatched.
+It must return true if it is to be dispatched again otherwise
+it will be removed from the event loop.
+
+
+\item[{arguments}] \mbox{}
+
+These arguments are passed to the callback when it is executed.
+
+
+\item[{count}] \mbox{}
+
+This argument is optional.  It is a count of the number of times
+that the timer should be dispatched before being removed from the event
+loop.
+
+\end{description}
+\subsubsection*{\texttt{exists\_timer(\$id)}\label{xPL::Listener_exists_timer_id_}\index{xPL::Listener!exists\ timer(\$id)}}
+
+
+This method returns true if the timer with the given id is registered
+with the event loop.
+
+\subsubsection*{\texttt{remove\_timer(\$id)}\label{xPL::Listener_remove_timer_id_}\index{xPL::Listener!remove\ timer(\$id)}}
+
+
+This method drops the timer with the given id from the event loop.
+
+\subsubsection*{\texttt{timers()}\label{xPL::Listener_timers_}\index{xPL::Listener!timers()}}
+
+
+This method returns the ids of all the registered timers.
+
+\subsubsection*{\texttt{timer\_attrib(\$id, \$attrib)}\label{xPL::Listener_timer_attrib_id_attrib_}\index{xPL::Listener!timer\ attrib(\$id, \$attrib)}}
+
+
+This method returns the value of the attribute of the timer with the
+given id.
+
+\subsubsection*{\texttt{timer\_next(\$id)}\label{xPL::Listener_timer_next_id_}\index{xPL::Listener!timer\ next(\$id)}}
+
+
+This method returns the time that the timer with the given id is next
+due to expire.
+
+\subsubsection*{\texttt{timer\_callback\_count(\$id)}\label{xPL::Listener_timer_callback_count_id_}\index{xPL::Listener!timer\ callback\ count(\$id)}}
+
+
+This method returns the callback count of the timer with the given id.
+
+\subsubsection*{\texttt{timer\_callback\_time\_total(\$id)}\label{xPL::Listener_timer_callback_time_total_id_}\index{xPL::Listener!timer\ callback\ time\ total(\$id)}}
+
+
+This method returns the total time spent inside the timer callback with
+the given id.
+
+\subsubsection*{\texttt{timer\_callback\_time\_max(\$id)}\label{xPL::Listener_timer_callback_time_max_id_}\index{xPL::Listener!timer\ callback\ time\ max(\$id)}}
+
+
+This method returns the maximum time spent during a single execution
+of the timer callback with the given id.
+
+\subsubsection*{\texttt{timer\_callback\_time\_average(\$id)}\label{xPL::Listener_timer_callback_time_average_id_}\index{xPL::Listener!timer\ callback\ time\ average(\$id)}}
+
+
+This method returns the average time spent during a single execution
+of the timer callback with the given id.  It returns undef if the
+callback has never been called.
+
+\subsubsection*{\texttt{timer\_timeout(\$id)}\label{xPL::Listener_timer_timeout_id_}\index{xPL::Listener!timer\ timeout(\$id)}}
+
+
+This method returns the timeout of the timer with the given id.
+
+\subsubsection*{\texttt{timer\_next\_ticks()}\label{xPL::Listener_timer_next_ticks_}\index{xPL::Listener!timer\ next\ ticks()}}
+
+
+This method returns the times of the next dispatch of the all the
+timers registered with the event loop.
+
+\subsubsection*{\texttt{timer\_minimum\_timeout()}\label{xPL::Listener_timer_minimum_timeout_}\index{xPL::Listener!timer\ minimum\ timeout()}}
+
+
+This method returns the amount of time remaining before the next timer
+is due to be dispatched.
+
+\subsubsection*{\texttt{reset\_timer(\$id, [ \$time ])}\label{xPL::Listener_reset_timer_id_time_}\index{xPL::Listener!reset\ timer(\$id, [ \$time ])}}
+
+
+This method resets the timer to run from now (or the optional given time).
+
+\subsubsection*{\texttt{dispatch\_timer(\$id)}\label{xPL::Listener_dispatch_timer_id_}\index{xPL::Listener!dispatch\ timer(\$id)}}
+
+
+This method dispatches the callback for the given timer.
+
+\subsubsection*{\texttt{dispatch\_timers()}\label{xPL::Listener_dispatch_timers_}\index{xPL::Listener!dispatch\ timers()}}
+
+
+This method dispatches any timers that have expired.
+
+\subsection*{INPUT MONITORING METHODS\label{xPL::Listener_INPUT_MONITORING_METHODS}\index{xPL::Listener!INPUT MONITORING METHODS}}
+\subsubsection*{\texttt{add\_input(\%params)}\label{xPL::Listener_add_input_params_}\index{xPL::Listener!add\ input(\%params)}}
+
+
+This method registers an input file handle (often a socket) with the
+event loop.  It takes a parameter hash as arguments.  The valid keys
+are:
+
+\begin{description}
+
+\item[{handle}] \mbox{}
+
+This is file handle of the input to be monitored.  The handle is
+used to uniquely identify the callback and is required to manipulate
+the record of this input.  (Strictly speaking it is actually the
+string representation of the handle which is used but typically
+you don't need to worry about this distinction.)
+
+
+\item[{callback}] \mbox{}
+
+This is the callback to executed when the handle has input to be read.
+It should return true.  It will be passed the handle as the first
+argument and the arguments below as an array reference as an array
+reference as the second.
+
+
+\item[{arguments}] \mbox{}
+
+These arguments are passed to the callback when it is executed.  These
+arguments are passed as an array reference after the mandatory
+arguments mentioned above.
+
+\end{description}
+\subsubsection*{\texttt{inputs()}\label{xPL::Listener_inputs_}\index{xPL::Listener!inputs()}}
+
+
+This method returns a list of the registered input handles.  Note,
+this method returns the real file handles and not the strings that
+are used as the keys internally.
+
+\subsubsection*{\texttt{exists\_input(\$handle)}\label{xPL::Listener_exists_input_handle_}\index{xPL::Listener!exists\ input(\$handle)}}
+
+
+This method returns true if the given handle is registered with the
+event loop.
+
+\subsubsection*{\texttt{remove\_input(\$handle)}\label{xPL::Listener_remove_input_handle_}\index{xPL::Listener!remove\ input(\$handle)}}
+
+
+This method drops the given handle from the event loop.
+
+\subsubsection*{\texttt{input\_attrib(\$handle, \$attrib)}\label{xPL::Listener_input_attrib_handle_attrib_}\index{xPL::Listener!input\ attrib(\$handle, \$attrib)}}
+
+
+This method returns the value of the attribute of the registered input with
+the given handle.
+
+\subsubsection*{\texttt{input\_callback\_count(\$handle)}\label{xPL::Listener_input_callback_count_handle_}\index{xPL::Listener!input\ callback\ count(\$handle)}}
+
+
+This method returns the callback count of the registered input with
+the given handle.
+
+\subsubsection*{\texttt{input\_callback\_time\_total(\$id)}\label{xPL::Listener_input_callback_time_total_id_}\index{xPL::Listener!input\ callback\ time\ total(\$id)}}
+
+
+This method returns the total time spent inside the input callback with
+the given id.
+
+\subsubsection*{\texttt{input\_callback\_time\_max(\$id)}\label{xPL::Listener_input_callback_time_max_id_}\index{xPL::Listener!input\ callback\ time\ max(\$id)}}
+
+
+This method returns the maximum time spent during a single execution
+of the input callback with the given id.
+
+\subsubsection*{\texttt{input\_callback\_time\_average(\$id)}\label{xPL::Listener_input_callback_time_average_id_}\index{xPL::Listener!input\ callback\ time\ average(\$id)}}
+
+
+This method returns the average time spent during a single execution
+of the input callback with the given id.  It returns undef if the
+callback has never been called.
+
+\subsubsection*{\texttt{dispatch\_input(\$handle)}\label{xPL::Listener_dispatch_input_handle_}\index{xPL::Listener!dispatch\ input(\$handle)}}
+
+
+This method dispatches the callback for the given input handle.
+
+\subsection*{TODO\label{xPL::Listener_TODO}\index{xPL::Listener!TODO}}
+
+
+There are some 'todo' items for this module:
+
+\begin{description}
+
+\item[{Interface binding}] \mbox{}
+
+Support for binding to a named interface and using a simple heuristic
+to pick a sensible default.  Probably using Net::Ifconfig::Wrapper
+and, if it is not available, falling back to using ifconfig and/or "ip
+addr show" directly.
+
+\end{description}
+\subsection*{EXPORT\label{xPL::Listener_EXPORT}\index{xPL::Listener!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Listener_SEE_ALSO}\index{xPL::Listener!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Message\label{xPL::Message}\index{xPL::Message}}
+
+
+Perl extension for xPL message base class
+
+\subsection*{SYNOPSIS\label{xPL::Message_SYNOPSIS}\index{xPL::Message!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Message;
+\end{verbatim}
+\begin{verbatim}
+  my $msg = xPL::Message->new(message_type => 'xpl-stat',
+                              head =>
+                              {
+                               hop => 1,
+                               source => 'acme-lamp.livingroom',
+                               target => '*',
+                              },
+                              class => 'hbeat.app',
+                              body =>
+                              {
+                               interval => 10,
+                               port => 12345,
+                               remote_ip => '127.0.0.1',
+                               extra => 'value in my extra field',
+                              },
+                             );
+\end{verbatim}
+\begin{verbatim}
+  # let's leave out some fields and let them use the defaults
+  $msg = xPL::Message->new(head =>
+                           {
+                            source => 'acme-lamp.livingroom',
+                           },
+                           class => 'hbeat.app',
+                           body =>
+                           {
+                            remote_ip => '127.0.0.1',
+                            extra => 'value in my extra field',
+                           },
+                          );
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Message_DESCRIPTION}\index{xPL::Message!DESCRIPTION}}
+
+
+This module creates an xPL message.
+
+\subsection*{METHODS\label{xPL::Message_METHODS}\index{xPL::Message!METHODS}}
+\subsubsection*{\texttt{new(\%parameter\_hash)}\label{xPL::Message_new_parameter_hash_}\index{xPL::Message!new(\%parameter\ hash)}}
+
+
+The constructor creates a new xPL::Message object.  The constructor
+takes a parameter hash as arguments.  Valid parameters in the hash
+are:
+
+\begin{description}
+
+\item[{message\_type}] \mbox{}\begin{verbatim}
+  The message type identifier.  Valid values are 'xpl-cmnd',
+  'xpl-stat' and 'xpl-trig', for each of the three styles of xPL
+  Message.
+\end{verbatim}
+
+\item[{class}] \mbox{}\begin{verbatim}
+  The class or schema of the message.  This can either by just the
+  first part of the class, such as 'hbeat', (in which case the
+  'class_type' parameter must also be present) or it can be the
+  full schema name, such as 'hbeat.basic'.  This field is used
+  to determine the type of xPL Message object that will actually
+  be instantiated and returned to the caller.
+\end{verbatim}
+
+\item[{class\_type}] \mbox{}\begin{verbatim}
+  The type of the schema.  For the schema, 'hbeat.basic' the class
+  type is 'basic'.
+\end{verbatim}
+\end{description}
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{new\_from\_payload( \$message )}\label{xPL::Message_new_from_payload_message_}\index{xPL::Message!new\ from\ payload( \$message )}}
+
+
+This is a constructor that takes the string of an xPL message and
+constructs an xPL::Message object from it.
+
+\subsubsection*{\texttt{field\_spec()}\label{xPL::Message_field_spec_}\index{xPL::Message!field\ spec()}}
+
+
+This is the default field specification.  It is empty.  Specific
+message classes are intended to override this method.
+
+\subsubsection*{\texttt{spec()}\label{xPL::Message_spec_}\index{xPL::Message!spec()}}
+
+
+This is the default message specification.  It is empty.  Specific
+message classes are intended to override this method.
+
+\subsubsection*{\texttt{parse\_head\_parameters( \$head\_hash\_ref, \$head\_order )}\label{xPL::Message_parse_head_parameters_head_hash_ref_head_order_}\index{xPL::Message!parse\ head\ parameters( \$head\ hash\ ref, \$head\ order )}}
+
+
+This method is called by the constructor to process the fields of the
+header of the message.
+
+\subsubsection*{\texttt{parse\_body\_parameters( \$body\_hash\_ref )}\label{xPL::Message_parse_body_parameters_body_hash_ref_}\index{xPL::Message!parse\ body\ parameters( \$body\ hash\ ref )}}
+
+
+This method is called by the constructor to process the fields of the
+body of the message according to the field specification for the
+message type.
+
+\subsubsection*{\texttt{process\_field\_record( \$body\_hash\_ref, \$field\_record\_hash\_ref )}\label{xPL::Message_process_field_record_body_hash_ref_field_record_hash_ref_}\index{xPL::Message!process\ field\ record( \$body\ hash\ ref, \$field\ record\ hash\ ref )}}
+
+
+This method is called by the constructor to process a single field
+in body of the message according to the field specification for the
+message type.
+
+\subsubsection*{\texttt{default\_message\_type()}\label{xPL::Message_default_message_type_}\index{xPL::Message!default\ message\ type()}}
+
+
+This method returns the default message type.  It is undefined for
+the base class, but it can be overriden.
+
+\subsubsection*{\texttt{summary()}\label{xPL::Message_summary_}\index{xPL::Message!summary()}}
+
+
+This method returns a string containing a summary of the xPL message.
+It is intended for use when logging.  This method is intended to be
+overriden so that specific messages can append brief relevant data
+to the common components of the summary.
+
+\subsubsection*{\texttt{string()}\label{xPL::Message_string_}\index{xPL::Message!string()}}
+
+
+This method returns the xPL message string.  It is made up of the
+\textsf{head\_string()} and \textsf{body\_string()}.
+
+\subsubsection*{\texttt{head\_string()}\label{xPL::Message_head_string_}\index{xPL::Message!head\ string()}}
+
+
+This method returns the string that makes up the head part of the xPL
+message.
+
+\subsubsection*{\texttt{body\_string()}\label{xPL::Message_body_string_}\index{xPL::Message!body\ string()}}
+
+
+This method returns the string that makes up the body part of the xPL
+message.
+
+\subsubsection*{\texttt{strict( [ \$new\_strictness ] )}\label{xPL::Message_strict_new_strictness_}\index{xPL::Message!strict( [ \$new\ strictness ] )}}
+
+
+This method returns the strictness setting for this message.  If the
+optional new value argument is present, then this method updates the
+message type identifier with the new value before it returns.
+
+
+
+Strictness defines whether or not the message is validated harshly or
+not.  Typically outgoing messages would have strictness turned on and
+incoming messages would not.
+
+\subsubsection*{\texttt{message\_type( [ \$new\_message\_type ] )}\label{xPL::Message_message_type_new_message_type_}\index{xPL::Message!message\ type( [ \$new\ message\ type ] )}}
+
+
+This method returns the message type identifier.  If the optional new
+value argument is present, then this method updates the message type
+identifier with the new value before it returns.
+
+\subsubsection*{\texttt{hop( [ \$new\_hop ] )}\label{xPL::Message_hop_new_hop_}\index{xPL::Message!hop( [ \$new\ hop ] )}}
+
+
+This method returns the hop count.  If the optional new value argument
+is present, then this method updates the hop count to the new value
+before it returns.
+
+\subsubsection*{\texttt{source( [ \$new\_source ] )}\label{xPL::Message_source_new_source_}\index{xPL::Message!source( [ \$new\ source ] )}}
+
+
+This method returns the source id.  If the optional new value argument
+is present, then this method updates the source id to the new value
+before it returns.
+
+\subsubsection*{\texttt{target( [ \$new\_target ] )}\label{xPL::Message_target_new_target_}\index{xPL::Message!target( [ \$new\ target ] )}}
+
+
+This method returns the target id.  If the optional new value argument
+is present, then this method updates the target id to the new value
+before it returns.
+
+\subsubsection*{\texttt{class()}\label{xPL::Message_class_}\index{xPL::Message!class()}}
+
+
+This method returns the class.
+
+\subsubsection*{\texttt{class\_type()}\label{xPL::Message_class_type_}\index{xPL::Message!class\ type()}}
+
+
+This method returns the class type.
+
+\subsubsection*{\texttt{valid\_id( \$identifier )}\label{xPL::Message_valid_id_identifier_}\index{xPL::Message!valid\ id( \$identifier )}}
+
+
+This is a helper function (not a method) that return the string
+'valid' if the given identifier is valid.  Otherwise it returns a
+string with details of why the identifier is invalid.
+
+\subsubsection*{\texttt{extra\_field( \$field, [ \$value ] )}\label{xPL::Message_extra_field_field_value_}\index{xPL::Message!extra\ field( \$field, [ \$value ] )}}
+
+
+This method returns the value of the extra field from the message
+body.  If the optional new value argument is present, then this method
+updates the extra field with the new value before it returns.
+
+\subsubsection*{\texttt{extra\_fields()}\label{xPL::Message_extra_fields_}\index{xPL::Message!extra\ fields()}}
+
+
+This method returns the names of the extra fields present in this
+message.
+
+\subsubsection*{\texttt{extra\_field\_string()}\label{xPL::Message_extra_field_string_}\index{xPL::Message!extra\ field\ string()}}
+
+
+This method returns a formatted string that forms the part of the xPL
+message body that contains the extra fields.
+
+\subsubsection*{\texttt{body\_fields()}\label{xPL::Message_body_fields_}\index{xPL::Message!body\ fields()}}
+
+
+This method returns the fields that are in the body of this message.
+
+\subsubsection*{\texttt{make\_body\_fields( )}\label{xPL::Message_make_body_fields_}\index{xPL::Message!make\ body\ fields( )}}
+
+
+This method populates the symbol table.  It creates the methods for
+the fields listed in the \textsf{field\_spec} for the message sub-classes.
+It also creates a \texttt{body\_fields} method from the specification.
+
+\subsubsection*{\texttt{make\_body\_field( \$record )}\label{xPL::Message_make_body_field_record_}\index{xPL::Message!make\ body\ field( \$record )}}
+
+
+This class method makes a type safe method to get/set the named field
+of the xPL Message body.
+
+
+
+For instance, called as:
+
+\begin{verbatim}
+  __PACKAGE__->make_body_field({
+                                name => 'interval',
+                                validation => { type => 'IntegerRange',
+                                                min => 5, max => 30 ),
+                                error => 'It should be blah, blah, blah.',
+                               );
+\end{verbatim}
+
+
+it creates a method that can be called as:
+
+\begin{verbatim}
+  $msg->interval(5);
+\end{verbatim}
+
+
+or:
+
+\begin{verbatim}
+  my $interval = $msg->interval();
+\end{verbatim}
+\subsection*{TODO\label{xPL::Message_TODO}\index{xPL::Message!TODO}}
+
+
+There are some 'todo' items for this module:
+
+\begin{description}
+
+\item[{Support for additional developer fields}] \textbf{in the header of xPL messages.}\end{description}
+\subsubsection*{EXPORT\label{xPL::Message_EXPORT}\index{xPL::Message!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Message_SEE_ALSO}\index{xPL::Message!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Queue\label{xPL::Queue}\index{xPL::Queue}}
+
+
+Perl extension for simple queue for use by xPL clients
+
+\subsection*{SYNOPSIS\label{xPL::Queue_SYNOPSIS}\index{xPL::Queue!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Queue qw/:all/;
+\end{verbatim}
+\begin{verbatim}
+  my $q = xPL::Queue->new();
+  $q->enqueue('xxx');
+  print $q->length,"\n";
+  print $q->is_empty ? "empty" : "non-empty", "\n";
+  my $elt = $q->dequeue();
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Queue_DESCRIPTION}\index{xPL::Queue!DESCRIPTION}}
+
+
+This module provides a simple queue abstraction for use by other modules.
+
+\subsection*{METHODS\label{xPL::Queue_METHODS}\index{xPL::Queue!METHODS}}
+\subsubsection*{\texttt{new()}\label{xPL::Queue_new_}\index{xPL::Queue!new()}}
+
+
+This method is the constructor.  It takes no arguments.
+
+\subsubsection*{\texttt{enqueue(\$item)}\label{xPL::Queue_enqueue_item_}\index{xPL::Queue!enqueue(\$item)}}
+
+
+This method adds an item to the queue.
+
+\subsubsection*{\texttt{dequeue()}\label{xPL::Queue_dequeue_}\index{xPL::Queue!dequeue()}}
+
+
+This method returns the oldest item from the queue or returns undef if
+the queue contains no items.
+
+\subsubsection*{\texttt{is\_empty()}\label{xPL::Queue_is_empty_}\index{xPL::Queue!is\ empty()}}
+
+
+This method returns true if the queue is empty.
+
+\subsubsection*{\texttt{length()}\label{xPL::Queue_length_}\index{xPL::Queue!length()}}
+
+
+This method returns the length of the queue.
+
+\subsubsection*{\texttt{average\_queue\_time()}\label{xPL::Queue_average_queue_time_}\index{xPL::Queue!average\ queue\ time()}}
+
+
+This method returns the average time that the most recently removed
+items spent in the queue.  It returns undef if no items have been
+removed from the queue since it was created.  By default 50 samples
+are kept.
+
+\subsubsection*{\texttt{number\_of\_queue\_time\_samples()}\label{xPL::Queue_number_of_queue_time_samples_}\index{xPL::Queue!number\ of\ queue\ time\ samples()}}
+
+
+This method returns the number of queue time samples for dequeued
+items that have been collected.
+
+\subsubsection*{\texttt{\_record\_queue\_time()}\label{xPL::Queue__record_queue_time_}\index{xPL::Queue!\ record\ queue\ time()}}
+
+
+This internal method is used to record a new queue time sample as a
+item is removed from the queue.
+
+\subsubsection*{EXPORT\label{xPL::Queue_EXPORT}\index{xPL::Queue!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Queue_SEE_ALSO}\index{xPL::Queue!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF::Electrisave\label{xPL::RF::Electrisave}\index{xPL::RF::Electrisave}}
+
+
+Perl extension for decoding electrisave RF messages
+
+\subsection*{SYNOPSIS\label{xPL::RF::Electrisave_SYNOPSIS}\index{xPL::RF::Electrisave!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF::Electrisave;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF::Electrisave_DESCRIPTION}\index{xPL::RF::Electrisave!DESCRIPTION}}
+
+
+This is a module for decoding RF messages from Electrisave,
+Cent-a-meter and/or OWL electricity usage devices.
+
+\subsection*{METHODS\label{xPL::RF::Electrisave_METHODS}\index{xPL::RF::Electrisave!METHODS}}
+\subsubsection*{\texttt{parse( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Electrisave_parse_parent_message_bytes_bits_}\index{xPL::RF::Electrisave!parse( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method attempts to recognize and parse RF messages corresponding
+to Electrisave/Cent-a-meter/OWL current usage reports.  If a suitable
+message is identified a reference to a list of xPL::Message objects is
+returned for each reading.  If the message is not recognized, undef is
+returned.
+
+\subsection*{EXPORT\label{xPL::RF::Electrisave_EXPORT}\index{xPL::RF::Electrisave!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF::Electrisave_THANKS}\index{xPL::RF::Electrisave!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF::Electrisave_SEE_ALSO}\index{xPL::RF::Electrisave!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF::HomeEasy\label{xPL::RF::HomeEasy}\index{xPL::RF::HomeEasy}}
+
+
+Perl extension for decoding HomeEasy RF messages
+
+\subsection*{SYNOPSIS\label{xPL::RF::HomeEasy_SYNOPSIS}\index{xPL::RF::HomeEasy!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF::HomeEasy;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF::HomeEasy_DESCRIPTION}\index{xPL::RF::HomeEasy!DESCRIPTION}}
+
+
+This is a module for decoding RF messages from HomeEasy
+(http://www.homeeasy.eu/) devices.
+
+\subsection*{METHODS\label{xPL::RF::HomeEasy_METHODS}\index{xPL::RF::HomeEasy!METHODS}}
+\subsubsection*{\texttt{parse( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::HomeEasy_parse_parent_message_bytes_bits_}\index{xPL::RF::HomeEasy!parse( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method attempts to recognize and parse RF messages corresponding
+to HomeEasy messages.  If messages are identified a reference to a
+list of xPL::Message objects is returned.  If the message is not
+recognized, undef is returned.
+
+\subsection*{EXPORT\label{xPL::RF::HomeEasy_EXPORT}\index{xPL::RF::HomeEasy!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF::HomeEasy_THANKS}\index{xPL::RF::HomeEasy!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF::HomeEasy_SEE_ALSO}\index{xPL::RF::HomeEasy!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF::Oregon\label{xPL::RF::Oregon}\index{xPL::RF::Oregon}}
+
+
+Perl extension for decoding Oregon Scientific RF messages
+
+\subsection*{SYNOPSIS\label{xPL::RF::Oregon_SYNOPSIS}\index{xPL::RF::Oregon!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF::Oregon;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF::Oregon_DESCRIPTION}\index{xPL::RF::Oregon!DESCRIPTION}}
+
+
+This is a module for decoding RF messages from Oregon Scientific
+sensor devices.
+
+\subsection*{METHODS\label{xPL::RF::Oregon_METHODS}\index{xPL::RF::Oregon!METHODS}}
+\subsubsection*{\texttt{parse( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_parse_parent_message_bytes_bits_}\index{xPL::RF::Oregon!parse( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is called via the main \texttt{xPL::RF} decode loop and it
+determines whether the bytes match the format of any supported Oregon
+Scientific sensors.  It returns a list reference of containing xPL
+messages corresponding to the sensor readings or undef if the message
+is not recognized.
+
+\subsection*{DEVICE METHODS\label{xPL::RF::Oregon_DEVICE_METHODS}\index{xPL::RF::Oregon!DEVICE METHODS}}
+\subsubsection*{\texttt{uv138( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_uv138_parent_message_bytes_bits_}\index{xPL::RF::Oregon!uv138( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is called if the device type bytes indicate that the bytes
+might contain a message from a UV138 sensor.
+
+\subsubsection*{\texttt{wgr918\_anemometer( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_wgr918_anemometer_parent_message_bytes_bits_}\index{xPL::RF::Oregon!wgr918\ anemometer( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is called if the device type bytes indicate that the bytes
+might contain a wind speed/direction message from a WGR918 sensor.
+
+\subsubsection*{\texttt{wtgr800\_anemometer( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_wtgr800_anemometer_parent_message_bytes_bits_}\index{xPL::RF::Oregon!wtgr800\ anemometer( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is called if the device type bytes indicate that the bytes
+might contain a wind speed/direction message from a WTGR800 sensor.
+
+\subsubsection*{\texttt{alt\_temphydro( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_alt_temphydro_parent_message_bytes_bits_}\index{xPL::RF::Oregon!alt\ temphydro( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is called if the device type bytes indicate that the bytes
+might contain a temperature/humidity message from a WTGR800 sensor.
+
+\subsubsection*{\texttt{alt\_temphydrobaro( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_alt_temphydrobaro_parent_message_bytes_bits_}\index{xPL::RF::Oregon!alt\ temphydrobaro( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is called if the device type bytes indicate that the bytes
+might contain a temperature/humidity/baro message from a BTHR918N sensor.
+
+\subsubsection*{\texttt{rtgr328n\_datetime( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_rtgr328n_datetime_parent_message_bytes_bits_}\index{xPL::RF::Oregon!rtgr328n\ datetime( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is called if the device type bytes indicate that the bytes
+might contain a date/time message from a RTGR328n sensor.
+
+\subsubsection*{\texttt{common\_temp( \$type, \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_common_temp_type_parent_message_bytes_bits_}\index{xPL::RF::Oregon!common\ temp( \$type, \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is a generic device method for devices that report
+temperature in a particular manner.
+
+\subsubsection*{\texttt{common\_temphydro( \$type, \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_common_temphydro_type_parent_message_bytes_bits_}\index{xPL::RF::Oregon!common\ temphydro( \$type, \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is a generic device method for devices that report
+temperature and humidity in a particular manner.
+
+\subsubsection*{\texttt{common\_temphydrobaro( \$type, \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_common_temphydrobaro_type_parent_message_bytes_bits_}\index{xPL::RF::Oregon!common\ temphydrobaro( \$type, \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is a generic device method for devices that report
+temperature, humidity and barometric pressure in a particular manner.
+
+\subsubsection*{\texttt{common\_rain( \$type, \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Oregon_common_rain_type_parent_message_bytes_bits_}\index{xPL::RF::Oregon!common\ rain( \$type, \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is a generic device method for devices that report
+temperature, humidity and barometric pressure in a particular manner.
+
+\subsection*{CHECKSUM METHODS\label{xPL::RF::Oregon_CHECKSUM_METHODS}\index{xPL::RF::Oregon!CHECKSUM METHODS}}
+\subsubsection*{\texttt{checksum1( \$bytes )}\label{xPL::RF::Oregon_checksum1_bytes_}\index{xPL::RF::Oregon!checksum1( \$bytes )}}
+
+
+This method is a byte checksum of all nibbles of the first 6 bytes,
+the low nibble of the 7th byte, minus 10 which should equal the byte
+consisting of a high nibble taken from the low nibble of the 8th byte
+plus the high nibble from the 7th byte.
+
+\subsubsection*{\texttt{checksum2( \$bytes )}\label{xPL::RF::Oregon_checksum2_bytes_}\index{xPL::RF::Oregon!checksum2( \$bytes )}}
+
+
+This method is a byte checksum of all nibbles of the first 8 bytes
+minus 10, which should equal the 9th byte.
+
+\subsubsection*{\texttt{checksum3( \$bytes )}\label{xPL::RF::Oregon_checksum3_bytes_}\index{xPL::RF::Oregon!checksum3( \$bytes )}}
+
+
+This method is a byte checksum of all nibbles of the first 11 bytes
+minus 10, which should equal the 12th byte.
+
+\subsubsection*{\texttt{checksum4( \$bytes )}\label{xPL::RF::Oregon_checksum4_bytes_}\index{xPL::RF::Oregon!checksum4( \$bytes )}}
+
+
+This method is a byte checksum of all nibbles of the first 9 bytes
+minus 10, which should equal the 10th byte.
+
+\subsubsection*{\texttt{checksum5( \$bytes )}\label{xPL::RF::Oregon_checksum5_bytes_}\index{xPL::RF::Oregon!checksum5( \$bytes )}}
+
+
+This method is a byte checksum of all nibbles of the first 10 bytes
+minus 10, which should equal the 11th byte.
+
+\subsubsection*{\texttt{checksum6( \$bytes )}\label{xPL::RF::Oregon_checksum6_bytes_}\index{xPL::RF::Oregon!checksum6( \$bytes )}}
+
+
+This method is a byte checksum of all nibbles of the first 10 bytes
+minus 10, which should equal the 11th byte.
+
+\subsection*{UTILITY METHODS\label{xPL::RF::Oregon_UTILITY_METHODS}\index{xPL::RF::Oregon!UTILITY METHODS}}
+\subsubsection*{\texttt{uv\_string( \$uv\_index )}\label{xPL::RF::Oregon_uv_string_uv_index_}\index{xPL::RF::Oregon!uv\ string( \$uv\ index )}}
+
+
+This method takes the UV Index and returns a suitable string.
+
+\subsection*{SENSOR READING METHODS\label{xPL::RF::Oregon_SENSOR_READING_METHODS}\index{xPL::RF::Oregon!SENSOR READING METHODS}}
+\subsubsection*{\texttt{uv( \$parent, \$bytes, \$device, $\backslash$@result)}\label{xPL::RF::Oregon_uv_parent_bytes_device_backslash_result_}\index{xPL::RF::Oregon!uv( \$parent, \$bytes, \$device, $\backslash$@result)}}
+
+
+This method processes a UV Index reading.  It appends an xPL message
+to the result array.
+
+\subsubsection*{\texttt{temperature( \$parent, \$bytes, \$device, $\backslash$@result)}\label{xPL::RF::Oregon_temperature_parent_bytes_device_backslash_result_}\index{xPL::RF::Oregon!temperature( \$parent, \$bytes, \$device, $\backslash$@result)}}
+
+
+This method processes a temperature reading.  It appends an xPL message
+to the result array.
+
+\subsubsection*{\texttt{humidity( \$parent, \$bytes, \$device, $\backslash$@result)}\label{xPL::RF::Oregon_humidity_parent_bytes_device_backslash_result_}\index{xPL::RF::Oregon!humidity( \$parent, \$bytes, \$device, $\backslash$@result)}}
+
+
+This method processes a humidity reading.  It appends an xPL message
+to the result array.
+
+\subsubsection*{\texttt{pressure( \$parent, \$bytes, \$device, $\backslash$@result, \$forecast\_nibble,
+                   \$offset )}\label{xPL::RF::Oregon__texttt_pressure_parent_bytes_device_backslash_result_forecast_nibble_offset_}\index{xPL::RF::Oregon!\texttt{pressure( \$parent, \$bytes, \$device, $\backslash$@result, \$forecast\ nibble,
+                   \$offset )}}}
+
+
+This method processes a pressure reading.  It appends an xPL message
+to the result array.
+
+\subsubsection*{\texttt{simple\_battery( \$parent, \$bytes, \$device, $\backslash$@result)}\label{xPL::RF::Oregon_simple_battery_parent_bytes_device_backslash_result_}\index{xPL::RF::Oregon!simple\ battery( \$parent, \$bytes, \$device, $\backslash$@result)}}
+
+
+This method processes a simple low battery reading.  It appends an xPL
+message to the result array if the battery is low.
+
+\subsubsection*{\texttt{percentage\_battery( \$parent, \$bytes, \$device, $\backslash$@result)}\label{xPL::RF::Oregon_percentage_battery_parent_bytes_device_backslash_result_}\index{xPL::RF::Oregon!percentage\ battery( \$parent, \$bytes, \$device, $\backslash$@result)}}
+
+
+This method processes a battery percentage charge reading.  It appends
+an xPL message to the result array if the battery is low.
+
+\subsection*{EXPORT\label{xPL::RF::Oregon_EXPORT}\index{xPL::RF::Oregon!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF::Oregon_THANKS}\index{xPL::RF::Oregon!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF::Oregon_SEE_ALSO}\index{xPL::RF::Oregon!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF::OregonScale\label{xPL::RF::OregonScale}\index{xPL::RF::OregonScale}}
+
+
+Perl extension for Oregon Scientific scale RF messages
+
+\subsection*{SYNOPSIS\label{xPL::RF::OregonScale_SYNOPSIS}\index{xPL::RF::OregonScale!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF::OregonScale;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF::OregonScale_DESCRIPTION}\index{xPL::RF::OregonScale!DESCRIPTION}}
+
+
+This is a module for decoding RF messages from Oregon Scientific scales.
+
+\subsection*{METHODS\label{xPL::RF::OregonScale_METHODS}\index{xPL::RF::OregonScale!METHODS}}
+\subsubsection*{\texttt{parse( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::OregonScale_parse_parent_message_bytes_bits_}\index{xPL::RF::OregonScale!parse( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is called via the main \texttt{xPL::RF} decode loop and it
+determines whether the bytes match the format of any supported Oregon
+Scientific scales.  It returns a list reference of containing xPL
+messages corresponding to the scale readings or undef if the message
+is not recognized.
+
+\subsection*{EXPORT\label{xPL::RF::OregonScale_EXPORT}\index{xPL::RF::OregonScale!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF::OregonScale_THANKS}\index{xPL::RF::OregonScale!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF::OregonScale_SEE_ALSO}\index{xPL::RF::OregonScale!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF\label{xPL::RF}\index{xPL::RF}}
+
+
+Perl extension for an xPL RF Class
+
+\subsection*{SYNOPSIS\label{xPL::RF_SYNOPSIS}\index{xPL::RF!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF_DESCRIPTION}\index{xPL::RF!DESCRIPTION}}
+
+
+This is a module for handling the decoding of RF messages.
+
+\subsection*{METHODS\label{xPL::RF_METHODS}\index{xPL::RF!METHODS}}
+\subsubsection*{\texttt{new(\%parameter\_hash)}\label{xPL::RF_new_parameter_hash_}\index{xPL::RF!new(\%parameter\ hash)}}
+
+
+The constructor creates a new xPL::RF object.  The constructor takes a
+parameter hash as arguments.  Valid parameters in the hash are:
+
+\begin{description}
+
+\item[{duplicate\_timeout}] \mbox{}
+
+The amount of time that a message is considered a duplicate if it
+is identical to an earlier message.  The default is .5 seconds.
+
+\end{description}
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{verbose( [ \$new\_setting ] )}\label{xPL::RF_verbose_new_setting_}\index{xPL::RF!verbose( [ \$new\ setting ] )}}
+
+
+This is a getter/setter method for the verbosity setting for the RF parser.
+
+\subsubsection*{\texttt{source( [ \$new\_source ] )}\label{xPL::RF_source_new_source_}\index{xPL::RF!source( [ \$new\ source ] )}}
+
+
+This is a getter/setter method for the xPL source for messages generated
+by the RF parser.
+
+\subsubsection*{\texttt{stash( \$key, \$value )}\label{xPL::RF_stash_key_value_}\index{xPL::RF!stash( \$key, \$value )}}
+
+
+This method is intended for use by parser plugins to store
+persistent data.  This method stores the given value against
+the given key.
+
+\subsubsection*{\texttt{unstash( \$key )}\label{xPL::RF_unstash_key_}\index{xPL::RF!unstash( \$key )}}
+
+
+This method is intended for use by parser plugins to store persistent
+data.  This method retrieves the value previously stored with a call
+to the \texttt{stash} method with the same given key.
+
+\subsubsection*{\texttt{process\_variable\_length( \$buf )}\label{xPL::RF_process_variable_length_buf_}\index{xPL::RF!process\ variable\ length( \$buf )}}
+
+
+This function takes a message buffer containing an RFXCom variable
+length mode message.  It parses it and dispatches it for processing to
+one of the other functions depending on the type.
+
+
+
+It undef if the buffer is invalid or a hash reference containing the
+following keys:
+
+\begin{description}
+
+\item[{\texttt{length}}] \mbox{}
+
+The length of the processed message on success, 0 if more
+data is needed.
+
+
+\item[{\texttt{messages}}] \mbox{}
+
+An array references containing any xPL messages created from the
+decoded buffer.
+
+\end{description}
+\subsubsection*{\texttt{is\_duplicate( \$length\_bits, \$message )}\label{xPL::RF_is_duplicate_length_bits_message_}\index{xPL::RF!is\ duplicate( \$length\ bits, \$message )}}
+
+
+This method returns true if this message has been seen in the
+previous \texttt{duplicate\_timeout} seconds.
+
+\subsubsection*{\texttt{process\_32bit( \$message )}\label{xPL::RF_process_32bit_message_}\index{xPL::RF!process\ 32bit( \$message )}}
+
+
+This method processes a 32-bit message and returns an array references
+containing any xPL messages that can be constructed from the decoded
+message.
+
+
+
+For details of the protocol see:
+
+\begin{verbatim}
+  http://www.wgldesigns.com/protocols/rfxcomrf32_protocol.txt
+\end{verbatim}
+\subsubsection*{\texttt{reverse\_bits( $\backslash$@bytes )}\label{xPL::RF_reverse_bits_backslash_bytes_}\index{xPL::RF!reverse\ bits( $\backslash$@bytes )}}
+
+
+This method reverses the bits in the bytes.
+
+\subsubsection*{\texttt{hex\_dump( \$message )}\label{xPL::RF_hex_dump_message_}\index{xPL::RF!hex\ dump( \$message )}}
+
+
+This method converts the given message to a hex string.
+
+\subsection*{EXPORT\label{xPL::RF_EXPORT}\index{xPL::RF!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF_THANKS}\index{xPL::RF!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF_SEE_ALSO}\index{xPL::RF!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF::RFXMeter\label{xPL::RF::RFXMeter}\index{xPL::RF::RFXMeter}}
+
+
+Perl extension for decoding RFXCOM Meter RF messages
+
+\subsection*{SYNOPSIS\label{xPL::RF::RFXMeter_SYNOPSIS}\index{xPL::RF::RFXMeter!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF::RFXMeter;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF::RFXMeter_DESCRIPTION}\index{xPL::RF::RFXMeter!DESCRIPTION}}
+
+
+This is a module for decoding RF messages from RFXCOM RFXMeter devices.
+
+\subsection*{METHODS\label{xPL::RF::RFXMeter_METHODS}\index{xPL::RF::RFXMeter!METHODS}}
+\subsubsection*{\texttt{parse( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::RFXMeter_parse_parent_message_bytes_bits_}\index{xPL::RF::RFXMeter!parse( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method attempts to recognize and parse RF messages corresponding
+to RFXMeter messages.  If messages are identified a reference to a
+list of xPL::Message objects is returned.  If the message is not
+recognized, undef is returned.
+
+\subsection*{EXPORT\label{xPL::RF::RFXMeter_EXPORT}\index{xPL::RF::RFXMeter!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF::RFXMeter_THANKS}\index{xPL::RF::RFXMeter!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF::RFXMeter_SEE_ALSO}\index{xPL::RF::RFXMeter!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF::RFXSensor\label{xPL::RF::RFXSensor}\index{xPL::RF::RFXSensor}}
+
+
+Perl extension for decoding RFXCOM Sensor RF messages
+
+\subsection*{SYNOPSIS\label{xPL::RF::RFXSensor_SYNOPSIS}\index{xPL::RF::RFXSensor!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF::RFXSensor;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF::RFXSensor_DESCRIPTION}\index{xPL::RF::RFXSensor!DESCRIPTION}}
+
+
+This is a module for decoding RF messages from RFXCOM RFXSensor devices.
+
+\subsection*{METHODS\label{xPL::RF::RFXSensor_METHODS}\index{xPL::RF::RFXSensor!METHODS}}
+\subsubsection*{\texttt{parse( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::RFXSensor_parse_parent_message_bytes_bits_}\index{xPL::RF::RFXSensor!parse( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method attempts to recognize and parse RF messages corresponding
+to RFXSensor messages.  If messages are identified a reference to a
+list of xPL::Message objects is returned.  If the message is not
+recognized, undef is returned.
+
+\subsubsection*{\texttt{parse\_init( \$parent, \$message, \$bytes, \$bits, \$type )}\label{xPL::RF::RFXSensor_parse_init_parent_message_bytes_bits_type_}\index{xPL::RF::RFXSensor!parse\ init( \$parent, \$message, \$bytes, \$bits, \$type )}}
+
+
+Parse RFX Sensor initialization messages and output information to STDERR.
+
+\subsubsection*{\texttt{parse\_sen( \$parent, \$message, \$bytes, \$bits, \$str )}\label{xPL::RF::RFXSensor_parse_sen_parent_message_bytes_bits_str_}\index{xPL::RF::RFXSensor!parse\ sen( \$parent, \$message, \$bytes, \$bits, \$str )}}
+
+
+Parse RFX Sensor version messages and output information to STDERR.
+
+\subsection*{EXPORT\label{xPL::RF::RFXSensor_EXPORT}\index{xPL::RF::RFXSensor!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF::RFXSensor_THANKS}\index{xPL::RF::RFXSensor!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF::RFXSensor_SEE_ALSO}\index{xPL::RF::RFXSensor!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF::Visonic\label{xPL::RF::Visonic}\index{xPL::RF::Visonic}}
+
+
+Perl extension for an xPL RF Class
+
+\subsection*{SYNOPSIS\label{xPL::RF::Visonic_SYNOPSIS}\index{xPL::RF::Visonic!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF::Visonic;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF::Visonic_DESCRIPTION}\index{xPL::RF::Visonic!DESCRIPTION}}
+
+
+This is a module contains a module for handling the decoding of RF
+messages.
+
+\subsection*{METHODS\label{xPL::RF::Visonic_METHODS}\index{xPL::RF::Visonic!METHODS}}
+\subsubsection*{\texttt{parse( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Visonic_parse_parent_message_bytes_bits_}\index{xPL::RF::Visonic!parse( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method is called via the main \texttt{xPL::RF} decode loop and it
+determines whether the bytes match the format of any supported Visonic
+devices.  It returns a list reference of containing xPL messages
+corresponding to the sensor readings.
+
+\subsubsection*{\texttt{codesecure( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Visonic_codesecure_parent_message_bytes_bits_}\index{xPL::RF::Visonic!codesecure( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method decodes a message from a Visonic code secure keyfob.
+
+\subsubsection*{\texttt{powercode( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::Visonic_powercode_parent_message_bytes_bits_}\index{xPL::RF::Visonic!powercode( \$parent, \$message, \$bytes, \$bits )}}
+
+
+This method decodes a message from a Visonic powercode sensor.
+
+\subsection*{EXPORT\label{xPL::RF::Visonic_EXPORT}\index{xPL::RF::Visonic!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF::Visonic_THANKS}\index{xPL::RF::Visonic!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF::Visonic_SEE_ALSO}\index{xPL::RF::Visonic!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF::X10\label{xPL::RF::X10}\index{xPL::RF::X10}}
+
+
+Perl extension for an xPL RF Class
+
+\subsection*{SYNOPSIS\label{xPL::RF::X10_SYNOPSIS}\index{xPL::RF::X10!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF::X10;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF::X10_DESCRIPTION}\index{xPL::RF::X10!DESCRIPTION}}
+
+
+This is a module contains a module for handling the decoding of RF
+messages.
+
+\subsection*{METHODS\label{xPL::RF::X10_METHODS}\index{xPL::RF::X10!METHODS}}
+\subsubsection*{\texttt{parse( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::X10_parse_parent_message_bytes_bits_}\index{xPL::RF::X10!parse( \$parent, \$message, \$bytes, \$bits )}}
+
+
+TODO: POD
+
+
+
+TODO: The duplicates should probably be counted for bright and dim to set
+the level but they aren't yet.
+
+\subsubsection*{\texttt{x10\_xpl\_message( \$parent, \$command, \$device, \$level )}\label{xPL::RF::X10_x10_xpl_message_parent_command_device_level_}\index{xPL::RF::X10!x10\ xpl\ message( \$parent, \$command, \$device, \$level )}}
+
+
+This functions is used to construct x10.basic xpl-trig messages as a
+result of RF messages decoded from the RF data.
+
+\subsection*{EXPORT\label{xPL::RF::X10_EXPORT}\index{xPL::RF::X10!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF::X10_THANKS}\index{xPL::RF::X10!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF::X10_SEE_ALSO}\index{xPL::RF::X10!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::RF::X10Security\label{xPL::RF::X10Security}\index{xPL::RF::X10Security}}
+
+
+Perl extension for an xPL RF Class
+
+\subsection*{SYNOPSIS\label{xPL::RF::X10Security_SYNOPSIS}\index{xPL::RF::X10Security!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::RF::X10Security;
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::RF::X10Security_DESCRIPTION}\index{xPL::RF::X10Security!DESCRIPTION}}
+
+
+This is a module contains a module for handling the decoding of RF
+messages.
+
+\subsection*{METHODS\label{xPL::RF::X10Security_METHODS}\index{xPL::RF::X10Security!METHODS}}
+\subsubsection*{\texttt{parse( \$parent, \$message, \$bytes, \$bits )}\label{xPL::RF::X10Security_parse_parent_message_bytes_bits_}\index{xPL::RF::X10Security!parse( \$parent, \$message, \$bytes, \$bits )}}
+
+
+TODO: POD
+
+
+
+TODO: The duplicates should probably be counted for bright and dim to set
+the level but they aren't yet.
+
+\subsection*{EXPORT\label{xPL::RF::X10Security_EXPORT}\index{xPL::RF::X10Security!EXPORT}}
+
+
+None by default.
+
+\subsection*{THANKS\label{xPL::RF::X10Security_THANKS}\index{xPL::RF::X10Security!THANKS}}
+
+
+Special thanks to RFXCOM, \textsf{http://www.rfxcom.com/}, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+\subsection*{SEE ALSO\label{xPL::RF::X10Security_SEE_ALSO}\index{xPL::RF::X10Security!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::SQL\label{xPL::SQL}\index{xPL::SQL}}
+
+
+Perl extension for xPL database interactions
+
+\subsection*{SYNOPSIS\label{xPL::SQL_SYNOPSIS}\index{xPL::SQL!SYNOPSIS}}
+\begin{verbatim}
+  # Environment variable XPL_DB_CONFIG should point to file containing
+  # Class::DBI::Loader parameters in the form:
+  #
+  # dsn=dbi:mysql:xpl
+  # user=xpldb
+  # password=blahblah
+  #
+  use xPL::SQL;
+\end{verbatim}
+\begin{verbatim}
+  my $m =
+    xPL::SQL::Msg->create({
+                           time => $time,
+                           usec => $usec,
+                           type => $msg->message_type,
+                           class => $msg->class.'.'.$msg->class_type,
+                           source => $msg->source,
+                           target => $msg->target,
+                           incomplete => 0,
+                          });
+  foreach my $field ($msg->body_fields) {
+    $m->add_to_msgelts(
+      {
+       elt => xPL::SQL::Elt->find_or_create({
+                                             name => $field,
+                                             value => $msg->$field,
+                                            })
+      }
+    );
+  }
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::SQL_DESCRIPTION}\index{xPL::SQL!DESCRIPTION}}
+
+
+This module creates some xPL::SQL::* classes for storing xPL related
+information in a database.
+
+\subsection*{METHODS\label{xPL::SQL_METHODS}\index{xPL::SQL!METHODS}}
+\subsubsection*{\texttt{last\_sensor\_readings( \%parameter\_hash )}\label{xPL::SQL_last_sensor_readings_parameter_hash_}\index{xPL::SQL!last\ sensor\ readings( \%parameter\ hash )}}
+
+
+This method returns an array reference containing time and value pairs for
+sensor readings.  The arguments should be a parameter hash.  Valid keys
+are:
+
+\begin{description}
+
+\item[{device}] \mbox{}
+
+It is a string passed to SQL to match with 'LIKE' against the name of
+the device.  Typically this will be the name of a single device but it
+could be a less specific string.  For example, '28.\_\_\_\_\_\_\_\_\_\_\_\_' would
+match all DS18B20 temperature sensors.  This item is required.
+
+
+\item[{type}] \mbox{}
+
+This is the \texttt{sensor.basic} type element.  For example, 'temp',
+'humidity', etc.  This item is required.
+
+
+\item[{function}] \mbox{}
+
+This is the function to use to agregate multiple data values.  It
+should be either 'average', 'minimum', or 'maximum'.  This item is
+optional.  The default is 'average'.
+
+
+\item[{period}] \mbox{}
+
+This is the time period that the data should be agregated over.  It
+should be either 'hours', 'days', 'weeks', 'months', or 'years'.  This
+item is optional.  The default is 'hours'.
+
+
+\item[{number}] \mbox{}
+
+This is the number of time periods to go back in time.  This item is
+optional.  The default is '24'.
+
+\end{description}
+\subsubsection*{TABLES\label{xPL::SQL_TABLES}\index{xPL::SQL!TABLES}}
+
+
+Current tables which should work for MySQL are:
+
+\begin{verbatim}
+  CREATE TABLE body (
+    id int NOT NULL auto_increment,
+    body varchar(1500) default NULL,
+    PRIMARY KEY  (id),
+    KEY body_idx (body(1000))
+  );
+\end{verbatim}
+\begin{verbatim}
+  CREATE TABLE elt (
+    id int NOT NULL auto_increment,
+    name varchar(16) default NULL,
+    value varchar(128) default NULL,
+    PRIMARY KEY  (id),
+    KEY name_idx (name)
+  );
+\end{verbatim}
+\begin{verbatim}
+  CREATE TABLE msg (
+    id int NOT NULL auto_increment,
+    time int default NULL,
+    usec int default NULL,
+    type char(8) default NULL,
+    source varchar(34) default NULL,
+    target varchar(34) default NULL,
+    class varchar(15) default NULL,
+    incomplete int default NULL,
+    body int default NULL,
+    PRIMARY KEY  (id),
+    KEY class_idx (class),
+    KEY time_idx (time,usec),
+    KEY type_idx (type),
+    KEY body_idx (body)
+  );
+\end{verbatim}
+\begin{verbatim}
+  CREATE TABLE msgelt (
+    id int NOT NULL auto_increment,
+    msg int NOT NULL,
+    elt int NOT NULL,
+    PRIMARY KEY  (id),
+    KEY msg_idx (msg),
+    KEY elt_idx (elt)
+  );
+\end{verbatim}
+\subsubsection*{EXPORT\label{xPL::SQL_EXPORT}\index{xPL::SQL!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::SQL_SEE_ALSO}\index{xPL::SQL!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Timer::cron\label{xPL::Timer::cron}\index{xPL::Timer::cron}}
+
+
+Perl extension for xPL cron-like timer
+
+\subsection*{SYNOPSIS\label{xPL::Timer::cron_SYNOPSIS}\index{xPL::Timer::cron!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Timer;
+\end{verbatim}
+\begin{verbatim}
+  my $timer = xPL::Timer->new(type => 'cron',
+                              timeout => '5,15,25,35,35,55 * * * *');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Timer::cron_DESCRIPTION}\index{xPL::Timer::cron!DESCRIPTION}}
+
+
+This module creates an xPL timer abstraction for a cron-like timer.
+
+\subsection*{METHODS\label{xPL::Timer::cron_METHODS}\index{xPL::Timer::cron!METHODS}}
+\subsubsection*{\texttt{init($\backslash$\%parameter\_hash)}\label{xPL::Timer::cron_init_backslash_parameter_hash_}\index{xPL::Timer::cron!init($\backslash$\%parameter\ hash)}}
+
+
+This method is called by the xPL::Timer constructor to allow the
+sub-class to process the specific initialisation parameters.  This
+sub-class supports the following parameter hash values:
+
+\begin{description}
+
+\item[{crontab}] \mbox{}
+
+This should be a valid crontab-like string of the form
+"minute hour day\_of\_month month day\_of\_week".
+
+
+\item[{tz}] \mbox{}
+
+The timezone to apply to the timer - Europe/London is assumed if this
+value is omitted.
+
+\end{description}
+\subsubsection*{\texttt{next([ \$time ])}\label{xPL::Timer::cron_next_time_}\index{xPL::Timer::cron!next([ \$time ])}}
+
+
+This method returns the time that this timer is next triggered after
+the given time - or from now if the optional time parameter is not
+given.
+
+\subsubsection*{EXPORT\label{xPL::Timer::cron_EXPORT}\index{xPL::Timer::cron!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Timer::cron_SEE_ALSO}\index{xPL::Timer::cron!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Timer\label{xPL::Timer}\index{xPL::Timer}}
+
+
+Perl extension for xPL timer base class
+
+\subsection*{SYNOPSIS\label{xPL::Timer_SYNOPSIS}\index{xPL::Timer!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Timer;
+\end{verbatim}
+\begin{verbatim}
+  my $timer = xPL::Timer->new(type => 'simple', timeout => 30);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Timer_DESCRIPTION}\index{xPL::Timer!DESCRIPTION}}
+
+
+This module creates an xPL timer abstraction.
+
+\subsection*{METHODS\label{xPL::Timer_METHODS}\index{xPL::Timer!METHODS}}
+\subsubsection*{\texttt{new(\%parameter\_hash)}\label{xPL::Timer_new_parameter_hash_}\index{xPL::Timer!new(\%parameter\ hash)}}
+
+
+The constructor creates a new xPL::Timer object.  The constructor
+takes a parameter hash as arguments.  The hash should contain a 'type'
+parameter with a value of 'simple', 'cron', 'sunset' and 'sunrise'.
+Otherwise the 'simple' type is assumed.  The remaining values are
+specific to the different timer types as described in the
+documentation for the \texttt{init} methods of the Timer sub-classes.
+
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{new\_from\_string( \$specification\_string )}\label{xPL::Timer_new_from_string_specification_string_}\index{xPL::Timer!new\ from\ string( \$specification\ string )}}
+
+
+This is a constructor that takes the string of an xPL timer and
+constructs an xPL::Timer object from it.
+
+\subsubsection*{EXPORT\label{xPL::Timer_EXPORT}\index{xPL::Timer!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Timer_SEE_ALSO}\index{xPL::Timer!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Timer::recurrence\label{xPL::Timer::recurrence}\index{xPL::Timer::recurrence}}
+
+
+Perl extension for xPL recurrent timer
+
+\subsection*{SYNOPSIS\label{xPL::Timer::recurrence_SYNOPSIS}\index{xPL::Timer::recurrence!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Timer;
+\end{verbatim}
+\begin{verbatim}
+  my $timer = xPL::Timer->new(type => 'recurrence',
+                              timeout => '5,15,25,35,35,55 * * * *');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Timer::recurrence_DESCRIPTION}\index{xPL::Timer::recurrence!DESCRIPTION}}
+
+
+This module creates an xPL timer abstraction for a recurrent timer.
+
+\subsection*{METHODS\label{xPL::Timer::recurrence_METHODS}\index{xPL::Timer::recurrence!METHODS}}
+\subsubsection*{\texttt{init($\backslash$\%parameter\_hash)}\label{xPL::Timer::recurrence_init_backslash_parameter_hash_}\index{xPL::Timer::recurrence!init($\backslash$\%parameter\ hash)}}
+
+
+This method is called by the xPL::Timer constructor to allow the
+sub-class to process the specific initialisation parameters.  This
+sub-class supports the following parameter hash values:
+
+\begin{description}
+
+\item[{recurrencetab}] \mbox{}
+
+This should be a valid recurrencetab-like string of the form
+"minute hour day\_of\_month month day\_of\_week".
+
+
+\item[{tz}] \mbox{}
+
+The timezone to apply to the timer - Europe/London is assumed if this
+value is omitted.
+
+\end{description}
+\subsubsection*{\texttt{next([ \$time ])}\label{xPL::Timer::recurrence_next_time_}\index{xPL::Timer::recurrence!next([ \$time ])}}
+
+
+This method returns the time that this timer is next triggered after
+the given time - or from now if the optional time parameter is not
+given.
+
+\subsubsection*{EXPORT\label{xPL::Timer::recurrence_EXPORT}\index{xPL::Timer::recurrence!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Timer::recurrence_SEE_ALSO}\index{xPL::Timer::recurrence!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Timer::simple\label{xPL::Timer::simple}\index{xPL::Timer::simple}}
+
+
+Perl extension for xPL simple timer
+
+\subsection*{SYNOPSIS\label{xPL::Timer::simple_SYNOPSIS}\index{xPL::Timer::simple!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Timer;
+\end{verbatim}
+\begin{verbatim}
+  my $timer = xPL::Timer->new(type => 'simple', timeout => 30);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Timer::simple_DESCRIPTION}\index{xPL::Timer::simple!DESCRIPTION}}
+
+
+This module creates an xPL timer abstraction for a simple repeating
+interval timer.
+
+\subsection*{METHODS\label{xPL::Timer::simple_METHODS}\index{xPL::Timer::simple!METHODS}}
+\subsubsection*{\texttt{init($\backslash$\%parameter\_hash)}\label{xPL::Timer::simple_init_backslash_parameter_hash_}\index{xPL::Timer::simple!init($\backslash$\%parameter\ hash)}}
+
+
+This method is called by the xPL::Timer constructor to allow the
+sub-class to process the specific initialisation parameters.  This
+sub-class supports the following parameter hash values:
+
+\begin{description}
+
+\item[{timeout}] \mbox{}
+
+The timeout in seconds.  Fractional values are permitted.  The sign is
+ignored on negative values.
+
+\end{description}
+\subsubsection*{\texttt{next([ \$time ])}\label{xPL::Timer::simple_next_time_}\index{xPL::Timer::simple!next([ \$time ])}}
+
+
+This method returns the time that this timer is next triggered after
+the given time - or from now if the optional time parameter is not
+given.
+
+\subsubsection*{EXPORT\label{xPL::Timer::simple_EXPORT}\index{xPL::Timer::simple!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Timer::simple_SEE_ALSO}\index{xPL::Timer::simple!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Timer::sunrise\label{xPL::Timer::sunrise}\index{xPL::Timer::sunrise}}
+
+
+Perl extension for xPL sunrise timer
+
+\subsection*{SYNOPSIS\label{xPL::Timer::sunrise_SYNOPSIS}\index{xPL::Timer::sunrise!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Timer;
+\end{verbatim}
+\begin{verbatim}
+  my $timer = xPL::Timer->new(type => 'sunrise',
+                              latitude => 51, longitude => -1);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Timer::sunrise_DESCRIPTION}\index{xPL::Timer::sunrise!DESCRIPTION}}
+
+
+This module creates an xPL timer abstraction for a sunrise timer.
+
+\subsection*{METHODS\label{xPL::Timer::sunrise_METHODS}\index{xPL::Timer::sunrise!METHODS}}
+\subsubsection*{\texttt{init($\backslash$\%parameter\_hash)}\label{xPL::Timer::sunrise_init_backslash_parameter_hash_}\index{xPL::Timer::sunrise!init($\backslash$\%parameter\ hash)}}
+
+
+This method is called by the xPL::Timer constructor to allow the
+sub-class to process the specific initialisation parameters.  This
+sub-class supports the following parameter hash values:
+
+\begin{description}
+
+\item[{latitude}] \mbox{}
+
+The latitude in degrees - North is positive.  If this value is
+ommitted, then the environment variable LATITUDE will be used.
+
+
+\item[{longitude}] \mbox{}
+
+The longitude in degrees - East is positive.  If this value is
+ommitted, then the environment variable LONGITUDE will be used.
+
+
+\item[{altitude}] \mbox{}
+
+The sun altitude - default is -0.833.  See \emph{DateTime::Event::Sunrise}(3pm)
+for more details.
+
+
+\item[{altitude}] \mbox{}
+
+The iteration - default is 0.  See \emph{DateTime::Event::Sunrise}(3pm)
+for more details.
+
+
+\item[{hours}] \mbox{}
+
+Offset from the true value.  For instance, set to -1 will be an hour
+before sunrise.
+
+
+\item[{minutes}] \mbox{}
+
+Offset from the true value.
+
+
+\item[{seconds}] \mbox{}
+
+Offset from the true value.
+
+
+\item[{tz}] \mbox{}
+
+The timezone to apply to the timer - Europe/London is assumed if this
+value is omitted.
+
+\end{description}
+\subsubsection*{\texttt{next([ \$time ])}\label{xPL::Timer::sunrise_next_time_}\index{xPL::Timer::sunrise!next([ \$time ])}}
+
+
+This method returns the time that this timer is next triggered after
+the given time - or from now if the optional time parameter is not
+given.
+
+\subsubsection*{EXPORT\label{xPL::Timer::sunrise_EXPORT}\index{xPL::Timer::sunrise!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Timer::sunrise_SEE_ALSO}\index{xPL::Timer::sunrise!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Timer::sunset\label{xPL::Timer::sunset}\index{xPL::Timer::sunset}}
+
+
+Perl extension for xPL sunset timer
+
+\subsection*{SYNOPSIS\label{xPL::Timer::sunset_SYNOPSIS}\index{xPL::Timer::sunset!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Timer;
+\end{verbatim}
+\begin{verbatim}
+  my $timer = xPL::Timer->new(type => 'sunset',
+                              latitude => 51, longitude => -1);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Timer::sunset_DESCRIPTION}\index{xPL::Timer::sunset!DESCRIPTION}}
+
+
+This module creates an xPL timer abstraction for a sunset timer.
+
+\subsection*{METHODS\label{xPL::Timer::sunset_METHODS}\index{xPL::Timer::sunset!METHODS}}
+\subsubsection*{\texttt{init($\backslash$\%parameter\_hash)}\label{xPL::Timer::sunset_init_backslash_parameter_hash_}\index{xPL::Timer::sunset!init($\backslash$\%parameter\ hash)}}
+
+
+This method is called by the xPL::Timer constructor to allow the
+sub-class to process the specific initialisation parameters.  This
+sub-class supports the following parameter hash values:
+
+\begin{description}
+
+\item[{latitude}] \mbox{}
+
+The latitude in degrees - North is positive.  If this value is
+ommitted, then the environment variable LATITUDE will be used.
+
+
+\item[{longitude}] \mbox{}
+
+The longitude in degrees - East is positive.  If this value is
+ommitted, then the environment variable LONGITUDE will be used.
+
+
+\item[{altitude}] \mbox{}
+
+The sun altitude - default is -0.833.  See \emph{DateTime::Event::Sunrise}(3pm)
+for more details.
+
+
+\item[{altitude}] \mbox{}
+
+The iteration - default is 0.  See \emph{DateTime::Event::Sunrise}(3pm)
+for more details.
+
+
+\item[{hours}] \mbox{}
+
+Offset from the true value.  For instance, set to -1 will be an hour
+before sunset.
+
+
+\item[{minutes}] \mbox{}
+
+Offset from the true value.
+
+
+\item[{seconds}] \mbox{}
+
+Offset from the true value.
+
+
+\item[{tz}] \mbox{}
+
+The timezone to apply to the timer - Europe/London is assumed if this
+value is omitted.
+
+\end{description}
+\subsubsection*{\texttt{next([ \$time ])}\label{xPL::Timer::sunset_next_time_}\index{xPL::Timer::sunset!next([ \$time ])}}
+
+
+This method returns the time that this timer is next triggered after
+the given time - or from now if the optional time parameter is not
+given.
+
+\subsubsection*{EXPORT\label{xPL::Timer::sunset_EXPORT}\index{xPL::Timer::sunset!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Timer::sunset_SEE_ALSO}\index{xPL::Timer::sunset!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Utils\label{xPL::Utils}\index{xPL::Utils}}
+
+
+Perl extension for xPL timer base class
+
+\subsection*{SYNOPSIS\label{xPL::Utils_SYNOPSIS}\index{xPL::Utils!SYNOPSIS}}
+\begin{verbatim}
+  # import all utility functions
+  use xPL::Utils qw/:all/;
+\end{verbatim}
+\begin{verbatim}
+  print lo_nibble(0x16); # prints 6
+  print hi_nibble(0x16); # prints 1
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Utils_DESCRIPTION}\index{xPL::Utils!DESCRIPTION}}
+
+
+This module provides some simple utility functions for use by other
+modules.
+
+\subsection*{FUNCTIONS\label{xPL::Utils_FUNCTIONS}\index{xPL::Utils!FUNCTIONS}}
+\subsubsection*{\texttt{lo\_nibble(\$byte)}\label{xPL::Utils_lo_nibble_byte_}\index{xPL::Utils!lo\ nibble(\$byte)}}
+
+
+This function returns the low nibble of a byte.  So, for example, given
+0x16 it returns 6.
+
+\subsubsection*{\texttt{hi\_nibble(\$byte)}\label{xPL::Utils_hi_nibble_byte_}\index{xPL::Utils!hi\ nibble(\$byte)}}
+
+
+This function returns the hi nibble of a byte.  So, for example, given
+0x16 it returns 1.
+
+\subsubsection*{\texttt{nibble\_sum(\$count, $\backslash$@bytes)}\label{xPL::Utils_nibble_sum_count_backslash_bytes_}\index{xPL::Utils!nibble\ sum(\$count, $\backslash$@bytes)}}
+
+
+This function returns the sum of the nibbles of count bytes.  If count
+is not an integer then the high nibble of the count+1 th byte is added
+to the sum as well.  So given the bytes [0x10, 0x20, 0x40, 0x81], the
+sum when count is 3 would be 0x07, the sum when count is 3.5 would be
+0xF, and the sum when count is 4 would be 0x10.
+
+\subsubsection*{EXPORT\label{xPL::Utils_EXPORT}\index{xPL::Utils!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Utils_SEE_ALSO}\index{xPL::Utils!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Validation::Any\label{xPL::Validation::Any}\index{xPL::Validation::Any}}
+
+
+Perl extension for xPL Validation any class
+
+\subsection*{SYNOPSIS\label{xPL::Validation::Any_SYNOPSIS}\index{xPL::Validation::Any!SYNOPSIS}}
+\begin{verbatim}
+  # this class is not expected to be used directly
+\end{verbatim}
+\begin{verbatim}
+  use xPL::Validation;
+\end{verbatim}
+\begin{verbatim}
+  my $validation = xPL::Validation->new(type => 'Any');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Validation::Any_DESCRIPTION}\index{xPL::Validation::Any!DESCRIPTION}}
+
+
+This module creates an xPL validation which is used to validate fields
+of xPL messages.
+
+\subsection*{METHODS\label{xPL::Validation::Any_METHODS}\index{xPL::Validation::Any!METHODS}}
+\subsubsection*{EXPORT\label{xPL::Validation::Any_EXPORT}\index{xPL::Validation::Any!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Validation::Any_SEE_ALSO}\index{xPL::Validation::Any!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Validation::Integer\label{xPL::Validation::Integer}\index{xPL::Validation::Integer}}
+
+
+Perl extension for xPL Validation integer class
+
+\subsection*{SYNOPSIS\label{xPL::Validation::Integer_SYNOPSIS}\index{xPL::Validation::Integer!SYNOPSIS}}
+\begin{verbatim}
+  # this class is not expected to be used directly
+\end{verbatim}
+\begin{verbatim}
+  use xPL::Validation;
+\end{verbatim}
+\begin{verbatim}
+  my $validation = xPL::Validation->new(type => 'Integer');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Validation::Integer_DESCRIPTION}\index{xPL::Validation::Integer!DESCRIPTION}}
+
+
+This module creates an xPL validation which is used to validate fields
+of xPL messages.
+
+\subsection*{METHODS\label{xPL::Validation::Integer_METHODS}\index{xPL::Validation::Integer!METHODS}}
+\subsubsection*{\texttt{valid( \$value )}\label{xPL::Validation::Integer_valid_value_}\index{xPL::Validation::Integer!valid( \$value )}}
+
+
+This method returns true if the value is valid.
+
+\subsubsection*{\texttt{error( )}\label{xPL::Validation::Integer_error_}\index{xPL::Validation::Integer!error( )}}
+
+
+This method returns a suitable error string for the validation.
+
+\subsubsection*{EXPORT\label{xPL::Validation::Integer_EXPORT}\index{xPL::Validation::Integer!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Validation::Integer_SEE_ALSO}\index{xPL::Validation::Integer!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Validation::IntegerRange\label{xPL::Validation::IntegerRange}\index{xPL::Validation::IntegerRange}}
+
+
+Perl extension for xPL Validation integer range
+
+\subsection*{SYNOPSIS\label{xPL::Validation::IntegerRange_SYNOPSIS}\index{xPL::Validation::IntegerRange!SYNOPSIS}}
+\begin{verbatim}
+  # this class is not expected to be used directly
+\end{verbatim}
+\begin{verbatim}
+  use xPL::Validation;
+\end{verbatim}
+\begin{verbatim}
+  my $validation = xPL::Validation->new(type => 'IntegerRange');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Validation::IntegerRange_DESCRIPTION}\index{xPL::Validation::IntegerRange!DESCRIPTION}}
+
+
+This module creates an xPL validation which is used to validate fields
+of xPL messages.
+
+\subsection*{METHODS\label{xPL::Validation::IntegerRange_METHODS}\index{xPL::Validation::IntegerRange!METHODS}}
+\subsubsection*{\texttt{init($\backslash$\%parameter\_hash)}\label{xPL::Validation::IntegerRange_init_backslash_parameter_hash_}\index{xPL::Validation::IntegerRange!init($\backslash$\%parameter\ hash)}}
+
+
+The constructor creates a new xPL::Validation::IntegerRange object.
+The constructor takes a parameter hash as arguments.  Common
+parameters are described in \emph{xPL::Validation}.  This validator type
+has the following additional parameters:
+
+\begin{description}
+
+\item[{min}] \mbox{}\begin{verbatim}
+  The minimum valid value.  (Default: none)
+\end{verbatim}
+
+\item[{max}] \mbox{}\begin{verbatim}
+  The maximum valid value.  (Default: none)
+\end{verbatim}
+\end{description}
+
+
+One of the \texttt{min} or \texttt{max} parameters should be specified or this
+class is simply the Integer validation with a performance overhead.
+
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{singleton( )}\label{xPL::Validation::IntegerRange_singleton_}\index{xPL::Validation::IntegerRange!singleton( )}}
+
+
+This method returns 0 because this validation has some parameters.
+
+\subsubsection*{\texttt{summary()}\label{xPL::Validation::IntegerRange_summary_}\index{xPL::Validation::IntegerRange!summary()}}
+\subsubsection*{\texttt{valid( \$value )}\label{xPL::Validation::IntegerRange_valid_value_}\index{xPL::Validation::IntegerRange!valid( \$value )}}
+
+
+This method returns true if the value is valid.
+
+\subsubsection*{\texttt{error( )}\label{xPL::Validation::IntegerRange_error_}\index{xPL::Validation::IntegerRange!error( )}}
+
+
+This method returns a suitable error string for the validation.
+
+\subsubsection*{EXPORT\label{xPL::Validation::IntegerRange_EXPORT}\index{xPL::Validation::IntegerRange!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Validation::IntegerRange_SEE_ALSO}\index{xPL::Validation::IntegerRange!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Validation::IP\label{xPL::Validation::IP}\index{xPL::Validation::IP}}
+
+
+Perl extension for xPL Validation IP address class
+
+\subsection*{SYNOPSIS\label{xPL::Validation::IP_SYNOPSIS}\index{xPL::Validation::IP!SYNOPSIS}}
+\begin{verbatim}
+  # this class is not expected to be used directly
+\end{verbatim}
+\begin{verbatim}
+  use xPL::Validation;
+\end{verbatim}
+\begin{verbatim}
+  my $validation = xPL::Validation->new(type => 'IP');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Validation::IP_DESCRIPTION}\index{xPL::Validation::IP!DESCRIPTION}}
+
+
+This module creates an xPL validation which is used to validate fields
+of xPL messages.
+
+\subsection*{METHODS\label{xPL::Validation::IP_METHODS}\index{xPL::Validation::IP!METHODS}}
+\subsubsection*{\texttt{valid( \$value )}\label{xPL::Validation::IP_valid_value_}\index{xPL::Validation::IP!valid( \$value )}}
+
+
+This method returns true if the value is valid.
+
+\subsubsection*{\texttt{error( )}\label{xPL::Validation::IP_error_}\index{xPL::Validation::IP!error( )}}
+
+
+This method returns a suitable error string for the validation.
+
+\subsubsection*{EXPORT\label{xPL::Validation::IP_EXPORT}\index{xPL::Validation::IP!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Validation::IP_SEE_ALSO}\index{xPL::Validation::IP!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Validation::Pattern\label{xPL::Validation::Pattern}\index{xPL::Validation::Pattern}}
+
+
+Perl extension for xPL Validation pattern class
+
+\subsection*{SYNOPSIS\label{xPL::Validation::Pattern_SYNOPSIS}\index{xPL::Validation::Pattern!SYNOPSIS}}
+\begin{verbatim}
+  # this class is not expected to be used directly
+\end{verbatim}
+\begin{verbatim}
+  use xPL::Validation;
+\end{verbatim}
+\begin{verbatim}
+  my $validation = xPL::Validation->new(type => 'Pattern');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Validation::Pattern_DESCRIPTION}\index{xPL::Validation::Pattern!DESCRIPTION}}
+
+
+This module creates an xPL validation which is used to validate fields
+of xPL messages.
+
+\subsection*{METHODS\label{xPL::Validation::Pattern_METHODS}\index{xPL::Validation::Pattern!METHODS}}
+\subsubsection*{\texttt{init($\backslash$\%parameter\_hash)}\label{xPL::Validation::Pattern_init_backslash_parameter_hash_}\index{xPL::Validation::Pattern!init($\backslash$\%parameter\ hash)}}
+
+
+The constructor creates a new xPL::Validation::Pattern object.
+The constructor takes a parameter hash as arguments.  Common
+parameters are described in \emph{xPL::Validation}.  This validator type
+has the following additional parameters:
+
+\begin{description}
+
+\item[{pattern}] \mbox{}\begin{verbatim}
+  The pattern to use to validate the value.
+\end{verbatim}
+\end{description}
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{singleton( )}\label{xPL::Validation::Pattern_singleton_}\index{xPL::Validation::Pattern!singleton( )}}
+
+
+This method returns 0 because this validation has some parameters.
+
+\subsubsection*{\texttt{summary()}\label{xPL::Validation::Pattern_summary_}\index{xPL::Validation::Pattern!summary()}}
+\subsubsection*{\texttt{valid( \$value )}\label{xPL::Validation::Pattern_valid_value_}\index{xPL::Validation::Pattern!valid( \$value )}}
+
+
+This method returns true if the value is valid.
+
+\subsubsection*{\texttt{error( )}\label{xPL::Validation::Pattern_error_}\index{xPL::Validation::Pattern!error( )}}
+
+
+This method returns a suitable error string for the validation.
+
+\subsubsection*{EXPORT\label{xPL::Validation::Pattern_EXPORT}\index{xPL::Validation::Pattern!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Validation::Pattern_SEE_ALSO}\index{xPL::Validation::Pattern!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Validation\label{xPL::Validation}\index{xPL::Validation}}
+
+
+Perl extension for xPL Validation base class
+
+\subsection*{SYNOPSIS\label{xPL::Validation_SYNOPSIS}\index{xPL::Validation!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::Validation;
+\end{verbatim}
+\begin{verbatim}
+  my $validation = xPL::Validation->new(type => 'Integer');
+\end{verbatim}
+\begin{verbatim}
+  $validation->valid(10) or
+    die "Value 10 is invalid.\n".$validation->error();
+\end{verbatim}
+\begin{verbatim}
+  $validation->valid("xxx") or
+    die "Value 10 is invalid.\n".$validation->error();
+\end{verbatim}
+\begin{verbatim}
+  $validation = xPL::Validation->new(type => 'PositiveInteger');
+\end{verbatim}
+\begin{verbatim}
+  $validation->valid(-10) or
+    die "Value -10 is invalid.\n".$validation->error();
+\end{verbatim}
+\begin{verbatim}
+  $validation = xPL::Validation->new(type => 'IntegerRange',
+                                     min => 5, max => 30);
+\end{verbatim}
+\begin{verbatim}
+  $validation->valid(15) or
+    die "Value 15 is invalid.\n".$validation->error();
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Validation_DESCRIPTION}\index{xPL::Validation!DESCRIPTION}}
+
+
+This module creates an xPL validation which is used to validate fields
+of xPL messages.
+
+\subsection*{METHODS\label{xPL::Validation_METHODS}\index{xPL::Validation!METHODS}}
+\subsubsection*{\texttt{new(\%parameter\_hash)}\label{xPL::Validation_new_parameter_hash_}\index{xPL::Validation!new(\%parameter\ hash)}}
+
+
+The constructor creates a new xPL::Validation object.  The constructor
+takes a parameter hash as arguments.  Valid parameters in the hash
+are:
+
+\begin{description}
+
+\item[{type}] \mbox{}\begin{verbatim}
+  The validation type.  Valid values are 'integer', 'positive-integer',
+  'integer-range', etc.
+\end{verbatim}
+\end{description}
+
+
+Other parameters are specific to the validation type.
+
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{init( \$parameter\_hash\_ref )}\label{xPL::Validation_init_parameter_hash_ref_}\index{xPL::Validation!init( \$parameter\ hash\ ref )}}
+
+
+This method processes the parameters passed to the validation.  It
+does nothing in this base class, but it should be overriden by
+validation classes that have parameters.
+
+\subsubsection*{\texttt{singleton( )}\label{xPL::Validation_singleton_}\index{xPL::Validation!singleton( )}}
+
+
+This method returns 1 if the validation can be a singleton.  This
+is the case for validations that have no parameters - such as
+Integer, Any, etc. - but not for others - such as IntegerRange,
+Pattern, etc.
+
+\subsubsection*{\texttt{summary()}\label{xPL::Validation_summary_}\index{xPL::Validation!summary()}}
+
+
+This method returns a string containing a summary of the xPL
+validation.  It is intended for use when logging and debugging.  This
+method is intended to be overriden so that specific validations can
+append brief relevant data to the common components of the summary.
+
+\subsubsection*{\texttt{valid( \$value )}\label{xPL::Validation_valid_value_}\index{xPL::Validation!valid( \$value )}}
+
+
+This method returns true if the value is valid.
+
+\subsubsection*{\texttt{error( )}\label{xPL::Validation_error_}\index{xPL::Validation!error( )}}
+
+
+This method returns a suitable error string for the validation.
+
+\subsubsection*{\texttt{type( )}\label{xPL::Validation_type_}\index{xPL::Validation!type( )}}
+
+
+This method returns the validation type.
+
+\subsubsection*{EXPORT\label{xPL::Validation_EXPORT}\index{xPL::Validation!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Validation_SEE_ALSO}\index{xPL::Validation!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Validation::PositiveInteger\label{xPL::Validation::PositiveInteger}\index{xPL::Validation::PositiveInteger}}
+
+
+Perl extension for xPL Validation +ive int
+
+\subsection*{SYNOPSIS\label{xPL::Validation::PositiveInteger_SYNOPSIS}\index{xPL::Validation::PositiveInteger!SYNOPSIS}}
+\begin{verbatim}
+  # this class is not expected to be used directly
+\end{verbatim}
+\begin{verbatim}
+  use xPL::Validation;
+\end{verbatim}
+\begin{verbatim}
+  my $validation = xPL::Validation->new(type => 'PositiveInteger');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Validation::PositiveInteger_DESCRIPTION}\index{xPL::Validation::PositiveInteger!DESCRIPTION}}
+
+
+This module creates an xPL validation which validates fields
+as positive integers.
+
+\subsection*{METHODS\label{xPL::Validation::PositiveInteger_METHODS}\index{xPL::Validation::PositiveInteger!METHODS}}
+\subsubsection*{\texttt{valid( \$value )}\label{xPL::Validation::PositiveInteger_valid_value_}\index{xPL::Validation::PositiveInteger!valid( \$value )}}
+
+
+This method returns true if the value is valid.
+
+\subsubsection*{\texttt{error( )}\label{xPL::Validation::PositiveInteger_error_}\index{xPL::Validation::PositiveInteger!error( )}}
+
+
+This method returns a suitable error string for the validation.
+
+\subsubsection*{EXPORT\label{xPL::Validation::PositiveInteger_EXPORT}\index{xPL::Validation::PositiveInteger!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Validation::PositiveInteger_SEE_ALSO}\index{xPL::Validation::PositiveInteger!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::Validation::Set\label{xPL::Validation::Set}\index{xPL::Validation::Set}}
+
+
+Perl extension for xPL Validation set class
+
+\subsection*{SYNOPSIS\label{xPL::Validation::Set_SYNOPSIS}\index{xPL::Validation::Set!SYNOPSIS}}
+\begin{verbatim}
+  # this class is not expected to be used directly
+\end{verbatim}
+\begin{verbatim}
+  use xPL::Validation;
+\end{verbatim}
+\begin{verbatim}
+  my $validation = xPL::Validation->new(type => 'Set');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::Validation::Set_DESCRIPTION}\index{xPL::Validation::Set!DESCRIPTION}}
+
+
+This module creates an xPL validation which is used to validate fields
+of xPL messages.  This validator is case insensitive.
+
+\subsection*{METHODS\label{xPL::Validation::Set_METHODS}\index{xPL::Validation::Set!METHODS}}
+\subsubsection*{\texttt{init($\backslash$\%parameter\_hash)}\label{xPL::Validation::Set_init_backslash_parameter_hash_}\index{xPL::Validation::Set!init($\backslash$\%parameter\ hash)}}
+
+
+The constructor creates a new xPL::Validation::Set object.
+The constructor takes a parameter hash as arguments.  Common
+parameters are described in \emph{xPL::Validation}.  This validator type
+has the following additional parameters:
+
+\begin{description}
+
+\item[{set}] \mbox{}\begin{verbatim}
+  An array reference of the set of valid values.
+\end{verbatim}
+\end{description}
+
+
+It returns a blessed reference when successful or undef otherwise.
+
+\subsubsection*{\texttt{singleton( )}\label{xPL::Validation::Set_singleton_}\index{xPL::Validation::Set!singleton( )}}
+
+
+This method returns 0 because this validation has some parameters.
+
+\subsubsection*{\texttt{summary()}\label{xPL::Validation::Set_summary_}\index{xPL::Validation::Set!summary()}}
+\subsubsection*{\texttt{valid( \$value )}\label{xPL::Validation::Set_valid_value_}\index{xPL::Validation::Set!valid( \$value )}}
+
+
+This method returns true if the value is valid.
+
+\subsubsection*{\texttt{error( )}\label{xPL::Validation::Set_error_}\index{xPL::Validation::Set!error( )}}
+
+
+This method returns a suitable error string for the validation.
+
+\subsubsection*{EXPORT\label{xPL::Validation::Set_EXPORT}\index{xPL::Validation::Set!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::Validation::Set_SEE_ALSO}\index{xPL::Validation::Set!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{xPL::X10\label{xPL::X10}\index{xPL::X10}}
+
+
+Perl extension for xPL X10 Encoding/Decoding
+
+\subsection*{SYNOPSIS\label{xPL::X10_SYNOPSIS}\index{xPL::X10!SYNOPSIS}}
+\begin{verbatim}
+  use xPL::X10;
+\end{verbatim}
+\begin{verbatim}
+  my $rfcode = xPL::X10::to_rf(house => 'a', unit => '1', command => 'on');
+\end{verbatim}
+\begin{verbatim}
+  my $res = xPL::X10::from_rf($rfcode);
+\end{verbatim}
+\subsection*{DESCRIPTION\label{xPL::X10_DESCRIPTION}\index{xPL::X10!DESCRIPTION}}
+
+
+This is a module for handling the encoding/decoding of X10 messages.
+
+\subsection*{METHODS\label{xPL::X10_METHODS}\index{xPL::X10!METHODS}}
+\subsubsection*{\texttt{to\_rf( \%parameter\_hash )}\label{xPL::X10_to_rf_parameter_hash_}\index{xPL::X10!to\ rf( \%parameter\ hash )}}
+
+
+Takes a parameter hash describing an X10 command returns an array
+reference of bytes containing the command in RF encoded form.
+
+\subsubsection*{\texttt{from\_rf( \$bytes )}\label{xPL::X10_from_rf_bytes_}\index{xPL::X10!from\ rf( \$bytes )}}
+
+
+Takes an array reference of bytes from an RF message and converts it
+in to an hash reference with the details.
+
+\subsubsection*{\texttt{is\_x10( \$bytes )}\label{xPL::X10_is_x10_bytes_}\index{xPL::X10!is\ x10( \$bytes )}}
+
+
+Takes an array reference of bytes from an RF message and returns true
+if it appears to be a valid X10 message.
+
+\subsection*{EXPORT\label{xPL::X10_EXPORT}\index{xPL::X10!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{xPL::X10_SEE_ALSO}\index{xPL::X10!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+\newpage
+\section{t::Helpers\label{t::Helpers}\index{t::Helpers}}
+
+
+Perl extension for Helper functions for tests.
+
+\subsection*{SYNOPSIS\label{t::Helpers_SYNOPSIS}\index{t::Helpers!SYNOPSIS}}
+\begin{verbatim}
+  use Test::More tests => 2;
+  use t::Helpers qw/:all/;
+  is(test_error(sub { die 'argh' }),
+     'argh',
+     'died horribly');
+\end{verbatim}
+\begin{verbatim}
+  is(test_warn(sub { warn 'danger will robinson' }),
+     'danger will robinson',
+     'warned nicely');
+\end{verbatim}
+\subsection*{DESCRIPTION\label{t::Helpers_DESCRIPTION}\index{t::Helpers!DESCRIPTION}}
+
+
+Common functions to make test scripts a bit easier to read.  There are
+CPAN modules to do this sort of thing, but most people wont have them
+installed and they are pretty trivial functions so to encourage
+testing they are included here.
+
+\subsubsection*{\texttt{test\_error(\$code\_ref)}\label{t::Helpers_test_error_code_ref_}\index{t::Helpers!test\ error(\$code\ ref)}}
+
+
+This method runs the code with eval and returns the error.  It strips
+off some common strings from the end of the message including any "at
+$<$file$>$ line $<$number$>$" strings and any "(@INC contains: .*)".
+
+\subsubsection*{\texttt{test\_warn(\$code\_ref)}\label{t::Helpers_test_warn_code_ref_}\index{t::Helpers!test\ warn(\$code\ ref)}}
+
+
+This method runs the code with eval and returns the warning.  It strips
+off any "at $<$file$>$ line $<$number$>$" specific part(s) from the end.
+
+\subsection*{EXPORT\label{t::Helpers_EXPORT}\index{t::Helpers!EXPORT}}
+
+
+None by default.
+
+\subsection*{SEE ALSO\label{t::Helpers_SEE_ALSO}\index{t::Helpers!SEE ALSO}}
+
+
+Project website: http://www.xpl-perl.org.uk/
+
+% Copyright (C) 2005 by Mark Hindess
+\end{document}

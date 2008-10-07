@@ -18,8 +18,21 @@ xpl-heyu-helper - Perl script for an xPL X10 application
 
 =head1 DESCRIPTION
 
-This script is wrapper script that reads heyu command lines from stdin and
-outputs acknowledgements on stdout.  For example, it might accept:
+This script is wrapper script that reads heyu command lines from stdin
+and outputs acknowledgements on stdout.  The command lines are encoded
+using the byte zero, C<\0>, as a separator and are prefixed by a
+sequence number.  Responses are prefixed by the requests sequence
+number, the return code of the heyu command and optionally followed by
+an error message.  These items are again separated by zero bytes.
+
+For example, it might accept:
+
+  1\0turn\0al\0on
+
+and return:
+
+  1\00
+
 
 =cut
 
@@ -61,9 +74,9 @@ Project website: http://www.xpl-perl.org.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright (C) 2007, 2008 by Mark Hindess
 

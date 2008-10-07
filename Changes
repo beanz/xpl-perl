@@ -27,7 +27,7 @@ Revision history for Perl extension xPL.
           with device=i4,i6,i8,i10 is passed to heyu as 'i4,6,8,10'
           rather than four separate calls.  This makes this client
           much more efficient/responsive.
-        - xPL::Message doesn't corrupt argments passed to the constructor.
+        - xPL::Message doesn't corrupt arguments passed to the constructor.
         - All clients now use POD::Usage so usage text and manual pages
           share the same text rather than having (inaccurate) duplication.
         - Simple queue abstraction added, xPL::Queue.  Used by xpl-x10,

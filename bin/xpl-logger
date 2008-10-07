@@ -8,7 +8,7 @@ xpl-logger - Perl script for an example xPL logger application
 
 =head1 SYNOPSIS
 
-  xpl-logger [flags] [options]
+  xpl-logger [flags] [options] [filter...]
   where valid flags are:
     -h - show this help text
     -head - dump the head of all xPL messages
@@ -16,14 +16,23 @@ xpl-logger - Perl script for an example xPL logger application
     -v - verbose client mode
   and valid options are (default shown in brackets):
     -i if0 - the interface for xPL messages (first non-loopback or loopback)
+  Any filter arguments are concatenated with space and passed to the
+  xPL callback setup.
 
   # start the logger listening and broadcasting on first ethernet
   # interface in verbose mode
   xpl-logger -i eth0 -v
 
+  # start but only log "x10.*" messages
+  xpl-logger -i eth0 -v class=x10
+
 =head1 DESCRIPTION
 
-This script is an xPL client that logs all xPL incoming messages.
+This script is an xPL client that logs xPL incoming messages.  By
+default it logs all incoming messages but filter arguments can be
+passed on the command line which are concatenated (with spaces) and
+passed to the xPL callback setup.  See L<xPL::Listener> man page for
+more details of filters.
 
 =cut
 
@@ -62,7 +71,8 @@ my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => "logger",
                        self_skip => 0, targetted => 0,
-                       callback => \&log);
+                       callback => \&log,
+                       filter => "@ARGV");
 
 # Run the main loop
 $xpl->main_loop();
@@ -91,9 +101,9 @@ Project website: http://www.xpl-perl.org.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
 Copyright (C) 2005, 2008 by Mark Hindess
 

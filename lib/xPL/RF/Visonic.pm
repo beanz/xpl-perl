@@ -4,7 +4,7 @@ package xPL::RF::Visonic;
 
 =head1 NAME
 
-xPL::RF::Visonic - Perl extension for an xPL RF Class
+xPL::RF::Visonic - Perl extension for decoding Visonic device RF messages
 
 =head1 SYNOPSIS
 
@@ -12,8 +12,7 @@ xPL::RF::Visonic - Perl extension for an xPL RF Class
 
 =head1 DESCRIPTION
 
-This is a module contains a module for handling the decoding of RF
-messages.
+This is a module for decoding RF messages from Visonic devices.
 
 =head1 METHODS
 
@@ -44,10 +43,10 @@ my %bits =
 
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 
-This method is called via the main C<xPL::RF> decode loop and it
-determines whether the bytes match the format of any supported Visonic
-devices.  It returns a list reference of containing xPL messages
-corresponding to the sensor readings.
+This method attempts to recognize and parse RF messages corresponding
+to Visonic PowerCode/CodeSecure device messages.  If messages are
+identified a reference to a list of xPL::Message objects is returned.
+If the message is not recognized, undef is returned.
 
 =cut
 
@@ -220,11 +219,11 @@ Project website: http://www.xpl-perl.org.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
-Copyright (C) 2007 by Mark Hindess
+Copyright (C) 2007, 2008 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,

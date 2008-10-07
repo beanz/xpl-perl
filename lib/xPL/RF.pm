@@ -12,8 +12,7 @@ xPL::RF - Perl extension for an xPL RF Class
 
 =head1 DESCRIPTION
 
-This is a module contains a module for handling the decoding of RF
-messages.
+This is a module for handling the decoding of RF messages.
 
 =head1 METHODS
 
@@ -50,8 +49,8 @@ parameter hash as arguments.  Valid parameters in the hash are:
 
 =item duplicate_timeout
 
-  The amount of time that a message is considered a duplicate if it
-  is identical to an earlier message.  The default is .5 seconds.
+The amount of time that a message is considered a duplicate if it
+is identical to an earlier message.  The default is .5 seconds.
 
 =back
 
@@ -286,11 +285,11 @@ Project website: http://www.xpl-perl.org.uk/
 
 =head1 AUTHOR
 
-Mark Hindess, E<lt>xpl-perl@beanz.uklinux.netE<gt>
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 COPYRIGHT
 
-Copyright (C) 2007 by Mark Hindess
+Copyright (C) 2007, 2008 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,

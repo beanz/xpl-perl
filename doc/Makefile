@@ -63,7 +63,7 @@ clean:
 	w3m -dump $< >$@
 
 $(TEX): $(PMFILES)
-	pod2latex -modify -out tmp.$@ $(PMFILES)
+	pod2latex -sections '!(COPYRIGHT|AUTHOR)' -modify -out tmp.$@ $(PMFILES)
 	cat header.tex tmp.$@ footer.tex| \
           perl -pne 's/^\\section/\\newpage\n\\section/g' >$@
 
