@@ -8,3 +8,6 @@
 /install-stamp
 /build-stamp
 /.tdldb.bak
+/doc/xpl-perl-*.*
+/doc/tmp.*.tex
+
