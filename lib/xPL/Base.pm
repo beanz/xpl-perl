@@ -658,6 +658,17 @@ sub verbose {
   $_[0]->{_verbose} = $_[1];
 }
 
+=head2 C<info(@message)>
+
+Helper method to output informational messages if verbose mode is enabled.
+
+=cut
+
+sub info {
+  my $self = shift;
+  print @_ if ($self->{_verbose});
+}
+
 =head2 C<argh(@message)>
 
 This methods is just a helper to 'die' a helpful error messages.
