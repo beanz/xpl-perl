@@ -1,0 +1,229 @@
+#!/usr/bin/perl -w
+
+# $Id$
+
+=head1 NAME
+
+xpl-lcdproc - Perl script for an xPL LCDproc OSD application
+
+=head1 SYNOPSIS
+
+  xpl-lcdproc [flags] [options]
+  where valid flags are:
+    -h - show this help text
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -d nnn - the maximum delay in seconds that a message is allowed to remain
+             on screen for (10)
+
+  # start the lcdproc on first ethernet interface in verbose mode
+  xpl-lcdproc -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that displays OSD messages using an LCD
+connected to the LCDproc api.  This script requires an LCDproc server.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use Getopt::Long;
+use IO::Socket::INET;
+use Pod::Usage;
+use xPL::Client;
+use xPL::Queue;
+$|=1; # autoflush helps debugging
+
+my %args = ( vendor_id => 'bnz', device_id => 'lcdproc', );
+my %opt = ();
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $server = '127.0.0.1:13666';
+my $max_delay = 10;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'delay=i' => \$max_delay,
+           'server=s' => \$server,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+
+my $rows;
+my $columns;
+my $protocol_expected = '0.3';
+my $buf = '';
+my $lcdproc = IO::Socket::INET->new($server) or
+  die "Failed to connect to $server: $!\n";
+
+my $queue = xPL::Queue->new;
+my $waiting = undef;
+my %widget;
+my $visible;
+
+queue_lcdproc('hello');
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'xpl', self_skip => 0, callback => \&xpl,
+                       filter => {
+                                 message_type => 'xpl-cmnd',
+                                 class => 'osd',
+                                });
+
+$xpl->add_input(handle => $lcdproc, callback => \&read_lcdproc);
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to display the X OSD messages
+sub xpl {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  my $row = $msg->row;
+  unless ($row && $row >= 1 && $row <= $rows) {
+    $row = 1;
+  }
+  if ((lc $msg->command) eq 'clear') {
+    clear_screen();
+  }
+  unless ($msg->text) {
+    return;
+  }
+
+  my $delay = $msg->delay;
+  $delay = $max_delay if (!defined $delay || $delay > $max_delay);
+  write_row($row, $msg->text);
+  if ($xpl->exists_timer('row'.$row)) {
+    $xpl->remove_timer('row'.$row);
+  }
+  $xpl->add_timer(id => 'row'.$row, timeout => $delay,
+                  callback => sub { clear_row($row); return });
+  return 1;
+}
+
+sub read_lcdproc {
+  my $bytes = $lcdproc->sysread($buf, 512, length($buf));
+  while ($buf =~ s/^(.*?)\r?\n//) {
+    my $line = $LAST_PAREN_MATCH;
+    if ($line =~ /^connect\b/) {
+      $waiting = undef;
+      $columns = $1 if ($line =~ /\bwid\s+(\d+)/);
+      $rows = $1 if ($line =~ /\bhgt\s+(\d+)/);
+      print 'Connected to LCD (', $columns||'?', 'x', $rows||'?', ")\n"
+        if ($verbose);
+      if ($line =~ /\bprotocol\s+(\S+)/ && $1 ne $protocol_expected) {
+        warn "LCDproc daemon protocol $1 not $protocol_expected as expected.\n";
+      }
+      queue_lcdproc('screen_add xplosd');
+      queue_lcdproc('screen_set xplosd -name xplosd');
+      queue_lcdproc('screen_set xplosd -priority hidden');
+      undef $visible;
+      queue_lcdproc('screen_set xplosd -name xplosd');
+    } elsif ($line eq 'success') {
+      undef $waiting;
+      write_lcdproc();
+    } elsif ($line =~ /^huh\?/) {
+      warn "Failed sending ", $waiting, ": ", $line, "\n";
+      undef $waiting;
+      write_lcdproc();
+    }
+  }
+}
+
+sub queue_lcdproc {
+  my $msg = shift;
+  $queue->enqueue($msg);
+  print "queued: $msg\n" if ($verbose);
+  return write_lcdproc()  if (!defined $waiting);
+  return 1;
+}
+
+sub write_lcdproc {
+  my $msg = $queue->dequeue;
+  return if (!defined $msg);
+  print "sending: $msg\n" if ($verbose);
+  $msg .= "\n";
+  syswrite($lcdproc, $msg, length($msg));
+  $lcdproc->flush();
+  $waiting = $msg;
+}
+
+sub clear_screen {
+  queue_lcdproc('screen_set xplosd -priority hidden') if ($visible);
+  undef $visible;
+  foreach (1..($rows||1)) {
+    clear_row($_);
+  }
+}
+
+sub clear_row {
+  my $row = shift;
+  if (exists $widget{$row}) {
+    queue_lcdproc('widget_del xplosd row'.$row);
+  }
+  delete $widget{$row};
+  if ($visible && !keys %widget) {
+    queue_lcdproc('screen_set xplosd -priority hidden');
+    undef $visible;
+  }
+}
+
+sub write_row {
+  my ($row, $msg) = @_;
+  my $widget = ($columns && (length $msg) > $columns) ? 'scroller' : 'string';
+  if (exists $widget{$row} && $widget{$row} eq $widget) {
+  } else {
+    queue_lcdproc('widget_del row'.$row) if (exists $widget{$row});
+    queue_lcdproc('widget_add xplosd row'.$row.' '.$widget);
+  }
+  my $cmd = 'widget_set xplosd row'.$row.' 1 '.$row.' ';
+  if ($widget eq 'scroller') {
+    $cmd .= $columns.' '.$row.' h 2 ';
+  }
+  $msg =~ s/"/'/g;
+  $cmd .= '"'.$msg.'"';
+  $widget{$row} = $widget;
+  queue_lcdproc($cmd);
+  queue_lcdproc('screen_set xplosd -priority alert') unless ($visible);
+  $visible = 1;
+}
+
+# send a "hbeat.end" message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+X OSD website: http://www.ignavus.net/software.html
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005, 2008 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
