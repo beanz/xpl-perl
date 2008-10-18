@@ -22,7 +22,7 @@ xpl-lcdproc - Perl script for an xPL LCDproc OSD application
 =head1 DESCRIPTION
 
 This script is an xPL client that displays OSD messages using an LCD
-connected to the LCDproc api.  This script requires an LCDproc server.
+connected via the LCDproc api.  This script requires an LCDproc server.
 
 =cut
 
@@ -212,7 +212,7 @@ xPL::Client(3), xPL::Listener(3)
 
 Project website: http://www.xpl-perl.org.uk/
 
-X OSD website: http://www.ignavus.net/software.html
+LCDProc website: http://lcdproc.sourceforge.net/
 
 =head1 AUTHOR
 
