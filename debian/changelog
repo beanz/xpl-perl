@@ -1,5 +1,7 @@
 libxpl-perl (0.08-1) unstable; urgency=low
 
+  * xpl-lcdproc: New client to display osd.basic messages on an LCD that
+    is supported by LCDProc. See http://lcdproc.sf.net/.
   * xpl-ctx35: Fix bug in extended function handling.  Thanks to Jeroen
     Hendriks for the patch.
   * xpl-mpd: Simple media.basic client for the music player daemon from
