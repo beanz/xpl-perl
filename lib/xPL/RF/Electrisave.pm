@@ -53,23 +53,32 @@ sub parse {
 
   $bits == 120 or return;
 
-  ($bytes->[0] == 0xea && ($bytes->[1]&0xf0) == 0x00) or return;
+  ($bytes->[0]==0xea && $bytes->[9]==0xff && $bytes->[10]==0x5f) or return;
 
   my $device = sprintf "%02x", $bytes->[2];
-  my $amps = ( $bytes->[3]+(($bytes->[4]&0x3)<<8) ) / 10;
-  my $kwh = ($amps*240)/1000;
-  my $pence = 7.572*$kwh;
-  #printf "electrisave c=%.2f p=%.2f\n", $amps, $pence;
-  return [xPL::Message->new(
-                            message_type => 'xpl-trig',
-                            class => 'sensor.basic',
-                            head => { source => $parent->source, },
-                            body => {
-                                     device => 'electrisave.'.$device,
-                                     type => 'current',
-                                     current => $amps,
-                                    }
-                           )];
+  my @ct = ();
+  $ct[1] = ( (($bytes->[3]     )   )+(($bytes->[4]&0x3 )<<8) ) / 10;
+  $ct[2] = ( (($bytes->[4]&0xFC)>>2)+(($bytes->[5]&0xF )<<6) ) / 10;
+  $ct[3] = ( (($bytes->[5]&0xF0)>>4)+(($bytes->[6]&0x3F)<<4) ) / 10;
+  $ct[0] = $ct[1] + $ct[2] + $ct[3];
+  my @msgs = ();
+  foreach my $index (0..3) {
+    my $dev = $device.($index ? '.'.$index : '');
+    #my $kwh = ($ct[$index]*240)/1000;
+    #printf "electrisave d=%s kwh=%.2f\n", $dev, $kwh;
+    push @msgs,
+      xPL::Message->new(
+                        message_type => 'xpl-trig',
+                        class => 'sensor.basic',
+                        head => { source => $parent->source, },
+                        body => {
+                                 device => 'electrisave.'.$dev,
+                                 type => 'current',
+                                 current => $ct[$index],
+                                }
+                       );
+  }
+  return \@msgs;
 }
 
 1;
