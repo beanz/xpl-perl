@@ -5,7 +5,7 @@ libxpl-perl (0.08-1) unstable; urgency=low
   * xpl-ctx35: Fix bug in extended function handling.  Thanks to Jeroen
     Hendriks for the patch.
   * xpl-mpd: Simple media.basic client for the music player daemon from
-    from http://www.musicpd.org/
+    http://www.musicpd.org/
   * xpl-rfxcom, xpl-rfxcom-trans: Support for homeeasy.basic.
   * xpl-rfxcom: Support for RFXSensor informational/diagnostic
     messages.
