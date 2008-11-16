@@ -14,6 +14,7 @@ Revision history for Perl extension xPL.
           messages.
 	- xpl-rfxcom: Support for X10 KR21 security keyfobs.
 	- xpl-rfxcom: Support all three sensors of electrisave/owl devices.
+          Thanks to DavidMbrookE for doing the hard part.
 	- xpl-rfxcom: Improved RTGR328N date/time support.
 	- xpl-rfxcom: THGR328N support.
 	- xpl-rfxcom: Attempt at Oregon Scientific GR101 scales support.
