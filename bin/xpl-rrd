@@ -64,7 +64,10 @@ $args{'interface'} = $interface if ($interface);
 $args{'verbose'} = $verbose if ($verbose);
 
 my $rrd_dir =
-  shift or HELP_MESSAGE("Requires path to rrd directory parameter");
+   shift or pod2usage(-message =>
+                        "The path to rrd directory parameter is required",
+                      -exitstatus => 1);
+
 my $state_db = $rrd_dir.'/state.db';
 
 mkdir $rrd_dir, 0755 unless (-d $rrd_dir);
