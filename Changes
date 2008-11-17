@@ -1,5 +1,28 @@
 Revision history for Perl extension xPL.
 
+0.08 Sun, 16 Nov 2008 22:04:39 +0000
+
+        - xpl-lcdproc: New client to display osd.basic messages on an
+          LCD that is supported by LCDProc. See
+          http://lcdproc.sf.net/.
+        - xpl-ctx35: Fix bug in extended function handling.  Thanks to
+          Jeroen Hendriks for the patch.
+        - xpl-mpd: Simple media.basic client for the music player
+          daemon from http://www.musicpd.org/
+	- xpl-rfxcom, xpl-rfxcom-trans: Support for homeeasy.basic.
+        - xpl-rfxcom: Support for RFXSensor informational/diagnostic
+          messages.
+	- xpl-rfxcom: Support for X10 KR21 security keyfobs.
+	- xpl-rfxcom: Support all three sensors of electrisave/owl devices.
+          Thanks to DavidMbrookE for doing the hard part.
+	- xpl-rfxcom: Improved RTGR328N date/time support.
+	- xpl-rfxcom: THGR328N support.
+	- xpl-rfxcom: Attempt at Oregon Scientific GR101 scales support.
+	- Lots of improvements to developer documentation.
+	- DEPRECATED: xpl-csoft-sms, xpl-digitemp, xpl-mplayer,
+	  xpl-sql-logger and xPL::SQL.  They'll be dropped in the next
+	  release unless someone shouts.
+
 0.07  Sun,  6 Apr 2008 20:40:29 +0100
 
         - All clients are converted to use Getopt::Long and now support
