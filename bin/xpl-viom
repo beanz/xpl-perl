@@ -17,7 +17,7 @@ xpl-viom - Perl script for an xPL VIOM IO controller application
     -B baud - the baud rate (9600)
 
   # start the viom application on first ethernet interface in verbose mode
-  xpl-viom -i eth0 -v
+  xpl-viom -i eth0 -v /dev/ttyUSB1
 
 =head1 DESCRIPTION
 
