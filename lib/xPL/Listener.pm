@@ -97,7 +97,7 @@ are:
   The broadcast address to use.  This is required if the 'ip'
   parameter has been given.
 
-=item xpl_port
+=item port
 
   The port to use for xPL broadcast messages to use.  This is required
   if the 'ip' parameter has been given.
@@ -581,6 +581,8 @@ sub main_loop {
   my $self = shift;
   my $count = shift;
 
+  local $SIG{'USR1'} = sub { $self->dump_statistics };
+
   my $select = $self->{_select} = IO::Select->new();
   $select->add($_) foreach ($self->inputs);
 
@@ -945,6 +947,35 @@ sub dispatch_input {
 
   my $r = $self->{_col}->{input}->{$handle};
   return $self->call_callback($r, $r->{handle}, $r->{arguments});
+}
+
+=head2 C<dump_statistics()>
+
+This method dumps our statistics to stderr.
+
+=cut
+
+sub dump_statistics {
+  my $self = shift;
+  my %m = map { $_ => ($self->timer_callback_time_average($_)||-1)
+              } $self->timers;
+  print STDERR "Timers\n";
+  foreach my $id (sort { $m{$b} <=> $m{$a} } keys %m) {
+    printf STDERR "%10.7f %s\n", $m{$id}, $id;
+  }
+  %m = map { $_ => ($self->input_callback_time_average($_)||-1)
+           } $self->inputs;
+  print STDERR "Inputs\n";
+  foreach my $id (sort { $m{$b} <=> $m{$a} } keys %m) {
+    printf STDERR "%10.7f %s\n", $m{$id}, $id;
+  }
+  %m = map { $_ => ($self->xpl_callback_callback_time_average($_)||-1)
+           } $self->xpl_callbacks;
+  print STDERR "xPL Callbacks\n";
+  foreach my $id (sort { $m{$b} <=> $m{$a} } keys %m) {
+    printf STDERR "%10.7f %s\n", $m{$id}, $id;
+  }
+  return 1;
 }
 
 1;
