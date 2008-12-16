@@ -88,6 +88,7 @@ $xpl->add_timer(id => 'input-check', timeout => -631,
 # the current state sane even when viom is unplugged, etc.
 $xpl->add_timer(id => "temp", timeout => 2, count => 1,
                 callback => sub {
+                  queue_viom('CIC1', 1);
                   $xpl->add_timer(id => 'output-check', timeout => -641,
                                   callback => sub { queue_viom("COR", 1); 1; });
                   return;
