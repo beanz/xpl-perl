@@ -57,7 +57,7 @@ ommitted, then the environment variable LONGITUDE will be used.
 The sun altitude - default is -0.833.  See L<DateTime::Event::Sunrise(3pm)>
 for more details.
 
-=item altitude
+=item iteration
 
 The iteration - default is 0.  See L<DateTime::Event::Sunrise(3pm)>
 for more details.
@@ -93,6 +93,7 @@ sub init {
   exists $p->{longitude} or $p->{longitude} = $ENV{LONGITUDE} or
     return $self->argh("requires 'longitude' parameter\n".
                        'or LONGITUDE environment variable');
+  exists $p->{tz} or $p->{tz} = $ENV{TZ};
   exists $p->{altitude} or $p->{altitude} = -0.833;
   exists $p->{iteration} or $p->{iteration} = 0;
 
@@ -103,7 +104,7 @@ sub init {
 
   # the sunrise call will die on invalid parameters
   my $set = DateTime::Event::Sunrise->sunrise(%args);
-
+  $set->set_time_zone($p->{tz}) if (defined $p->{tz});
   $self->{_set} = $set;
 
   my $offset;
