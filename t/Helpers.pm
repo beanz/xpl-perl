@@ -77,6 +77,7 @@ sub test_warn {
   my $warn;
   local $SIG{__WARN__} = sub { $warn .= $_[0]; };
   eval { $sub->(); };
+  die $EVAL_ERROR if ($EVAL_ERROR);
   if ($warn) {
     $warn =~ s/\s+at (\S+|\(eval \d+\)(\[[^]]+\])?) line \d+\.?\s*$//g;
     $warn =~ s/\s+at (\S+|\(eval \d+\)(\[[^]]+\])?) line \d+\.?\s*$//g;
