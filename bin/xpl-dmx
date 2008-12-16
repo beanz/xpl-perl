@@ -36,7 +36,9 @@ use English qw/-no_match_vars/;
 use FileHandle;
 use Getopt::Long;
 use IO::Socket::INET;
+use List::Util qw/min max/;
 use Pod::Usage;
+use Time::HiRes;
 use xPL::Client;
 use xPL::Queue;
 $|=1; # autoflush helps debugging
@@ -99,6 +101,9 @@ $xpl->add_input(handle => $fh, callback => \&dmx_reader);
 
 my $queue = xPL::Queue->new;
 my $waiting = undef;
+my @values = ();
+my %fade = ();
+our $MIN_VISIBLE_DIFF = 4;
 
 # Run the main loop
 $xpl->main_loop();
@@ -115,13 +120,12 @@ sub xpl_in {
   my $msg = $p{message};
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
-
   if ($msg->base =~ /hex/) { # hack to aid debug
     queue_dmx($msg->value, $msg);
     return 1;
   }
   return 1 unless ($msg->base =~ /^(\d+)(x(\d+))?$/);
-  my $base = sprintf "%04x", $1;
+  my $base = $1;
   my $multi = $3 || 1;
   my $hex;
   if ($msg->value =~ /^0x([0-9a-f]+)/i) {
@@ -133,9 +137,122 @@ sub xpl_in {
   } else {
     return 1;
   }
-  my $comm = '01'.$base.($hex x $multi);
+  my $fade = $msg->extra_field('fade');
+  if (defined $fade) {
+    return dmx_fade($msg, $base, $hex, $multi, $fade);
+  }
+  return dmx_set($msg, $base, $hex, $multi);
+}
+
+=head2 C<dmx_set($base, $hex, $multiplier, $msg)>
+
+This function sends a set command for the given base address with the
+hex value repeated according to the multiplier.
+
+=cut
+
+sub dmx_set {
+  my ($msg, $base, $hex, $multi) = @_;
+  $multi = 1 unless (defined $multi);
+  my @v = unpack "C*", pack "H*", $hex;
+  my $l = scalar @v;
+  for (my $i = 0; $i<($l*$multi); $i++) {
+    $values[$base+$i] = $v[$i%$l];
+  }
+  my $comm = '01'.(sprintf "%04x", $base).($hex x $multi);
   queue_dmx($comm, $msg);
   return 1;
+}
+
+=head2 C<dmx_fade($msg, $base, $hex, $multiplier, $fade)>
+
+This function sends a set command for the given base address with the
+hex value repeated according to the multiplier over the period given
+by the fade parameter.
+
+=cut
+
+sub dmx_fade {
+  my ($msg, $base, $hex, $multi, $fade) = @_;
+  my $start_t = Time::HiRes::time();
+  my $end_t = $start_t + $fade;
+  my @v = unpack "C*", pack "H*", $hex;
+#  print "base=$base\n";
+  my $l = scalar @v;
+  for (my $i = 0; $i<($l*$multi); $i++) {
+    my $b = $base+$i;
+    my $start = $values[$b] || 0; # assume black?
+    my $end = $v[$i%$l];
+    next if ($start == $end); # nothing to do
+    $fade{$b} =
+      {
+       start_c => $start,
+       end_c => $end,
+       diff_c => $end - $start,
+       start_t => $start_t,
+       end_t => $end_t,
+       diff_t => $end_t - $start_t,
+      };
+    $fade{$b}->{int_t} =
+      $fade{$b}->{diff_t} / (abs($fade{$b}->{diff_c}) / $MIN_VISIBLE_DIFF);
+    $fade{$b}->{next_t} = _next_change($fade{$b}, $start_t);
+#    print "nc = ", $fade{$b}->{next_t}, "\n";
+  }
+  send_xpl_confirm($msg);
+  return update_fade_timer();
+}
+
+sub update_fade_timer {
+  $xpl->remove_timer('fade') if ($xpl->exists_timer('fade'));
+  return unless (scalar keys %fade);
+  my $min = min(map { $fade{$_}->{next_t} } keys %fade);
+  $xpl->add_timer(id => 'fade',
+                  timeout => $min - Time::HiRes::time(),
+                  callback => \&do_fades);
+  return 1;
+}
+
+sub do_fades {
+  my $time = Time::HiRes::time;
+  my %set = ();
+  foreach my $base (sort { $a <=> $b } keys %fade) {
+    next unless ($fade{$base}->{next_t} <= $time);
+    my $diff_c = $fade{$base}->{diff_c};
+    my $diff_t = $fade{$base}->{diff_t};
+    my $off_t = $time - $fade{$base}->{start_t};
+    my $off_c = $diff_c * $off_t / $diff_t;
+    my $col = int(.5 + $fade{$base}->{start_c} + $off_c);
+    $col = min($col, 255);
+    $col = max($col, 0);
+#    print "$diff_t $diff_c $off_t $off_c $col\n";
+    if (exists $set{$base-1}) {
+      $set{$base-1} .= sprintf "%02x", $col;
+    } else {
+      $set{$base} = sprintf "%02x", $col;
+    }
+    if ($col == $fade{$base}->{end_c}) {
+      delete $fade{$base};
+      next;
+    }
+    $fade{$base}->{next_t} =
+      _next_change($fade{$base}, $time) or
+        delete $fade{$base};
+  }
+  # TODO: optimize set commands
+  foreach my $base (keys %set) {
+    dmx_set(undef, $base, $set{$base});
+#    print "S: $base = ", $set{$base}, "\n";
+  }
+  update_fade_timer();
+  return 1;
+}
+
+sub _next_change {
+  my $f = shift;
+  my $t = shift;
+  return undef unless ($t >= $f->{start_t} && $t < $f->{end_t});
+  my $nt = $t + $f->{int_t};
+  return $nt > $f->{end_t} ? $f->{end_t} : $nt;
 }
 
 =head2 C<dmx_reader()>
@@ -150,20 +267,22 @@ sub dmx_reader {
   my $bytes = $fh->sysread($buf, 512);
   return unless ($buf);
   print "received: ", (unpack "H*", $buf), "\n" if ($verbose);
-  if ($waiting) {
-    my $msg = $waiting;
-    $xpl->send(message_type => 'xpl-trig',
-               class => 'dmx.confirm',
-               body =>
-               {
-                type => $msg->type,
-                base => $msg->base,
-                value => $msg->value,
-               });
-    undef $waiting;
-  }
+  send_xpl_confirm($waiting) if (ref $waiting);
+  undef $waiting;
   send_dmx();
   return 1;
+}
+
+sub send_xpl_confirm {
+  my $msg = shift;
+  $xpl->send(message_type => 'xpl-trig',
+             class => 'dmx.confirm',
+             body =>
+             {
+              type => $msg->type,
+              base => $msg->base,
+              value => $msg->value,
+             });
 }
 
 =head2 C<queue_dmx( $dmx_message, $xpl_message )>
@@ -197,7 +316,7 @@ sub send_dmx {
   my $raw = pack("H*", $hex);
   syswrite($fh, $raw, length($raw));
   $fh->flush();
-  $waiting = $xpl_msg;
+  $waiting = $xpl_msg || 1;
 }
 
 =head2 C<read_rgb_txt( $file )>
