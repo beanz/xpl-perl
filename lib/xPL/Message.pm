@@ -79,6 +79,7 @@ our $SPACE_DASH_SPACE = q{ - };
 our $COMMA = q{,};
 our $OPEN_SQUARE_BRACKET = q{[};
 our $CLOSE_SQUARE_BRACKET = q{]};
+our %MESSAGE_TYPES = map { $_ => 1 } qw/xpl-cmnd xpl-stat xpl-trig/;
 
 __PACKAGE__->make_readonly_accessor(qw/class class_type/);
 
@@ -564,10 +565,7 @@ identifier with the new value before it returns.
 sub message_type {
   return $_[0]->{_message_type} unless (@_ > 1);
   my $value = $_[1];
-  if ($_[0]->{_strict} and
-      $value ne 'xpl-stat' and
-      $value ne 'xpl-trig' and
-      $value ne 'xpl-cmnd') {
+  if ($_[0]->{_strict} and !exists $MESSAGE_TYPES{$value}) {
     $_[0]->argh("message type identifier, $value, is invalid.\n".
                 'It should be one of xpl-cmnd, xpl-stat or xpl-trig.');
   }
