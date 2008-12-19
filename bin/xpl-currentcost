@@ -1,0 +1,176 @@
+#!/usr/bin/perl -w
+
+# $Id$
+
+=head1 NAME
+
+xpl-currentcost - Perl script for an xPL Current Cost application
+
+=head1 SYNOPSIS
+
+  xpl-currentcost [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+    -b baud - the baud rate (9600)
+
+  # start the currentcost application reading serial device ttyS0 in verbose mode
+  xpl-currentcost -v /dev/ttyS0
+
+  # start at the slower baud rate used by older devices
+  xpl-currentcost -v -b 2400 /dev/ttyS0
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a Current Cost Energy
+Meter receiver.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Long;
+use Pod::Usage;
+use IO::Socket::INET;
+use Time::HiRes;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+my %args = ( vendor_id => 'bnz', device_id => 'curcost', );
+my %opt = ();
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $baud = 9600;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'baud=i' => \$baud,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
+my $dev = shift or pod2usage(-message => "The device parameter is required",
+                             -exitstatus => 1);
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+
+my $last_read = 0;
+my $buf = q{};
+
+my $fh;
+if ($dev =~ /\//) {
+  # TODO: use Device::SerialPort?
+  system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+    die "Setting serial port with stty failed: $!\n";
+  $fh = FileHandle->new;
+  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+    or die "Cannot open serial connection on device '$dev'\n";
+  $fh->autoflush(1);
+  binmode($fh);
+} else {
+  $dev .= ':10001' unless ($dev =~ /:/);
+  $fh = IO::Socket::INET->new($dev)
+    or die "Cannot create TCP connection to device at '$dev'\n";
+}
+
+$xpl->add_input(handle => $fh, callback => \&currentcost_reader);
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<currentcost_reader()>
+
+This is the callback that processes output from a Current Cost Energy
+Meter receiver.  It is responsible for sending out the sensor.basic
+xpl-trig messages.
+
+=cut
+
+sub currentcost_reader {
+  my $bytes = $fh->sysread($buf, 2048, length($buf));
+  unless ($bytes) {
+    warn "Device closed\n";
+    exit;
+  }
+  while ($buf =~ s!^(.*?)</msg>!!s) {
+    my $msg = $1;
+    # discard messages without a start tag - incomplete messages
+    next unless ($msg =~ s/.*<msg>//s);
+    next unless ($msg =~ m!^<date>.*?</date><src>(.*?)</src>(.*?)</tmpr>!);
+    my $src = $1;
+    my $data = $2;
+    $src =~ s!</[^>]*>!!g;
+    $src =~ s!^<!!g;
+    $src =~ s![<>]! !g;
+    $data =~ s!</[^>]*>!!g;
+    $data =~ s!<watts>!!g;
+    $data =~ s!^<!!g;
+    $data =~ s![<>]! !g;
+    print $src, " ", $data, "\n";
+    my %src = split / /, $src;
+    my %data = split / /, $data;
+    # print "S: $_ => ", $src{$_}, "\n" foreach (keys %src);
+    # print "D: $_ => ", $data{$_}, "\n" foreach (keys %data);
+    my $device = 'curcost.'.(lc $src{'id'});
+    $data{'total'} = $data{'ch1'}+$data{'ch2'}+$data{'ch3'};
+    foreach my $p ('total', 'ch1', 'ch2', 'ch3') {
+      my $v = int($data{$p});
+      my $dev = $device.($p eq 'total' ? '' : '.'.substr $p, 2, 1);
+      $xpl->send(message_type => 'xpl-trig',
+                 class => 'sensor.basic',
+                 body =>
+                 {
+                  device => $dev,
+                  type => 'current',
+                  current => $v,
+                 });
+    }
+    $xpl->send(message_type => 'xpl-trig',
+               class => 'sensor.basic',
+               body =>
+               {
+                device => $device,
+                type => 'temp',
+                current => $data{tmpr},
+               });
+  }
+#  print STDERR $buf;
+#  $buf = '';
+  return 1;
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+Current Cost website: http://www.currentcost.com/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2007, 2008 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
