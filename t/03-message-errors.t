@@ -163,6 +163,9 @@ param1=value1",
 
 $ENV{XPL_MSG_WARN}=1;
 is(test_warn(sub { $msg = xPL::Message->new(class => "unknown.schema",
+                                            head => {
+                                              source =>"vendor-device.instance",
+                                            },
                                             message_type => 'xpl-cmnd') }),
    'xPL::Message->new: New message type unknown.schema',
    "xPL::Message unknown schema warning");
