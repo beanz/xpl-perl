@@ -9,6 +9,7 @@ bin/xpl-dmx
 bin/xpl-hddtemp
 bin/xpl-heyu-helper
 bin/xpl-hub
+bin/xpl-lcdproc
 bin/xpl-linux-cpu
 bin/xpl-lirc
 bin/xpl-logger
@@ -26,6 +27,7 @@ bin/xpl-sender
 bin/xpl-sms-send
 bin/xpl-sql-logger
 bin/xpl-tty-tcp
+bin/xpl-udin
 bin/xpl-viom
 bin/xpl-w800
 bin/xpl-x10
