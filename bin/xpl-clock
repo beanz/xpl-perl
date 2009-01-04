@@ -15,8 +15,6 @@ xpl-clock - Perl script for an example xPL clock application
   and valid options are (default shown in brackets):
     -i if0 - the interface for xPL messages (first non-loopback or loopback)
     -s nn  - number of seconds the xPL clock should wait between messages (10)
-    -f str - time format string ("%Y%m%d%H%M%S") - see the man page for
-             strftime(3) or date(1) for details.
 
   # start the clock application with "tick" interval of 60 seconds
   xpl-clock -s 60
@@ -56,8 +54,7 @@ GetOptions('verbose+' => \$verbose,
            'define=s' => \%opt,
            'help|?|h' => \$help,
            'man' => \$man,
-           'tick_interval=i' => \$tick_interval,
-           'time_format=s' => \$time_format,
+           's|tick_interval=i' => \$tick_interval,
           ) or pod2usage(2);
 pod2usage(1) if ($help);
 pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
