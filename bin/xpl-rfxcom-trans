@@ -264,8 +264,10 @@ sub rfxcom_reader {
     exit;
   }
   print "received: ", unpack("H*", $buf), "\n";
-  undef $waiting;
-  $xpl->remove_timer("wait_for_ack");
+  if (defined $waiting) {
+    $xpl->remove_timer('wait_for_ack');
+    undef $waiting;
+  }
   send_rfxcom();
   return 1;
 }
