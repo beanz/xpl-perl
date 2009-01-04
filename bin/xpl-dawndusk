@@ -42,10 +42,15 @@ my $verbose;
 my $interface;
 my $help;
 my $man;
+my $altitude;
+my $iteration;
+
 GetOptions('verbose+' => \$verbose,
            'interface=s' => \$interface,
            'define=s' => \%opt,
            'help|?|h' => \$help,
+           'altitude=s' => \$altitude,
+           'iteration=s' => \$iteration,
            'man' => \$man,
           ) or pod2usage(2);
 pod2usage(1) if ($help);
@@ -60,13 +65,17 @@ my $state = "day";
 # Create an xPL Client object
 my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
+my $args = 'latitude='.$latitude.' longitude='.$longitude;
+$args .= ' altitude='.$altitude if (defined $altitude);
+$args .= ' iteration='.$iteration if (defined $iteration);
+
 # set up each new day at midnight
 $xpl->add_timer(id => 'dawn',
-                timeout => "sunrise latitude=$latitude longitude=$longitude",
+                timeout => 'sunrise '.$args,
                 callback => sub { dawn(); 1; });
 
 $xpl->add_timer(id => 'dusk',
-                timeout => "sunset latitude=$latitude longitude=$longitude",
+                timeout => 'sunset '.$args,
                 callback => sub { dusk(); 1; });
 
 $state = $xpl->timer_next('dusk') < $xpl->timer_next('dawn') ? "day" : "night";
