@@ -44,7 +44,6 @@ lib/SMS/Send/SMSDiscount.pm
 lib/xPL/Base.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
-lib/xPL/ColorStack.pm
 lib/xPL/Gtk2Client.pm
 lib/xPL/HomeEasy.pm
 lib/xPL/Hub.pm
