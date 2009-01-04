@@ -1,10 +1,9 @@
 bin/xpl-bridge
 bin/xpl-clock
-bin/xpl-csoft-sms
 bin/xpl-ctx35
+bin/xpl-currentcost
 bin/xpl-dawndusk
 bin/xpl-dg834
-bin/xpl-digitemp
 bin/xpl-dmx
 bin/xpl-hddtemp
 bin/xpl-heyu-helper
@@ -15,7 +14,6 @@ bin/xpl-lirc
 bin/xpl-logger
 bin/xpl-monitor
 bin/xpl-mpd
-bin/xpl-mplayer
 bin/xpl-owfs
 bin/xpl-packet-trace
 bin/xpl-perl-setup
@@ -25,7 +23,6 @@ bin/xpl-rrd
 bin/xpl-rrd-graphs
 bin/xpl-sender
 bin/xpl-sms-send
-bin/xpl-sql-logger
 bin/xpl-tty-tcp
 bin/xpl-udin
 bin/xpl-viom
@@ -96,7 +93,6 @@ lib/xPL/schema/ups.basic.yaml
 lib/xPL/schema/x10.basic.yaml
 lib/xPL/schema/x10.confirm.yaml
 lib/xPL/schema/x10.security.yaml
-lib/xPL/SQL.pm
 lib/xPL/Timer/cron.pm
 lib/xPL/Timer.pm
 lib/xPL/Timer/recurrence.pm
