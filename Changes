@@ -1,5 +1,26 @@
 Revision history for Perl extension xPL.
 
+0.09 Sun,  4 Jan 2009 17:00:00 +0000
+
+        - New client: xpl-udin for a Audon UDIN usb relay device.
+        - New client: xpl-currentcost for a Current Cost energy meter.
+        - All clients: "kill -USR1 <pid>" dumps some statistics about
+          time spent in callbacks.
+        - xpl-viom: Add initialisation to script.  Thanks to Boyd Hitchcock
+          for reminding me.
+        - xPL::Timer::{sunrise,sunset} support time zone correctly.
+        - xPL::Message: minor speed up to message_type validation.
+        - Fixed instance_id length in xPL::Client.  No idea why this
+          was wrong here but not in xPL::Message.  Thanks to Francois
+          Corthay for spotting this.
+        - xpl-dmx: Added support for vendor specific 'fade=[seconds]'
+          field.
+        - xpl-lcdproc: Missing in manifest.  Oops.
+        - xpl-clock: Minor command line option fixes.  Thanks to Francois
+          Corthay.
+	- DEPRECATED: xpl-csoft-sms, xpl-digitemp, xpl-mplayer,
+	  xpl-sql-logger and xPL::SQL have been removed.
+
 0.08 Sun, 16 Nov 2008 22:04:39 +0000
 
         - xpl-lcdproc: New client to display osd.basic messages on an
