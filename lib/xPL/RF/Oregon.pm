@@ -38,55 +38,89 @@ our $SVNVERSION = qw/$Revision$/[1];
 
 my %types =
   (
-   0xfa28 => { part => 'THGR810', len => 80,
-               checksum => \&checksum2, method => 'common_temphydro', },
-   0xfab8 => { part => 'WTGR800',
-               len => 80,  checksum => \&checksum2,
-               method => 'alt_temphydro', },
-   0x1a99 => { part => 'WTGR800',
-               len => 88, checksum => \&checksum4,
-               method => 'wtgr800_anemometer', },
-   0x2a19 => { part => 'RCR800', len => 92, },
-   0xda78 => { part => 'UVN800', len => 72, },
-   0xea7c => { part => 'UV138',
-               len => 120, checksum => \&checksum1, method => 'uv138', },
-   0xea4c => { part => 'THWR288A', len => 80,
-               checksum => \&checksum1, method => 'common_temp', },
-   0x8aec => { part => 'RTGR328N', len => 104, },
-   0x9aec => { part => 'RTGR328N',
-               len => 104, checksum => \&checksum3,
-               method => 'rtgr328n_datetime', },
-   0x9aea => { part => 'RTGR328N',
-               len => 104, checksum => \&checksum3,
-               method => 'rtgr328n_datetime', },
-   0x1a2d => { part => 'THGR228N',
-               len => 80, checksum => \&checksum2,
-               method => 'common_temphydro', },
-   0x1a3d => { part => 'THGR918', len => 80,
-               checksum => \&checksum2, method => 'common_temphydro', },
-   0x5a5d => { part => 'BTHR918', len => 88,
-               checksum => \&checksum5, method => 'common_temphydrobaro', },
-   0x5a6d => { part => 'BTHR918N', len => 96,
-               checksum => \&checksum5, method => 'alt_temphydrobaro', },
-   0x3a0d => { part => 'WGR918',  checksum => \&checksum4,
-               len => { map { $_ => 1 } (80,88) },
-               method => 'wgr918_anemometer', },
-   0x2a1d => { part => 'RGR918', len => 84,
-               checksum => \&checksum6, method => 'common_rain', },
-   0x0a4d => { part => 'THR128', len => 80,
-               checksum => \&checksum2, method => 'common_temp', },
-   #0x0a4d => { part => 'THR138', len => 80, method => 'common_temp', },
+   type_length_key(0xfa28, 80) =>
+   {
+    part => 'THGR810', checksum => \&checksum2, method => 'common_temphydro',
+   },
+   type_length_key(0xfab8, 80) =>
+   {
+    part => 'WTGR800', checksum => \&checksum2, method => 'alt_temphydro',
+   },
+   type_length_key(0x1a99, 88) =>
+   {
+    part => 'WTGR800', checksum => \&checksum4, method => 'wtgr800_anemometer',
+   },
+   type_length_key(0x2a19, 92) => { part => 'RCR800', },
+   type_length_key(0xda78, 72) => { part => 'UVN800', },
+   type_length_key(0xea7c, 120) =>
+   {
+    part => 'UV138', checksum => \&checksum1, method => 'uv138',
+   },
+   type_length_key(0xea4c, 80) =>
+   {
+    part => 'THWR288A', checksum => \&checksum1, method => 'common_temp',
+   },
+   type_length_key(0xea4c, 68) =>
+   {
+    part => 'THN132N', checksum => \&checksum1, method => 'common_temp',
+   },
+   type_length_key(0x8aec, 104) => { part => 'RTGR328N', },
+   type_length_key(0x9aec, 104) =>
+   {
+    part => 'RTGR328N', checksum => \&checksum3, method => 'rtgr328n_datetime',
+   },
+   type_length_key(0x9aea, 104) =>
+   {
+    part => 'RTGR328N', checksum => \&checksum3, method => 'rtgr328n_datetime',
+   },
+   type_length_key(0x1a2d, 80) =>
+   {
+    part => 'THGR228N', checksum => \&checksum2, method => 'common_temphydro',
+   },
+   type_length_key(0x1a3d, 80) =>
+   {
+    part => 'THGR918', checksum => \&checksum2, method => 'common_temphydro',
+   },
+   type_length_key(0x5a5d, 88) =>
+   {
+    part => 'BTHR918', checksum => \&checksum5,
+    method => 'common_temphydrobaro',
+   },
+   type_length_key(0x5a6d, 96) =>
+   {
+    part => 'BTHR918N', checksum => \&checksum5, method => 'alt_temphydrobaro',
+   },
+   type_length_key(0x3a0d, 80) =>
+   {
+    part => 'WGR918',  checksum => \&checksum4, method => 'wgr918_anemometer',
+   },
+   type_length_key(0x3a0d, 88) =>
+   {
+    part => 'WGR918',  checksum => \&checksum4, method => 'wgr918_anemometer',
+   },
+   type_length_key(0x2a1d, 84) =>
+   {
+    part => 'RGR918', checksum => \&checksum6, method => 'common_rain',
+   },
+   type_length_key(0x0a4d, 80) =>
+   {
+    part => 'THR128', checksum => \&checksum2, method => 'common_temp',
+   },
+   #type_length_key(0x0a4d,80)=>{ part => 'THR138', method => 'common_temp', },
 
-   0xca2c => { part => 'THGR328N',
-               len => 80, checksum => \&checksum2,
-               method => 'common_temphydro', },
+   type_length_key(0xca2c, 80) =>
+   {
+    part => 'THGR328N', checksum => \&checksum2, method => 'common_temphydro',
+   },
 
    # masked
-   0x0acc => { part => 'RTGR328N', len => 80, checksum => \&checksum2,
-               method => 'common_temphydro', },
+   type_length_key(0x0acc, 80) =>
+   {
+    part => 'RTGR328N', checksum => \&checksum2, method => 'common_temphydro',
+   },
 
    # for testing
-   0xfefe => { part => 'TEST' },
+   type_length_key(0xfefe, 80) => { part => 'TEST' },
   );
 
 my $DOT = q{.};
@@ -111,24 +145,10 @@ sub parse {
   return unless (scalar @$bytes >= 2);
 
   my $type = ($bytes->[0] << 8) + $bytes->[1];
-  my $rec = $types{$type} || $types{$type&0xfff};
+  my $key = type_length_key($type, $bits);
+  my $rec = $types{$key} || $types{$key&0xfffff};
   unless ($rec) {
     return;
-  }
-  my $len = $rec->{len};
-  if ($len) {
-    if (ref $len) {
-      if (!$len->{$bits}) {
-        warn "Unexpected length message from possible Oregon part \"",
-          $rec->{part},"\" with length $bits not ",
-            (join '/',sort keys %{$len}),"\n";
-        return;
-      }
-    } elsif ($bits != $len) {
-      warn "Unexpected length message from possible Oregon part \"",
-        $rec->{part},"\" with length $bits not $len\n";
-      return;
-    }
   }
 
   my $checksum = $rec->{checksum};
@@ -138,7 +158,7 @@ sub parse {
 
   my $method = $rec->{method};
   unless ($method) {
-    warn "Possible message from Oregon part \"",$rec->{part},"\"\n";
+    warn "Possible message from Oregon part \"", $rec->{part}, "\"\n";
     return;
   }
   return $self->$method(lc $rec->{part}, $parent, $message, $bytes, $bits);
@@ -761,6 +781,17 @@ sub percentage_battery {
                               }
                      );
   $bat < 20;
+}
+
+=head2 C<type_length_key( $type, $length )>
+
+This function creates a simple key from a device type and message
+length (in bits).  It is used to as the index for the parts table.
+
+=cut
+
+sub type_length_key {
+  ($_[0] << 8) + $_[1]
 }
 
 1;
