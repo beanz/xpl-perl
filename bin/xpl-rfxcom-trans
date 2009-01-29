@@ -77,7 +77,7 @@ pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
 $args{'interface'} = $interface if ($interface);
 $args{'verbose'} = $verbose if ($verbose);
 
-my $dev = shift or pod2usage(-message => "The device parameter is required",
+my $dev = shift or pod2usage(-message => 'The device parameter is required',
                              -exitstatus => 1);
 
 # Create an xPL Client object
@@ -135,13 +135,13 @@ $xpl->add_input(handle => $fh, callback => \&rfxcom_reader);
     return \%p;
   }
   sub hex {
-    $_[0]->{hex} or $_[0]->{hex} = unpack "H*", $_[0]->{raw};
+    $_[0]->{hex} or $_[0]->{hex} = unpack 'H*', $_[0]->{raw};
   }
   sub raw {
-    $_[0]->{raw} or $_[0]->{raw} = pack "H*", $_[0]->{hex};
+    $_[0]->{raw} or $_[0]->{raw} = pack 'H*', $_[0]->{hex};
   }
   sub str {
-    $_[0]->hex.($_[0]->{desc} ? ": ".$_[0]->{desc} : '');
+    $_[0]->hex.($_[0]->{desc} ? ': '.$_[0]->{desc} : '');
   }
   use overload ( '""'  => \&str);
   1;
@@ -263,7 +263,7 @@ sub rfxcom_reader {
     warn "Device closed\n";
     exit;
   }
-  print "received: ", unpack("H*", $buf), "\n";
+  print 'received: ', unpack('H*', $buf), "\n";
   if (defined $waiting) {
     $xpl->remove_timer('wait_for_ack');
     undef $waiting;
@@ -274,7 +274,7 @@ sub rfxcom_reader {
 
 sub queue_rfxcom {
   my $msg = shift;
-  print "queued:   ", $msg->str, "\n";
+  print 'queued:   ', $msg->str, "\n";
   $queue->enqueue($msg);
   return send_rfxcom() if (!defined $waiting);
   return -$queue->length();
@@ -283,15 +283,15 @@ sub queue_rfxcom {
 sub send_rfxcom {
   my $msg = shift || $queue->dequeue();
   return unless (defined $msg);
-  print "sending:  ", $msg->str, "\n";
+  print 'sending:  ', $msg->str, "\n";
   my $raw = $msg->raw;
   syswrite($fh, $raw, length($raw));
   $fh->flush();
   $waiting = 1;
-  $xpl->add_timer(id => "wait_for_ack", timeout => 2,
+  $xpl->add_timer(id => 'wait_for_ack', timeout => 6,
                   callback => sub {
                     print STDERR "No ack!\n";
-                    $xpl->remove_timer("wait_for_ack");
+                    $xpl->remove_timer('wait_for_ack');
                     send_rfxcom($receiver_connected ?
                                 msg->new(hex => 'F033F033',
                                          desc =>
@@ -304,12 +304,12 @@ sub send_rfxcom {
 }
 
 sub encode_x10 {
-  return pack "C5", 32, @{xPL::X10::to_rf(@_)};
+  return pack 'C5', 32, @{xPL::X10::to_rf(@_)};
 }
 
 sub encode_homeeasy {
   my ($length, $bytes) = @{xPL::HomeEasy::to_rf(@_)};
-  return pack "C6", $length, @$bytes;
+  return pack 'C6', $length, @$bytes;
 }
 
 # send a 'hbeat.end' message on exit
