@@ -158,6 +158,34 @@ sub owfs_reader {
       send_xpl( $message_type, $id, $type, $value, $index);
     }
   }
+  foreach (8, 16) {
+    my $errors = read_ow_file($ow_dir.'/statistics/errors/CRC'.$_.'_errors');
+    my $tries = read_ow_file($ow_dir.'/statistics/errors/CRC'.$_.'_tries');
+    printf "CRC%d error rate %6.2f\n", $_, $tries ? $errors*100/$tries : 0;
+  }
+  foreach my $type (qw/read write/) {
+    my $dir = $ow_dir.'/statistics/'.$type;
+    my @tries = map { read_ow_file($dir.'/tries.'.$_) } (0 .. 2);
+    my $calls = read_ow_file($dir.'/calls');
+    my $success = read_ow_file($dir.'/success');
+    my $failure = $calls-$success;
+    if ($calls == 0) {
+      printf "1st try %s success %6.2f\n", $type, 100;
+      printf "2nd try %s success %6.2f\n", $type, 0;
+      printf "3rd try %s success %6.2f\n", $type, 0;
+      printf "        %s failure %6.2f\n", $type, 0;
+    } else {
+      printf "1st try %s success %6.2f\n",
+        $type, 100*($tries[0]-$tries[1])/$calls;
+      printf "2nd try %s success %6.2f\n",
+        $type, 100*($tries[1]-$tries[2])/$calls;
+      printf "3rd try %s success %6.2f\n",
+        $type, 100*($tries[2]-$failure)/$calls;
+      printf "        %s failure %6.2f\n",
+        $type, 100*$failure/$calls;
+    }
+  }
+
   unless ($found) {
     warn "No devices found?\n";
     return 1;
