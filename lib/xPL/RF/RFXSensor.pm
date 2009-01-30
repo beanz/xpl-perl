@@ -61,10 +61,10 @@ my %types = (
 
 =head2 C<parse( $parent, $message, $bytes, $bits )>
 
-This method attempts to recognize and parse RF messages corresponding
-to RFXSensor messages.  If messages are identified a reference to a
-list of xPL::Message objects is returned.  If the message is not
-recognized, undef is returned.
+This method attempts to recognize and parse RF messages from RFXSensor
+devices.  If messages are identified, a reference to a list of
+xPL::Message objects is returned.  If the message is not recognized,
+undef is returned.
 
 =cut
 
@@ -247,7 +247,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2007, 2008 by Mark Hindess
+Copyright (C) 2007, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,

@@ -129,7 +129,7 @@ my $DOT = q{.};
 
 This method is called via the main C<xPL::RF> decode loop and it
 determines whether the bytes match the format of any supported Oregon
-Scientific sensors.  It returns a list reference of containing xPL
+Scientific sensors.  It returns a list reference containing xPL
 messages corresponding to the sensor readings or undef if the message
 is not recognized.
 
@@ -818,7 +818,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2007, 2008 by Mark Hindess
+Copyright (C) 2007, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
