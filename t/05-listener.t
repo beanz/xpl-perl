@@ -3,8 +3,9 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 147;
+use Test::More tests => 163;
 use t::Helpers qw/test_error test_warn/;
+use File::Temp qw/tempfile/;
 use Socket;
 use Time::HiRes;
 $|=1;
@@ -82,6 +83,8 @@ is($cb->{arguments}->[0], "grr argh", "correct argument passed");
 is($xpl->timer_callback_count('tick'), 1, "timer callback counter");
 ok(defined $xpl->timer_callback_time_average('tick'),
    "timer callback time average");
+
+check_stats(1,1,0);
 
 my $now = time;
 is(&{$xpl->timer_attrib('tick', 'next_fn')}($now), $now+$timeout,
@@ -278,6 +281,7 @@ is($xpl->input_callback_count($xpl->{_listen_sock}), 1,
 
 ok($xpl->add_input(handle => \*STDIN, arguments => []), "adding input");
 ok($xpl->{_select}->exists(\*STDIN), "input added to select");
+
 ok($xpl->remove_input(\*STDIN), "removing input");
 ok(!$xpl->{_select}->exists(\*STDIN), "input removed from select");
 
@@ -395,6 +399,8 @@ is(test_error(sub { $xpl->send(invalid => 'messagedata'); }),
    "MY::Listener->send_aux: message error: ".
      "xPL::Message->new: requires 'class' parameter",
    "send with invalid message data");
+
+check_stats(0,0,6);
 
 is(test_error(sub {
     my $xpl = xPL::Listener->new(vendor_id => 'acme',
@@ -540,3 +546,30 @@ is(test_warn(sub { xPL::Listener->ouch_named('eek', 'ouch') }),
 is(test_error(sub { xPL::Listener->argh_named('ook', 'argh'); }),
    'xPL::Listener->ook: argh',
    'error message method on non-blessed reference');
+
+sub check_stats {
+  my ($timers, $inputs, $xpls) = @_;
+  my ($tmpfh, $tmperr) = tempfile();
+  open my $olderr, ">&STDERR"     or die "Can't dup STDERR: $!";
+  open STDERR, ">&", $tmpfh or die "Can't dup \$tmpfh: $!";
+  $xpl->dump_statistics;
+  open STDERR, ">&", $olderr or die "Can't dup \$olderr: $!";
+  $tmpfh->flush;
+  my $fh = FileHandle->new('<'.$tmperr);
+  is(~~<$fh>, "Timers\n", 'check_stats timer header');
+  foreach (1..$timers) {
+    like(~~<$fh>, qr/^[- ]\d+\.\d+ \w+/, 'check_stats timer '.$_);
+  }
+  is(~~<$fh>, "Inputs\n", 'check_stats inputs header');
+  foreach (1..$inputs) {
+    like(~~<$fh>, qr/^[- ]\d+\.\d+ \w+/, 'check_stats input '.$_);
+  }
+  is(~~<$fh>, "xPL Callbacks\n", 'check_stats xpl callbacks header');
+  foreach (1..$xpls) {
+    like(~~<$fh>, qr/^[- ]\d+\.\d+ \w+/, 'check_stats xpl callback '.$_);
+  }
+  ok(!<$fh>, 'check_stats eof');
+  $fh->close;
+  unlink $tmperr;
+  $tmpfh->close;
+}
