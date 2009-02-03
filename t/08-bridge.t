@@ -18,17 +18,6 @@ use_ok("xPL::Message");
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
 
-# we bind a fake hub to make sure we don't accidentally hit a live
-# udp port
-my $hs;
-socket($hs, PF_INET, SOCK_DGRAM, getprotobyname('udp'));
-setsockopt $hs, SOL_SOCKET, SO_BROADCAST, 1;
-#setsockopt $hs, SOL_SOCKET, SO_REUSEADDR, 1;
-binmode $hs;
-bind($hs, sockaddr_in(0, inet_aton("127.0.0.1"))) or
-  die "Failed to bind listen socket: $!\n";
-my ($fake_hub_port, $fake_hub_addr) = sockaddr_in(getsockname($hs));
-
 my $warn;
 $SIG{__WARN__} = sub { $warn .= $_[0]; };
 
