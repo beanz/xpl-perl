@@ -50,8 +50,8 @@ wait_for_tick($xpl, '!ping-response');
 my $r = recv($hs, $buf, 1024, 0);
 ok(defined $r, "received ping response");
 my $msg = xPL::Message->new_from_payload($buf);
-is($msg->summary,
-   'xpl-stat/ping.response: acme-ping.test -> *',
+like($msg->summary,
+   qr!^xpl-stat/ping\.response: acme-ping\.test -> \* - ok \d!,
    "ping response content");
 
 sub wait_for_tick {

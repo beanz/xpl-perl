@@ -45,6 +45,7 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Pod::Usage;
+use Time::HiRes;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
@@ -85,6 +86,7 @@ $msg_args{'-t'} = $target if (defined $target);
 
 # Create an xPL Client object
 my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+my $start_time;
 
 unless ($wait) {
   $xpl->send_from_arg_list(%msg_args, @ARGV);
@@ -113,6 +115,7 @@ sub xpl_hub_response {
   $c =~ s/\..*$//;
   $xpl->remove_xpl_callback('wait_for_hub');
   $xpl->send_from_arg_list(%msg_args, @ARGV);
+  $start_time = Time::HiRes::time;
   $xpl->add_xpl_callback(id => 'wait_for_response',
                          filter =>
                          {
@@ -129,7 +132,20 @@ sub xpl_response {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  print $verbose ? $msg->string : $msg->summary, "\n";
+  if ($verbose) {
+    print $msg->string;
+  } else {
+    if ($msg->class ne 'ping') {
+      print $msg->summary, "\n";
+    } else {
+      my $rtt = (Time::HiRes::time-$start_time) - $msg->delay;
+      my $time = $msg->checktime ||
+        $msg->extra_field('time'); # deprecated
+      $time = defined $time ? sprintf '%.6f', $time : 'timeout';
+      printf("ping.response: rtt=%.6f checktime=%s %s\n",
+             $rtt, $time, $msg->source);
+    }
+  }
 }
 
 sub give_up {

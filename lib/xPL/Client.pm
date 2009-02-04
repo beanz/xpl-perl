@@ -456,7 +456,7 @@ sub send_ping_response {
      delay => $delay,
      state => $self->{ping}->{state} || 'timeout',
     );
-  $body{time} = $self->{ping}->{time} if (exists $self->{ping}->{time});
+  $body{checktime} = $self->{ping}->{time} if (exists $self->{ping}->{time});
   $self->send(class => 'ping.response',
               body => \%body);
   return 1;
