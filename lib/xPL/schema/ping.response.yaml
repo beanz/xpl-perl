@@ -3,6 +3,12 @@ default_message_type: xpl-stat
 types:
   xpl-stat:
     fields:
-      - name: delay
       - name: state
-      - name: time
+      - name: delay
+      - name: checktime
+    summary:
+      - name: state
+      - name: checktime
+        prefix: " "
+      - name: delay
+        prefix: " "
