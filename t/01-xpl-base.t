@@ -3,8 +3,8 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 10;
-use t::Helpers qw/test_warn test_error/;
+use Test::More tests => 12;
+use t::Helpers qw/test_warn test_error test_output/;
 
 use_ok('xPL::Base');
 
@@ -40,3 +40,9 @@ is(test_error(sub { xPL::Test->make_readonly_accessor(); }),
 my @l = xPL::Base::simple_tokenizer("minutes='[10,20,30]'");
 is(scalar @l, 2, 'simple_tokenizer - array ref');
 is($l[1]->[1], 20, 'simple_tokenizer - array ref element');
+
+is(test_output(sub { $test->info("test") }, \*STDOUT),
+   '', 'info method !verbose');
+$test->verbose(1);
+is(test_output(sub { $test->info("test") }, \*STDOUT),
+   'test', 'info method verbose');

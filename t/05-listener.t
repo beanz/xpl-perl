@@ -4,7 +4,7 @@
 
 use strict;
 use Test::More tests => 163;
-use t::Helpers qw/test_error test_warn/;
+use t::Helpers qw/test_error test_warn test_output/;
 use File::Temp qw/tempfile/;
 use Socket;
 use Time::HiRes;
@@ -549,27 +549,21 @@ is(test_error(sub { xPL::Listener->argh_named('ook', 'argh'); }),
 
 sub check_stats {
   my ($timers, $inputs, $xpls) = @_;
-  my ($tmpfh, $tmperr) = tempfile();
-  open my $olderr, ">&STDERR"     or die "Can't dup STDERR: $!";
-  open STDERR, ">&", $tmpfh or die "Can't dup \$tmpfh: $!";
-  $xpl->dump_statistics;
-  open STDERR, ">&", $olderr or die "Can't dup \$olderr: $!";
-  $tmpfh->flush;
-  my $fh = FileHandle->new('<'.$tmperr);
-  is(~~<$fh>, "Timers\n", 'check_stats timer header');
+  my $lines = test_output(sub { $xpl->dump_statistics }, \*STDERR);
+  my @line = split /\n/, $lines;
+  my $index = 0;
+  is($line[$index++], "Timers", 'check_stats timer header');
   foreach (1..$timers) {
-    like(~~<$fh>, qr/^[- ]\d+\.\d+ \w+/, 'check_stats timer '.$_);
+    like($line[$index++], qr/^[- ]\d+\.\d+ \w+/, 'check_stats timer '.$_);
   }
-  is(~~<$fh>, "Inputs\n", 'check_stats inputs header');
+  is($line[$index++], "Inputs", 'check_stats inputs header');
   foreach (1..$inputs) {
-    like(~~<$fh>, qr/^[- ]\d+\.\d+ \w+/, 'check_stats input '.$_);
+    like($line[$index++], qr/^[- ]\d+\.\d+ \w+/, 'check_stats input '.$_);
   }
-  is(~~<$fh>, "xPL Callbacks\n", 'check_stats xpl callbacks header');
+  is($line[$index++], "xPL Callbacks", 'check_stats xpl callbacks header');
   foreach (1..$xpls) {
-    like(~~<$fh>, qr/^[- ]\d+\.\d+ \w+/, 'check_stats xpl callback '.$_);
+    like($line[$index++], qr/^[- ]\d+\.\d+ \w+/,
+         'check_stats xpl callback '.$_);
   }
-  ok(!<$fh>, 'check_stats eof');
-  $fh->close;
-  unlink $tmperr;
-  $tmpfh->close;
+  ok($index == scalar @line, 'check_stats eof');
 }
