@@ -722,26 +722,30 @@ sub make_class {
   my $spec = $specs{$class.$DOT.$class_type};
   my $parent =
     __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
-  eval "package $parent; our \@ISA = qw/xPL::Message/;";
   $modules{$parent} = $parent;
-  my $dmt = $parent.'::default_message_type';
+  my $isa = $parent.'::ISA';
   no strict qw/refs/;
-  *{$dmt} =
-    sub {
-      $spec->{default_message_type};
-    };
+  *{$isa} = [qw/xPL::Message/];
+  if (exists $spec->{default_message_type}) {
+    my $dmt = $parent.'::default_message_type';
+    *{$dmt} =
+      sub {
+        $spec->{default_message_type};
+      };
+  }
+  use strict qw/refs/;
   foreach my $message_type (keys %{$spec->{types}}) {
     my $mt = $message_type;
     $mt =~ s/-//;
-    use strict qw/refs/;
     my $module = $parent.$DOUBLE_COLON.$mt;
-    eval "package $module; our \@ISA = qw/$parent/;";
+    my $isa = $module.'::ISA';
     my $fs = $module.'::field_spec';
     my $s = $module.'::spec';
     no strict qw/refs/;
+    *{$isa} = [$parent];
     *{$fs} =
       sub {
-        $spec->{types}->{$message_type}->{fields};
+        $spec->{types}->{$message_type}->{fields} || [];
       };
     *{$s} =
       sub {
@@ -764,7 +768,7 @@ It also creates a C<body_fields> method from the specification.
 
 sub make_body_fields {
   my @f = ();
-  foreach my $rec (@{$_[0]->field_spec()||[]}) {
+  foreach my $rec (@{$_[0]->field_spec()}) {
     $_[0]->make_body_field($rec);
     push @f, $rec->{name};
   }
