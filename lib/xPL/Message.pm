@@ -739,18 +739,22 @@ sub make_class {
     $mt =~ s/-//;
     my $module = $parent.$DOUBLE_COLON.$mt;
     my $isa = $module.'::ISA';
-    my $fs = $module.'::field_spec';
-    my $s = $module.'::spec';
     no strict qw/refs/;
     *{$isa} = [$parent];
-    *{$fs} =
-      sub {
-        $spec->{types}->{$message_type}->{fields} || [];
-      };
-    *{$s} =
-      sub {
-        $spec->{types}->{$message_type};
-      };
+    if (exists $spec->{types}->{$message_type}) {
+      my $s = $module.'::spec';
+      *{$s} =
+        sub {
+          $spec->{types}->{$message_type}
+        };
+      if (exists $spec->{types}->{$message_type}->{fields}) {
+        my $fs = $module.'::field_spec';
+        *{$fs} =
+          sub {
+            $spec->{types}->{$message_type}->{fields}
+          };
+      }
+    }
     use strict qw/refs/;
     $module->make_body_fields();
     $modules{$module} = $module;
