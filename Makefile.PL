@@ -10,6 +10,12 @@ while (<$fh>) {
 }
 $fh->close;
 
+eval { require YAML::Syck; };
+if ($@) {
+  eval { require YAML; };
+  die "Missing required YAML::Syck (recommended) or YAML module\n" if ($@);
+  warn "Found YAML module which is sufficient but YAML::Syck would be better\n";
+}
 WriteMakefile(
               NAME => 'xPL-Perl',
               VERSION_FROM => 'lib/xPL/Base.pm',
@@ -18,7 +24,6 @@ WriteMakefile(
                (ABSTRACT => 'lib/xPL/Listener.pm',
                 AUTHOR  => 'Mark Hindess <soft-xpl-perl@temporalanomaly.com>',
                 PREREQ_PM => {
-                  'YAML' => 0,
                   'Module::Pluggable' => 0,
                   'Date::Parse' => 0,
                 },

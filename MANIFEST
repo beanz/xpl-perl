@@ -123,6 +123,7 @@ t/01-xpl-utils.t
 t/01-xpl-validation.t
 t/02-homeeasy.t
 t/02-message.t
+t/02-schema-yaml.t
 t/02-timer.t
 t/02-x10.t
 t/03-message-errors.t

@@ -53,7 +53,11 @@ use strict;
 use warnings;
 use English qw/-no_match_vars/;
 use File::Find;
-use YAML;
+eval { require YAML::Syck; import YAML::Syck qw/LoadFile/; };
+if ($@) {
+  eval { require YAML; import YAML qw/LoadFile/; };
+  die "Failed to load YAML::Syck or YAML module: $@\n" if ($@);
+}
 use xPL::Validation;
 
 use xPL::Base;
@@ -96,7 +100,7 @@ find({
         my $class_type = $2;
         # print STDERR "$class.$class_type\n";
         my $spec;
-        eval { $spec = YAML::LoadFile($File::Find::name); };
+        eval { $spec = LoadFile($File::Find::name); };
         if ($EVAL_ERROR) {
           die "Failed to read schema from $File::Find::name\n",$EVAL_ERROR,"\n";
         }

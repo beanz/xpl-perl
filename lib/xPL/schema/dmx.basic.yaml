@@ -18,4 +18,4 @@ types:
       - name: base
         prefix: ':'
       - name: value
-        prefix: '='
+        prefix: =
