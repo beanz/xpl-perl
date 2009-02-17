@@ -429,7 +429,11 @@ sub process_field_record {
       return 1;
     }
   }
-  $self->$name($body->{$name});
+  if ($self->{_strict}) {
+    $self->$name($body->{$name});
+  } else {
+    $self->{_body}->{$name} = $body->{$name};
+  }
   $processed->{$name}++;
   return 1;
 }
@@ -469,9 +473,9 @@ sub summary {
     $str .= $SPACE_DASH_SPACE;
     foreach my $field (@{$spec->{summary}}) {
       my $name = $field->{name};
-      next unless (defined $self->$name());
+      next unless (exists $self->{'_body'}->{$name});
       $str .= $field->{prefix} if ($field->{prefix});
-      my $v = $self->$name();
+      my $v = $self->{'_body'}->{$name};
       if ((ref $v) eq 'ARRAY') {
         $v = $OPEN_SQUARE_BRACKET.(join $COMMA, @$v).$CLOSE_SQUARE_BRACKET;
       }
@@ -507,7 +511,7 @@ sub head_string {
     $h .= $_[0]->{_head_content}.$LF;
   } else {
     foreach (@{$_[0]->{_head_order}}) {
-      $h .= $_.$EQUALS.$_[0]->$_().$LF;
+      $h .= $_.$EQUALS.$_[0]->{'_'.$_}.$LF;
     }
   }
   $h .= "}$LF";
@@ -527,7 +531,7 @@ sub body_string {
     $b .= $_[0]->{_body_content}.$LF;
   } else {
     foreach ($_[0]->body_fields()) {
-      my $v = $_[0]->$_();
+      my $v = $_[0]->{'_body'}->{$_};
       my $n = $_;
       $n =~ s/_/-/g;
       next unless (defined $v);
