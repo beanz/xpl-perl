@@ -105,7 +105,6 @@ find({
           die "Failed to read schema from $File::Find::name\n",$EVAL_ERROR,"\n";
         }
         $specs{$class.$DOT.$class_type} = $spec;
-        make_class($class, $class_type);
       },
       no_chdir => 1,
      }, @paths);
@@ -174,6 +173,9 @@ sub new {
   delete $p{class_type};
 
   my $module = $pkg.$DOUBLE_COLON.(lc $class).$DOUBLE_COLON.(lc $class_type);
+  if (exists $specs{$class.$DOT.$class_type} && !exists $modules{$module}) {
+    make_class($class, $class_type)
+  }
   if (!exists $p{message_type}) {
     my $default_message_type =
       $modules{$module} ? $module->default_message_type() :
