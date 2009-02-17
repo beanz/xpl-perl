@@ -105,37 +105,7 @@ find({
           die "Failed to read schema from $File::Find::name\n",$EVAL_ERROR,"\n";
         }
         $specs{$class.$DOT.$class_type} = $spec;
-        my $parent =
-          __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
-        eval "package $parent; our \@ISA = qw/xPL::Message/;";
-        $modules{$parent} = $parent;
-        my $dmt = $parent.'::default_message_type';
-        no strict qw/refs/;
-        *{$dmt} =
-          sub {
-            $spec->{default_message_type};
-          };
-        foreach my $message_type (keys %{$spec->{types}}) {
-          my $mt = $message_type;
-          $mt =~ s/-//;
-          use strict qw/refs/;
-          my $module = $parent.$DOUBLE_COLON.$mt;
-          eval "package $module; our \@ISA = qw/$parent/;";
-          my $fs = $module.'::field_spec';
-          my $s = $module.'::spec';
-          no strict qw/refs/;
-          *{$fs} =
-            sub {
-              $spec->{types}->{$message_type}->{fields};
-            };
-          *{$s} =
-            sub {
-              $spec->{types}->{$message_type};
-            };
-          use strict qw/refs/;
-          $module->make_body_fields();
-          $modules{$module} = $module;
-        }
+        make_class($class, $class_type);
       },
       no_chdir => 1,
      }, @paths);
@@ -739,6 +709,47 @@ This method returns the fields that are in the body of this message.
 
 sub body_fields {
   return;
+}
+
+=head2 C<make_class($class, $class_type)>
+
+=cut
+
+sub make_class {
+  my ($class, $class_type) = @_;
+  my $spec = $specs{$class.$DOT.$class_type};
+  my $parent =
+    __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
+  eval "package $parent; our \@ISA = qw/xPL::Message/;";
+  $modules{$parent} = $parent;
+  my $dmt = $parent.'::default_message_type';
+  no strict qw/refs/;
+  *{$dmt} =
+    sub {
+      $spec->{default_message_type};
+    };
+  foreach my $message_type (keys %{$spec->{types}}) {
+    my $mt = $message_type;
+    $mt =~ s/-//;
+    use strict qw/refs/;
+    my $module = $parent.$DOUBLE_COLON.$mt;
+    eval "package $module; our \@ISA = qw/$parent/;";
+    my $fs = $module.'::field_spec';
+    my $s = $module.'::spec';
+    no strict qw/refs/;
+    *{$fs} =
+      sub {
+        $spec->{types}->{$message_type}->{fields};
+      };
+    *{$s} =
+      sub {
+        $spec->{types}->{$message_type};
+      };
+    use strict qw/refs/;
+    $module->make_body_fields();
+    $modules{$module} = $module;
+  }
+  return 1;
 }
 
 =head2 C<make_body_fields( )>
