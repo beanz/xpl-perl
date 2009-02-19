@@ -741,19 +741,17 @@ sub make_class {
     my $isa = $module.'::ISA';
     no strict qw/refs/;
     *{$isa} = [$parent];
-    if (exists $spec->{types}->{$message_type}) {
-      my $s = $module.'::spec';
-      *{$s} =
+    my $s = $module.'::spec';
+    *{$s} =
+      sub {
+        $spec->{types}->{$message_type}
+      };
+    if (exists $spec->{types}->{$message_type}->{fields}) {
+      my $fs = $module.'::field_spec';
+      *{$fs} =
         sub {
-          $spec->{types}->{$message_type}
+          $spec->{types}->{$message_type}->{fields}
         };
-      if (exists $spec->{types}->{$message_type}->{fields}) {
-        my $fs = $module.'::field_spec';
-        *{$fs} =
-          sub {
-            $spec->{types}->{$message_type}->{fields}
-          };
-      }
     }
     use strict qw/refs/;
     $module->make_body_fields();
