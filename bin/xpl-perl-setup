@@ -214,7 +214,7 @@ if test -f $ETC/devices.txt ; then
 else
     cat >$ETC/devices.txt <<EOF
 # Use of this file is no longer recommended but the functionality will remain
-x#
+#
 # mappings (one-per line) of device names to "friendly" names
 # for instance, some rfxcom sensors:
 #
@@ -255,7 +255,7 @@ if test -e /etc/cron.d/xpl-rrd ; then
     echo /etc/cron.d/xpl-rrd already exists
 else
     echo /etc/cron.d/xpl-rrd created
-    sed -e"s_BIN_$BIN_g" >/etc/cron.d/xpl-rrd <<EOF
+    sed -e"s_BIN_${BIN}_g" >/etc/cron.d/xpl-rrd <<EOF
 7,12,17,22,27,32,37,42,47,52,57 * * * * xplperl BIN/xpl-rrd-graphs /var/lib/rrd /var/www/rrd 1h >/dev/null
 2 * * * * xplperl BIN/xpl-rrd-graphs /var/lib/rrd /var/www/rrd >/dev/null
 EOF
