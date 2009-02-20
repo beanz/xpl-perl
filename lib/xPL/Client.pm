@@ -144,21 +144,7 @@ sub new {
   $self->{_max_fast_hbeat_count} =
     int $self->hub_response_timeout / $self->fast_hbeat_interval;
 
-  $self->add_timer(id => '!fast-hbeat',
-                   # negative so it's triggered ASAP
-                   timeout => -$self->fast_hbeat_interval(),
-                   callback => sub { $self->fast_hbeat(); },
-                  );
-
-  $self->add_xpl_callback(id => '!hub-found',
-                          self_skip => 0,
-                          filter =>
-                          {
-                           class => 'hbeat',
-                           class_type => 'app',
-                           source => $self->id,
-                          },
-                          callback => sub { $self->hub_response(@_) });
+  $self->fast_hbeat_mode();
 
   $self->add_xpl_callback(id => '!hbeat-request',
                           self_skip => 0,
@@ -179,8 +165,6 @@ sub new {
                            class_type => 'request',
                           },
                           callback => sub { $self->ping_request(@_) });
-
-  $self->{_hbeat_mode} = 'fast';
 
   return $self;
 }
@@ -268,6 +252,54 @@ is the amount of time that fast hbeat messages are sent before the
 client backs off and sends hbeat messages at the slower hopeful hbeat
 interval.
 
+=head2 C<fast_hbeat_mode()>
+
+This method puts the client into the fast hbeat mode - typically when
+the client is initially started up.
+
+=cut
+
+sub fast_hbeat_mode {
+  my $self = shift;
+
+  $self->{_hbeat_mode} = 'fast';
+
+  $self->add_timer(id => '!fast-hbeat',
+                   # negative so it's triggered ASAP
+                   timeout => -$self->fast_hbeat_interval(),
+                   callback => sub { $self->fast_hbeat(); },
+                  );
+
+  $self->add_xpl_callback(id => '!hub-found',
+                          self_skip => 0,
+                          filter =>
+                          {
+                           class => 'hbeat',
+                           class_type => 'app',
+                           source => $self->id,
+                          },
+                          callback => sub { $self->hub_response(@_) });
+  return 1;
+}
+
+=head2 C<fast_hbeat_mode()>
+
+This method puts the client into the standard hbeat mode - typically after
+the client has received a response from the hub.
+
+=cut
+
+sub standard_hbeat_mode {
+  my $self = shift;
+
+  $self->{_hbeat_mode} = 'standard';
+  $self->add_timer(id => '!hbeat',
+                   timeout => $self->hbeat_interval*60,
+                   callback => sub { $self->send_hbeat(@_) },
+                  );
+  return 1;
+}
+
 =head2 C<fast_hbeat()>
 
 This method is the callback that sends the hbeats when the
@@ -306,16 +338,13 @@ sub hub_response {
   my %p = @_;
   my $msg = $p{message};
 
-  $self->{_hbeat_mode} = 'standard';
 
   # we have a winner, our hbeat has been returned
   $self->remove_timer('!fast-hbeat');
   $self->remove_xpl_callback('!hub-found');
 
-  $self->add_timer(id => '!hbeat',
-                   timeout => $self->hbeat_interval*60,
-                   callback => sub { $self->send_hbeat(@_) },
-                  );
+  $self->standard_hbeat_mode();
+
   return 1;
 }
 
