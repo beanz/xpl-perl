@@ -116,10 +116,14 @@ sub new {
   bless $self, $pkg;
 
   my %p = @_;
-  $self->verbose($p{verbose}||0);
+  $self->{_verbose} = $p{verbose} || 0;
 
-  exists $p{port} or $p{port} = 0;
-  $p{port} =~ /^(\d+)$/ or $self->argh('port invalid');
+  if (exists $p{port}) {
+    $p{port} =~ /^(\d+)$/ or $self->argh('port invalid');
+    $self->{_port} = $p{port};
+  } else {
+    $self->{_port} = 0;
+  }
 
   if (exists $p{interface}) {
     $self->{_interface_info} = $self->interface_info($p{interface}) or
@@ -148,10 +152,6 @@ sub new {
   unless ($self->{_ip}) {
     $self->argh("Unable to determine ip address.\n".
                 'An interface or ip address should be specified.');
-  }
-
-  foreach (qw/port verbose/) {
-    $self->{'_'.$_} = $p{$_};
   }
 
   $self->init_timers();
