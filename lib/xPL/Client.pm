@@ -143,7 +143,22 @@ sub new {
   $self->{_max_fast_hbeat_count} =
     int $self->hub_response_timeout / $self->fast_hbeat_interval;
 
-  $self->fast_hbeat_mode();
+  my %xpl_message_args =
+    (
+     head => { source => $self->id },
+     body => { interval => $self->hbeat_interval, },
+    );
+  if ($self->hubless) {
+    $self->standard_hbeat_mode(1);
+    $xpl_message_args{class} = 'hbeat.basic';
+  } else {
+    $self->fast_hbeat_mode();
+    $xpl_message_args{class} = 'hbeat.app';
+    $xpl_message_args{body}->{port} = $self->listen_port;
+    $xpl_message_args{body}->{remote_ip} = $self->ip;
+  }
+
+  $self->{_hbeat_message} = xPL::Message->new(%xpl_message_args);
 
   $self->add_xpl_callback(id => '!hbeat-request',
                           self_skip => 0,
@@ -290,10 +305,13 @@ the client has received a response from the hub.
 
 sub standard_hbeat_mode {
   my $self = shift;
+  my $immediate = shift;
 
+  my $timeout = $self->hbeat_interval*60;
+  $timeout *= -1 if ($immediate);
   $self->{_hbeat_mode} = 'standard';
   $self->add_timer(id => '!hbeat',
-                   timeout => $self->hbeat_interval*60,
+                   timeout => $timeout,
                    callback => sub { $self->send_hbeat(@_) },
                   );
   return 1;
@@ -516,14 +534,7 @@ This method is called periodically to send hbeat messages.
 sub send_hbeat {
   my $self = shift;
   $self->{_hbeat_count}++;
-  $self->send(class => 'hbeat.app',
-              body =>
-              {
-               interval => $self->hbeat_interval,
-               port => $self->listen_port,
-               remote_ip => $self->ip,
-              },
-             );
+  $self->send($self->{_hbeat_message});
 
   # if we are due to respond to a request but we've sent a message anyway
   # make sure we don't send another one

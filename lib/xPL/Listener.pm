@@ -69,7 +69,7 @@ __PACKAGE__->make_collection(input => [qw/handle callback_count
                                                  callback_time_max/],
                             );
 __PACKAGE__->make_readonly_accessor(qw/ip broadcast interface
-                                       listen_port port
+                                       listen_port port hubless
                                        last_sent_message/);
 
 =head2 C<new(%params)>
@@ -117,6 +117,7 @@ sub new {
 
   my %p = @_;
   $self->{_verbose} = $p{verbose} || 0;
+  $self->{_hubless} = $p{hubless} || 0;
 
   if (exists $p{port}) {
     $p{port} =~ /^(\d+)$/ or $self->argh('port invalid');
@@ -208,13 +209,21 @@ This method creates the socket to listen for incoming messages.
 
 sub create_listen_socket {
   my $self = shift;
-  my $ip = $self->listen_addr;
-  my $port = $self->port || 0;
 
   my $listen;
   socket($listen, PF_INET, SOCK_DGRAM, getprotobyname('udp'));
   setsockopt $listen, SOL_SOCKET, SO_BROADCAST, 1;
+  if ($self->{_hubless}) {
+    if (setsockopt $listen, SOL_SOCKET, SO_REUSEADDR, 1) {
+    } else {
+      warn "Setting SO_REUSEADDR failed ... not using hubless mode.\n";
+      $self->{_hubless} = 0;
+    };
+  }
   binmode $listen;
+
+  my $ip = $self->{_hubless} ? $self->{_broadcast} : $self->listen_addr();
+  my $port = $self->port || ($self->{_hubless} ? 3865 : 0);
   bind($listen, sockaddr_in($port, inet_aton($ip))) or
     $self->argh("Failed to bind listen socket: $!\n");
 
@@ -240,9 +249,13 @@ This method creates the socket used to send outgoing messages.
 sub create_send_socket {
   my $self = shift;
   my $send;
-  socket($send, PF_INET, SOCK_DGRAM, getprotobyname('udp'));
-  setsockopt $send, SOL_SOCKET, SO_BROADCAST, 1;
-  binmode $send;
+  if ($self->{_hubless}) {
+    $send = $self->{_listen_sock};
+  } else {
+    socket($send, PF_INET, SOCK_DGRAM, getprotobyname('udp'));
+    setsockopt $send, SOL_SOCKET, SO_BROADCAST, 1;
+    binmode $send;
+  }
   $self->{_send_sock} = $send;
   $self->{_send_sin} = sockaddr_in(3865, inet_aton($self->{_broadcast}));
   print 'Sending on ', $self->{_broadcast}, "\n" if ($self->verbose);
