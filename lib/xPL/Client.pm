@@ -34,7 +34,6 @@ my $HYPHEN = q{-};
 my $DOT = q{.};
 
 use POSIX qw/uname/;
-use Socket;
 use Time::HiRes;
 use xPL::Listener;
 
