@@ -281,7 +281,7 @@ sub fast_hbeat_mode {
   return 1;
 }
 
-=head2 C<fast_hbeat_mode()>
+=head2 C<standard_hbeat_mode()>
 
 This method puts the client into the standard hbeat mode - typically after
 the client has received a response from the hub.
