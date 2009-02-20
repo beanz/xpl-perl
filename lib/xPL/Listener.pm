@@ -99,8 +99,8 @@ are:
 
 =item port
 
-  The port to use for xPL broadcast messages to use.  This is required
-  if the 'ip' parameter has been given.
+  The port for xPL broadcast messages to use.  This is required if the
+  'ip' parameter has been given.
 
 =back
 
