@@ -205,7 +205,6 @@ t/rf/oregon-rtgr328n-03-invalid-checksum.txt
 t/rf/oregon-rtgr328n-04-invalid-checksum-dt.txt
 t/rf/oregon-rtgr328n-05-negativetemp.txt
 t/rf/oregon-rtgr328n-06-low-battery.txt
-t/rf/oregon-rtgr328n-07-unexpected-len.txt
 t/rf/oregon-thgr228n-01-temphydro.txt
 t/rf/oregon-thgr810-01.txt
 t/rf/oregon-thr128-01-temp.txt
@@ -213,7 +212,6 @@ t/rf/oregon-uv138-01.txt
 t/rf/oregon-uv138-02-invalid-checksum.txt
 t/rf/oregon-uv138-03-dangerous.txt
 t/rf/oregon-wgr918-01-wind.txt
-t/rf/oregon-wgr918-02-unexpected-length.txt
 t/rf/oregon-wtgr800-01-wind.txt
 t/rf/oregon-wtgr800-02-temphydro.txt
 t/rf/oregon-wtgr800-03-low-battery.txt
