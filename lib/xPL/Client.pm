@@ -378,7 +378,7 @@ sub hbeat_request {
 
   $self->add_timer(id => '!hbeat-response',
                    timeout => 2 + rand 4,
-                   callback => sub { $self->send_extra_hbeat(@_); return 0; },
+                   callback => sub { $self->send_extra_hbeat(@_); 1; },
                   );
   return 1;
 }
