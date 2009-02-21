@@ -5,6 +5,7 @@ bin/xpl-currentcost
 bin/xpl-dawndusk
 bin/xpl-dg834
 bin/xpl-dmx
+bin/xpl-easydaq
 bin/xpl-hddtemp
 bin/xpl-heyu-helper
 bin/xpl-hub
