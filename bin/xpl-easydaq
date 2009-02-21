@@ -177,13 +177,13 @@ This functions is used to send text commands to the EasyDAQ.
 sub send_easydaq {
   my $msg = $queue->dequeue;
   undef $waiting;
+  $xpl->remove_timer('waiting') if ($xpl->exists_timer('waiting'));
   return if (!defined $msg);
   print 'sending: ', (unpack 'H*', $msg), "\n" if ($verbose);
   syswrite($fh, $msg, length($msg));
   $waiting = $msg;
-  $xpl->remove_timer('waiting') if ($xpl->exists_timer('waiting'));
-  $xpl->add_timer(id => 'waiting', timeout => 0.05, count => 1,
-                  callback => sub { send_easydaq(); });
+  $xpl->add_timer(id => 'waiting', timeout => 0.05,
+                  callback => sub { send_easydaq(); 1; });
   $fh->flush();
 }
 
