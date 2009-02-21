@@ -214,18 +214,24 @@ sub create_listen_socket {
   socket($listen, PF_INET, SOCK_DGRAM, getprotobyname('udp'));
   setsockopt $listen, SOL_SOCKET, SO_BROADCAST, 1;
   if ($self->{_hubless}) {
-    if (setsockopt $listen, SOL_SOCKET, SO_REUSEADDR, 1) {
-    } else {
-      warn "Setting SO_REUSEADDR failed ... not using hubless mode.\n";
+    setsockopt $listen, SOL_SOCKET, SO_REUSEADDR, 1 or do {
+      warn "Setting SO_REUSEADDR failed ... switching off hubless mode.\n";
       $self->{_hubless} = 0;
     };
   }
   binmode $listen;
 
+ RETRY:
   my $ip = $self->{_hubless} ? $self->{_broadcast} : $self->listen_addr();
   my $port = $self->port || ($self->{_hubless} ? 3865 : 0);
-  bind($listen, sockaddr_in($port, inet_aton($ip))) or
+  unless (bind($listen, sockaddr_in($port, inet_aton($ip)))) {
+    if ($self->{_hubless}) {
+      warn "bind failed ... switching off hubless mode.\n";
+      $self->{_hubless} = 0;
+      goto RETRY;
+    }
     $self->argh("Failed to bind listen socket: $!\n");
+  }
 
   $self->{_listen_sock} = $listen;
   my $addr;

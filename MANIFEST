@@ -142,6 +142,7 @@ t/05-listener.t
 t/06-hub.t
 t/07-client-ping.t
 t/07-client.t
+t/07-client-hubless.t
 t/08-bridge-client.t
 t/08-bridge.t
 t/09-hub-ignore-remote-hbeat.t
