@@ -1,0 +1,213 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-easydaq - Perl script for an xPL Audon EasyDAQ USB Relay client
+
+=head1 SYNOPSIS
+
+  xpl-easydaq [flags] [options] <device>
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+    -B baud - the baud rate (9600)
+
+  # start the easydaq application on first ethernet interface in verbose mode
+  xpl-easydaq -i eth0 -v /dev/ttyUSB6
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a EasyDAQ USB Relay
+device.  It supports the use of control.basic messages with current
+fields set to 'high', 'low', or 'pulse' with devices of the form 'oNN'
+where NN is a number from 1 to 16.  There is no support for EasyDAQ
+inputs.
+
+This script may also work with other Audon devices which have similar
+firmware.  For this reason, control.basic current=pulse messages are
+handled in the manner expected by an SPO-RL8 Serial Relay device even
+though these will be ignored by a EasyDAQ USB device.
+
+=cut
+
+use strict;
+use warnings;
+use English qw/-no_match_vars/;
+use FileHandle;
+use Getopt::Long;
+use IO::Socket::INET;
+use Pod::Usage;
+use xPL::Client;
+use xPL::Queue;
+$|=1; # autoflush helps debugging
+
+my %args = ( vendor_id => 'bnz', device_id => 'easydaq', );
+my %opt = ();
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $baud = 9600;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'baud=i' => \$baud,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
+my $dev = shift or pod2usage(-message => "The device parameter is required",
+                             -exitstatus => 1);
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+
+my $state = 0;
+my $queue = xPL::Queue->new;
+my $waiting = undef;
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'easydaq', callback => \&xpl_in,
+                       filter => {
+                                  message_type => 'xpl-cmnd',
+                                  class => 'control',
+                                  class_type => 'basic',
+                                  type => 'output',
+                                 });
+
+my $fh;
+if ($dev =~ /\//) {
+  # TODO: use Device::SerialPort?
+  system("/bin/stty -F $dev ospeed $baud pass8 raw >/dev/null") == 0 or
+    die "Setting serial port with stty failed: $!\n";
+  $fh = FileHandle->new;
+  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+    or die "Cannot open serial connection on device '$dev'\n";
+  $fh->autoflush(1);
+  binmode($fh);
+} else {
+  $dev .= ':10001' unless ($dev =~ /:/);
+  $fh = IO::Socket::INET->new($dev)
+    or die "Cannot TCP connection to device at '$dev'\n";
+}
+$xpl->add_input(handle => $fh, callback => \&easydaq_reader);
+
+queue_easydaq('B'.chr(0)); # all outputs
+
+# Run the main loop
+$xpl->main_loop();
+
+=head2 C<xpl_in(%xpl_callback_parameters)>
+
+This is the callback that processes incoming xPL messages.  It handles
+the incoming control.basic schema messages.
+
+=cut
+
+sub xpl_in {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  if ($msg->device eq 'debug') {
+    queue_easydaq('A'.chr(0));
+  }
+  return 1 unless ($msg->device =~ /^o(\d+)$/);
+  my $num = $LAST_PAREN_MATCH;
+  my $command = lc $msg->current;
+  if ($command eq "high") {
+    $state |= 1<<($num-1);
+    queue_easydaq('C'.chr($state));
+  } elsif ($command eq "low") {
+    $state &= 0xf^(1<<($num-1));
+    queue_easydaq('C'.chr($state));
+  } elsif ($command eq "pulse") {
+    $state |= 1<<($num-1);
+    queue_easydaq('C'.chr($state));
+    $state &= 0xf^(1<<($num-1));
+    queue_easydaq('C'.chr($state));
+  }
+  return 1;
+}
+
+=head2 C<easydaq_reader()>
+
+This is the callback that processes output from the EasyDAQ.  It is
+responsible for sending out the sensor.basic xpl-trig messages.
+
+=cut
+
+sub easydaq_reader {
+  my $buf = '';
+  my $bytes = $fh->sysread($buf, 512);
+  print 'received: ', (unpack 'H*', $buf), "\n" if ($verbose);
+  send_easydaq();
+  return 1;
+}
+
+=head2 C<queue_easydaq( $message )>
+
+This functions is used to queue text commands to be sent to the EasyDAQ.
+
+=cut
+
+sub queue_easydaq {
+  my $msg = shift;
+  $queue->enqueue($msg);
+  print 'queued: ', (unpack 'H*', $msg), "\n" if ($verbose);
+  if (!defined $waiting) {
+    return send_easydaq();
+  }
+  return 1;
+}
+
+=head2 C<send_easydaq( $message )>
+
+This functions is used to send text commands to the EasyDAQ.
+
+=cut
+
+sub send_easydaq {
+  my $msg = $queue->dequeue;
+  undef $waiting;
+  return if (!defined $msg);
+  print 'sending: ', (unpack 'H*', $msg), "\n" if ($verbose);
+  syswrite($fh, $msg, length($msg));
+  $waiting = $msg;
+  $xpl->remove_timer('waiting') if ($xpl->exists_timer('waiting'));
+  $xpl->add_timer(id => 'waiting', timeout => 0.05, count => 1,
+                  callback => sub { send_easydaq(); });
+  $fh->flush();
+}
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+EasyDAQ website: http://www.easydaq.com/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2008, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
