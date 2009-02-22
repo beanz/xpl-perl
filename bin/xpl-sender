@@ -93,15 +93,20 @@ unless ($wait) {
   exit;
 }
 
-$xpl->add_xpl_callback(id => 'wait_for_hub',
-                       self_skip => 0,
-                       filter =>
-                       {
+if ($xpl->hubless) {
+  xpl_send();
+} else {
+  $xpl->add_xpl_callback(id => 'wait_for_hub',
+                         self_skip => 0,
+                         filter =>
+                         {
                         class => 'hbeat',
-                        class_type => 'app',
-                        source => $xpl->id,
-                       },
-                       callback => \&xpl_hub_response);
+                          class_type => 'app',
+                          source => $xpl->id,
+                         },
+                         callback => \&xpl_hub_response);
+}
+
 $xpl->main_loop();
 
 sub xpl_hub_response {
@@ -110,10 +115,14 @@ sub xpl_hub_response {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  print STDERR "Sending\n";
+  $xpl->remove_xpl_callback('wait_for_hub');
+  print STDERR "Sending\n" if ($verbose);
+  xpl_send();
+}
+
+sub xpl_send {
   my $c = $class;
   $c =~ s/\..*$//;
-  $xpl->remove_xpl_callback('wait_for_hub');
   $xpl->send_from_arg_list(%msg_args, @ARGV);
   $start_time = Time::HiRes::time;
   $xpl->add_xpl_callback(id => 'wait_for_response',
