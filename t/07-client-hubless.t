@@ -6,7 +6,7 @@ use strict;
 use Socket;
 use Time::HiRes;
 use t::Helpers qw/test_error test_warn test_output/;
-use Test::More tests => 15;
+use Test::More tests => 19;
 $|=1;
 
 use_ok('xPL::Client');
@@ -60,3 +60,24 @@ ok($msg, 'message arrived');
 is($msg->class.'.'.$msg->class_type, 'hbeat.basic',
    'hbeat.basic since no port ip information is needed');
 is($msg->source, $xpl2->id, 'received second clients hbeat.basic message');
+
+undef $xpl;
+undef $xpl2;
+
+use_ok('xPL::Hub');
+my $hub = xPL::Hub->new(ip => '127.0.0.1',
+                        broadcast => '127.255.255.255',
+                        port => 0);
+ok($hub, 'hub created');
+
+is(test_warn(sub {
+               $xpl = xPL::Client->new(vendor_id => 'acme',
+                                       device_id => 'dingus',
+                                       ip => '127.0.0.1',
+                                       broadcast => '127.255.255.255',
+                                       hubless => 1,
+                                       port => $hub->listen_port,
+                                      );
+             }), "bind failed ... switching off hubless mode.\n",
+             'fallback to non-hubless if hub found');
+ok($xpl, 'constructor');
