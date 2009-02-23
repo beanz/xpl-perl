@@ -8,11 +8,12 @@ xPL::SerialClient - Perl extension for an xPL Serial Device Client
 
   use xPL::SerialClient;
 
-  my $xpl = xPL::SerialClient->new();
-  $xpl->add_xpl_callback(name => 'xpl',
-                         callback => sub { $xpl->tick(@_) },
-                        );
-
+  sub process_buffer {
+    my ($xpl, $buffer, $last_sent) = @_;
+    ...
+    return $buffer; # any unprocessed bytes
+  }
+  my $xpl = xPL::SerialClient->new(reader_callback => \&process_buffer);
   $xpl->main_loop();
 
 =head1 DESCRIPTION
@@ -31,6 +32,7 @@ use warnings;
 use English qw/-no_match_vars/;
 use FileHandle;
 use Getopt::Long;
+use Time::HiRes;
 use IO::Socket::INET;
 use Pod::Usage;
 use xPL::Client;
@@ -46,7 +48,10 @@ our $VERSION = qw/$Revision$/[1];
 __PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device
                                                     device_handle
                                                     reader_callback
-                                                    ack_timeout/);
+                                                    ack_timeout
+                                                    ack_timeout_callback
+                                                    discard_buffer_timeout
+                                                    output_record_separator/);
 
 =head2 C<new(%params)>
 
@@ -67,13 +72,28 @@ additional elements:
 
 =item reader_callback
 
-  The code ref to call when the device is ready to be read.
+  The code ref to call when the read buffer changes.
 
 =item ack_timeout
 
   If defined it is the amount of time in seconds to wait before
   assuming that the client is ready for more input.  The default is
   undefined which means wait forever (for a response).
+
+=item ack_timeout_callback
+
+  Only valid if the ack_timeout is specified.  This callback is
+  executed if the ack_timeout expires.
+
+=item discard_buffer_timeout
+
+  Discard the contents of the input buffer if it is non-empty and
+  unprocessed after this many seconds.  Default is to wait forever
+  for a complete record to arrive.
+
+=item getopts
+
+  Additional arguments to C<Getopt::Long::GetOptions>.  Default is none.
 
 =back
 
@@ -103,6 +123,7 @@ sub new {
              'define=s' => \%opt,
              'help|?|h' => \$help,
              'man' => \$man,
+             @{$p{getopts}|| [] }
             ) or pod2usage(2);
   pod2usage(1) if ($help);
   pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
@@ -135,13 +156,17 @@ sub new {
   $self->add_input(handle => $fh,
                    callback => sub {
                      my ($handle, $args) = @_;
-                     return $args->[0]->($handle, $args);
+                     return $args->[0]->device_reader($handle, $args);
                    },
-                   arguments => $self);
+                   arguments => [$self]);
   $self->{_device_handle} = $fh;
   $self->{_reader_callback} = $p{reader_callback};
   $self->{_ack_timeout} = $p{ack_timeout};
+  $self->{_ack_timeout_callback} = $p{ack_timeout_callback};
+  $self->{_discard_buffer_timeout} = $p{discard_buffer_timeout};
+  $self->{_output_record_separator} = $p{output_record_separator};
   $self->{_q} = xPL::Queue->new;
+  $self->{_buf} = '';
   return $self;
 }
 
@@ -155,7 +180,22 @@ just override this method to implement specific behaviour.
 
 sub device_reader {
   my ($self, $handle) = @_;
-  $self->{_reader_callback}->($self, $handle);
+  if ($self->{_discard_buffer_timeout}) {
+    if ($self->{_buf} ne '' &&
+        $self->{_last_read} < (Time::HiRes::time -
+                               $self->{_discard_buffer_timeout})) {
+      print STDERR "Discarding: ", (unpack 'H*', $self->{_buf}), "\n";
+      $self->{_buf} = '';
+    }
+  }
+  my $bytes = $handle->sysread($self->{_buf}, 2048, length($self->{_buf}));
+  unless ($bytes) {
+    die "Serial read failed: $!\n" unless (defined $bytes);
+    die "Serial device closed\n";
+  }
+  $self->{_last_read} = Time::HiRes::time;
+  $self->{_buf} =
+    $self->{_reader_callback}->($self, $self->{_buf}, $self->{_waiting});
   $self->write_next();
   return 1;
 }
@@ -193,12 +233,17 @@ sub write_next {
   my $fh = $self->device_handle;
   print 'sending: ', $msg, "\n" if ($self->verbose);
   my $raw = ref $msg ? $msg->raw : $msg;
+  my $ors = $self->{_output_record_separator};
+  $raw .= $ors if (defined $ors);
   syswrite($fh, $raw, length($raw));
   $self->{_waiting} = $msg;
   my $ack_timeout = $self->{_ack_timeout};
   if (defined $ack_timeout) {
     $self->add_timer(id => '!waiting', timeout => $ack_timeout,
-                    callback => sub { $self->write_next(); 1; });
+                    callback => sub {
+                      defined $self->{_ack_timeout_callback} and
+                        $self->{_ack_callback}->($self, $self->{_waiting});
+                      $self->write_next(); 1; });
   }
   $fh->flush();
 }
