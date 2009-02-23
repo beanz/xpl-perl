@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 =head1 NAME
 
 xpl-dmx - Perl script for an xPL DMX Transmitter application
@@ -32,43 +30,24 @@ Milford Instruments.
 
 use strict;
 use warnings;
-use English qw/-no_match_vars/;
-use FileHandle;
-use Getopt::Long;
-use IO::Socket::INET;
 use List::Util qw/min max/;
-use Pod::Usage;
 use Time::HiRes;
-use xPL::Client;
-use xPL::Queue;
+use xPL::SerialClient;
 $|=1; # autoflush helps debugging
-
-my %args = ( vendor_id => 'bnz', device_id => 'dmx', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $baud = 9600;
 my $rgb_txt = '/etc/X11/rgb.txt';
-GetOptions('verbose+' => \$verbose,
-           'interface=s' => \$interface,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-           'baud=i' => \$baud,
-           'rgb|c=s' => \$rgb_txt,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
 
-my $dev = shift or pod2usage(-message => "The device parameter is required",
-                             -exitstatus => 1);
+{ # shortcut to save typing
+ package Msg;
+ use base 'xPL::SerialClient::BinaryMessage';
+ 1;
+}
+
+sub device_reader;
 
 # Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::SerialClient->new(reader_callback => \&device_reader,
+                                 getopts => ['rgb|c=s' => \$rgb_txt],) or
+  die "Failed to create xPL::SerialClient\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'dmx',
@@ -82,25 +61,6 @@ $xpl->add_xpl_callback(id => 'dmx',
 
 my $rgb = read_rgb_txt($rgb_txt) or die "Failed to read $rgb_txt: $!\n";
 
-my $fh;
-if ($dev =~ /\//) {
-  # TODO: use Device::SerialPort?
-  system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
-    die "Setting serial port with stty failed: $!\n";
-  $fh = FileHandle->new;
-  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
-    or die "Cannot open serial connection on device '$dev'\n";
-  $fh->autoflush(1);
-  binmode($fh);
-} else {
-  $dev .= ':10001' unless ($dev =~ /:/);
-  $fh = IO::Socket::INET->new($dev)
-    or die "Cannot TCP connection to device at '$dev'\n";
-}
-$xpl->add_input(handle => $fh, callback => \&dmx_reader);
-
-my $queue = xPL::Queue->new;
-my $waiting = undef;
 my @values = ();
 my %fade = ();
 our $MIN_VISIBLE_DIFF = 4;
@@ -121,7 +81,8 @@ sub xpl_in {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
   if ($msg->base =~ /hex/) { # hack to aid debug
-    queue_dmx($msg->value, $msg);
+    $xpl->write(Msg->new(hex => $msg->value, data => $msg,
+                         desc => 'debug message'));
     return 1;
   }
   return 1 unless ($msg->base =~ /^(\d+)(x(\d+))?$/);
@@ -160,7 +121,8 @@ sub dmx_set {
     $values[$base+$i] = $v[$i%$l];
   }
   my $comm = '01'.(sprintf "%04x", $base).($hex x $multi);
-  queue_dmx($comm, $msg);
+  $xpl->write(Msg->new(hex => $comm, data => $msg,
+                      desc => "set ${base}x$multi=$hex"));
   return 1;
 }
 
@@ -255,22 +217,18 @@ sub _next_change {
   return $nt > $f->{end_t} ? $f->{end_t} : $nt;
 }
 
-=head2 C<dmx_reader()>
+=head2 C<device_reader()>
 
 This is the callback that processes output from the DMX transmitter.
 It is responsible for sending out the sensor.basic xpl-trig messages.
 
 =cut
 
-sub dmx_reader {
-  my $buf;
-  my $bytes = $fh->sysread($buf, 512);
-  return unless ($buf);
-  print "received: ", (unpack "H*", $buf), "\n" if ($verbose);
-  send_xpl_confirm($waiting) if (ref $waiting);
-  undef $waiting;
-  send_dmx();
-  return 1;
+sub device_reader {
+  my ($xpl, $buf, $last) = @_;
+  print "received: ", (unpack "H*", $buf), "\n" if ($xpl->verbose);
+  send_xpl_confirm($last->data) if (ref $last && ref $last->data);
+  return '';
 }
 
 sub send_xpl_confirm {
@@ -283,40 +241,6 @@ sub send_xpl_confirm {
               base => $msg->base,
               value => $msg->value,
              });
-}
-
-=head2 C<queue_dmx( $dmx_message, $xpl_message )>
-
-This functions is used to queue text commands to the DMX transmitter.
-
-=cut
-
-sub queue_dmx {
-  my $dmx_message = shift;
-  my $xpl_message = shift;
-  $queue->enqueue([ $dmx_message, $xpl_message ]);
-  print "queued: $dmx_message\n" if ($verbose);
-  if (!defined $waiting) {
-    return send_dmx();
-  }
-  return 1;
-}
-
-=head2 C<send_dmx( )>
-
-This functions is used to send text commands to the DMX transmitter.
-
-=cut
-
-sub send_dmx {
-  my $item = $queue->dequeue;
-  return if (!defined $item);
-  my ($hex, $xpl_msg) = @$item;
-  print "sending: $hex\n" if ($verbose);
-  my $raw = pack("H*", $hex);
-  syswrite($fh, $raw, length($raw));
-  $fh->flush();
-  $waiting = $xpl_msg || 1;
 }
 
 =head2 C<read_rgb_txt( $file )>
