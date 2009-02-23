@@ -39,7 +39,6 @@ use xPL::SerialClient;
 use xPL::SerialClient::BinaryMessage;
 $|=1; # autoflush helps debugging
 
-sub device_reader;
 {
  package Msg;
  use base 'xPL::SerialClient::BinaryMessage';
@@ -50,6 +49,8 @@ sub device_reader;
  }
  1;
 }
+
+sub device_reader;
 
 my $xpl = xPL::SerialClient->new(reader_callback => \&device_reader,
                                  ack_timeout => 0.05);
@@ -112,11 +113,9 @@ responsible for sending out the sensor.basic xpl-trig messages.
 =cut
 
 sub device_reader {
-  my ($xpl, $fh) = @_;
-  my $buf = '';
-  my $bytes = $fh->sysread($buf, 512);
+  my ($xpl, $buf, $last) = @_;
   print 'received: ', (unpack 'H*', $buf), "\n" if ($xpl->verbose);
-  return 1;
+  return '';
 }
 
 # send a 'hbeat.end' message on exit
