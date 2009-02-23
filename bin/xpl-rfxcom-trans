@@ -35,53 +35,41 @@ and up to 48bits'-mode.
 
 use strict;
 use warnings;
-use English qw/-no_match_vars/;
-use FileHandle;
-use Getopt::Long;
-use Pod::Usage;
-use IO::Socket::INET;
-use Time::HiRes;
-use xPL::Client;
-use xPL::Queue;
+use xPL::SerialClient;
+use xPL::SerialClient::BinaryMessage;
 use xPL::RF qw/:all/;
 use xPL::X10 qw/:all/;
 use xPL::HomeEasy qw/:all/;
 $|=1; # autoflush helps debugging
 
-my %args = ( vendor_id => 'bnz', device_id => 'rfxcomt', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $baud = 4800;
+{
+  package Msg;
+  use base 'xPL::SerialClient::BinaryMessage';
+  1;
+}
+
+sub device_reader;
+sub reset_device;
+
 my $receiver_connected;
 my $flamingo;
 my $harrison;
 my $koko;
 my $no_x10;
-GetOptions('verbose+' => \$verbose,
-           'interface=s' => \$interface,
-           'baud=i' => \$baud,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-           'receiver_connected' => \$receiver_connected,
-           'flamingo' => \$flamingo,
-           'harrison' => \$harrison,
-           'koko' => \$koko,
-           'no_x10|x' => \$no_x10,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
 
-my $dev = shift or pod2usage(-message => 'The device parameter is required',
-                             -exitstatus => 1);
-
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+my $xpl = xPL::SerialClient->new(name => 'rfxcomt',
+                                 baud => 4800,
+                                 reader_callback => \&device_reader,
+                                 ack_timeout => 6,
+                                 ack_timeout_callback => \&reset_device,
+                                 getopts =>
+                                 [
+                                  'receiver_connected' => \$receiver_connected,
+                                  'flamingo' => \$flamingo,
+                                  'harrison' => \$harrison,
+                                  'koko' => \$koko,
+                                  'no_x10|x' => \$no_x10,
+                                 ]) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'xpl-x10', callback => \&xpl_x10,
@@ -100,72 +88,19 @@ $xpl->add_xpl_callback(id => 'xpl-homeeasy', callback => \&xpl_homeeasy,
                         class_type => 'basic',
                        });
 
-my $last_read = 0;
-my $buf = q{};
 my $rf = xPL::RF->new(source => $xpl->id) or
   die "Failed to create RF decode object\n";
 
-my $fh;
-if ($dev =~ /\//) {
-  # TODO: use Device::SerialPort?
-  system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
-    die "Setting serial port with stty failed: $!\n";
-  $fh = FileHandle->new;
-  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
-    or die "Cannot open serial connection on device '$dev'\n";
-  $fh->autoflush(1);
-  binmode($fh);
-} else {
-  $dev .= ':10001' unless ($dev =~ /:/);
-  $fh = IO::Socket::INET->new($dev)
-    or die "Cannot TCP connection to device at '$dev'\n";
-}
-
-$xpl->add_input(handle => $fh, callback => \&rfxcom_reader);
-
-{
-  package msg;
-  sub new {
-    my $pkg = shift;
-    my %p = @_;
-    bless \%p, $pkg;
-    unless (exists $p{hex} or exists $p{raw}) {
-      return;
-    }
-    return \%p;
-  }
-  sub hex {
-    $_[0]->{hex} or $_[0]->{hex} = unpack 'H*', $_[0]->{raw};
-  }
-  sub raw {
-    $_[0]->{raw} or $_[0]->{raw} = pack 'H*', $_[0]->{hex};
-  }
-  sub str {
-    $_[0]->hex.($_[0]->{desc} ? ': '.$_[0]->{desc} : '');
-  }
-  use overload ( '""'  => \&str);
-  1;
-}
-
-my $queue = xPL::Queue->new();
-$queue->enqueue(msg->new(hex => 'F030F030', desc => 'init/version check'));
-$queue->enqueue($receiver_connected ?
-                msg->new(hex => 'F033F033',
-                         desc => 'variable length mode w/receiver connected') :
-                msg->new(hex => 'F037F037',
-                         desc => 'variable length mode w/o receiver connected')
-               );
-$queue->enqueue(msg->new(hex => 'F03CF03C', desc => 'enabling harrison'))
+$xpl->write(Msg->new(hex => 'F030F030', desc => 'init/version check'));
+init_device($xpl);
+$xpl->write(Msg->new(hex => 'F03CF03C', desc => 'enabling harrison'))
   if ($harrison);
-$queue->enqueue(msg->new(hex => 'F03DF03D', desc => 'enabling klikon-klikoff'))
+$xpl->write(Msg->new(hex => 'F03DF03D', desc => 'enabling klikon-klikoff'))
   if ($koko);
-$queue->enqueue(msg->new(hex => 'F03EF03E', desc => 'enabling flamingo'))
+$xpl->write(Msg->new(hex => 'F03EF03E', desc => 'enabling flamingo'))
   if ($flamingo);
-$queue->enqueue(msg->new(hex => 'F03FF03F', desc => 'disabling x10'))
+$xpl->write(Msg->new(hex => 'F03FF03F', desc => 'disabling x10'))
   if ($no_x10);
-
-my $waiting = undef;
-send_rfxcom();
 
 # Run the main loop
 $xpl->main_loop();
@@ -186,23 +121,23 @@ sub xpl_x10 {
   if ($msg->house) {
     foreach (split //, $msg->house) {
       my $rf_msg =
-        msg->new(raw => encode_x10(command => $msg->command,
+        Msg->new(raw => encode_x10(command => $msg->command,
                                    house => $msg->house),
                  desc => $msg->house.' '.$msg->command);
       foreach (1..$msg->extra_field('repeat')||1) {
-        queue_rfxcom($rf_msg);
+        $xpl->write($rf_msg);
       }
     }
   } elsif ($msg->device) {
     foreach (split /,/, $msg->device) {
       my ($house, $unit) = /^([a-p])(\d+)$/i or next;
       my $rf_msg =
-        msg->new(raw => encode_x10(command => $msg->command,
+        Msg->new(raw => encode_x10(command => $msg->command,
                                    house => $house,
                                    unit => $unit),
                  desc => $house.$unit.' '.$msg->command);
       foreach (1..$msg->extra_field('repeat')||1) {
-        queue_rfxcom($rf_msg);
+        $xpl->write($rf_msg);
       }
     }
   } else {
@@ -241,14 +176,14 @@ sub xpl_homeeasy {
     }
     $args{level} = $level;
   }
-  my $rf_msg = msg->new(raw => encode_homeeasy(%args), desc => $msg->summary);
+  my $rf_msg = Msg->new(raw => encode_homeeasy(%args), desc => $msg->summary);
   foreach (1..$msg->extra_field('repeat')||1) {
-    queue_rfxcom($rf_msg);
+    $xpl->write($rf_msg);
   }
   return 1;
 }
 
-=head2 C<rfxcom_reader()>
+=head2 C<device_reader()>
 
 This is the callback that processes output from the RFXCOM transmitter.
 It is responsible for reading the 'ACK' messages and sending out any
@@ -256,51 +191,28 @@ queued transmit messages.
 
 =cut
 
-sub rfxcom_reader {
-  my $buf = '';
-  my $bytes = $fh->sysread($buf, 512, 0);
-  unless ($bytes) {
-    warn "Device closed\n";
-    exit;
-  }
+sub device_reader {
+  my ($xpl, $buf) = @_;
   print 'received: ', unpack('H*', $buf), "\n";
-  if (defined $waiting) {
-    $xpl->remove_timer('wait_for_ack');
-    undef $waiting;
-  }
-  send_rfxcom();
-  return 1;
+  return '';
 }
 
-sub queue_rfxcom {
-  my $msg = shift;
-  print 'queued:   ', $msg->str, "\n";
-  $queue->enqueue($msg);
-  return send_rfxcom() if (!defined $waiting);
-  return -$queue->length();
+sub init_device {
+  my ($xpl) = @_;
+  $xpl->write($receiver_connected ?
+              Msg->new(hex => 'F033F033',
+                       desc =>
+                       'variable length mode w/receiver connected') :
+              Msg->new(hex => 'F037F037',
+                       desc =>
+                       'variable length mode w/o receiver connected'));
 }
 
-sub send_rfxcom {
-  my $msg = shift || $queue->dequeue();
-  return unless (defined $msg);
-  print 'sending:  ', $msg->str, "\n";
-  my $raw = $msg->raw;
-  syswrite($fh, $raw, length($raw));
-  $fh->flush();
-  $waiting = 1;
-  $xpl->add_timer(id => 'wait_for_ack', timeout => 6,
-                  callback => sub {
-                    print STDERR "No ack!\n";
-                    $xpl->remove_timer('wait_for_ack');
-                    send_rfxcom($receiver_connected ?
-                                msg->new(hex => 'F033F033',
-                                         desc =>
-                                         'variable length mode w/receiver connected') :
-                                msg->new(hex => 'F037F037',
-                                         desc =>
-                                         'variable length mode w/o receiver connected'));
-                    1;
-              });
+sub reset_device {
+  my ($xpl, $waiting) = @_;
+  print STDERR "No ack!\n";
+  init_device($xpl);
+  1;
 }
 
 sub encode_x10 {
