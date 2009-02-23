@@ -27,30 +27,18 @@ are several usage examples provided by the xPL Perl distribution.
 use 5.006;
 use strict;
 use warnings;
-
-use English qw/-no_match_vars/;
-use FileHandle;
-use Getopt::Long;
-use IO::Socket::INET;
-use Pod::Usage;
-use xPL::Client;
-
 use Exporter;
-our @ISA = qw(xPL::Client);
+our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device
-                                                    device_handle
-                                                    reader_callback/);
-
 =head2 C<new(%params)>
 
-The constructor creates a new xPL::SerialClient object.  The
-constructor takes a parameter hash as arguments.  Valid parameters in
-the hash are:
+The constructor creates a new xPL::SerialClient::BinaryMessage object.
+The constructor takes a parameter hash as arguments.  Valid parameters
+in the hash are:
 
 =over 4
 
@@ -65,6 +53,10 @@ the hash are:
 =item desc
 
   A human-readable description of the message.
+
+=item data
+
+  Free form user data.
 
 =back
 
@@ -93,6 +85,10 @@ sub raw {
 
 sub str {
   $_[0]->hex.($_[0]->{desc} ? ': '.$_[0]->{desc} : '');
+}
+
+sub data {
+  $_[0]->{data};
 }
 
 use overload ( '""'  => \&str);
