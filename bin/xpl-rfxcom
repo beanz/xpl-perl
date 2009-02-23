@@ -27,102 +27,53 @@ This script is an xPL client that interfaces with an RFXCOM RF receiver.
 
 use strict;
 use warnings;
-use English qw/-no_match_vars/;
-use FileHandle;
-use Getopt::Long;
-use Pod::Usage;
-use IO::Socket::INET;
-use Time::HiRes;
-use xPL::Client;
+use xPL::SerialClient;
+use xPL::SerialClient::BinaryMessage;
 use xPL::RF qw/:all/;
 $|=1; # autoflush helps debugging
 
-my %args = ( vendor_id => 'bnz', device_id => 'rfxcom', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $baud = 4800;
-GetOptions('verbose+' => \$verbose,
-           'interface=s' => \$interface,
-           'baud=i' => \$baud,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
+{ # shortcut to save typing
+  package Msg;
+  use base 'xPL::SerialClient::BinaryMessage';
+  1;
+}
 
-my $dev = shift or pod2usage(-message => "The device parameter is required",
-                             -exitstatus => 1);
+sub device_reader;
 
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+# We discard (incomplete) data in the buffer if last read was more
+# than 30ms ago - in line with Bert's comments on xPL list
+my $xpl = xPL::SerialClient->new(baud => 4800,
+                                 reader_callback => \&device_reader,
+                                 discard_buffer_timeout => 0.03) or
+  die "Failed to create xPL::Client\n";
 
-my $last_read = 0;
-my $buf = q{};
 my $rf = xPL::RF->new(source => $xpl->id) or
   die "Failed to create RF decode object\n";
 
-my $fh;
-if ($dev =~ /\//) {
-  # TODO: use Device::SerialPort?
-  system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
-    die "Setting serial port with stty failed: $!\n";
-  $fh = FileHandle->new;
-  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
-    or die "Cannot open serial connection on device '$dev'\n";
-  $fh->autoflush(1);
-  binmode($fh);
-} else {
-  $dev .= ':10001' unless ($dev =~ /:/);
-  $fh = IO::Socket::INET->new($dev)
-    or die "Cannot TCP connection to device at '$dev'\n";
-}
 
-$xpl->add_input(handle => $fh, callback => \&rfxcom_reader);
-
-my @send = ("F020", "F02A", 'F041');
-$xpl->add_timer(id => 'sender', timeout => -1,
-                callback => sub { my $m = shift @send;
-                                  return 0 unless ($m);
-                                  send_rfxcom($m);
-                                  return 1;
-                                });
+$xpl->write(Msg->new(hex => 'F020', desc => 'version check'));
+$xpl->write(Msg->new(hex => "F02A",
+                     desc => 'enable all possible receiving modes'));
+$xpl->write(Msg->new(hex => 'F041', desc => 'variable length with visonic'));
 
 # Run the main loop
 $xpl->main_loop();
 
-=head2 C<rfxcom_reader()>
+=head2 C<device_reader()>
 
 This is the callback that processes output from the RFXCOM.  It is
 responsible for sending out the sensor.basic xpl-trig messages.
 
 =cut
 
-sub rfxcom_reader {
-  if ($buf ne '' and $last_read < Time::HiRes::time - 0.03) {
-    # discard (incomplete) data in the buffer if last read was more than
-    # 30ms ago - in line with Bert's comments on xPL list
-    print "Discarding: ", hex_dump($buf), "\n";
-    $buf = q{};
-  }
-  my $bytes = $fh->sysread($buf, 512, length($buf));
-  unless ($bytes) {
-    warn "Device closed\n";
-    exit;
-  }
-  $last_read = Time::HiRes::time;
-
+sub device_reader {
+  my ($xpl, $buf, $last) = @_;
   my $res = $rf->process_variable_length($buf);
   if (defined $res) {
     # truncate buffer by given length
     my $m = substr($buf, 0, $res->{length}, '') if ($res->{length});
     print "Processed: ", unpack("H*", $m), "\n"
-      if ($verbose && $m && !$res->{duplicate});
+      if ($xpl->verbose && $m && !$res->{duplicate});
     return 1 unless ($res->{messages} && ref($res->{messages}));
     foreach my $msg (@{$res->{messages}}) {
       print $msg->summary,"\n";
@@ -133,16 +84,7 @@ sub rfxcom_reader {
     print "Not a variable length message: ", hex_dump($buf), "\n";
     $buf = '';
   }
-  return 1;
-}
-
-sub send_rfxcom {
-  my $msg = shift;
-  my $quiet = shift;
-  print "Sending '$msg' to rfxcom receiver\n" if (!$quiet && $verbose);
-  $msg = pack("H*", $msg);
-  syswrite($fh, $msg, length($msg));
-  $fh->flush();
+  return $buf;
 }
 
 # send a 'hbeat.end' message on exit
