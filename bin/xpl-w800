@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 =head1 NAME
 
 xpl-w800 - Perl script for an xPL W800 RF receiver application
@@ -27,68 +25,32 @@ This script is an xPL client that interfaces with a W800 RF receiver.
 
 use strict;
 use warnings;
-use English qw/-no_match_vars/;
-use FileHandle;
-use Getopt::Long;
-use Pod::Usage;
-use xPL::Client;
+use xPL::SerialClient;
 use xPL::RF;
 $|=1; # autoflush helps debugging
 
-my %args = ( vendor_id => 'bnz', device_id => 'w800', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $baud = 4800;
-GetOptions('verbose+' => \$verbose,
-           'interface=s' => \$interface,
-           'baud=i' => \$baud,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
+my $xpl = xPL::SerialClient->new(reader_callback => \&device_reader,
+                                 baud => 4800) or
+  die "Failed to create xPL::SerialClient\n";
 
-my $dev = shift or pod2usage(-message => "The device parameter is required",
-                             -exitstatus => 1);
-
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
-
-my $buf = q{};
 my $rf = xPL::RF->new(source => $xpl->id) or
   die "Failed to create RF decode object\n";
-
-# TODO: use Device::SerialPort?
-system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
-  die "Setting serial port with stty failed: $!\n";
-my $fh = FileHandle->new;
-sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
-  or die "Cannot open serial connection on device '$dev'\n";
-$fh->autoflush(1);
-binmode($fh);
-$xpl->add_input(handle => $fh, callback => \&w800_reader);
 
 # Run the main loop
 $xpl->main_loop();
 
-=head2 C<w800_reader()>
+=head2 C<device_reader()>
 
 This is the callback that processes output from the W800.  It is
 responsible for sending out the sensor.basic xpl-trig messages.
 
 =cut
 
-sub w800_reader {
-  my $bytes = $fh->sysread($buf, 512, length($buf));
+sub device_reader {
+  my ($xpl, $buf, $last) = @_;
   while (length($buf) >= 4) {
     my $m = substr($buf, 0, 4, '');
-    print "Processed: ", unpack("H*", $m), "\n" if ($verbose);
+    print "Processing: ", unpack("H*", $m), "\n" if ($xpl->verbose);
     my $res = $rf->process_32bit($m);
     return 1 unless ($res && @$res);
     foreach my $msg (@$res) {
@@ -96,8 +58,7 @@ sub w800_reader {
       $xpl->send($msg);
     }
   }
-  $buf = '';
-  return 1;
+  return '';
 }
 
 # send a 'hbeat.end' message on exit
