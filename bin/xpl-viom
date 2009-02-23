@@ -34,41 +34,14 @@ and single digit numbers are prefixed by 0.
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
-use FileHandle;
-use Getopt::Long;
-use IO::Socket::INET;
-use Pod::Usage;
-use xPL::Client;
-use xPL::Queue;
+use xPL::SerialClientLine;
 $|=1; # autoflush helps debugging
 
-my %args = ( vendor_id => 'bnz', device_id => 'viom', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $baud = 9600;
-GetOptions('verbose+' => \$verbose,
-           'interface=s' => \$interface,
-           'baud=i' => \$baud,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
-
-my $dev = shift or pod2usage(-message => "The device parameter is required",
-                             -exitstatus => 1);
-
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
-
-my $queue = xPL::Queue->new;
-my $waiting = undef;
+sub device_reader;
+# Create an xPL SerialClient object
+my $xpl = xPL::SerialClientLine->new(reader_callback => \&device_reader,
+                                     output_record_separator => "\r\n") or
+  die "Failed to create xPL::SerialClientLine\n";
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in,
@@ -82,37 +55,19 @@ $xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in,
 # sanity check the inputs immediately and periodically so we keep
 # the current state sane even when viom is unplugged, etc.
 $xpl->add_timer(id => 'input-check', timeout => -631,
-                callback => sub { queue_viom("CIN", 1); 1; });
+                callback => sub { $xpl->write('CIN'); 1; });
 
 # sanity check the outputs immediately and periodically so we keep
 # the current state sane even when viom is unplugged, etc.
 $xpl->add_timer(id => "temp", timeout => 2, count => 1,
                 callback => sub {
-                  queue_viom('CIC1', 1);
+                  $xpl->write('CIC1', 1);
                   $xpl->add_timer(id => 'output-check', timeout => -641,
-                                  callback => sub { queue_viom("COR", 1); 1; });
+                                  callback => sub { $xpl->write('COR'); 1; });
                   return;
                 });
 
-my $buf = q{};
 my %state;
-
-my $fh;
-if ($dev =~ /\//) {
-  # TODO: use Device::SerialPort?
-  system("/bin/stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
-    die "Setting serial port with stty failed: $!\n";
-  $fh = FileHandle->new;
-  sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
-    or die "Cannot open serial connection on device '$dev'\n";
-  $fh->autoflush(1);
-  binmode($fh);
-} else {
-  $dev .= ':10001' unless ($dev =~ /:/);
-  $fh = IO::Socket::INET->new($dev)
-    or die "Cannot TCP connection to device at '$dev'\n";
-}
-$xpl->add_input(handle => $fh, callback => \&viom_reader);
 
 # Run the main loop
 $xpl->main_loop();
@@ -135,77 +90,72 @@ sub xpl_in {
   my $id = sprintf("o%02d", $num);
   my $command = lc $msg->current;
   if ($command eq "high") {
-    queue_viom(sprintf("XA%d", $num));
+    $xpl->write(sprintf("XA%d", $num));
     $state{$id} = 'high:'.time;
   } elsif ($command eq "low") {
-    queue_viom(sprintf("XB%d", $num));
+    $xpl->write(sprintf("XB%d", $num));
     $state{$id} = 'low:'.time;
   } elsif ($command eq "pulse") {
-    queue_viom(sprintf("XA%d", $num));
+    $xpl->write(sprintf("XA%d", $num));
     select(undef,undef,undef,0.15);
-    queue_viom(sprintf("XB%d", $num));
+    $xpl->write(sprintf("XB%d", $num));
     $state{$id} = 'low:'.time;
   } elsif ($command eq "toggle") {
     my ($old,$prev_time) = split(/:/,$state{$id}||"");
     # assume low
     if ($old eq "high") {
-      queue_viom(sprintf("XB%d", $num));
+      $xpl->write(sprintf("XB%d", $num));
       $state{$id} = 'low:'.time;
     } else {
-      queue_viom(sprintf("XA%d", $num));
+      $xpl->write(sprintf("XA%d", $num));
       $state{$id} = 'high:'.time;
     }
   }
   return 1;
 }
 
-=head2 C<viom_reader()>
+=head2 C<device_reader()>
 
 This is the callback that processes output from the VIOM.  It is
 responsible for sending out the sensor.basic xpl-trig messages.
 
 =cut
 
-sub viom_reader {
-  my $bytes = $fh->sysread($buf, 512, length($buf));
-  while ($buf =~ s/^(.*?)\r?\n//) {
-    undef $waiting;
-    my $line = $LAST_PAREN_MATCH;
-    my $time = time;
-    if ($line =~ /[01]{16}/) {
-      foreach my $index (0..15) {
-        my $id = sprintf("i%02d",$index+1);
-        my $new = substr($line, $index, 1) ? "high" : "low";
-        my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
-        if ($new ne $old) {
-          $state{$id} = $new.":".$time;
+sub device_reader {
+  my ($xpl, $line, $last) = @_;
+  my $time = time;
+  if ($line =~ /[01]{16}/) {
+    foreach my $index (0..15) {
+      my $id = sprintf("i%02d",$index+1);
+      my $new = substr($line, $index, 1) ? "high" : "low";
+      my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
+      if ($new ne $old) {
+        $state{$id} = $new.":".$time;
           send_xpl($id, $new);
-        }
-      }
-    } elsif ($line =~ /^Input (\d+) (Inactive|Active)$/) {
-      my $id = sprintf("i%02d",$1);
-      my $new = $2 eq "Active" ? "high" : "low";
-      my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
-      if ($new ne $old) {
-        $state{$id} = $new.":".$time;
-      } else {
-        # only print these if something has changed
-        next;
-      }
-    } elsif ($line =~ /^Output (\d+) (Inactive|Active)$/) {
-      my $id = sprintf("o%02d",$1);
-      my $new = $2 eq "Active" ? "high" : "low";
-      my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
-      if ($new ne $old) {
-        $state{$id} = $new.":".$time;
-      } else {
-        # only print these if something has changed
-        next;
       }
     }
-    print $line,"\n" if ($verbose);
+  } elsif ($line =~ /^Input (\d+) (Inactive|Active)$/) {
+    my $id = sprintf("i%02d",$1);
+    my $new = $2 eq "Active" ? "high" : "low";
+    my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
+    if ($new ne $old) {
+      $state{$id} = $new.":".$time;
+    } else {
+      # only print these if something has changed
+      return;
+    }
+  } elsif ($line =~ /^Output (\d+) (Inactive|Active)$/) {
+    my $id = sprintf("o%02d",$1);
+    my $new = $2 eq "Active" ? "high" : "low";
+    my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
+    if ($new ne $old) {
+      $state{$id} = $new.":".$time;
+    } else {
+      # only print these if something has changed
+      return;
+    }
   }
-  send_viom();
+  print $line,"\n" if ($xpl->verbose);
   return 1;
 }
 
@@ -225,40 +175,8 @@ sub send_xpl {
      class => 'sensor.basic',
      body => { device => $device, type => 'input', current => $level },
     );
-  print STDERR "Sending $device $level\n" if ($verbose);
+  print STDERR "Sending $device $level\n" if ($xpl->verbose);
   return $xpl->send(%args);
-}
-
-=head2 C<queue_viom( $message )>
-
-This functions is used to queue text commands to be sent to the VIOM.
-
-=cut
-
-sub queue_viom {
-  my $msg = shift;
-  $queue->enqueue($msg);
-  print "queued: $msg\n" if ($verbose);
-  if (!defined $waiting) {
-    return send_viom();
-  }
-  return 1;
-}
-
-=head2 C<send_viom( $message )>
-
-This functions is used to send text commands to the VIOM.
-
-=cut
-
-sub send_viom {
-  my $msg = $queue->dequeue;
-  return if (!defined $msg);
-  print "sending: $msg\n" if ($verbose);
-  $msg .= "\r\n";
-  syswrite($fh, $msg, length($msg));
-  $fh->flush();
-  $waiting = 1;
 }
 
 # send a 'hbeat.end' message on exit
