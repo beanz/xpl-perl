@@ -18,8 +18,8 @@ bin/xpl-mpd
 bin/xpl-owfs
 bin/xpl-packet-trace
 bin/xpl-perl-setup
-bin/xpl-rfxcom
-bin/xpl-rfxcom-trans
+bin/xpl-rfxcom-rx
+bin/xpl-rfxcom-tx
 bin/xpl-rrd
 bin/xpl-rrd-graphs
 bin/xpl-sender

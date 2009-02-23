@@ -1,14 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 =head1 NAME
 
-xpl-rfxcom - Perl script for an xPL RFXCOM RF receiver application
+xpl-rfxcom-rx - Perl script for an xPL RFXCOM RF receiver application
 
 =head1 SYNOPSIS
 
-  xpl-rfxcom [flags] [options] <device>
+  xpl-rfxcom-rx [flags] [options] <device>
   where valid flags are:
     -h - show this help text
     -v - verbose mode
@@ -16,8 +14,8 @@ xpl-rfxcom - Perl script for an xPL RFXCOM RF receiver application
     -i if0  - the interface for xPL messages (first non-loopback or loopback)
     -B baud - the baud rate (4800)
 
-  # start the rfxcom application on first ethernet interface in verbose mode
-  xpl-rfxcom -i eth0 -v
+  # start the rfxcom-rx application on first ethernet interface in verbose mode
+  xpl-rfxcom-rx -i eth0 -v
 
 =head1 DESCRIPTION
 

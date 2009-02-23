@@ -1,14 +1,12 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 =head1 NAME
 
-xpl-rfxcom-trans - Perl script for an xPL RFXCOM RF transmitter application
+xpl-rfxcom-tx - Perl script for an xPL RFXCOM RF transmitter application
 
 =head1 SYNOPSIS
 
-  xpl-rfxcom-trans [flags] [options] <device>
+  xpl-rfxcom-tx [flags] [options] <device>
   where valid flags are:
     -h - show this help text
     -v - verbose mode
@@ -21,9 +19,9 @@ xpl-rfxcom-trans - Perl script for an xPL RFXCOM RF transmitter application
     -i if0  - the interface for xPL messages (first non-loopback or loopback)
     -B baud - the baud rate (4800)
 
-  # start the rfxcom-trans application on first ethernet interface in
+  # start the rfxcom-tx application on first ethernet interface in
   # verbose mode
-  xpl-rfxcom-trans -i eth0 -v
+  xpl-rfxcom-tx -i eth0 -v
 
 =head1 DESCRIPTION
 
@@ -57,8 +55,7 @@ my $harrison;
 my $koko;
 my $no_x10;
 
-my $xpl = xPL::SerialClient->new(name => 'rfxcomt',
-                                 baud => 4800,
+my $xpl = xPL::SerialClient->new(baud => 4800,
                                  reader_callback => \&device_reader,
                                  ack_timeout => 6,
                                  ack_timeout_callback => \&reset_device,
