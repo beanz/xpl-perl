@@ -63,7 +63,7 @@ sub new {
 
   my %p = @_;
 
-  $self->{_output_record_separator} = '\r'
+  $self->{_output_record_separator} = "\r"
     unless (defined $self->{_output_record_separator});
   my $irs =
     $self->{_input_record_separator} = $p{input_record_separator} || '\r?\n';
@@ -81,6 +81,14 @@ just override this method to implement specific behaviour.
 
 sub device_reader {
   my ($self, $handle) = @_;
+  if ($self->{_discard_buffer_timeout}) {
+    if ($self->{_buf} ne '' &&
+        $self->{_last_read} < (Time::HiRes::time -
+                               $self->{_discard_buffer_timeout})) {
+      print STDERR "Discarding: ", (unpack 'H*', $self->{_buf}), "\n";
+      $self->{_buf} = '';
+    }
+  }
   my $bytes = $handle->sysread($self->{_buf}, 512, length($self->{_buf}));
   unless ($bytes) {
     die "Serial read failed: $!\n" unless (defined $bytes);

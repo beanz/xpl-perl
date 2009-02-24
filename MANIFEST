@@ -95,8 +95,8 @@ lib/xPL/schema/x10.basic.yaml
 lib/xPL/schema/x10.confirm.yaml
 lib/xPL/schema/x10.security.yaml
 lib/xPL/SerialClient/BinaryMessage.pm
-lib/xPL/SerialClient.pm
 lib/xPL/SerialClientLine.pm
+lib/xPL/SerialClient.pm
 lib/xPL/Timer/cron.pm
 lib/xPL/Timer.pm
 lib/xPL/Timer/recurrence.pm
@@ -143,11 +143,13 @@ t/04-queue.t
 t/05-listener-send-methods.t
 t/05-listener.t
 t/06-hub.t
+t/07-client-hubless.t
 t/07-client-ping.t
 t/07-client.t
-t/07-client-hubless.t
 t/08-bridge-client.t
 t/08-bridge.t
+t/08-serialclientline.t
+t/08-serialclient.t
 t/09-hub-ignore-remote-hbeat.t
 t/09-targetting.t
 t/10-mainloop.t
