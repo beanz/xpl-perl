@@ -44,10 +44,11 @@ This script will attempt to set up a group 'xplperl' and two users
     one-wire filesystem is mounted on another mountpoint, then set
     the environment variable XPL_OWFS to the mountpoint and re-run the script.
 
-  xpl-rfxcom - if the environment variable XPL_RFXCOM_TTY is defined with
-    the name of the tty device that an RFXCOM receiver is attached to.
+  xpl-rfxcom-rx - if the environment variable XPL_RFXCOM_RX_TTY is
+    defined with the name of the tty device that an RFXCOM receiver
+    is attached to.
 
-  xpl-rfxcom-trans - if the environment variable XPL_RFXCOM_TRANS_TTY is
+  xpl-rfxcom-tx - if the environment variable XPL_RFXCOM_TX_TTY is
     defined with the name of the tty device that an RFXCOM transmitter
     is attached to.
 
@@ -294,21 +295,21 @@ fi
 echo
 
 if test -n "$XPL_RFXCOM_TTY" ;then
-    echo Setting up xpl-rfxcom using $XPL_RFXCOM_TTY
-    make_service xpl-rfxcom "$BIN/xpl-rfxcom -v $XPL_RFXCOM_TTY"
-    link_service xpl-rfxcom
+    echo Setting up xpl-rfxcom-rx using $XPL_RFXCOM_TTY
+    make_service xpl-rfxcom-rx "$BIN/xpl-rfxcom-rx -v $XPL_RFXCOM_TTY"
+    link_service xpl-rfxcom-rx
 else
-    echo XPL_RFXCOM_TTY not defined, not configuring xpl-rfxcom
+    echo XPL_RFXCOM_RX_TTY not defined, not configuring xpl-rfxcom-rx
 fi
 echo
 
-if test -n "$XPL_RFXCOM_TRANS_TTY" ;then
-    echo Setting up xpl-rfxcom-trans using $XPL_RFXCOM_TRANS_TTY
-    make_service xpl-rfxcom-trans \
-                 "$BIN/xpl-rfxcom-trans -v $XPL_RFXCOM_TRANS_TTY"
-    link_service nxpl-rfxcom-trans
+if test -n "$XPL_RFXCOM_TX_TTY" ;then
+    echo Setting up xpl-rfxcom-tx using $XPL_RFXCOM_TX_TTY
+    make_service xpl-rfxcom-tx \
+                 "$BIN/xpl-rfxcom-tx -v $XPL_RFXCOM_TX_TTY"
+    link_service xpl-rfxcom-tx
 else
-    echo XPL_RFXCOM_TRANS_TTY not defined, not configuring xpl-rfxcom-trans
+    echo XPL_RFXCOM_TX_TTY not defined, not configuring xpl-rfxcom-tx
 fi
 echo
 
