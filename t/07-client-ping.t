@@ -4,7 +4,7 @@
 
 use strict;
 use Socket;
-use Test::More tests => 8;
+use Test::More tests => 10;
 use Time::HiRes;
 use t::Helpers qw/test_warn test_error/;
 $|=1;
@@ -45,6 +45,11 @@ fake_hub_response($xpl, message_type => 'xpl-cmnd',
                   class => "ping.request");
 $xpl->main_loop(1);
 ok($xpl->exists_timer('!ping-response'), 'ping response timer created');
+fake_hub_response($xpl, message_type => 'xpl-cmnd',
+                  class => "ping.request");
+$xpl->main_loop(1);
+ok($xpl->exists_timer('!ping-response'), 'ping response timer still exists');
+# TODO: should check that the timeout isn't reset
 $xpl->reset_timer('!ping-response', time-6);
 wait_for_tick($xpl, '!ping-response');
 my $r = recv($hs, $buf, 1024, 0);
