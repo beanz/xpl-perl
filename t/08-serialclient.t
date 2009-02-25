@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 22;
+use Test::More tests => 24;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -30,13 +30,15 @@ sub device_reader {
 }
 {
   local $0 = 'dingus';
-  local @ARGV = ('127.0.0.1:'.$port);
+  local @ARGV = ('-v', '127.0.0.1:'.$port);
   $xpl = xPL::SerialClient->new(port => 0, hubless => 1,
                                 reader_callback => \&device_reader,
                                 discard_buffer_timeout => 5,
-                                verbose => 1);
+                                baud => 9600,
+                                name => 'dungis');
 }
 ok($xpl, 'created serial client');
+is($xpl->device_id, 'dungis', 'device_id set correctly');
 ok($sel->can_read, 'serial device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
@@ -87,3 +89,6 @@ $client->close;
 
 is(test_error(sub { $xpl->main_loop(); }),
    "Serial read failed: Connection reset by peer\n", 'dies on close');
+
+ok(!defined xPL::SerialClient::BinaryMessage->new(desc => 'duff message'),
+   'binary message must have either hex or raw supplied');

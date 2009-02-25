@@ -35,6 +35,7 @@ sub device_reader {
                                     discard_buffer_timeout => 5);
 }
 ok($xpl, 'created serial client');
+is($xpl->device_id, 'dingus', 'device_id set correctly');
 ok($sel->can_read, 'serial device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
