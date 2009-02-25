@@ -76,6 +76,14 @@ sub parse {
                            )];
 }
 
+=head2 C<parse_gr101( $parent, $message, $bytes, $bits )>
+
+This method is a helper for the main L<parse> method that handles the
+GR101 scales only.  Parameters and return values are the same as the
+L<parse> method.
+
+=cut
+
 sub parse_gr101 {
   my $self = shift;
   my $parent = shift;
