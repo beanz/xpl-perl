@@ -78,8 +78,7 @@ Offset from the true value.
 
 =item tz
 
-The timezone to apply to the timer - Europe/London is assumed if this
-value is omitted.
+The timezone to apply to the timer - default supplied by L<xPL::Timer>.
 
 =back
 
@@ -95,7 +94,6 @@ sub init {
   exists $p->{longitude} or $p->{longitude} = $ENV{LONGITUDE} or
     return $self->argh("requires 'longitude' parameter\n".
                        'or LONGITUDE environment variable');
-  exists $p->{tz} or $p->{tz} = $ENV{TZ};
   exists $p->{altitude} or $p->{altitude} = -0.833;
   exists $p->{iteration} or $p->{iteration} = 0;
 
@@ -106,7 +104,7 @@ sub init {
 
   # the sunrise call will die on invalid parameters
   my $set = DateTime::Event::Sunrise->sunset(%args);
-  $set->set_time_zone($p->{tz}) if (defined $p->{tz});
+  $set->set_time_zone($p->{tz});
 
   $self->{_set} = $set;
 
