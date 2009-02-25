@@ -66,26 +66,50 @@ It returns a blessed reference when successful or undef otherwise.
 
 sub new {
   my $pkg = shift;
-  if (ref $pkg) { $pkg = ref $pkg }
   my %p = @_;
   bless \%p, $pkg;
-  unless (exists $p{hex} or exists $p{raw}) {
+  unless (exists $p{hex} || exists $p{raw}) {
     return;
   }
   return \%p;
 }
 
+=head2 C<hex()>
+
+Return the contents of the message as hex.
+
+=cut
+
 sub hex {
   $_[0]->{hex} or $_[0]->{hex} = unpack 'H*', $_[0]->{raw};
 }
+
+=head2 C<raw()>
+
+Return the contents of the message as a binary string.
+
+=cut
 
 sub raw {
   $_[0]->{raw} or $_[0]->{raw} = pack 'H*', $_[0]->{hex};
 }
 
+=head2 C<str()>
+
+Return a string summary of the message (including the description if
+it was supplied).
+
+=cut
+
 sub str {
   $_[0]->hex.($_[0]->{desc} ? ': '.$_[0]->{desc} : '');
 }
+
+=head2 C<data()>
+
+Return any user data that was supplied or undef otherwise.
+
+=cut
 
 sub data {
   $_[0]->{data};
