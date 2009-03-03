@@ -173,11 +173,11 @@ sub new {
   return $self;
 }
 
-=head2 C<discard_buffer_check( )>
+=head2 C<discard_buffer_check()>
 
 This method is called when the device is ready for reads.  It empties
-the read buffer if there is a C<discard_buffer_timeout> defined and that
-time has elapsed since the last read.
+the read buffer if there is a C<discard_buffer_timeout> defined and
+that time has elapsed since the last read.
 
 =cut
 
@@ -193,6 +193,26 @@ sub discard_buffer_check {
   return 1;
 }
 
+=head2 C<serial_read( )>
+
+This method is called when the device is ready for reads.  It calls
+L<discard_buffer_check()> and reads new data.  If no data is ready it
+dies with an appropriate error.
+
+=cut
+
+sub serial_read {
+  my ($self, $handle) = @_;
+  $self->discard_buffer_check();
+  my $bytes = $handle->sysread($self->{_buf}, 2048, length($self->{_buf}));
+  unless ($bytes) {
+    die "Serial read failed: $!\n" unless (defined $bytes);
+    die "Serial device closed\n";
+  }
+  $self->{_last_read} = Time::HiRes::time;
+  return 1;
+}
+
 =head2 C<device_reader( $handle )>
 
 This method is called when the device is ready for reads.  It manages
@@ -203,13 +223,7 @@ just override this method to implement specific behaviour.
 
 sub device_reader {
   my ($self, $handle) = @_;
-  $self->discard_buffer_check();
-  my $bytes = $handle->sysread($self->{_buf}, 2048, length($self->{_buf}));
-  unless ($bytes) {
-    die "Serial read failed: $!\n" unless (defined $bytes);
-    die "Serial device closed\n";
-  }
-  $self->{_last_read} = Time::HiRes::time;
+  my $bytes = $self->serial_read($handle);
   $self->{_buf} =
     $self->{_reader_callback}->($self, $self->{_buf}, $self->{_waiting});
   $self->write_next();

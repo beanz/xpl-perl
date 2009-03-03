@@ -79,12 +79,7 @@ just override this method to implement specific behaviour.
 
 sub device_reader {
   my ($self, $handle) = @_;
-  $self->discard_buffer_check();
-  my $bytes = $handle->sysread($self->{_buf}, 512, length($self->{_buf}));
-  unless ($bytes) {
-    die "Serial read failed: $!\n" unless (defined $bytes);
-    die "Serial device closed\n";
-  }
+  my $bytes = $self->serial_read($handle);
   my $regexp = $self->{_input_regexp};
   while ($self->{_buf} =~ s/$regexp//o) {
     my $line = $LAST_PAREN_MATCH;
