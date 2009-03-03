@@ -4,11 +4,23 @@
 
 use strict;
 use Socket;
+
+BEGIN {
+  require Test::More;
+  if (exists $ENV{DISPLAY}) {
+    import Test::More tests => 11;
+  } else {
+    import Test::More skip_all => 'No X11 DISPLAY defined';
+    exit;
+  }
+}
 use Gtk2 -init;
-use Test::More tests => 5;
+use FileHandle;
+use t::Helpers qw/test_error test_warn/;
 $|=1;
 
 use_ok("xPL::Gtk2Client");
+
 
 my $errors;
 {
@@ -63,6 +75,25 @@ remote-ip=".$xpl->ip."
 }
 ";
 is($buf, $hb, "first hbeat content");
+
+my $fh = FileHandle->new('</dev/zero');
+my $called;
+ok($fh, 'file handle for input testing');
+$xpl->add_input(handle => $fh, callback => sub { $called++; Gtk2->main_quit; });
+Gtk2->main();
+is($called, 1, '/dev/zero input callback was called');
+ok($xpl->remove_input($fh), '/dev/zero input removed');
+undef $called;
+$xpl->add_timer(id => 'test',
+                callback => sub { $called++; Gtk2->main_quit; 1; },
+                timeout => '0.01');
+Gtk2->main();
+is($called, 1, 'timer callback was called');
+ok($xpl->remove_timer('test'), 'timer removed');
+
+is(test_warn(sub { $xpl->remove_input('test') }),
+   q{xPL::Gtk2ClientExit->remove_input: input 'test' is not registered},
+   'remove_input warning case');
 
 sub wait_for_tick {
   my $xpl = shift;
