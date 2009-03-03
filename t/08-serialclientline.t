@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 16;
+use Test::More tests => 17;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
