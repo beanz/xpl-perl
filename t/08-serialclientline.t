@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 17;
+use Test::More tests => 18;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -62,16 +62,22 @@ $xpl->write('2');
 is((sysread $client, $buf, 64), 2, 'read is correct size');
 is($buf, "1\r", 'content is correct');
 
-print $client "sent again\r\n";
-$read = ''; $written = '';
-$xpl->{_last_read} -= 10; # trigger discard timeout
-is(test_output(sub { $xpl->main_loop(1); }, \*STDERR),
-   "Discarding: 313233\n", 'correctly discarded old buffer');
-
-is($read, "sent again\n", 'returned content is correct');
-is($written, '1', 'last sent data is correct');
-
 $client->close;
 
 is(test_error(sub { $xpl->main_loop(); }),
-   "Serial read failed: Connection reset by peer\n", 'dies on close');
+   "Serial device closed\n", 'dies on close');
+
+{
+  local $0 = 'dingus';
+  local @ARGV = ('-v', '127.0.0.1:'.$port);
+  $xpl = xPL::SerialClientLine->new(port => 0, hubless => 1,
+                                    reader_callback => \&device_reader,
+                                    baud => 9600,
+                                    input_record_separator => '\\n',
+                                    output_record_separator => '\n');
+}
+ok($xpl, 'created serial client');
+is($xpl->input_record_separator, '\\n', 'input_record_separator set correctly');
+is($xpl->output_record_separator, '\n',
+   'output_record_separator set correctly');
+ok(!$xpl->discard_buffer_check, 'no discard timeout');

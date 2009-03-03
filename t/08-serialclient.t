@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 24;
+use Test::More tests => 26;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -83,7 +83,10 @@ is($written, '31', 'last sent data is correct');
 is($written->data, 'data', 'last sent data has correct data value');
 
 is($xpl->{_buf}, '123', 'returned buffer content is correct');
-$xpl->{_buf} = '';
+
+$xpl->{_last_read} = time + 2;
+$xpl->discard_buffer_check();
+is($xpl->{_buf}, '123', 'buffer content not discarded');
 
 $client->close;
 
@@ -92,3 +95,11 @@ is(test_error(sub { $xpl->main_loop(); }),
 
 ok(!defined xPL::SerialClient::BinaryMessage->new(desc => 'duff message'),
    'binary message must have either hex or raw supplied');
+
+undef $device;
+{
+  local $0 = 'dingus';
+  local @ARGV = ('-v', '127.0.0.1:'.$port);
+  is(test_error(sub { $xpl = xPL::SerialClient->new(port => 0, hubless => 1) }),
+     '', 'connection refused');
+}
