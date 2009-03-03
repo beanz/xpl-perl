@@ -64,31 +64,48 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-# Preloaded methods go here.
+=head2 C<add_timer(...)>
+
+Wrap L<xPL::Client::add_timer> method to add timer to Gtk2 main loop.
+
+=cut
 
 sub add_timer {
   my $self = shift;
-  $self->SUPER::add_timer(@_) or return;
+  $self->SUPER::add_timer(@_);
   return $self->_add_timeout();
 }
+
+=head2 C<add_input(...)>
+
+Wrap L<xPL::Client::add_input> method to add input to Gtk2 main loop.
+
+=cut
 
 sub add_input {
   my $self = shift;
   my %p = @_;
-  $self->SUPER::add_input(@_) or return;
-  $self->{_handle_map}->{$p{handle}} =
+  $self->SUPER::add_input(@_);
+  my $h = $self->{_handle_map}->{$p{handle}} =
     Glib::IO->add_watch($p{handle}->fileno, ['G_IO_IN', 'G_IO_HUP'],
                         \&_gtk2_input_wrapper,
                         [$self, $p{handle}] );
   return 1;
 }
 
+=head2 C<remove_input(...)>
+
+Wrap L<xPL::Client::remove_input> method to remove input from Gtk2 main loop.
+
+=cut
+
 sub remove_input {
   my $self = shift;
   my $handle = shift;
-  $self->SUPER::remove_input($handle) or return;
-  my $id = $self->{_handle_map}->{handle};
-  return defined $id && Glib::Source->remove($id);
+  $self->SUPER::remove_input($handle);
+  my $id = $self->{_handle_map}->{$handle};
+  return unless defined $id;
+  return Glib::Source->remove($id);
 }
 
 sub _gtk2_input_wrapper {
@@ -136,7 +153,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2007, 2008 by Mark Hindess
+Copyright (C) 2007, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
