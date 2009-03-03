@@ -103,14 +103,18 @@ It returns a blessed reference when successful or undef otherwise.
 
 sub new {
   my $pkg = shift;
-  if (ref $pkg) { $pkg = ref $pkg }
 
   my %p = @_;
 
-  my $name = $0;
-  $name =~ s/.*xpl-//g; $name =~ s/-//g;
+  my $name;
+  if ($p{name}) {
+    $name = $p{name};
+  } else {
+    $name = $0;
+    $name =~ s/.*xpl-//g; $name =~ s/-//g;
+  }
 
-  my %args = ( vendor_id => 'bnz', device_id => $p{name} || $name, );
+  my %args = ( vendor_id => 'bnz', device_id => $name, );
   my %opt = ();
   my $verbose;
   my $interface;
@@ -170,6 +174,26 @@ sub new {
   return $self;
 }
 
+=head2 C<discard_buffer_check( )>
+
+This method is called when the device is ready for reads.  It empties
+the read buffer if there is a C<discard_buffer_timeout> defined and that
+time has elapsed since the last read.
+
+=cut
+
+sub discard_buffer_check {
+  my ($self) = @_;
+  return unless ($self->{_discard_buffer_timeout});
+  if ($self->{_buf} ne '' &&
+      $self->{_last_read} < (Time::HiRes::time -
+                             $self->{_discard_buffer_timeout})) {
+    print STDERR "Discarding: ", (unpack 'H*', $self->{_buf}), "\n";
+    $self->{_buf} = '';
+  }
+  return 1;
+}
+
 =head2 C<device_reader( $handle )>
 
 This method is called when the device is ready for reads.  It manages
@@ -180,14 +204,7 @@ just override this method to implement specific behaviour.
 
 sub device_reader {
   my ($self, $handle) = @_;
-  if ($self->{_discard_buffer_timeout}) {
-    if ($self->{_buf} ne '' &&
-        $self->{_last_read} < (Time::HiRes::time -
-                               $self->{_discard_buffer_timeout})) {
-      print STDERR "Discarding: ", (unpack 'H*', $self->{_buf}), "\n";
-      $self->{_buf} = '';
-    }
-  }
+  $self->discard_buffer_check();
   my $bytes = $handle->sysread($self->{_buf}, 2048, length($self->{_buf}));
   unless ($bytes) {
     die "Serial read failed: $!\n" unless (defined $bytes);

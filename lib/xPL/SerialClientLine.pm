@@ -55,7 +55,6 @@ It returns a blessed reference when successful or undef otherwise.
 
 sub new {
   my $pkg = shift;
-  if (ref $pkg) { $pkg = ref $pkg }
 
   # Create an xPL SerialClient object
   my $self = $pkg->SUPER::new(@_) or
@@ -81,14 +80,7 @@ just override this method to implement specific behaviour.
 
 sub device_reader {
   my ($self, $handle) = @_;
-  if ($self->{_discard_buffer_timeout}) {
-    if ($self->{_buf} ne '' &&
-        $self->{_last_read} < (Time::HiRes::time -
-                               $self->{_discard_buffer_timeout})) {
-      print STDERR "Discarding: ", (unpack 'H*', $self->{_buf}), "\n";
-      $self->{_buf} = '';
-    }
-  }
+  $self->discard_buffer_check();
   my $bytes = $handle->sysread($self->{_buf}, 512, length($self->{_buf}));
   unless ($bytes) {
     die "Serial read failed: $!\n" unless (defined $bytes);
