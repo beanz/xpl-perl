@@ -56,9 +56,8 @@ It returns a blessed reference when successful or undef otherwise.
 sub new {
   my $pkg = shift;
 
-  # Create an xPL SerialClient object
-  my $self = $pkg->SUPER::new(@_) or
-    die "Failed to create xPL::SerialClient\n";
+  # Create an xPL SerialClient object (dies on error)
+  my $self = $pkg->SUPER::new(@_);
 
   my %p = @_;
 

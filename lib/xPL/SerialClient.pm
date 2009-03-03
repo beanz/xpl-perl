@@ -138,9 +138,8 @@ sub new {
     pod2usage(-message => "The device parameter is required",
               -exitstatus => 1);
 
-  # Create an xPL Client object
-  my $self = $pkg->SUPER::new(%args, %opt) or
-    die "Failed to create xPL::Client\n";
+  # Create an xPL Client object (dies on error)
+  my $self = $pkg->SUPER::new(%args, %opt);
 
   my $fh;
   if ($dev =~ /\//) {
