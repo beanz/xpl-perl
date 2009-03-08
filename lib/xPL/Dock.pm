@@ -112,8 +112,8 @@ sub new {
   # Create an xPL Client object (dies on error)
   my $self = $pkg->SUPER::new(%args, %opt);
 
-  foreach (@plugins) {
-    $_->init($self, %p);
+  foreach my $plug (@plugins) {
+    $plug->init($self, %p);
   }
   return $self;
 }
