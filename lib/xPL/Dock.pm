@@ -50,7 +50,7 @@ sub import {
     die "Failed loading plugin: $@\n" if ($@);
     my $instance = $module->new;
     push @plugins, $instance;
-    push @getopts, $instance->getopts if ($module->can('getopts'));
+    push @getopts, $instance->getopts;
   }
 }
 
