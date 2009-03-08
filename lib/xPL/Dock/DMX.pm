@@ -192,6 +192,13 @@ sub dmx_fade {
   return $self->update_fade_timer();
 }
 
+=head2 C<update_fade_timer()>
+
+This method sets up the timer to trigger when the next fade change is
+due.
+
+=cut
+
 sub update_fade_timer {
   my $self = shift;
   my $xpl = $self->xpl;
@@ -204,6 +211,14 @@ sub update_fade_timer {
                   callback => sub { $self->do_fades(@_) });
   return 1;
 }
+
+=head2 C<do_fades()>
+
+This method is the fade timer callback that is triggered when a change
+is due.  It makes any changes and then resets the timer by calling
+L<update_fade_timer()>.
+
+=cut
 
 sub do_fades {
   my $self = shift;
@@ -262,6 +277,13 @@ sub device_reader {
   $self->send_xpl_confirm($last->data) if (ref $last && ref $last->data);
   return '';
 }
+
+=head2 C<send_xpl_confirm()>
+
+This helper method sends a C<dmx.confirm> message corresponding to the
+provided C<dmx.basic> message.
+
+=cut
 
 sub send_xpl_confirm {
   my $self = shift;
