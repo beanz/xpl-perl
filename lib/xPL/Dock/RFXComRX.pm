@@ -30,7 +30,7 @@ use IO::Socket::INET;
 use Pod::Usage;
 use xPL::Dock::Serial;
 use xPL::Queue;
-use xPL::RF;
+use xPL::RF qw/hex_dump/;
 
 our @ISA = qw(xPL::Dock::Serial);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
@@ -70,12 +70,11 @@ sub init {
                      discard_buffer_timeout => 0.03,
                      reader_callback => \&device_reader,
                      @_);
-  $self->{_rf} = xPL::RF->new(source => $xpl->id) or
-    die "Failed to create RF decode object\n";
+  $self->{_rf} = xPL::RF->new(source => $xpl->id);
 
   $self->write(Msg->new(hex => 'F020', desc => 'version check'));
   $self->write(Msg->new(hex => "F02A",
-                       desc => 'enable all possible receiving modes'));
+                        desc => 'enable all possible receiving modes'));
   $self->write(Msg->new(hex => 'F041', desc => 'variable length with visonic'));
 
   return $self;
