@@ -105,8 +105,6 @@ lib/xPL/schema/ups.basic.yaml
 lib/xPL/schema/x10.basic.yaml
 lib/xPL/schema/x10.confirm.yaml
 lib/xPL/schema/x10.security.yaml
-lib/xPL/SerialClientLine.pm
-lib/xPL/SerialClient.pm
 lib/xPL/Timer/cron.pm
 lib/xPL/Timer.pm
 lib/xPL/Timer/recurrence.pm
@@ -159,8 +157,6 @@ t/07-client-ping.t
 t/07-client.t
 t/08-bridge-client.t
 t/08-bridge.t
-t/08-serialclientline.t
-t/08-serialclient.t
 t/09-hub-ignore-remote-hbeat.t
 t/09-targetting.t
 t/10-mainloop.t
