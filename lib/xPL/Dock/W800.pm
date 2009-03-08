@@ -67,8 +67,7 @@ sub init {
     pod2usage(-message => "The --w800 parameter is required",
               -exitstatus => 1);
   $self->SUPER::init($xpl, reader_callback => \&device_reader, @_);
-  $self->{_rf} = xPL::RF->new(source => $xpl->id) or
-    die "Failed to create RF decode object\n";
+  $self->{_rf} = xPL::RF->new(source => $xpl->id);
 
   return $self;
 }

@@ -102,8 +102,7 @@ sub init {
                           class_type => 'basic',
                          });
 
-  $self->{_rf} = xPL::RF->new(source => $xpl->id) or
-    $self->argh("Failed to create RF decode object\n");
+  $self->{_rf} = xPL::RF->new(source => $xpl->id);
 
   $self->write(Msg->new(hex => 'F030F030', desc => 'init/version check'));
   $self->init_device();
