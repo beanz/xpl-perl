@@ -6,16 +6,17 @@ xpl-easydaq - Perl script for an xPL EasyDAQ USB Relay client
 
 =head1 SYNOPSIS
 
-  xpl-easydaq [flags] [options] <device>
+  xpl-easydaq [flags] [options] --easydaq <device>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    -h        - show this help text
+    -v        - verbose mode
+    --easydaq - the ttyUSB device for the relay module
   and valid options are (default shown in brackets):
     -i if0  - the interface for xPL messages (first non-loopback or loopback)
     -B baud - the baud rate (9600)
 
   # start the easydaq application on first ethernet interface in verbose mode
-  xpl-easydaq -i eth0 -v /dev/ttyUSB6
+  xpl-easydaq -i eth0 -v --easydaq /dev/ttyUSB6
 
 =head1 DESCRIPTION
 
@@ -34,89 +35,10 @@ though these will be ignored by a EasyDAQ USB device.
 
 use strict;
 use warnings;
-use English qw/-no_match_vars/;
-use xPL::SerialClient;
-use xPL::BinaryMessage;
+use xPL::Dock qw/EasyDAQ/;
 $|=1; # autoflush helps debugging
-
-{
- package Msg;
- use base 'xPL::BinaryMessage';
- sub new {
-   my ($pkg, $letter, $number, $desc) = @_;
-   return $pkg->SUPER::new(raw => pack('aC', $letter, $number),
-                           desc => $desc);
- }
- 1;
-}
-
-sub device_reader;
-
-my $xpl = xPL::SerialClient->new(reader_callback => \&device_reader,
-                                 ack_timeout => 0.05);
-
-my $state = 0;
-
-# Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'easydaq', callback => \&xpl_in,
-                       filter => {
-                                  message_type => 'xpl-cmnd',
-                                  class => 'control',
-                                  class_type => 'basic',
-                                  type => 'output',
-                                 });
-
-$xpl->write(Msg->new('B', 0, 'set all ports to outputs'));
-
-# Run the main loop
-$xpl->main_loop();
-
-=head2 C<xpl_in(%xpl_callback_parameters)>
-
-This is the callback that processes incoming xPL messages.  It handles
-the incoming control.basic schema messages.
-
-=cut
-
-sub xpl_in {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  if ($msg->device eq 'debug') {
-    $xpl->write(Msg->new('A', 0, 'query status of outputs'));
-  }
-  return 1 unless ($msg->device =~ /^o(\d+)$/);
-  my $num = $LAST_PAREN_MATCH;
-  my $command = lc $msg->current;
-  if ($command eq "high") {
-    $state |= 1<<($num-1);
-    $xpl->write(Msg->new('C', $state, "setting port $num high"));
-  } elsif ($command eq "low") {
-    $state &= 0xf^(1<<($num-1));
-    $xpl->write(Msg->new('C', $state, "setting port $num low"));
-  } elsif ($command eq "pulse") {
-    $state |= 1<<($num-1);
-    $xpl->write(Msg->new('C', $state, "setting port $num high"));
-    $state &= 0xf^(1<<($num-1));
-    $xpl->write(Msg->new('C', $state, "setting port $num low"));
-  }
-  return 1;
-}
-
-=head2 C<device_reader()>
-
-This is the callback that processes output from the EasyDAQ.  It is
-responsible for sending out the sensor.basic xpl-trig messages.
-
-=cut
-
-sub device_reader {
-  my ($xpl, $buf, $last) = @_;
-  print 'received: ', (unpack 'H*', $buf), "\n" if ($xpl->verbose);
-  return '';
-}
+my $xpl = xPL::Dock->new;
+$xpl->main_loop;
 
 # send a 'hbeat.end' message on exit
 END { defined $xpl && $xpl->send_hbeat_end(); }

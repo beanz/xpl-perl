@@ -47,6 +47,7 @@ lib/xPL/BinaryMessage.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
 lib/xPL/Dock.pm
+lib/xPL/Dock/EasyDAQ.pm
 lib/xPL/Dock/RFXComRX.pm
 lib/xPL/Dock/RFXComTX.pm
 lib/xPL/Dock/SerialLine.pm
