@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 13;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -57,3 +57,11 @@ sub lines {
   }
   return \@l;
 }
+
+use_ok('xPL::Dock', 'Plug');
+my @plugins;
+{
+  local $0 = 'xpl-test';
+  @plugins = xPL::Dock->new->plugins;
+}
+ok(!$plugins[0]->getopts, 'default getopts list');
