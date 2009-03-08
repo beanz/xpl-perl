@@ -214,7 +214,7 @@ sub do_fades {
     next unless ($fades->{$base}->{next_t} <= $time);
     my $diff_c = $fades->{$base}->{diff_c};
     my $diff_t = $fades->{$base}->{diff_t};
-    my $off_t = $time - $fades->{$base}->{start_t};
+    my $off_t = $fades->{$base}->{next_t} - $fades->{$base}->{start_t};
     my $off_c = $diff_c * $off_t / $diff_t;
     my $col = int(.5 + $fades->{$base}->{start_c} + $off_c);
     $col = min($col, 255);
@@ -230,7 +230,7 @@ sub do_fades {
       next;
     }
     $fades->{$base}->{next_t} =
-      _next_change($fades->{$base}, $time) or
+      _next_change($fades->{$base}, $fades->{$base}->{next_t}) or
         delete $fades->{$base};
   }
   # TODO: optimize set commands
