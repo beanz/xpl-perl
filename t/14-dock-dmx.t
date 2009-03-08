@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 75;
+use Test::More tests => 83;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -89,8 +89,33 @@ check_sent_msg('dmx.confirm', '0x0000ff', '1x2');
 $msg->value('invalid');
 $xpl->dispatch_xpl_message($msg);
 
-ok(!$client_sel->can_read(0.1), 'serial device nothing to read');
+ok(!$client_sel->can_read(0.1),
+   'serial device nothing to read - invalid value');
 
+$msg->value('red');
+$msg->base('invalid');
+$xpl->dispatch_xpl_message($msg);
+
+ok(!$client_sel->can_read(0.1),
+   'serial device nothing to read - invalid base');
+
+$msg->base('hex');
+$msg->value('010001ff');
+$xpl->dispatch_xpl_message($msg);
+
+ok($client_sel->can_read, 'serial device ready to read - base=hex');
+
+$buf = '';
+is((sysread $client, $buf, 64), 4, 'read is correct size - base=hex');
+$m = xPL::BinaryMessage->new(raw => $buf);
+is($m, '010001ff', 'content is correct - base=hex');
+
+print $client chr(0).(substr $buf, -1);
+
+is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+   "received: 00".(substr $m, -2)."\n", 'read response - base=hex');
+
+check_sent_msg('dmx.confirm', '010001ff', 'hex');
 
 $plugin->{_min_visible_diff} = 64; # limit length of fade
 $msg->base('1');

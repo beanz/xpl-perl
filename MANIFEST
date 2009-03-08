@@ -167,6 +167,7 @@ t/13-dock-serialline.t
 t/13-dock-serial.t
 t/14-dock-dmx.t
 t/14-dock-rfxcom-rx.t
+t/14-dock-rfxcom-tx.t
 t/Helpers.pm
 t/interfaces/ifconfig.empty/ifconfig
 t/interfaces/ifconfig.freebsd/ifconfig

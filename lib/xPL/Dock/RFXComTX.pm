@@ -208,6 +208,7 @@ queued transmit messages.
 
 sub device_reader {
   my ($self, $buf) = @_;
+  # TOFIX: send confirm messages?
   print 'received: ', unpack('H*', $buf), "\n";
   return '';
 }

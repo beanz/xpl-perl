@@ -186,7 +186,7 @@ This method is used to queue messages to be sent to the serial device.
 sub write {
   my ($self, $msg) = @_;
   $self->{_q}->enqueue($msg);
-  print 'queued: ', $msg, "\n" if ($self->verbose);
+  print 'queued: ', $msg, "\n" if ($self->{_xpl}->verbose);
   if (!defined $self->{_waiting}) {
     return $self->write_next();
   }
@@ -209,7 +209,7 @@ sub write_next {
   $xpl->remove_timer('!waiting') if ($xpl->exists_timer('!waiting'));
   return if (!defined $msg);
   my $fh = $self->device_handle;
-  print 'sending: ', $msg, "\n" if ($self->verbose);
+  print 'sending: ', $msg, "\n" if ($xpl->verbose);
   my $raw = ref $msg ? $msg->raw : $msg;
   my $ors = $self->{_output_record_separator};
   $raw .= $ors if (defined $ors);
