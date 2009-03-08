@@ -531,8 +531,10 @@ This method returns a list of the registered xPL callbacks.
 
 =head2 C<xpl_message($file_handle)>
 
-This method is called when another xPL message has arrived.  It handles
-the dispatch of the message to any registered xpl_callbacks.
+This method is called when another xPL message has arrived.  It
+constructs the L<xPL::Message> object and if the message is valid,
+calls the L<dispatch_xpl_message()> method to pass it on to relevant
+xpl_callbacks.
 
 =cut
 
@@ -551,6 +553,19 @@ sub xpl_message {
     warn "Invalid message from $peeraddr:$peerport: $@";
     return 1;
   }
+
+  return $self->dispatch_xpl_message($msg, $peeraddr, $peerport);
+}
+
+=head2 C<dispatch_xpl_message($msg, $peeraddr, $peerport)>
+
+This method is used to dispatch an xPL message to the relevant
+xpl_callbacks.
+
+=cut
+
+sub dispatch_xpl_message {
+  my ($self, $msg, $peeraddr, $peerport) = @_;
 
  CB:
   foreach my $id (sort $self->xpl_callbacks()) {
