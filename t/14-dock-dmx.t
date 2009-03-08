@@ -6,12 +6,19 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 56;
+use Test::More tests => 74;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
 use_ok('xPL::Dock','DMX');
 use_ok('xPL::BinaryMessage');
+
+my @msg;
+sub xPL::Dock::send_aux {
+  my $self = shift;
+  my $sin = shift;
+  push @msg, [@_];
+}
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
 my $device = IO::Socket::INET->new(Listen => 5, LocalAddr => '127.0.0.1:0');
@@ -58,6 +65,7 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
 
   is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
      "received: 00".(substr $m, -2)."\n", 'read response - '.$color);
+  check_sent_msg('dmx.confirm', '0x'.$color, '1');
 }
 
 $msg->base('1x2');
@@ -75,7 +83,7 @@ print $client chr(0).(substr $buf, -1);
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 00".(substr $m, -2)."\n", 'read response - base=1x2');
 
-
+check_sent_msg('dmx.confirm', '0x0000ff', '1x2');
 
 $plugin->{_min_visible_diff} = 64; # limit length of fade
 $msg->base('1');
@@ -83,10 +91,14 @@ $msg->value('0xff0000');
 $msg->extra_field('fade', .1);
 $xpl->dispatch_xpl_message($msg);
 
+check_sent_msg('dmx.confirm', '0xff0000', '1');
+
 $msg->base('4');
 $msg->value('128,128');
 $msg->extra_field('fade', .3);
 $xpl->dispatch_xpl_message($msg);
+
+check_sent_msg('dmx.confirm', '128,128', '4');
 
 my @expected = qw/0140 03bf 0180 037f 01c0 033f 01ff 0300 044040 048080/;
 my $num = @expected;
@@ -123,3 +135,15 @@ my $fh;
 open $fh, $cmd.' 2>&1 |' or die $!;
 is(~~<$fh>, "The --dmx parameter is required\n", 'missing parameter content');
 ok(!close $fh, 'missing parameter exit close');
+
+sub check_sent_msg {
+  my ($class, $color, $base) = @_;
+  my $msg = shift @msg;
+  while (ref $msg->[0]) {
+    $msg = shift @msg; # skip hbeat.* message
+  }
+  my %m = @{$msg};
+  is($m{class}, 'dmx.confirm', 'dmx.confirm message sent - '.$color);
+  is($m{body}->{value}, $color, 'dmx.confirm has correct value - '.$color);
+  is($m{body}->{base}, $base, 'dmx.confirm has correct base - '.$color);
+}
