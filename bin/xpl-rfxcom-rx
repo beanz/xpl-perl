@@ -6,7 +6,7 @@ xpl-rfxcom-rx - Perl script for an xPL RFXCOM RF receiver application
 
 =head1 SYNOPSIS
 
-  xpl-rfxcom-rx [flags] [options] <device>
+  xpl-rfxcom-rx [flags] [options] --rfxcom-rx <device>
   where valid flags are:
     -h - show this help text
     -v - verbose mode
@@ -15,7 +15,7 @@ xpl-rfxcom-rx - Perl script for an xPL RFXCOM RF receiver application
     -B baud - the baud rate (4800)
 
   # start the rfxcom-rx application on first ethernet interface in verbose mode
-  xpl-rfxcom-rx -i eth0 -v
+  xpl-rfxcom-rx -i eth0 -v --rfxcom-rx <device>
 
 =head1 DESCRIPTION
 
@@ -25,65 +25,9 @@ This script is an xPL client that interfaces with an RFXCOM RF receiver.
 
 use strict;
 use warnings;
-use xPL::SerialClient;
-use xPL::SerialClient::BinaryMessage;
-use xPL::RF qw/:all/;
+use xPL::Dock qw/RFXComRX/;
 $|=1; # autoflush helps debugging
-
-{ # shortcut to save typing
-  package Msg;
-  use base 'xPL::SerialClient::BinaryMessage';
-  1;
-}
-
-sub device_reader;
-
-# We discard (incomplete) data in the buffer if last read was more
-# than 30ms ago - in line with Bert's comments on xPL list
-my $xpl = xPL::SerialClient->new(baud => 4800,
-                                 reader_callback => \&device_reader,
-                                 discard_buffer_timeout => 0.03) or
-  die "Failed to create xPL::Client\n";
-
-my $rf = xPL::RF->new(source => $xpl->id) or
-  die "Failed to create RF decode object\n";
-
-
-$xpl->write(Msg->new(hex => 'F020', desc => 'version check'));
-$xpl->write(Msg->new(hex => "F02A",
-                     desc => 'enable all possible receiving modes'));
-$xpl->write(Msg->new(hex => 'F041', desc => 'variable length with visonic'));
-
-# Run the main loop
-$xpl->main_loop();
-
-=head2 C<device_reader()>
-
-This is the callback that processes output from the RFXCOM.  It is
-responsible for sending out the sensor.basic xpl-trig messages.
-
-=cut
-
-sub device_reader {
-  my ($xpl, $buf, $last) = @_;
-  my $res = $rf->process_variable_length($buf);
-  if (defined $res) {
-    # truncate buffer by given length
-    my $m = substr($buf, 0, $res->{length}, '') if ($res->{length});
-    print "Processed: ", unpack("H*", $m), "\n"
-      if ($xpl->verbose && $m && !$res->{duplicate});
-    return 1 unless ($res->{messages} && ref($res->{messages}));
-    foreach my $msg (@{$res->{messages}}) {
-      print $msg->summary,"\n";
-      $xpl->send($msg);
-    }
-  } else {
-    # discard buffer
-    print "Not a variable length message: ", hex_dump($buf), "\n";
-    $buf = '';
-  }
-  return $buf;
-}
+xPL::Dock->new->main_loop;
 
 # send a 'hbeat.end' message on exit
 END { defined $xpl && $xpl->send_hbeat_end(); }

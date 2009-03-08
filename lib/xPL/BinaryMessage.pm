@@ -1,24 +1,23 @@
-package xPL::SerialClient::BinaryMessage;
+package xPL::BinaryMessage;
 
 =head1 NAME
 
-xPL::SerialClient - Perl extension for an xPL Serial Device Client
+xPL::BinaryMessage - Perl extension for an Binary Message
 
 =head1 SYNOPSIS
 
-  use xPL::SerialClient;
+  use xPL::BinaryMessage;
 
-  my $xpl = xPL::SerialClient->new();
-  $xpl->add_xpl_callback(name => 'xpl',
-                         callback => sub { $xpl->tick(@_) },
-                        );
-
-  $xpl->main_loop();
+  # these are the same
+  my $msg = xPL::BinaryMessage->new(raw => '123', desc => 'one, two, three');
+  $msg = xPL::BinaryMessage->new(hex => '313233', desc => 'one, two, three');
 
 =head1 DESCRIPTION
 
-This module creates an xPL client for a serial port-based device.  There
-are several usage examples provided by the xPL Perl distribution.
+This module is used to encapsulate message for sending to serial devices.
+The message is defined when it is created by specifying either the hex
+of the message or the raw message.  A description can be provided to
+make debug output clearer.
 
 =head1 METHODS
 
@@ -36,9 +35,8 @@ our $VERSION = qw/$Revision$/[1];
 
 =head2 C<new(%params)>
 
-The constructor creates a new xPL::SerialClient::BinaryMessage object.
-The constructor takes a parameter hash as arguments.  Valid parameters
-in the hash are:
+The constructor creates a new xPL::BinaryMessage object.  It takes a
+parameter hash as arguments.  Valid parameters in the hash are:
 
 =over 4
 

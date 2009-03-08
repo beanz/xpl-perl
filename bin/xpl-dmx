@@ -38,7 +38,7 @@ my $rgb_txt = '/etc/X11/rgb.txt';
 
 { # shortcut to save typing
  package Msg;
- use base 'xPL::SerialClient::BinaryMessage';
+ use base 'xPL::BinaryMessage';
  1;
 }
 

@@ -6,11 +6,11 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 26;
+use Test::More tests => 28;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
-use_ok('xPL::SerialClient');
+use_ok('xPL::Dock','Serial');
 use_ok('xPL::BinaryMessage');
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
@@ -23,27 +23,29 @@ my $xpl;
 my $read = '';
 my $written = '';
 sub device_reader {
-  my ($xpl, $buf, $last) = @_;
+  my ($plugin, $buf, $last) = @_;
   $read .= $buf;
   $written = $last;
   return '123';
 }
 {
   local $0 = 'dingus';
-  local @ARGV = ('-v', '127.0.0.1:'.$port);
-  $xpl = xPL::SerialClient->new(port => 0, hubless => 1,
-                                reader_callback => \&device_reader,
-                                discard_buffer_timeout => 5,
-                                baud => 9600,
-                                name => 'dungis');
+  local @ARGV = ('-v', '--baud', '9600', '--device', '127.0.0.1:'.$port);
+  $xpl = xPL::Dock->new(port => 0, hubless => 1,
+                        reader_callback => \&device_reader,
+                        discard_buffer_timeout => 5,
+                        name => 'dungis');
 }
-ok($xpl, 'created serial client');
+ok($xpl, 'created dock serial client');
 is($xpl->device_id, 'dungis', 'device_id set correctly');
 ok($sel->can_read, 'serial device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 
-$xpl->write(xPL::BinaryMessage->new(raw => 'test',
+my $plugin = ($xpl->plugins)[0];
+ok($plugin, 'plugin exists');
+is(ref $plugin, 'xPL::Dock::Serial', 'plugin has correct type');
+$plugin->write(xPL::BinaryMessage->new(raw => 'test',
                                                   desc => 'test'));
 
 my $client_sel = IO::Select->new($client);
@@ -62,17 +64,18 @@ is(ref $written, 'xPL::BinaryMessage',
    'last sent data is correct type');
 is($written, '74657374: test', 'last sent data is correct');
 
-is($xpl->{_buf}, '123', 'returned buffer content is correct');
+is($plugin->buffer, '123', 'returned buffer content is correct');
 
-$xpl->write(xPL::BinaryMessage->new(hex => '31', data => 'data'));
-$xpl->write('2');
+$plugin->write(xPL::BinaryMessage->new(hex => '31',
+                                                     data => 'data'));
+$plugin->write('2');
 
 is((sysread $client, $buf, 64), 1, 'read is correct size');
 is($buf, '1', 'content is correct');
 
 print $client 'sent again';
 $read = '';
-$xpl->{_last_read} -= 10; # trigger discard timeout
+$plugin->{_last_read} -= 10; # trigger discard timeout
 is(test_output(sub { $xpl->main_loop(1); }, \*STDERR),
    "Discarding: 313233\n", 'correctly discarded old buffer');
 
@@ -82,24 +85,29 @@ is(ref $written, 'xPL::BinaryMessage',
 is($written, '31', 'last sent data is correct');
 is($written->data, 'data', 'last sent data has correct data value');
 
-is($xpl->{_buf}, '123', 'returned buffer content is correct');
+is($plugin->buffer, '123', 'returned buffer content is correct');
 
 $xpl->{_last_read} = time + 2;
-$xpl->discard_buffer_check();
-is($xpl->{_buf}, '123', 'buffer content not discarded');
+$plugin->discard_buffer_check();
+is($plugin->buffer, '123', 'buffer content not discarded');
 
 $client->close;
 
 is(test_error(sub { $xpl->main_loop(); }),
-   "Serial read failed: Connection reset by peer\n", 'dies on close');
+   'xPL::Dock::Serial->serial_read: failed: Connection reset by peer',
+   'dies on close');
 
 ok(!defined xPL::BinaryMessage->new(desc => 'duff message'),
    'binary message must have either hex or raw supplied');
 
-undef $device;
+$device->close;
 {
   local $0 = 'dingus';
-  local @ARGV = ('-v', '127.0.0.1:'.$port);
-  is(test_error(sub { $xpl = xPL::SerialClient->new(port => 0, hubless => 1) }),
-     '', 'connection refused');
+  local @ARGV = ('-v');
+  is(test_error(sub {
+                  $xpl = xPL::Dock->new(port => 0, hubless => 1,
+                                       device => '127.0.0.1:'.$port)
+                }),
+     q{xPL::Dock::Serial->device_open: TCP connect to '127.0.0.1:}.$port.
+     q{' failed: Connection refused}, 'connection refused');
 }

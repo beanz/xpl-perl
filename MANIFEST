@@ -43,8 +43,14 @@ doc/Makefile
 lib/SMS/Send/CSoft.pm
 lib/SMS/Send/SMSDiscount.pm
 lib/xPL/Base.pm
+lib/xPL/BinaryMessage.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
+lib/xPL/Dock.pm
+lib/xPL/Dock/RFXComRX.pm
+lib/xPL/Dock/RFXComTX.pm
+lib/xPL/Dock/SerialLine.pm
+lib/xPL/Dock/Serial.pm
 lib/xPL/Gtk2Client.pm
 lib/xPL/HomeEasy.pm
 lib/xPL/Hub.pm
@@ -94,7 +100,6 @@ lib/xPL/schema/ups.basic.yaml
 lib/xPL/schema/x10.basic.yaml
 lib/xPL/schema/x10.confirm.yaml
 lib/xPL/schema/x10.security.yaml
-lib/xPL/SerialClient/BinaryMessage.pm
 lib/xPL/SerialClientLine.pm
 lib/xPL/SerialClient.pm
 lib/xPL/Timer/cron.pm
@@ -156,6 +161,8 @@ t/09-targetting.t
 t/10-mainloop.t
 t/11-sms-send-csoft.t
 t/11-sms-send-smsdiscount.t
+t/13-dock-serialline.t
+t/13-dock-serial.t
 t/Helpers.pm
 t/interfaces/ifconfig.empty/ifconfig
 t/interfaces/ifconfig.freebsd/ifconfig

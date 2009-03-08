@@ -6,22 +6,22 @@ xpl-rfxcom-tx - Perl script for an xPL RFXCOM RF transmitter application
 
 =head1 SYNOPSIS
 
-  xpl-rfxcom-tx [flags] [options] <device>
+  xpl-rfxcom-tx [flags] [options] --rfxcom-tx <device>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
-    -r - receiver connected
-    -f - enable Flamingo/Koppla RF
-    -h - enable Harrison RF
-    -k - enable KlikOn-KlikOff, NEXA, ELRO AB600, Domia Lite RF
-    -x - DISable X10/security RF
+    -h                   - show this help text
+    -v                   - verbose mode
+    --receiver-connector - receiver connected
+    --flamingo           - enable Flamingo/Koppla RF
+    --harrison           - enable Harrison RF
+    --koko               - enable KlikOn-KlikOff, NEXA, ELRO AB600,
+                                  Domia Lite RF
+    --no-x10             - disable X10/security RF
   and valid options are (default shown in brackets):
     -i if0  - the interface for xPL messages (first non-loopback or loopback)
-    -B baud - the baud rate (4800)
 
   # start the rfxcom-tx application on first ethernet interface in
   # verbose mode
-  xpl-rfxcom-tx -i eth0 -v
+  xpl-rfxcom-tx -i eth0 -v --rfxcom-tx <device>
 
 =head1 DESCRIPTION
 
@@ -33,193 +33,9 @@ and up to 48bits'-mode.
 
 use strict;
 use warnings;
-use xPL::SerialClient;
-use xPL::SerialClient::BinaryMessage;
-use xPL::RF qw/:all/;
-use xPL::X10 qw/:all/;
-use xPL::HomeEasy qw/:all/;
+use xPL::Dock qw/RFXComTX/;
 $|=1; # autoflush helps debugging
-
-{
-  package Msg;
-  use base 'xPL::SerialClient::BinaryMessage';
-  1;
-}
-
-sub device_reader;
-sub reset_device;
-
-my $receiver_connected;
-my $flamingo;
-my $harrison;
-my $koko;
-my $no_x10;
-
-my $xpl = xPL::SerialClient->new(baud => 4800,
-                                 reader_callback => \&device_reader,
-                                 ack_timeout => 6,
-                                 ack_timeout_callback => \&reset_device,
-                                 getopts =>
-                                 [
-                                  'receiver_connected' => \$receiver_connected,
-                                  'flamingo' => \$flamingo,
-                                  'harrison' => \$harrison,
-                                  'koko' => \$koko,
-                                  'no_x10|x' => \$no_x10,
-                                 ]) or die "Failed to create xPL::Client\n";
-
-# Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'xpl-x10', callback => \&xpl_x10,
-                       filter =>
-                       {
-                        message_type => 'xpl-cmnd',
-                        class => 'x10',
-                        class_type => 'basic',
-                       });
-
-$xpl->add_xpl_callback(id => 'xpl-homeeasy', callback => \&xpl_homeeasy,
-                       filter =>
-                       {
-                        message_type => 'xpl-cmnd',
-                        class => 'homeeasy',
-                        class_type => 'basic',
-                       });
-
-my $rf = xPL::RF->new(source => $xpl->id) or
-  die "Failed to create RF decode object\n";
-
-$xpl->write(Msg->new(hex => 'F030F030', desc => 'init/version check'));
-init_device($xpl);
-$xpl->write(Msg->new(hex => 'F03CF03C', desc => 'enabling harrison'))
-  if ($harrison);
-$xpl->write(Msg->new(hex => 'F03DF03D', desc => 'enabling klikon-klikoff'))
-  if ($koko);
-$xpl->write(Msg->new(hex => 'F03EF03E', desc => 'enabling flamingo'))
-  if ($flamingo);
-$xpl->write(Msg->new(hex => 'F03FF03F', desc => 'disabling x10'))
-  if ($no_x10);
-
-# Run the main loop
-$xpl->main_loop();
-
-=head2 C<xpl_x10(%xpl_callback_parameters)>
-
-This is the callback that processes incoming xPL messages.  It handles
-the incoming x10.basic schema messages.
-
-=cut
-
-sub xpl_x10 {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  if ($msg->house) {
-    foreach (split //, $msg->house) {
-      my $rf_msg =
-        Msg->new(raw => encode_x10(command => $msg->command,
-                                   house => $msg->house),
-                 desc => $msg->house.' '.$msg->command);
-      foreach (1..$msg->extra_field('repeat')||1) {
-        $xpl->write($rf_msg);
-      }
-    }
-  } elsif ($msg->device) {
-    foreach (split /,/, $msg->device) {
-      my ($house, $unit) = /^([a-p])(\d+)$/i or next;
-      my $rf_msg =
-        Msg->new(raw => encode_x10(command => $msg->command,
-                                   house => $house,
-                                   unit => $unit),
-                 desc => $house.$unit.' '.$msg->command);
-      foreach (1..$msg->extra_field('repeat')||1) {
-        $xpl->write($rf_msg);
-      }
-    }
-  } else {
-    warn "Invalid x10.basic message:\n  ", $msg->summary, "\n";
-  }
-  return 1;
-}
-
-=head2 C<xpl_homeeasy(%xpl_callback_parameters)>
-
-This is the callback that processes incoming xPL messages.  It handles
-the incoming homeeasy.basic schema messages.
-
-=cut
-
-sub xpl_homeeasy {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  my %args = ();
-  foreach (qw/address unit command/) {
-    my $val = $msg->$_ or do {
-      warn "Invalid homeeasy.basic message:\n  ", $msg->summary, "\n";
-      return;
-    };
-    $args{$_} = $val;
-  }
-  if ($args{command} eq 'preset') {
-    my $level = $msg->level;
-    unless (defined $level) {
-      warn "homeeasy.basic 'preset' message is missing 'level':\n  ",
-        $msg->summary, "\n";
-      return;
-    }
-    $args{level} = $level;
-  }
-  my $rf_msg = Msg->new(raw => encode_homeeasy(%args), desc => $msg->summary);
-  foreach (1..$msg->extra_field('repeat')||1) {
-    $xpl->write($rf_msg);
-  }
-  return 1;
-}
-
-=head2 C<device_reader()>
-
-This is the callback that processes output from the RFXCOM transmitter.
-It is responsible for reading the 'ACK' messages and sending out any
-queued transmit messages.
-
-=cut
-
-sub device_reader {
-  my ($xpl, $buf) = @_;
-  print 'received: ', unpack('H*', $buf), "\n";
-  return '';
-}
-
-sub init_device {
-  my ($xpl) = @_;
-  $xpl->write($receiver_connected ?
-              Msg->new(hex => 'F033F033',
-                       desc =>
-                       'variable length mode w/receiver connected') :
-              Msg->new(hex => 'F037F037',
-                       desc =>
-                       'variable length mode w/o receiver connected'));
-}
-
-sub reset_device {
-  my ($xpl, $waiting) = @_;
-  print STDERR "No ack!\n";
-  init_device($xpl);
-  1;
-}
-
-sub encode_x10 {
-  return pack 'C5', 32, @{xPL::X10::to_rf(@_)};
-}
-
-sub encode_homeeasy {
-  my ($length, $bytes) = @{xPL::HomeEasy::to_rf(@_)};
-  return pack 'C6', $length, @$bytes;
-}
+xPL::Dock->new->main_loop;
 
 # send a 'hbeat.end' message on exit
 END { defined $xpl && $xpl->send_hbeat_end(); }

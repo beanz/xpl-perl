@@ -36,12 +36,12 @@ use strict;
 use warnings;
 use English qw/-no_match_vars/;
 use xPL::SerialClient;
-use xPL::SerialClient::BinaryMessage;
+use xPL::BinaryMessage;
 $|=1; # autoflush helps debugging
 
 {
  package Msg;
- use base 'xPL::SerialClient::BinaryMessage';
+ use base 'xPL::BinaryMessage';
  sub new {
    my ($pkg, $letter, $number, $desc) = @_;
    return $pkg->SUPER::new(raw => pack('aC', $letter, $number),
