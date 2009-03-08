@@ -36,7 +36,9 @@ our $VERSION = qw/$Revision$/[1];
 sub getopts {
   my $self = shift;
   $self->{_baud} = 9600;
+  $self->{_verbose} = 0;
   return (
+          'viom-verbose|viomverbose+' => \$self->{_verbose},
           'viom-baud|viombaud=i' => \$self->{_baud},
           'viom=s' => \$self->{_device},
          );
@@ -71,6 +73,9 @@ sub init {
                                     type => 'output',
                                    });
 
+  $self->write('CSV', 1); # report software version
+  $self->write('CIC1', 1); # turn on input status change reporting
+
   # sanity check the inputs immediately and periodically so we keep
   # the current state sane even when viom is unplugged, etc.
   $xpl->add_timer(id => 'input-check', timeout => -631,
@@ -80,13 +85,12 @@ sub init {
   # the current state sane even when viom is unplugged, etc.
   $xpl->add_timer(id => "temp", timeout => 2, count => 1,
                   callback => sub {
-                    $self->write('CIC1', 1);
                     $xpl->add_timer(id => 'output-check', timeout => -641,
                                     callback =>
                                       sub { $self->write('COR'); 1; });
                     return;
                   });
-
+print STDERR "Verbose: ", $self->verbose, "\n";
   return $self;
 }
 
@@ -143,7 +147,7 @@ is responsible for sending out the sensor.basic xpl-trig messages.
 =cut
 
 sub process_line {
-  my ($self, $line) = shift;
+  my ($self, $line) = @_;
   return unless (defined $line && $line ne '');
   my $xpl = $self->xpl;
   my $state = $self->{_state};
@@ -166,7 +170,7 @@ sub process_line {
       $state->{$id} = $new.":".$time;
     } else {
       # only print these if something has changed
-      return;
+      return unless ($self->verbose >= 2);
     }
   } elsif ($line =~ /^Output (\d+) (Inactive|Active)$/) {
     my $id = sprintf("o%02d",$1);
@@ -176,10 +180,10 @@ sub process_line {
       $state->{$id} = $new.":".$time;
     } else {
       # only print these if something has changed
-      return;
+      return unless ($self->verbose >= 2);
     }
   }
-  print $line,"\n" if ($xpl->verbose);
+  print $line,"\n" if ($self->verbose);
   return 1;
 }
 
@@ -201,7 +205,7 @@ sub send_xpl {
      class => 'sensor.basic',
      body => { device => $device, type => 'input', current => $level },
     );
-  print STDERR "Sending $device $level\n" if ($xpl->verbose);
+  print STDERR "Sending $device $level\n" if ($self->verbose);
   return $xpl->send(%args);
 }
 
