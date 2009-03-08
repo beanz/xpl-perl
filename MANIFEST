@@ -53,6 +53,7 @@ lib/xPL/Dock/RFXComRX.pm
 lib/xPL/Dock/RFXComTX.pm
 lib/xPL/Dock/SerialLine.pm
 lib/xPL/Dock/Serial.pm
+lib/xPL/Dock/UDIN.pm
 lib/xPL/Gtk2Client.pm
 lib/xPL/HomeEasy.pm
 lib/xPL/Hub.pm

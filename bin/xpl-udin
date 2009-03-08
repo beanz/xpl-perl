@@ -6,16 +6,17 @@ xpl-udin - Perl script for an xPL Audon UDIN USB Relay client
 
 =head1 SYNOPSIS
 
-  xpl-udin [flags] [options] <device>
+  xpl-udin [flags] [options] --udin <device>
   where valid flags are:
     -h - show this help text
     -v - verbose mode
   and valid options are (default shown in brackets):
     -i if0  - the interface for xPL messages (first non-loopback or loopback)
-    -B baud - the baud rate (9600)
+    --udin-baud baud - the baud rate (9600)
+    --udin <device>  - the ttyUSB device for the UDIN module
 
   # start the udin application on first ethernet interface in verbose mode
-  xpl-udin -i eth0 -v /dev/ttyUSB6
+  xpl-udin -i eth0 -v --udin /dev/ttyUSB6
 
 =head1 DESCRIPTION
 
@@ -35,73 +36,10 @@ though these will be ignored by a UDIN USB device.
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
-use xPL::SerialClientLine;
+use xPL::Dock qw/UDIN/;
 $|=1; # autoflush helps debugging
-
-sub process_line;
-my $xpl = xPL::SerialClient->new(reader_callback => \&process_line);
-
-# Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'udin', callback => \&xpl_in,
-                       filter => {
-                                  message_type => 'xpl-cmnd',
-                                  class => 'control',
-                                  class_type => 'basic',
-                                  type => 'output',
-                                 });
-
-$xpl->write('?');
-
-# Run the main loop
-$xpl->main_loop();
-
-=head2 C<xpl_in(%xpl_callback_parameters)>
-
-This is the callback that processes incoming xPL messages.  It handles
-the incoming control.basic schema messages.
-
-=cut
-
-sub xpl_in {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  if ($msg->device eq 'debug') {
-    $xpl->write('?');
-    $xpl->write('s0');
-  }
-  return 1 unless ($msg->device =~ /^o(\d+)$/);
-  my $num = $LAST_PAREN_MATCH;
-  my $command = lc $msg->current;
-  if ($command eq "high") {
-    $xpl->write(sprintf("n%d", $num));
-  } elsif ($command eq "low") {
-    $xpl->write(sprintf("f%d", $num));
-  } elsif ($command eq "pulse") {
-    $xpl->write(sprintf("n%d", $num));
-    #select(undef,undef,undef,0.15);
-    $xpl->write(sprintf("f%d", $num));
-  } elsif ($command eq "toggle") {
-    $xpl->write(sprintf("t%d", $num));
-  }
-  return 1;
-}
-
-=head2 C<process_line()>
-
-This is the callback that processes lines of output from the UDIN.  It
-is responsible for sending out the sensor.basic xpl-trig messages.
-
-=cut
-
-sub process_line {
-  my ($xpl, $line) = shift;
-  return unless (defined $line && $line ne '');
-  print "received: '$line'\n" if ($xpl->verbose);
-  return 1;
-}
+my $xpl = xPL::Dock->new;
+$xpl->main_loop;
 
 # send a 'hbeat.end' message on exit
 END { defined $xpl && $xpl->send_hbeat_end(); }
