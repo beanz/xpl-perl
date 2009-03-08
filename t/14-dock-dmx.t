@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 54;
+use Test::More tests => 56;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -115,3 +115,11 @@ while (1) {
   my $new_count = $xpl->input_callback_count($client);
   last if ($new_count >= $count + $num);
 }
+
+my $cmd = $^X.' -Iblib/lib '.($ENV{HARNESS_PERL_SWITCHES}||'').
+              ' blib/script/xpl-dmx';
+my $fh;
+
+open $fh, $cmd.' 2>&1 |' or die $!;
+is(~~<$fh>, "The --dmx parameter is required\n", 'missing parameter content');
+ok(!close $fh, 'missing parameter exit close');
