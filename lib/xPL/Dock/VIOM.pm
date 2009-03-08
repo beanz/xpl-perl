@@ -134,6 +134,8 @@ sub xpl_in {
       $self->write(sprintf("XA%d", $num));
       $state->{$id} = 'high:'.time;
     }
+  } else {
+    warn "Unsupported setting: $command\n";
   }
   return 1;
 }
@@ -204,7 +206,7 @@ sub send_xpl {
      class => 'sensor.basic',
      body => { device => $device, type => 'input', current => $level },
     );
-  print STDERR "Sending $device $level\n" if ($self->verbose);
+  print "Sending $device $level\n" if ($self->verbose);
   return $xpl->send(%args);
 }
 
