@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 83;
+use Test::More tests => 82;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -162,13 +162,21 @@ while (1) {
   last if ($new_count >= $count + $num);
 }
 
-my $cmd = $^X.' -Iblib/lib '.($ENV{HARNESS_PERL_SWITCHES}||'').
-              ' blib/script/xpl-dmx';
-my $fh;
-
-open $fh, $cmd.' 2>&1 |' or die $!;
-is(~~<$fh>, "The --dmx parameter is required\n", 'missing parameter content');
-ok(!close $fh, 'missing parameter exit close');
+# The begin block is global of course but this is where it is really used.
+BEGIN{
+  *CORE::GLOBAL::exit = sub { die "EXIT\n" };
+  require Pod::Usage; import Pod::Usage;
+}
+{
+  local @ARGV = ('-v', '--interface', 'lo', '--define', 'hubless=1');
+  is(test_output(sub {
+                   eval { $xpl = xPL::Dock->new(port => 0, name => 'dingus'); }
+                 }, \*STDOUT),
+     q{Listening on 127.0.0.1:3865
+Sending on 127.0.0.1
+The --dmx parameter is required
+}, 'missing parameter');
+}
 
 sub check_sent_msg {
   my ($class, $color, $base) = @_;

@@ -87,7 +87,7 @@ sub device_reader {
     my $m = substr($buf, 0, 4, '');
     print "Processing: ", unpack("H*", $m), "\n" if ($self->verbose);
     my $res = $self->{_rf}->process_32bit($m);
-    return 1 unless ($res && @$res);
+    return 1 unless (@$res);
     foreach my $msg (@$res) {
       print $msg->summary,"\n";
       $xpl->send($msg);

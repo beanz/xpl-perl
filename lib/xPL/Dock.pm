@@ -38,7 +38,6 @@ our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
 my @plugins;
-my @getopts;
 
 sub import {
   my $pkg = shift;
@@ -48,9 +47,7 @@ sub import {
     $file =~ s/::/\//g;
     eval { require $file; };
     die "Failed loading plugin: $@\n" if ($@);
-    my $instance = $module->new;
-    push @plugins, $instance;
-    push @getopts, $instance->getopts;
+    push @plugins, $module;
   }
 }
 
@@ -90,6 +87,14 @@ sub new {
     $name =~ s/.*xpl-//g; $name =~ s/-//g;
   }
 
+  my @getopts;
+  my @plugin_instances;
+  foreach my $module (@plugins) {
+    my $instance = $module->new;
+    push @plugin_instances, $instance;
+    push @getopts, $instance->getopts;
+  }
+
   my %args = ( vendor_id => 'bnz', device_id => $name, );
   my %opt = ();
   my $verbose;
@@ -112,7 +117,9 @@ sub new {
   # Create an xPL Client object (dies on error)
   my $self = $pkg->SUPER::new(%args, %opt);
 
-  foreach my $plug (@plugins) {
+  $self->{_plugins} = \@plugin_instances;
+
+  foreach my $plug (@plugin_instances) {
     $plug->init($self, %p);
   }
   return $self;
@@ -125,7 +132,7 @@ Returns the list of plugins in the dock.
 =cut
 
 sub plugins {
-  return @plugins;
+  return @{$_[0]->{_plugins}};
 }
 
 1;

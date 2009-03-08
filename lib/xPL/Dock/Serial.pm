@@ -73,8 +73,8 @@ sub init {
 
   $self->SUPER::init($xpl, @_);
 
-  my $dev = $self->{_device} or shift @ARGV or
-    pod2usage(-message => "The serial device parameter is required",
+  my $dev = $self->{_device} or
+    pod2usage(-message => "The --device parameter is required",
               -exitstatus => 1);
   $self->device_open($dev);
 

@@ -60,8 +60,10 @@ sub getopts {
               'rfxcom-tx|rfxcomtx=s' => \$self->{_device},
              );
   foreach (@fields) {
+    my $n = $_;
+    $n =~ s/_/-/g;
     $self->{'_'.$_} = undef;
-    push @opts, $_ => \$self->{'_'.$_};
+    push @opts, $n => \$self->{'_'.$_};
   }
   return @opts;
 }

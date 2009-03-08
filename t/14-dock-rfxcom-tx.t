@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 76;
+use Test::More tests => 75;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -308,6 +308,7 @@ $client->close;
 my @expected = split /\n/, q{Listening on 127.0.0.1:3865
 Sending on 127.0.0.1
 queued: F030F030: init/version check
+sending: F030F030: init/version check
 queued: F033F033: variable length mode w/receiver connected
 queued: F03CF03C: enabling harrison
 queued: F03DF03D: enabling klikon-klikoff
@@ -317,7 +318,9 @@ queued: F03EF03E: enabling flamingo
 {
   local $0 = 'dingus';
   local @ARGV = ('-v', '--interface', 'lo',
+                 '--rfxcom-tx-verbose',
                  '--define', 'hubless=1',
+                 '--receiver-connected',
                  '--x10', '--harrison', '--koko', '--flamingo',
                  '--rfxcom-tx', '127.0.0.1:'.$port);
   my $output = test_output(sub { $xpl = xPL::Dock->new(port => 0) }, \*STDOUT);
@@ -330,13 +333,21 @@ ok($client, 'client accepted');
 $client_sel = IO::Select->new($client);
 
 
-my $cmd = $^X.' -Iblib/lib '.($ENV{HARNESS_PERL_SWITCHES}||'').
-              ' blib/script/xpl-rfxcom-tx';
-my $fh;
-open $fh, $cmd.' 2>&1 |' or die $!;
-is(~~<$fh>, "The --rfxcom-tx parameter is required\n",
-   'missing parameter content');
-ok(!close $fh, 'missing parameter exit close');
+# The begin block is global of course but this is where it is really used.
+BEGIN{
+  *CORE::GLOBAL::exit = sub { die "EXIT\n" };
+  require Pod::Usage; import Pod::Usage;
+}
+{
+  local @ARGV = ('-v', '--interface', 'lo', '--define', 'hubless=1');
+  is(test_output(sub {
+                   eval { $xpl = xPL::Dock->new(port => 0, name => 'dingus'); }
+                 }, \*STDOUT),
+     q{Listening on 127.0.0.1:3865
+Sending on 127.0.0.1
+The --rfxcom-tx parameter is required
+}, 'missing parameter');
+}
 
 sub check_sent_msg {
   my ($string) = @_;

@@ -6,11 +6,12 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 27;
+use Test::More tests => 13;
 use t::Helpers qw/test_warn test_error test_output/;
+
 $|=1;
 
-use_ok('xPL::Dock','RFXComRX');
+use_ok('xPL::Dock','W800');
 use_ok('xPL::BinaryMessage');
 
 my @msg;
@@ -32,7 +33,7 @@ my $xpl;
   local @ARGV = ('-v',
                  '--interface', 'lo',
                  '--define', 'hubless=1',
-                 '--rfxcom-rx', '127.0.0.1:'.$port);
+                 '--w800', '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
@@ -43,31 +44,9 @@ my $client_sel = IO::Select->new($client);
 
 my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
-is(ref $plugin, 'xPL::Dock::RFXComRX', 'plugin has correct type');
+is(ref $plugin, 'xPL::Dock::W800', 'plugin has correct type');
 
-foreach my $r (['F020' => '4d26'], ['F02A' => '41'], ['F041' => '41']) {
-  my ($recv,$send) = @$r;
-  ok($client_sel->can_read, 'device receive a message - '.$recv);
-  my $buf = '';
-  is((sysread $client, $buf, 64), length($recv)/2,
-     'read is correct size - '.$recv);
-  my $m = xPL::BinaryMessage->new(raw => $buf);
-  is($m, lc $recv, 'content is correct - '.$recv);
-
-  print $client pack 'H*', $send;
-
-  if ($send eq "4d26") {
-    is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-       "Not a variable length message: 4d26\n", 'read response - '.$send);
-  } else {
-    $xpl->main_loop(1);
-    is((unpack 'H*', $plugin->{_buffer}), $send, 'read response - '.$send);
-    $plugin->{_buffer} = '';
-  }
-#  check_sent_msg('dmx.confirm', '0x'.$color, '1');
-}
-
-print $client pack 'H*', '20649b08f7';
+print $client pack 'H*', '649b08f7';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "xpl-trig/x10.basic: bnz-dingus.mytestid -> * - on a11\n",
    'read response - a11/on');
@@ -83,29 +62,12 @@ command=on
 device=a11
 }
 !);
-print $client pack 'H*', '20649b08f7';
+$plugin->{_verbose} = 1;
+print $client pack 'H*', '649b08f7';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   '', # duplicate
+   "Processing: 649b08f7\n", # duplicate so no xPL message summary
    'read response - a11/on');
 check_sent_msg(undef);
-
-$xpl->verbose(0);
-print $client pack 'H*', '20649b28d7';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   "xpl-trig/x10.basic: bnz-dingus.mytestid -> * - off a11\n",
-   'read response - a11/off');
-check_sent_msg(q!xpl-trig
-{
-hop=1
-source=bnz-dingus.mytestid
-target=*
-}
-x10.basic
-{
-command=off
-device=a11
-}
-!);
 
 # The begin block is global of course but this is where it is really used.
 BEGIN{
@@ -119,7 +81,7 @@ BEGIN{
                  }, \*STDOUT),
      q{Listening on 127.0.0.1:3865
 Sending on 127.0.0.1
-The --rfxcom-rx parameter is required
+The --w800 parameter is required
 }, 'missing parameter');
 }
 

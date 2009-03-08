@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 28;
+use Test::More tests => 29;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -102,12 +102,28 @@ ok(!defined xPL::BinaryMessage->new(desc => 'duff message'),
 
 $device->close;
 {
-  local $0 = 'dingus';
-  local @ARGV = ('-v');
+  local @ARGV = ('-v',
+                 '--device' => '127.0.0.1:'.$port);
   is(test_error(sub {
                   $xpl = xPL::Dock->new(port => 0, hubless => 1,
-                                       device => '127.0.0.1:'.$port)
+                                        name => 'dingus')
                 }),
      q{xPL::Dock::Serial->device_open: TCP connect to '127.0.0.1:}.$port.
      q{' failed: Connection refused}, 'connection refused');
+}
+
+# The begin block is global of course but this is where it is really used.
+BEGIN{
+  *CORE::GLOBAL::exit = sub { die "EXIT\n" };
+  require Pod::Usage; import Pod::Usage;
+}
+{
+  local @ARGV = ('-v', '--interface', 'lo', '--define', 'hubless=1');
+  is(test_output(sub {
+                   eval { $xpl = xPL::Dock->new(port => 0, name => 'dingus'); }
+                 }, \*STDOUT),
+     q{Listening on 127.0.0.1:3865
+Sending on 127.0.0.1
+The --device parameter is required
+}, 'missing parameter');
 }

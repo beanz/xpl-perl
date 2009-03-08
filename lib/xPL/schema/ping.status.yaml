@@ -1,0 +1,14 @@
+---
+default_message_type: xpl-stat
+types:
+  xpl-stat:
+    fields:
+      - name: state
+      - name: roundtriptime
+      - name: checktime
+    summary:
+      - name: state
+      - name: roundtriptime
+        prefix: " "
+      - name: checktime
+        prefix: " "

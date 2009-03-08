@@ -169,6 +169,7 @@ t/14-dock-dmx.t
 t/14-dock-rfxcom-rx.t
 t/14-dock-rfxcom-tx.t
 t/14-dock-viom.t
+t/14-dock-w800.t
 t/Helpers.pm
 t/interfaces/ifconfig.empty/ifconfig
 t/interfaces/ifconfig.freebsd/ifconfig
