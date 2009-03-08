@@ -41,7 +41,7 @@ can be provided - such as the output of the sample RFreceiver.exe.
 
 =head1 SEE ALSO
 
-xPL::Client(3), xPL::Listener(3)
+xPL::Dock(3), xPL::Listener(3)
 
 Project website: http://www.xpl-perl.org.uk/
 
