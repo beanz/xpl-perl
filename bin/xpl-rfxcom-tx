@@ -35,7 +35,8 @@ use strict;
 use warnings;
 use xPL::Dock qw/RFXComTX/;
 $|=1; # autoflush helps debugging
-xPL::Dock->new->main_loop;
+my $xpl = xPL::Dock->new;
+$xpl->main_loop;
 
 # send a 'hbeat.end' message on exit
 END { defined $xpl && $xpl->send_hbeat_end(); }
