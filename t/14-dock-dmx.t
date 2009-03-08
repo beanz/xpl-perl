@@ -1,4 +1,4 @@
-#!#!/usr/bin/perl -w
+#!/usr/bin/perl -w
 #
 # Copyright (C) 2009 by Mark Hindess
 
@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 74;
+use Test::More tests => 75;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -85,6 +85,12 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 00".(substr $m, -2)."\n", 'read response - base=1x2');
 
 check_sent_msg('dmx.confirm', '0x0000ff', '1x2');
+
+$msg->value('invalid');
+$xpl->dispatch_xpl_message($msg);
+
+ok(!$client_sel->can_read(0.1), 'serial device nothing to read');
+
 
 $plugin->{_min_visible_diff} = 64; # limit length of fade
 $msg->base('1');
