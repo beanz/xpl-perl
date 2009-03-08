@@ -6,20 +6,20 @@ xpl-dmx - Perl script for an xPL DMX Transmitter application
 
 =head1 SYNOPSIS
 
-  xpl-dmx [flags] [options] <device>
+  xpl-dmx [flags] [options] --dmx <device>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    -h    - show this help text
+    -v    - verbose mode
   and valid options are (default shown in brackets):
-    -i if0    - the interface for xPL messages (first non-loopback or loopback)
-    -B baud   - the baud rate (9600)
-    -c colors - rgb.txt file to use for colours (/etc/X11/rgb.txt)
-                If this doesn't exist, then only the colours red,
-                green, blue, cyan, magenta, yellow, black, and white
-                are supported.
+    -i if0       - the interface for xPL messages (first non-loopback or
+                                                   loopback)
+    --rgb colors - rgb.txt file to use for colours (/etc/X11/rgb.txt)
+                    If this doesn't exist, then only the colours red,
+                    green, blue, cyan, magenta, yellow, black, and white
+                    are supported.
 
   # start the dmx application on first ethernet interface in verbose mode
-  xpl-dmx -i eth0 -v
+  xpl-dmx -i eth0 -v --dmx <device>
 
 =head1 DESCRIPTION
 
@@ -30,237 +30,10 @@ Milford Instruments.
 
 use strict;
 use warnings;
-use List::Util qw/min max/;
-use Time::HiRes;
-use xPL::SerialClient;
+use xPL::Dock qw/DMX/;
 $|=1; # autoflush helps debugging
-my $rgb_txt = '/etc/X11/rgb.txt';
-
-{ # shortcut to save typing
- package Msg;
- use base 'xPL::BinaryMessage';
- 1;
-}
-
-sub device_reader;
-
-# Create an xPL Client object
-my $xpl = xPL::SerialClient->new(reader_callback => \&device_reader,
-                                 getopts => ['rgb|c=s' => \$rgb_txt],) or
-  die "Failed to create xPL::SerialClient\n";
-
-# Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'dmx',
-                       filter => {
-                                  message_type => 'xpl-cmnd',
-                                  class => 'dmx',
-                                  class_type => 'basic',
-                                  type => 'set',
-                                 },
-                       callback => \&xpl_in);
-
-my $rgb = read_rgb_txt($rgb_txt) or die "Failed to read $rgb_txt: $!\n";
-
-my @values = ();
-my %fade = ();
-our $MIN_VISIBLE_DIFF = 4;
-
-# Run the main loop
-$xpl->main_loop();
-
-=head2 C<xpl_in(%xpl_callback_parameters)>
-
-This is the callback that processes incoming xPL messages.  It handles
-the incoming control.basic schema messages.
-
-=cut
-
-sub xpl_in {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-  if ($msg->base =~ /hex/) { # hack to aid debug
-    $xpl->write(Msg->new(hex => $msg->value, data => $msg,
-                         desc => 'debug message'));
-    return 1;
-  }
-  return 1 unless ($msg->base =~ /^(\d+)(x(\d+))?$/);
-  my $base = $1;
-  my $multi = $3 || 1;
-  my $hex;
-  if ($msg->value =~ /^0x([0-9a-f]+)/i) {
-    $hex = $1;
-  } elsif (my @l = ($msg->value=~/\G[ ,]?(\d+)/mg)) {
-    $hex = sprintf "%02x" x scalar @l, @l;
-  } elsif (exists $rgb->{lc $msg->value}) {
-    $hex = $rgb->{lc $msg->value};
-  } else {
-    return 1;
-  }
-  my $fade = $msg->extra_field('fade');
-  if (defined $fade) {
-    return dmx_fade($msg, $base, $hex, $multi, $fade);
-  }
-  return dmx_set($msg, $base, $hex, $multi);
-}
-
-=head2 C<dmx_set($base, $hex, $multiplier, $msg)>
-
-This function sends a set command for the given base address with the
-hex value repeated according to the multiplier.
-
-=cut
-
-sub dmx_set {
-  my ($msg, $base, $hex, $multi) = @_;
-  $multi = 1 unless (defined $multi);
-  my @v = unpack "C*", pack "H*", $hex;
-  my $l = scalar @v;
-  for (my $i = 0; $i<($l*$multi); $i++) {
-    $values[$base+$i] = $v[$i%$l];
-  }
-  my $comm = '01'.(sprintf "%04x", $base).($hex x $multi);
-  $xpl->write(Msg->new(hex => $comm, data => $msg,
-                      desc => "set ${base}x$multi=$hex"));
-  return 1;
-}
-
-=head2 C<dmx_fade($msg, $base, $hex, $multiplier, $fade)>
-
-This function sends a set command for the given base address with the
-hex value repeated according to the multiplier over the period given
-by the fade parameter.
-
-=cut
-
-sub dmx_fade {
-  my ($msg, $base, $hex, $multi, $fade) = @_;
-  my $start_t = Time::HiRes::time();
-  my $end_t = $start_t + $fade;
-  my @v = unpack "C*", pack "H*", $hex;
-#  print "base=$base\n";
-  my $l = scalar @v;
-  for (my $i = 0; $i<($l*$multi); $i++) {
-    my $b = $base+$i;
-    my $start = $values[$b] || 0; # assume black?
-    my $end = $v[$i%$l];
-    next if ($start == $end); # nothing to do
-    $fade{$b} =
-      {
-       start_c => $start,
-       end_c => $end,
-       diff_c => $end - $start,
-       start_t => $start_t,
-       end_t => $end_t,
-       diff_t => $end_t - $start_t,
-      };
-    $fade{$b}->{int_t} =
-      $fade{$b}->{diff_t} / (abs($fade{$b}->{diff_c}) / $MIN_VISIBLE_DIFF);
-    $fade{$b}->{next_t} = _next_change($fade{$b}, $start_t);
-#    print "nc = ", $fade{$b}->{next_t}, "\n";
-  }
-  send_xpl_confirm($msg);
-  return update_fade_timer();
-}
-
-sub update_fade_timer {
-  $xpl->remove_timer('fade') if ($xpl->exists_timer('fade'));
-  return unless (scalar keys %fade);
-  my $min = min(map { $fade{$_}->{next_t} } keys %fade);
-  $xpl->add_timer(id => 'fade',
-                  timeout => $min - Time::HiRes::time(),
-                  callback => \&do_fades);
-  return 1;
-}
-
-sub do_fades {
-  my $time = Time::HiRes::time;
-  my %set = ();
-  foreach my $base (sort { $a <=> $b } keys %fade) {
-    next unless ($fade{$base}->{next_t} <= $time);
-    my $diff_c = $fade{$base}->{diff_c};
-    my $diff_t = $fade{$base}->{diff_t};
-    my $off_t = $time - $fade{$base}->{start_t};
-    my $off_c = $diff_c * $off_t / $diff_t;
-    my $col = int(.5 + $fade{$base}->{start_c} + $off_c);
-    $col = min($col, 255);
-    $col = max($col, 0);
-#    print "$diff_t $diff_c $off_t $off_c $col\n";
-    if (exists $set{$base-1}) {
-      $set{$base-1} .= sprintf "%02x", $col;
-    } else {
-      $set{$base} = sprintf "%02x", $col;
-    }
-    if ($col == $fade{$base}->{end_c}) {
-      delete $fade{$base};
-      next;
-    }
-    $fade{$base}->{next_t} =
-      _next_change($fade{$base}, $time) or
-        delete $fade{$base};
-  }
-  # TODO: optimize set commands
-  foreach my $base (keys %set) {
-    dmx_set(undef, $base, $set{$base});
-#    print "S: $base = ", $set{$base}, "\n";
-  }
-  update_fade_timer();
-  return 1;
-}
-
-sub _next_change {
-  my $f = shift;
-  my $t = shift;
-  return undef unless ($t >= $f->{start_t} && $t < $f->{end_t});
-  my $nt = $t + $f->{int_t};
-  return $nt > $f->{end_t} ? $f->{end_t} : $nt;
-}
-
-=head2 C<device_reader()>
-
-This is the callback that processes output from the DMX transmitter.
-It is responsible for sending out the sensor.basic xpl-trig messages.
-
-=cut
-
-sub device_reader {
-  my ($xpl, $buf, $last) = @_;
-  print "received: ", (unpack "H*", $buf), "\n" if ($xpl->verbose);
-  send_xpl_confirm($last->data) if (ref $last && ref $last->data);
-  return '';
-}
-
-sub send_xpl_confirm {
-  my $msg = shift;
-  $xpl->send(message_type => 'xpl-trig',
-             class => 'dmx.confirm',
-             body =>
-             {
-              type => $msg->type,
-              base => $msg->base,
-              value => $msg->value,
-             });
-}
-
-=head2 C<read_rgb_txt( $file )>
-
-This function reads the rgb.txt file to create a mapping of colour names
-to rrggbb hex values.
-
-=cut
-
-sub read_rgb_txt {
-  my $file = shift;
-  my %rgb;
-  my $rgb = FileHandle->new($file) || \*DATA || return;
-  while (<$rgb>) {
-    next unless (/^(\d+)\s+(\d+)\s+(\d+)\s+(.*)\s*$/);
-    $rgb{lc $4} = sprintf "%02x%02x%02x", $1, $2, $3;
-  }
-  $rgb->close;
-  return \%rgb;
-}
+my $xpl = xPL::Dock->new;
+$xpl->main_loop;
 
 # send a 'hbeat.end' message on exit
 END { defined $xpl && $xpl->send_hbeat_end(); }
