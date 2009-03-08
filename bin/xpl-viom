@@ -8,16 +8,18 @@ xpl-viom - Perl script for an xPL VIOM IO controller application
 
 =head1 SYNOPSIS
 
-  xpl-viom [flags] [options] <device>
+  xpl-viom [flags] [options] --viom <device>
   where valid flags are:
     -h - show this help text
     -v - verbose mode
   and valid options are (default shown in brackets):
-    -i if0  - the interface for xPL messages (first non-loopback or loopback)
-    -B baud - the baud rate (9600)
+    -i if0           - the interface for xPL messages (first non-loopback or
+                                                       loopback)
+    --viom-baud baud - the baud rate (9600)
+    --viom <device>  - the tty device for the VIOM
 
   # start the viom application on first ethernet interface in verbose mode
-  xpl-viom -i eth0 -v /dev/ttyUSB1
+  xpl-viom -i eth0 -v --viom /dev/ttyUSB1
 
 =head1 DESCRIPTION
 
@@ -34,150 +36,10 @@ and single digit numbers are prefixed by 0.
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
-use xPL::SerialClientLine;
+use xPL::Dock qw/VIOM/;
 $|=1; # autoflush helps debugging
-
-sub device_reader;
-# Create an xPL SerialClient object
-my $xpl = xPL::SerialClientLine->new(reader_callback => \&device_reader,
-                                     output_record_separator => "\r\n") or
-  die "Failed to create xPL::SerialClientLine\n";
-
-# Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in,
-                       filter => {
-                                  message_type => 'xpl-cmnd',
-                                  class => 'control',
-                                  class_type => 'basic',
-                                  type => 'output',
-                                 });
-
-# sanity check the inputs immediately and periodically so we keep
-# the current state sane even when viom is unplugged, etc.
-$xpl->add_timer(id => 'input-check', timeout => -631,
-                callback => sub { $xpl->write('CIN'); 1; });
-
-# sanity check the outputs immediately and periodically so we keep
-# the current state sane even when viom is unplugged, etc.
-$xpl->add_timer(id => "temp", timeout => 2, count => 1,
-                callback => sub {
-                  $xpl->write('CIC1', 1);
-                  $xpl->add_timer(id => 'output-check', timeout => -641,
-                                  callback => sub { $xpl->write('COR'); 1; });
-                  return;
-                });
-
-my %state;
-
-# Run the main loop
-$xpl->main_loop();
-
-=head2 C<xpl_in(%xpl_callback_parameters)>
-
-This is the callback that processes incoming xPL messages.  It handles
-the incoming control.basic schema messages.
-
-=cut
-
-sub xpl_in {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  return 1 unless ($msg->device =~ /^o(\d+)$/);
-  my $num = $LAST_PAREN_MATCH;
-  my $id = sprintf("o%02d", $num);
-  my $command = lc $msg->current;
-  if ($command eq "high") {
-    $xpl->write(sprintf("XA%d", $num));
-    $state{$id} = 'high:'.time;
-  } elsif ($command eq "low") {
-    $xpl->write(sprintf("XB%d", $num));
-    $state{$id} = 'low:'.time;
-  } elsif ($command eq "pulse") {
-    $xpl->write(sprintf("XA%d", $num));
-    select(undef,undef,undef,0.15);
-    $xpl->write(sprintf("XB%d", $num));
-    $state{$id} = 'low:'.time;
-  } elsif ($command eq "toggle") {
-    my ($old,$prev_time) = split(/:/,$state{$id}||"");
-    # assume low
-    if ($old eq "high") {
-      $xpl->write(sprintf("XB%d", $num));
-      $state{$id} = 'low:'.time;
-    } else {
-      $xpl->write(sprintf("XA%d", $num));
-      $state{$id} = 'high:'.time;
-    }
-  }
-  return 1;
-}
-
-=head2 C<device_reader()>
-
-This is the callback that processes output from the VIOM.  It is
-responsible for sending out the sensor.basic xpl-trig messages.
-
-=cut
-
-sub device_reader {
-  my ($xpl, $line, $last) = @_;
-  my $time = time;
-  if ($line =~ /[01]{16}/) {
-    foreach my $index (0..15) {
-      my $id = sprintf("i%02d",$index+1);
-      my $new = substr($line, $index, 1) ? "high" : "low";
-      my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
-      if ($new ne $old) {
-        $state{$id} = $new.":".$time;
-          send_xpl($id, $new);
-      }
-    }
-  } elsif ($line =~ /^Input (\d+) (Inactive|Active)$/) {
-    my $id = sprintf("i%02d",$1);
-    my $new = $2 eq "Active" ? "high" : "low";
-    my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
-    if ($new ne $old) {
-      $state{$id} = $new.":".$time;
-    } else {
-      # only print these if something has changed
-      return;
-    }
-  } elsif ($line =~ /^Output (\d+) (Inactive|Active)$/) {
-    my $id = sprintf("o%02d",$1);
-    my $new = $2 eq "Active" ? "high" : "low";
-    my ($old,$prev_time) = split(/:/,$state{$id}||"low:");
-    if ($new ne $old) {
-      $state{$id} = $new.":".$time;
-    } else {
-      # only print these if something has changed
-      return;
-    }
-  }
-  print $line,"\n" if ($xpl->verbose);
-  return 1;
-}
-
-=head2 C<send_xpl( $device, $level )>
-
-This functions is used to send out sensor.basic xpl-trig messages as a
-result of changes to the VIOM inputs.
-
-=cut
-
-sub send_xpl {
-  my $device = shift;
-  my $level = shift;
-  my %args =
-    (
-     message_type => 'xpl-trig',
-     class => 'sensor.basic',
-     body => { device => $device, type => 'input', current => $level },
-    );
-  print STDERR "Sending $device $level\n" if ($xpl->verbose);
-  return $xpl->send(%args);
-}
+my $xpl = xPL::Dock->new;
+$xpl->main_loop;
 
 # send a 'hbeat.end' message on exit
 END { defined $xpl && $xpl->send_hbeat_end(); }
