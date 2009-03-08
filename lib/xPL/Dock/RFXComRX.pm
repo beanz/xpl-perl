@@ -96,7 +96,7 @@ sub device_reader {
     my $m = substr($buf, 0, $res->{length}, '') if ($res->{length});
     print "Processed: ", unpack("H*", $m), "\n"
       if ($xpl->verbose && $m && !$res->{duplicate});
-    return 1 unless ($res->{messages} && ref($res->{messages}));
+    return $buf unless ($res->{messages} && (ref $res->{messages}));
     foreach my $msg (@{$res->{messages}}) {
       print $msg->summary,"\n";
       $xpl->send($msg);
