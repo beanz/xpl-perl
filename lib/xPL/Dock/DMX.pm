@@ -201,15 +201,12 @@ sub update_fade_timer {
   my $min = min(map { $fades->{$_}->{next_t} } keys %$fades);
   $xpl->add_timer(id => 'fade',
                   timeout => $min - Time::HiRes::time(),
-                  callback => \&do_fades,
-                  arguments => $self);
+                  callback => sub { $self->do_fades(@_) });
   return 1;
 }
 
 sub do_fades {
-  my $rec = shift;
-  my %p = @_;
-  my $self = $p{arguments};
+  my $self = shift;
   my $time = Time::HiRes::time;
   my $fades = $self->{_fades};
   my %set = ();
