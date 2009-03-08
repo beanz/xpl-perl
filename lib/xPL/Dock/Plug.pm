@@ -35,7 +35,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-__PACKAGE__->make_readonly_accessor('xpl');
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/xpl verbose/);
 
 =head2 C<getopts()>
 

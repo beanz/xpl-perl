@@ -49,6 +49,7 @@ sub getopts {
   $self->{_baud} = 4800;
   return
     (
+     'rfxcom-rx-verbose|rfxcomrxverbose+' => \$self->{_verbose},
      'rfxcom-rx-baud|rfxcomrxbaud=i' => \$self->{_baud},
      'rfxcom-rx|rfxcomrx=s' => \$self->{_device},
     );
@@ -95,7 +96,7 @@ sub device_reader {
     # truncate buffer by given length
     my $m = substr($buf, 0, $res->{length}, '') if ($res->{length});
     print "Processed: ", unpack("H*", $m), "\n"
-      if ($xpl->verbose && $m && !$res->{duplicate});
+      if ($self->verbose && $m && !$res->{duplicate});
     return $buf unless ($res->{messages} && (ref $res->{messages}));
     foreach my $msg (@{$res->{messages}}) {
       print $msg->summary,"\n";

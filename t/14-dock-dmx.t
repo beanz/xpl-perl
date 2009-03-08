@@ -29,7 +29,9 @@ my $xpl;
 
 {
   local $0 = 'dingus';
-  local @ARGV = ('-v', '--define', 'hubless=1', '--dmx', '127.0.0.1:'.$port);
+  local @ARGV = ('-v',
+                 '--interface', 'lo',
+                 '--define', 'hubless=1', '--dmx', '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock dmx client');

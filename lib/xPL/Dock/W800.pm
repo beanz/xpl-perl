@@ -49,6 +49,7 @@ sub getopts {
   $self->{_baud} = 4800;
   return
     (
+     'w800-verbose|w800verbose+' => \$self->{_verbose},
      'w800-baud|w800baud=i' => \$self->{_baud},
      'w800=s' => \$self->{_device},
     );
@@ -84,7 +85,7 @@ sub device_reader {
   my $xpl = $self->xpl;
   while (length($buf) >= 4) {
     my $m = substr($buf, 0, 4, '');
-    print "Processing: ", unpack("H*", $m), "\n" if ($xpl->verbose);
+    print "Processing: ", unpack("H*", $m), "\n" if ($self->verbose);
     my $res = $self->{_rf}->process_32bit($m);
     return 1 unless ($res && @$res);
     foreach my $msg (@$res) {

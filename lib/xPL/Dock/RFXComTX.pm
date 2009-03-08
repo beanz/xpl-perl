@@ -55,6 +55,7 @@ sub getopts {
   $self->{_baud} = 4800;
   $self->{_x10} = 1;
   my @opts = (
+              'rfxcom-tx-verbose|rfxcomtxverbose+' => \$self->{_verbose},
               'rfxcom-tx-baud|rfxcomtxbaud=i' => \$self->{_baud},
               'rfxcom-tx|rfxcomtx=s' => \$self->{_device},
              );

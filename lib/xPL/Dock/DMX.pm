@@ -36,8 +36,6 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-__PACKAGE__->make_readonly_accessor('colors');
-
 { # shortcut to save typing
   package Msg;
   use base 'xPL::BinaryMessage';
@@ -49,6 +47,7 @@ sub getopts {
   $self->{_baud} = 9600;
   $self->{_rgb_txt} = '/etc/X11/rgb.txt';
   return (
+          'dmx-verbose|dmxverbose+' => \$self->{_verbose},
           'dmx-baud|dmxaud=i' => \$self->{_baud},
           'dmx=s' => \$self->{_device},
           'rgb=s' => \$self->{_rgb_txt},

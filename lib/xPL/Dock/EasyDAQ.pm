@@ -48,6 +48,7 @@ sub getopts {
   my $self = shift;
   $self->{_baud} = 9600;
   return (
+          'easydaq-verbose|easydaqverbose+' => \$self->{_verbose},
           'easydaq-baud|easydaqbaud=i' => \$self->{_baud},
           'easydaq=s' => \$self->{_device},
          );

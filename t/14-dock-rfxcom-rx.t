@@ -30,6 +30,7 @@ my $xpl;
 {
   local $0 = 'dingus';
   local @ARGV = ('-v',
+                 '--interface', 'lo',
                  '--define', 'hubless=1',
                  '--rfxcom-rx', '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0);
@@ -68,7 +69,6 @@ foreach my $r (['F020' => '4d26'], ['F02A' => '41'], ['F041' => '41']) {
 
 print $client pack 'H*', '20649b08f7';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   "Processed: 20649b08f7\n".
    "xpl-trig/x10.basic: bnz-dingus.mytestid -> * - on a11\n",
    'read response - a11/on');
 check_sent_msg(q!xpl-trig

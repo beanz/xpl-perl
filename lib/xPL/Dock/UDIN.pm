@@ -37,6 +37,7 @@ sub getopts {
   my $self = shift;
   $self->{_baud} = 9600;
   return (
+          'udin-verbose|udinverbose+' => \$self->{_verbose},
           'udin-baud|udinbaud=i' => \$self->{_baud},
           'udin=s' => \$self->{_device},
          );
@@ -118,7 +119,7 @@ is responsible for sending out the sensor.basic xpl-trig messages.
 sub process_line {
   my ($self, $line) = shift;
   return unless (defined $line && $line ne '');
-  print "received: '$line'\n" if ($self->xpl->verbose);
+  print "received: '$line'\n" if ($self->verbose);
   return 1;
 }
 
