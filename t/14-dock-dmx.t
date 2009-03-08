@@ -51,7 +51,8 @@ my $msg = xPL::Message->new(class => 'dmx.basic',
                              value => 'dummy',
                             });
 foreach my $color ('ff0000', '00ff00', '0000ff') {
-  $msg->value('0x'.$color);
+  my $val = $color eq 'ff0000' ? 'red' : '0x'.$color;
+  $msg->value($val);
   $xpl->dispatch_xpl_message($msg);
 
   ok($client_sel->can_read, 'serial device ready to read - '.$color);
@@ -65,7 +66,7 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
 
   is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
      "received: 00".(substr $m, -2)."\n", 'read response - '.$color);
-  check_sent_msg('dmx.confirm', '0x'.$color, '1');
+  check_sent_msg('dmx.confirm', $val, '1');
 }
 
 $msg->base('1x2');
