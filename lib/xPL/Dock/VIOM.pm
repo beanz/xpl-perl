@@ -90,7 +90,6 @@ sub init {
                                       sub { $self->write('COR'); 1; });
                     return;
                   });
-print STDERR "Verbose: ", $self->verbose, "\n";
   return $self;
 }
 
