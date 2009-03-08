@@ -118,6 +118,12 @@ sub new {
   return $self;
 }
 
+=head2 C<plugins( )>
+
+Returns the list of plugins in the dock.
+
+=cut
+
 sub plugins {
   return @plugins;
 }

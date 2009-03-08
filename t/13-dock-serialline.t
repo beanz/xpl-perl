@@ -29,7 +29,7 @@ sub device_reader {
 }
 {
   local $0 = 'dingus';
-  local @ARGV = ('--device', '127.0.0.1:'.$port);
+  local @ARGV = ('--interface', 'lo', '--device', '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0, hubless => 1,
                         reader_callback => \&device_reader,
                         discard_buffer_timeout => 5);
