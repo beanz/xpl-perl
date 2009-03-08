@@ -213,6 +213,12 @@ sub device_reader {
   return '';
 }
 
+=head2 C<init_device( )>
+
+This method sends the initialization command to the RFXCom transmitter.
+
+=cut
+
 sub init_device {
   my ($self) = @_;
   $self->write($self->receiver_connected ?
@@ -224,6 +230,13 @@ sub init_device {
                         'variable length mode w/o receiver connected'));
 }
 
+=head2 C<reset_device( $waiting )>
+
+This is the ACK timeout callback that attempts to reset the device if
+it has not responded to a command.
+
+=cut
+
 sub reset_device {
   my ($self, $waiting) = @_;
   print STDERR "No ack!\n";
@@ -231,9 +244,23 @@ sub reset_device {
   1;
 }
 
+=head2 C<encode_x10( %p )>
+
+This function creates the RFXCom transmitter message for the given
+the X10 message specification.
+
+=cut
+
 sub encode_x10 {
   return pack 'C5', 32, @{xPL::X10::to_rf(@_)};
 }
+
+=head2 C<encode_homeeasy( %p )>
+
+This function creates the RFXCom transmitter message for the given
+the homeeasy message specification.
+
+=cut
 
 sub encode_homeeasy {
   my ($length, $bytes) = @{xPL::HomeEasy::to_rf(@_)};
