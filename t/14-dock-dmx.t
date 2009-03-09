@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 82;
+use Test::More tests => 86;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -189,3 +189,18 @@ sub check_sent_msg {
   is($m{body}->{value}, $color, 'dmx.confirm has correct value - '.$color);
   is($m{body}->{base}, $base, 'dmx.confirm has correct base - '.$color);
 }
+
+{
+  local $0 = 'dingus';
+  local @ARGV = ('-v',
+                 '--interface', 'lo', '--rgb', 'non-existant-rgb-txt',
+                 '--define', 'hubless=1', '--dmx', '127.0.0.1:'.$port);
+  $xpl = xPL::Dock->new(port => 0);
+}
+ok($xpl, 'created dock dmx client');
+$plugin = ($xpl->plugins)[0];
+ok($plugin, 'plugin exists');
+is(ref $plugin, 'xPL::Dock::DMX', 'plugin has correct type');
+is((join ',', sort keys %{$plugin->{_rgb}}),
+   'black,blue,cyan,green,magenta,red,white,yellow',
+   'plugin loaded default colors');

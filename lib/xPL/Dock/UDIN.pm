@@ -57,6 +57,7 @@ sub init {
               -exitstatus => 1);
   $self->SUPER::init($xpl,
                      reader_callback => \&process_line,
+                     ack_timeout => 0.05,
                      @_);
 
   # Add a callback to receive incoming xPL messages
@@ -89,7 +90,6 @@ sub xpl_in {
   my $xpl = $self->xpl;
 
   if ($msg->device eq 'debug') {
-    $self->write('?');
     $self->write('s0');
   }
   return 1 unless ($msg->device =~ /^o(\d+)$/);
@@ -105,6 +105,8 @@ sub xpl_in {
     $self->write(sprintf("f%d", $num));
   } elsif ($command eq "toggle") {
     $self->write(sprintf("t%d", $num));
+  } else {
+    warn "Unsupported setting: $command\n";
   }
   return 1;
 }
@@ -117,7 +119,7 @@ is responsible for sending out the sensor.basic xpl-trig messages.
 =cut
 
 sub process_line {
-  my ($self, $line) = shift;
+  my ($self, $line) = @_;
   return unless (defined $line && $line ne '');
   print "received: '$line'\n" if ($self->verbose);
   return 1;

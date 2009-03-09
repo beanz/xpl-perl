@@ -118,6 +118,8 @@ sub xpl_in {
     $self->write(Msg->new('C', $self->{_state}, "setting port $num high"));
     $self->{_state} &= 0xf^(1<<($num-1));
     $self->write(Msg->new('C', $self->{_state}, "setting port $num low"));
+  } else {
+    warn "Unsupported setting: $command\n";
   }
   return 1;
 }

@@ -309,13 +309,34 @@ sub read_rgb_txt {
   my $self = shift;
   my $file = $self->{_rgb_txt};
   my %rgb;
-  my $rgb = FileHandle->new($file) || \*DATA || return;
+  my $rgb = FileHandle->new($file) or return $self->default_rgb();
   while (<$rgb>) {
     next unless (/^(\d+)\s+(\d+)\s+(\d+)\s+(.*)\s*$/);
     $rgb{lc $4} = sprintf "%02x%02x%02x", $1, $2, $3;
   }
   $rgb->close;
   return $self->{_rgb} = \%rgb;
+}
+
+=head2 C<default_rgb( )>
+
+This function returns a default mapping of colour names to rrggbb hex
+values.  It is used if an C<rgb.txt> file is not found.
+
+=cut
+
+sub default_rgb {
+  return $_[0]->{_rgb} =
+    {
+     black   => '000000',
+     red     => 'ff0000',
+     green   => '00ff00',
+     blue    => '0000ff',
+     magenta => 'ff00ff',
+     cyan    => '00ffff',
+     yellow  => 'ffff00',
+     white   => 'ffffff',
+    };
 }
 
 1;
@@ -342,14 +363,3 @@ it under the same terms as Perl itself, either Perl version 5.8.7 or,
 at your option, any later version of Perl 5 you may have available.
 
 =cut
-
-__DATA__
-# Simple default colour database
-  0   0   0             black
-255   0   0             red
-  0 255   0             green
-255 255   0             yellow
-  0   0 255             blue
-255   0 255             magenta
-  0 255 255             cyan
-255 255 255             white

@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 29;
+use Test::More tests => 33;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -110,6 +110,36 @@ $device->close;
                 }),
      q{xPL::Dock::Serial->device_open: TCP connect to '127.0.0.1:}.$port.
      q{' failed: Connection refused}, 'connection refused');
+}
+
+{
+  local @ARGV = ('-v',
+                 '--device' => '/dev/just-a-test');
+  *{xPL::Dock::Serial::argh} =
+    sub { my $self = shift; warn ref($self).": ",@_; };
+  my $warn = test_warn(sub {
+                         $xpl = xPL::Dock->new(port => 0, hubless => 1,
+                                               name => 'dingus')
+                       });
+  like($warn,
+       qr{^xPL::Dock::Serial: Setting serial port with stty failed},
+       'stty failure');
+  like($warn,
+       qr{xPL::Dock::Serial: open of '/dev/just-a-test' failed},
+       'open failure');
+
+  @ARGV = ('-v', '--device' => '/dev/null');
+  $warn = test_warn(sub {
+                         $xpl = xPL::Dock->new(port => 0, hubless => 1,
+                                               name => 'dingus')
+                       });
+  like($warn,
+       qr{^xPL::Dock::Serial: Setting serial port with stty failed},
+       'stty failure');
+  unlike($warn,
+       qr{xPL::Dock::Serial: open of '[^']*' failed},
+       'open worked');
+
 }
 
 # The begin block is global of course but this is where it is really used.

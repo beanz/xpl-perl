@@ -33,6 +33,13 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
+our %state_map =
+  (
+   Active => 'high', Inactive => 'low',
+   high   => 'high', low      => 'low',
+   1      => 'high', 0        => 'low',
+  );
+
 sub getopts {
   my $self = shift;
   $self->{_baud} = 9600;
@@ -61,7 +68,13 @@ sub init {
                      output_record_separator => "\r\n",
                      @_);
 
+  # initialize states
   $self->{_state} = {};
+  my $time = time;
+  foreach my $num (1..16) {
+    $self->state_changed('o', $num, 'low', $time);
+    $self->state_changed('i', $num, 'low', $time);
+  }
 
   # Add a callback to receive incoming xPL messages
   $xpl->add_xpl_callback(id => 'viom', callback => \&xpl_in,
@@ -83,13 +96,10 @@ sub init {
 
   # sanity check the outputs immediately and periodically so we keep
   # the current state sane even when viom is unplugged, etc.
-  $xpl->add_timer(id => "temp", timeout => 2, count => 1,
-                  callback => sub {
-                    $xpl->add_timer(id => 'output-check', timeout => -641,
-                                    callback =>
-                                      sub { $self->write('COR'); 1; });
-                    return;
-                  });
+  $xpl->add_timer(id => 'output-check', timeout => -641,
+                  callback =>
+                  sub { $self->write('COR'); 1; });
+
   return $self;
 }
 
@@ -111,28 +121,26 @@ sub xpl_in {
 
   return 1 unless ($msg->device =~ /^o(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
-  my $id = sprintf("o%02d", $num);
   my $command = lc $msg->current;
   if ($command eq "high") {
     $self->write(sprintf("XA%d", $num));
-    $state->{$id} = 'high:'.time;
+    $self->state_changed('o', $num, 'high', time);
   } elsif ($command eq "low") {
     $self->write(sprintf("XB%d", $num));
-    $state->{$id} = 'low:'.time;
+    $self->state_changed('o', $num, 'low', time);
   } elsif ($command eq "pulse") {
     $self->write(sprintf("XA%d", $num));
     select(undef,undef,undef,0.15);
     $self->write(sprintf("XB%d", $num));
-    $state->{$id} = 'low:'.time;
+    $self->state_changed('o', $num, 'low', time);
   } elsif ($command eq "toggle") {
-    my ($old,$prev_time) = split(/:/,$state->{$id}||"");
-    # assume low
-    if ($old eq "high") {
+    my $state = $self->current_state('o', $num);
+    if ($state eq 'high') {
       $self->write(sprintf("XB%d", $num));
-      $state->{$id} = 'low:'.time;
+      $self->state_changed('o', $num, 'low', time);
     } else {
       $self->write(sprintf("XA%d", $num));
-      $state->{$id} = 'high:'.time;
+      $self->state_changed('o', $num, 'high', time);
     }
   } else {
     warn "Unsupported setting: $command\n";
@@ -155,34 +163,14 @@ sub process_line {
   my $time = time;
   if ($line =~ /[01]{16}/) {
     foreach my $index (0..15) {
-      my $id = sprintf("i%02d",$index+1);
-      my $new = substr($line, $index, 1) ? "high" : "low";
-      my ($old,$prev_time) = split(/:/,$state->{$id}||"low:");
-      if ($new ne $old) {
-        $state->{$id} = $new.":".$time;
-        $self->send_xpl($id, $new);
-      }
+      my $change = $self->state_changed('i', $index+1,
+                                        substr($line, $index, 1),
+                                        $time) or next;
+      $self->send_xpl(@$change);
     }
-  } elsif ($line =~ /^Input (\d+) (Inactive|Active)$/) {
-    my $id = sprintf("i%02d",$1);
-    my $new = $2 eq "Active" ? "high" : "low";
-    my ($old,$prev_time) = split(/:/,$state->{$id}||"low:");
-    if ($new ne $old) {
-      $state->{$id} = $new.":".$time;
-    } else {
-      # only print these if something has changed
-      return unless ($self->verbose >= 2);
-    }
-  } elsif ($line =~ /^Output (\d+) (Inactive|Active)$/) {
-    my $id = sprintf("o%02d",$1);
-    my $new = $2 eq "Active" ? "high" : "low";
-    my ($old,$prev_time) = split(/:/,$state->{$id}||"low:");
-    if ($new ne $old) {
-      $state->{$id} = $new.":".$time;
-    } else {
-      # only print these if something has changed
-      return unless ($self->verbose >= 2);
-    }
+  } elsif ($line =~ /^(Input|Output) (\d+) (Inactive|Active)$/) {
+    return unless ($self->state_changed(lc $1, $2, $3, $time) ||
+                   $self->verbose >= 2);
   }
   print $line,"\n" if ($self->verbose);
   return 1;
@@ -208,6 +196,39 @@ sub send_xpl {
     );
   print "Sending $device $level\n" if ($self->verbose);
   return $xpl->send(%args);
+}
+
+=head2 C<current_state( $type, $num )>
+
+Returns the current state of the input or output.
+
+=cut
+
+sub current_state {
+  my ($self, $type, $num) = @_;
+  my $id = (substr $type, 0, 1).(sprintf "%02d", $num);
+  return $self->{_state}->{$id}->[0];
+}
+
+=head2 C<state_changed( $type, $num, $state, $time )>
+
+This method updates the state table.  If the state has changes, then
+it returns an array reference with the id and new state.  If the state
+is unchanged, then it returns undef.
+
+=cut
+
+sub state_changed {
+  my ($self, $type, $num, $state, $time) = @_;
+  my $internal_state = $state_map{$state};
+  my $id = (substr $type, 0, 1).(sprintf "%02d", $num);
+  my ($old, $old_time) = @{$self->{_state}->{$id}||['low', $time-1]};
+  if ($internal_state ne $old) {
+    $self->{_state}->{$id} = [ $internal_state, $time ];
+    return [$id, $internal_state];
+  } else {
+    return;
+  }
 }
 
 1;
