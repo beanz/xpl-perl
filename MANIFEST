@@ -53,6 +53,7 @@ lib/xPL/Dock/EasyDAQ.pm
 lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm
+lib/xPL/Dock/Owfs.pm
 lib/xPL/Dock/RFXComRX.pm
 lib/xPL/Dock/RFXComTX.pm
 lib/xPL/Dock/SerialLine.pm
