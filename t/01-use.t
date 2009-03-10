@@ -34,6 +34,8 @@ eval { require Gtk2; };
 $has{Gtk2}++ unless ($@);
 eval { require SMS::Send; };
 $has{SMS}++ unless ($@);
+eval { require Net::Bluetooth; };
+$has{Bluetooth}++ unless ($@);
 
 
 foreach my $m (@modules) {
@@ -55,6 +57,8 @@ foreach my $m (@modules) {
     skip 'Gtk2 not available', 1 if ($m eq 'xPL::Gtk2Client' && !$has{Gtk2});
     skip 'SMS::Send not available', 1
       if ($m =~ /^SMS::Send::/ && !$has{SMS});
+    skip 'Net::Bluetooth not available', 1
+      if ($m eq 'xPL::Dock::Bluetooth' && !$has{Bluetooth});
 
     require_ok($m);
   }
