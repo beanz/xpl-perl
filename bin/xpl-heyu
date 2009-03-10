@@ -27,8 +27,6 @@ the 'heyu' tools.
 
 use strict;
 use warnings;
-use strict;
-use warnings;
 use xPL::Dock qw/Heyu/;
 $|=1; # autoflush helps debugging
 my $xpl = xPL::Dock->new();
