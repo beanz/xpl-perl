@@ -9,6 +9,7 @@ bin/xpl-dmx
 bin/xpl-easydaq
 bin/xpl-hddtemp
 bin/xpl-heyu-helper
+bin/xpl-heyu
 bin/xpl-hub
 bin/xpl-lcdproc
 bin/xpl-linux-cpu
@@ -50,6 +51,7 @@ lib/xPL/Client.pm
 lib/xPL/Dock/Bluetooth.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
+lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm
 lib/xPL/Dock/RFXComRX.pm
