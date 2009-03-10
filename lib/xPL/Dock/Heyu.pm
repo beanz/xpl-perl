@@ -2,7 +2,7 @@ package xPL::Dock::Heyu;
 
 =head1 NAME
 
-xPL::Dock::Heyu - xPL::Dock plugin for bluetooth proximity reporting
+xPL::Dock::Heyu - xPL::Dock plugin for X10 using heyu
 
 =head1 SYNOPSIS
 
@@ -12,7 +12,7 @@ xPL::Dock::Heyu - xPL::Dock plugin for bluetooth proximity reporting
 
 =head1 DESCRIPTION
 
-This L<xPL::Dock> plugin adds bluetooth proximity reporting.
+This L<xPL::Dock> plugin adds X10 support using heyu.
 
 =head1 METHODS
 
