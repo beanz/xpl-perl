@@ -155,5 +155,6 @@ BEGIN{
      q{Listening on 127.0.0.1:3865
 Sending on 127.0.0.1
 The --device parameter is required
+or the value can be given as a command line argument
 }, 'missing parameter');
 }

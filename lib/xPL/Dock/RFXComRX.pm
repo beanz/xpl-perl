@@ -64,9 +64,8 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  defined $self->{_device} or
-    pod2usage(-message => "The --rfxcom-rx parameter is required",
-              -exitstatus => 1);
+  $self->required_field($xpl,
+                        'device', 'The --rfxcom-rx parameter is required', 1);
   $self->SUPER::init($xpl,
                      discard_buffer_timeout => 0.03,
                      reader_callback => \&device_reader,

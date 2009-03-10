@@ -72,11 +72,9 @@ sub init {
   my %p = @_;
 
   $self->SUPER::init($xpl, @_);
-
-  my $dev = $self->{_device} or
-    pod2usage(-message => "The --device parameter is required",
-              -exitstatus => 1);
-  $self->device_open($dev);
+  $self->required_field($xpl, 'device',
+                        'The --device parameter is required', 1);
+  $self->device_open($self->{_device});
 
   $self->{_reader_callback} = $p{reader_callback};
   $self->{_ack_timeout} = $p{ack_timeout};

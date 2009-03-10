@@ -29,6 +29,7 @@ use 5.006;
 use strict;
 use warnings;
 use xPL::Base;
+use Pod::Usage;
 our @ISA = qw(xPL::Base);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
@@ -64,6 +65,55 @@ sub new {
 sub init {
   my ($self, $xpl) = @_;
   $self->{_xpl} = $xpl;
+  return 1;
+}
+
+=head2 C<required_field( $name, $message, $use_argv )>
+
+This method handles the checking of a require parameter for a plugin.
+
+=cut
+
+sub required_field {
+  my ($self, $xpl, $name, $message, $use_argv) = @_;
+  my $field = '_'.$name;
+  my $val = $self->{$field};
+  my $ref = ref $val;
+  if ($use_argv && scalar $xpl->plugins) {
+    if ($ref) {
+      unless (scalar @$ref) {
+        if (scalar @ARGV) {
+          $self->{$field} = \@ARGV;
+        } else {
+          pod2usage(-message => $message.
+                    "or the values can be given as command line arguments",
+                    -exitstatus => 1);
+        }
+      }
+    } else {
+      unless (defined $val) {
+        if (scalar @ARGV) {
+          $self->{$field} = shift @ARGV;
+        } else {
+          pod2usage(-message => $message.
+                    "\nor the value can be given as a command line argument",
+                    -exitstatus => 1);
+        }
+      }
+    }
+  } else {
+    if ($ref) {
+      unless (scalar @$ref) {
+        pod2usage(-message => $message,
+                  -exitstatus => 1);
+      }
+    } else {
+      unless (defined $val) {
+        pod2usage(-message => $message,
+                  -exitstatus => 1);
+      }
+    }
+  }
   return 1;
 }
 

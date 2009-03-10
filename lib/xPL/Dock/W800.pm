@@ -64,9 +64,7 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  defined $self->{_device} or
-    pod2usage(-message => "The --w800 parameter is required",
-              -exitstatus => 1);
+  $self->required_field($xpl, 'device', 'The --w800 parameter is required', 1);
   $self->SUPER::init($xpl, reader_callback => \&device_reader, @_);
   $self->{_rf} = xPL::RF->new(source => $xpl->id);
 

@@ -56,9 +56,9 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  scalar @{$self->{_addresses}} or
-    pod2usage(-message => "At least one --bluetooth-addr parameter is required",
-              -exitstatus => 1);
+  $self->required_field($xpl, 'addresses',
+             'At least one --bluetooth-addresses parameter is required',
+             1);
   $self->SUPER::init($xpl, @_);
 
   $self->{_watch} = [ map { uc } @{$self->{_addresses}} ];

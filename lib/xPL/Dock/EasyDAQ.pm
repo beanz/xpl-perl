@@ -63,9 +63,8 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  defined $self->{_device} or
-    pod2usage(-message => "The --easydaq parameter is required",
-              -exitstatus => 1);
+  $self->required_field($xpl,
+                        'device', 'The --easydaq parameter is required', 1);
   $self->SUPER::init($xpl,
                      ack_timeout => 0.05,
                      reader_callback => \&device_reader,

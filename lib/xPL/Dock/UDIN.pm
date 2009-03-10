@@ -52,9 +52,7 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  defined $self->{_device} or
-    pod2usage(-message => "The --udin parameter is required",
-              -exitstatus => 1);
+  $self->required_field($xpl, 'device', 'The --udin parameter is required', 1);
   $self->SUPER::init($xpl,
                      reader_callback => \&process_line,
                      ack_timeout => 0.05,

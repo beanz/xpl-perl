@@ -60,9 +60,7 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  defined $self->{_device} or
-    pod2usage(-message => "The --viom parameter is required",
-              -exitstatus => 1);
+  $self->required_field($xpl, 'device', 'The --viom parameter is required', 1);
   $self->SUPER::init($xpl,
                      reader_callback => \&process_line,
                      output_record_separator => "\r\n",

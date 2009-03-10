@@ -77,9 +77,8 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  defined $self->{_device} or
-    pod2usage(-message => "The --rfxcom-tx parameter is required",
-              -exitstatus => 1);
+  $self->required_field($xpl,
+                        'device', 'The --rfxcom-tx parameter is required', 1);
   $self->SUPER::init($xpl,
                      ack_timeout => 6,
                      ack_timeout_callback => \&reset_device,
