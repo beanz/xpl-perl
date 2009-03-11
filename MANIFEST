@@ -51,6 +51,7 @@ lib/xPL/Dock/Bluetooth.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
 lib/xPL/Dock/Heyu.pm
+lib/xPL/Dock/LCDproc.pm
 lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm
 lib/xPL/Dock/Owfs.pm
