@@ -31,101 +31,15 @@ This script requires the L<DateTime::Event::Sunrise> perl module.
 
 use strict;
 use warnings;
-use Getopt::Long;
-use Pod::Usage;
-use xPL::Client;
+use xPL::Dock qw/DawnDusk/;
 $|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new();
+$SIG{TERM} = \&end;
+$SIG{QUIT} = \&end;
+$xpl->main_loop;
 
-my %args = ( vendor_id => 'bnz', device_id => 'dawndusk', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $altitude;
-my $iteration;
-
-GetOptions('verbose+' => \$verbose,
-           'interface=s' => \$interface,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'altitude=s' => \$altitude,
-           'iteration=s' => \$iteration,
-           'man' => \$man,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
-
-my $latitude = shift  || 51;
-my $longitude = shift || -1;
-my $state = "day";
-
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
-
-my $args = 'latitude='.$latitude.' longitude='.$longitude;
-$args .= ' altitude='.$altitude if (defined $altitude);
-$args .= ' iteration='.$iteration if (defined $iteration);
-
-# set up each new day at midnight
-$xpl->add_timer(id => 'dawn',
-                timeout => 'sunrise '.$args,
-                callback => sub { dawn(); 1; });
-
-$xpl->add_timer(id => 'dusk',
-                timeout => 'sunset '.$args,
-                callback => sub { dusk(); 1; });
-
-$state = $xpl->timer_next('dusk') < $xpl->timer_next('dawn') ? "day" : "night";
-
-$xpl->add_xpl_callback(id => 'query_handler',
-                       filter =>
-                       {
-                        message_type => 'xpl-cmnd',
-                        class => 'dawndusk',
-                        class_type => 'request',
-                       },
-                       callback => \&query_handler);
-# Run the main loop
-$xpl->main_loop();
-
-exit;
-
-sub send_dawndusk {
-  my $status = shift;
-  return $xpl->send(message_type => 'xpl-trig',
-                    class => 'dawndusk.basic',
-                    body => { type => 'dawndusk', status => $status },
-                   );
-}
-
-sub dawn {
-  $state = "day";
-  print "Dawn\n" if ($verbose);
-  send_dawndusk('dawn');
-  return 1;
-}
-
-sub dusk {
-  $state = "night";
-  print "Dusk\n" if ($verbose);
-  send_dawndusk('dusk');
-  return 1;
-}
-
-sub query_handler {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  return $xpl->send(message_type => 'xpl-stat',
-                    class => 'dawndusk.basic',
-                    body => { type => 'daynight', status => $state },
-                   );
-}
+# send a "hbeat.end" message on exit
+sub end { defined $xpl && $xpl->send_hbeat_end(); exit; }
 
 =head1 SEE ALSO
 
