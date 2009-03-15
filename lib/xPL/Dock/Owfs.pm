@@ -35,6 +35,13 @@ our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_readonly_accessor($_) foreach (qw/mount/);
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   $self->{_mount} = undef;
@@ -45,6 +52,10 @@ sub getopts {
 }
 
 =head2 C<init(%params)>
+
+This method initializes the plugin.  It configures the xPL callback to
+handle incoming C<control.basic> messages for 1-wire relays and the timers
+for reading 1-wire temperature, humidity and counter devices.
 
 =cut
 

@@ -115,8 +115,10 @@ $device->close;
 {
   local @ARGV = ('-v',
                  '--device' => '/dev/just-a-test');
+  no warnings;
   *{xPL::Dock::Serial::argh} =
     sub { my $self = shift; warn ref($self).": ",@_; };
+  use warnings;
   my $warn = test_warn(sub {
                          $xpl = xPL::Dock->new(port => 0, hubless => 1,
                                                name => 'dingus')

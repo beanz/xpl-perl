@@ -31,7 +31,9 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-__PACKAGE__->make_readonly_accessor($_) foreach (qw/interval addresses/);
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/latitude longitude
+                                                    altitude iteration
+                                                    state/);
 
 sub getopts {
   my $self = shift;
