@@ -81,12 +81,12 @@ sub required_field {
   my $ref = ref $val;
   if ($use_argv && scalar $xpl->plugins) {
     if ($ref) {
-      unless (scalar @$ref) {
+      unless (scalar @$val) {
         if (scalar @ARGV) {
           $self->{$field} = \@ARGV;
         } else {
           pod2usage(-message => $message.
-                    "or the values can be given as command line arguments",
+                    "\nor the values can be given as command line arguments",
                     -exitstatus => 1);
         }
       }
@@ -103,7 +103,7 @@ sub required_field {
     }
   } else {
     if ($ref) {
-      unless (scalar @$ref) {
+      unless (scalar @$val) {
         pod2usage(-message => $message,
                   -exitstatus => 1);
       }

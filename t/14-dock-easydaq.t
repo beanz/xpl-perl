@@ -33,7 +33,8 @@ my $count = 0;
                  '--easydaq-verbose', '--easydaq-verbose',
                  '--interface', 'lo',
                  '--define', 'hubless=1',
-                 '--easydaq', '127.0.0.1:'.$port);
+                 # Test the required_field using @ARGV path
+                 '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
