@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 33;
+use Test::More tests => 35;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -142,6 +142,18 @@ $device->close;
        qr{xPL::Dock::Serial: open of '[^']*' failed},
        'open worked');
 
+  $ENV{PATH} = 't/bin:'.$ENV{PATH};
+  @ARGV = ('-v', '--device' => '/dev/null');
+  my $err;
+  $warn =
+    test_warn(sub {
+                $err =
+                  test_output(sub {
+                                $xpl = xPL::Dock->new(port => 0, hubless => 1,
+                                                      name => 'dingus')
+                              }, \*STDERR) });
+  is($warn, undef, 'stty worked');
+  is($err, "-F /dev/null ospeed 9600 pass8 raw\n", 'stty called correctly');
 }
 
 # The begin block is global of course but this is where it is really used.
