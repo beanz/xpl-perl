@@ -8,8 +8,8 @@ bin/xpl-dg834
 bin/xpl-dmx
 bin/xpl-easydaq
 bin/xpl-hddtemp
-bin/xpl-heyu-helper
 bin/xpl-heyu
+bin/xpl-heyu-helper
 bin/xpl-hub
 bin/xpl-lcdproc
 bin/xpl-linux-cpu
@@ -54,9 +54,9 @@ lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
 lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/LCDproc.pm
+lib/xPL/Dock/Owfs.pm
 lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm
-lib/xPL/Dock/Owfs.pm
 lib/xPL/Dock/RFXComRX.pm
 lib/xPL/Dock/RFXComTX.pm
 lib/xPL/Dock/SerialLine.pm
@@ -183,6 +183,7 @@ t/14-dock-rfxcom-tx.t
 t/14-dock-udin.t
 t/14-dock-viom.t
 t/14-dock-w800.t
+t/bin/stty
 t/Helpers.pm
 t/interfaces/ifconfig.empty/ifconfig
 t/interfaces/ifconfig.freebsd/ifconfig
