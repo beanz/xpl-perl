@@ -146,7 +146,6 @@ sub read_lcdproc {
       $self->queue_lcdproc('screen_set xplosd -name xplosd');
       $self->queue_lcdproc('screen_set xplosd -priority hidden');
       undef $self->{_visible};
-      $self->queue_lcdproc('screen_set xplosd -name xplosd');
     } elsif ($line eq 'success') {
       undef $self->{_waiting};
       $self->write_lcdproc();
