@@ -660,13 +660,26 @@ sub verbose {
 
 =head2 C<info(@message)>
 
-Helper method to output informational messages if verbose mode is enabled.
+Helper method to output informational messages to STDOUT if verbose
+mode is enabled.
 
 =cut
 
 sub info {
   my $self = shift;
   print @_ if ($self->{_verbose});
+}
+
+=head2 C<debug(@message)>
+
+Helper method to output debug messages to STDERR if verbose mode is
+enabled.
+
+=cut
+
+sub debug {
+  my $self = shift;
+  print STDERR @_ if ($self->{_verbose});
 }
 
 =head2 C<argh(@message)>

@@ -199,7 +199,7 @@ sub bridge {
 
   my $msg = $p{message};
 
-  print 'Local msg: ', $msg->summary, " ",$msg->hop, "\n" if ($self->verbose);
+  $self->info('Local msg: ', $msg->summary, ' ', $msg->hop, "\n");
 
   my $hop = $msg->hop;
   if ($hop >= 9) {
@@ -241,7 +241,7 @@ sub sock_accept {
   my $listen_sock = shift;
   my $peer = $listen_sock->accept();
   my $peer_name = $peer->peerhost.$COLON.$peer->peerport;
-  print 'New peer: ', $peer_name, "\n" if ($self->verbose);
+  $self->info('New peer: ', $peer_name, "\n");
   $self->add_peer($peer,
                   { handle => $peer, name => $peer_name, buffer => $EMPTY });
   return 1;
@@ -261,7 +261,7 @@ sub sock_read {
   my $buffer = $self->peer_buffer($peer);
   my $bytes = $peer->sysread($buffer, 1_536, length $buffer);
   unless ($bytes) {
-    print 'Connection to ', $peer, " closed\n" if ($self->verbose);
+    $self->info('Connection to ', $peer, " closed\n");
     $self->remove_peer($peer);
     $peer->close;
     if ($self->bridge_mode eq 'client') {

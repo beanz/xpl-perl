@@ -35,11 +35,28 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   return (
           'heyu-verbose|heyuverbose+' => \$self->{_verbose},
          );
+}
+
+=head2 C<sig( )>
+
+Simple signal handler to wait on child processes.
+
+=cut
+
+sub sig {
+  waitpid(-1,WNOHANG);
 }
 
 =head2 C<init(%params)>
@@ -78,9 +95,6 @@ sub init {
   my $pid = fork;
   if ($pid) {
 
-    sub sig {
-      waitpid(-1,WNOHANG);
-    }
     $SIG{CHLD} = \&sig;
     $SIG{PIPE} = \&sig;
 
@@ -251,7 +265,7 @@ sub heyu_helper_queue {
   $msg .= "\n";
   $self->{_q}->enqueue([$seq_str, $msg]);
   $msg =~ s/\0/ /g;
-  print STDERR "queued: $msg" if ($self->verbose);
+  $self->debug('queued: ', $msg);
   return $self->heyu_helper_write() if (!defined $self->{_waiting});
   return $seq_str;
 }
@@ -269,7 +283,7 @@ sub heyu_helper_write {
   my ($seq_str, $msg) = @$item;
   $self->{_helper_wh}->syswrite($msg);
   $msg =~ s/\0/ /g;
-  print STDERR "sent: $msg" if ($self->verbose);
+  $self->debug('sent: ', $msg);
   $self->{_waiting} = $seq_str;
   return $seq_str;
 }
@@ -305,23 +319,38 @@ sub send_xpl {
   } elsif ($level) {
     $args{body}->{level} = level_heyu_to_xpl($level);
   }
-  if ($self->verbose) {
-    print STDERR
-      "Sending $class $device $command", ($level ? " ".$level : ""), "\n";
-  }
-
+  $self->debug("Sending $class $device $command",
+               ($level ? " ".$level : ""), "\n");
   $self->xpl->send(%args);
 }
 
-# convert level from 0-100 range for xPL to 0-22 range for heyu
+=head2 C<level_xpl_to_heyu( $level )>
+
+Function to convert level from 0-100 range for xPL to 0-22 range for
+heyu.
+
+=cut
+
 sub level_xpl_to_heyu {
   int $_[0]*22/100
 }
 
-# convert level from 0-22 range for heyu to 0-100 range for xPL
+=head2 C<level_heyu_to_xpl( $level )>
+
+Function to convert level from 0-22 range for heyu to 0-100 range for
+xPL.
+
+=cut
+
 sub level_heyu_to_xpl {
   int $_[0]*100/22
 }
+
+=head2 C<house_xpl_to_heyu( $house )>
+
+Function to convert a house code list from xPL format to heyu format.
+
+=cut
 
 sub house_xpl_to_heyu {
   my $house = shift;
@@ -331,6 +360,12 @@ sub house_xpl_to_heyu {
   }
   return $result;
 }
+
+=head2 C<device_xpl_to_heyu( $device )>
+
+Function to convert a device list from xPL format to heyu format.
+
+=cut
 
 sub device_xpl_to_heyu {
   my $device = shift;
@@ -346,16 +381,24 @@ sub device_xpl_to_heyu {
   return $result;
 }
 
+=head2 C<device_heyu_to_xpl( $device )>
+
+Function to convert a device list from heyu format to xPL format.
+
+=cut
+
 sub device_heyu_to_xpl {
   my $dev = shift;
   my $house = substr($dev,0,1,q{});
   return $house.(join ",".$house, split/,/,$dev);
 }
 
-# data1=0x31 data2=0x00-0x3f - dim on/off to specific level
-# data2 & 0x40 = at 30 second rate
-#       & 0x80 = at 1 minute rate
-#       & 0xc0 = at 5 minute rate
+=head2 C<command_xpl_to_heyu( $device )>
+
+Function to convert a command from xPL format to heyu format.
+
+=cut
+
 sub command_xpl_to_heyu {
   my $command = shift;
   return {
@@ -367,6 +410,12 @@ sub command_xpl_to_heyu {
          }->{$command};
 }
 
+=head2 C<command_heyu_to_xpl( $device )>
+
+Function to convert a command from heyu format to xPL format.
+
+=cut
+
 sub command_heyu_to_xpl {
   my $command = shift;
   return {
@@ -377,6 +426,12 @@ sub command_heyu_to_xpl {
           xfunc => 'extended',
          }->{$command};
 }
+
+# xPreset info:
+# data1=0x31 data2=0x00-0x3f - dim on/off to specific level
+# data2 & 0x40 = at 30 second rate
+#       & 0x80 = at 1 minute rate
+#       & 0xc0 = at 5 minute rate
 
 1;
 __END__

@@ -51,6 +51,13 @@ __PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device buffer
                                                     discard_buffer_timeout
                                                     output_record_separator/);
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   $self->{_baud} = 9600;
@@ -184,7 +191,7 @@ This method is used to queue messages to be sent to the serial device.
 sub write {
   my ($self, $msg) = @_;
   $self->{_q}->enqueue($msg);
-  print 'queued: ', $msg, "\n" if ($self->verbose);
+  $self->info('queued: ', $msg, "\n");
   if (!defined $self->{_waiting}) {
     return $self->write_next();
   }
@@ -207,7 +214,7 @@ sub write_next {
   $xpl->remove_timer('!waiting') if ($xpl->exists_timer('!waiting'));
   return if (!defined $msg);
   my $fh = $self->device_handle;
-  print 'sending: ', $msg, "\n" if ($self->verbose);
+  $self->info('sending: ', $msg, "\n");
   my $raw = ref $msg ? $msg->raw : $msg;
   my $ors = $self->{_output_record_separator};
   $raw .= $ors if (defined $ors);

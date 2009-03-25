@@ -33,6 +33,13 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   $self->{_baud} = 9600;
@@ -119,7 +126,7 @@ is responsible for sending out the sensor.basic xpl-trig messages.
 sub process_line {
   my ($self, $line) = @_;
   return unless (defined $line && $line ne '');
-  print "received: '$line'\n" if ($self->verbose);
+  $self->info("received: '$line'\n");
   return 1;
 }
 

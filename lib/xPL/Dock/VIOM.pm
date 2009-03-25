@@ -40,6 +40,13 @@ our %state_map =
    1      => 'high', 0        => 'low',
   );
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   $self->{_baud} = 9600;
@@ -170,7 +177,7 @@ sub process_line {
     return unless ($self->state_changed(lc $1, $2, $3, $time) ||
                    $self->verbose >= 2);
   }
-  print $line,"\n" if ($self->verbose);
+  $self->info($line, "\n");
   return 1;
 }
 
@@ -192,7 +199,7 @@ sub send_xpl {
      class => 'sensor.basic',
      body => { device => $device, type => 'input', current => $level },
     );
-  print "Sending $device $level\n" if ($self->verbose);
+  $self->info('Sending ', $device, ' ', $level, "\n");
   return $xpl->send(%args);
 }
 

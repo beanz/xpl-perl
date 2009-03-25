@@ -35,6 +35,13 @@ __PACKAGE__->make_readonly_accessor($_) foreach (qw/latitude longitude
                                                     altitude iteration
                                                     state/);
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   $self->{_latitude} = 51;
@@ -89,6 +96,13 @@ sub init {
   return $self;
 }
 
+=head2 C<send_dawndusk( $status )>
+
+This helper method sends a C<dawndusk.basic> C<xpl-trig> message with
+the given status.
+
+=cut
+
 sub send_dawndusk {
   my ($self, $status) = @_;
   return $self->xpl->send(message_type => 'xpl-trig',
@@ -97,21 +111,40 @@ sub send_dawndusk {
                          );
 }
 
+=head2 C<dawn( )>
+
+This method is the callback for the dawn timer.
+
+=cut
+
 sub dawn {
   my $self = shift;
   $self->{_state} = 'day';
-  print "Dawn\n" if ($self->verbose);
+  $self->info("Dawn\n");
   $self->send_dawndusk('dawn');
   return 1;
 }
 
+=head2 C<dusk( )>
+
+This method is the callback for the dusk timer.
+
+=cut
+
 sub dusk {
   my $self = shift;
   $self->{_state} = 'night';
-  print "Dusk\n" if ($self->verbose);
+  $self->info("Dusk\n");
   $self->send_dawndusk('dusk');
   return 1;
 }
+
+=head2 C<query_handler( %params )>
+
+This method handles and responds to incoming C<dawndusk.request>
+messages.
+
+=cut
 
 sub query_handler {
   my $self = shift;

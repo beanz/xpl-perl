@@ -34,6 +34,13 @@ our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_readonly_accessor($_) foreach (qw/interval addresses/);
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   $self->{_interval} = 60;
@@ -95,7 +102,7 @@ sub poll_bluetooth {
                          current => $new,
                         });
     $xpl->send($msg);
-    print "sending ", $msg->summary, "\n" if ($self->verbose);
+    $self->info('sending ', $msg->summary, "\n");
   }
   return 1;
 }

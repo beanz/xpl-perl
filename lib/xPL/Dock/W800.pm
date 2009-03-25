@@ -44,6 +44,13 @@ our $VERSION = qw/$Revision$/[1];
   1;
 }
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   $self->{_baud} = 4800;
@@ -83,7 +90,7 @@ sub device_reader {
   my $xpl = $self->xpl;
   while (length($buf) >= 4) {
     my $m = substr($buf, 0, 4, '');
-    print "Processing: ", unpack("H*", $m), "\n" if ($self->verbose);
+    $self->info("Processing: ", unpack("H*", $m), "\n");
     my $res = $self->{_rf}->process_32bit($m);
     return 1 unless (@$res);
     foreach my $msg (@$res) {

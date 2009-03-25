@@ -50,6 +50,13 @@ __PACKAGE__->make_readonly_accessor($_) foreach (@fields);
   1;
 }
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   $self->{_baud} = 4800;

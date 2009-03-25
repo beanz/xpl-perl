@@ -128,7 +128,7 @@ file system.
 sub owfs_write {
   my ($self, $file, $value) = @_;
   my $fh = FileHandle->new('>'.$self->{_mount}.'/'.$file) or return;
-  print STDERR "Writing $value to $file\n" if ($self->verbose);
+  $self->debug("Writing $value to $file\n");
   $fh->print($value);
   $fh->flush();
   return;
@@ -221,7 +221,7 @@ sub send_xpl {
       current => $current,
      },
     );
-  print STDERR "Sending $device\[$type]=$current\n" if ($self->verbose);
+  $self->debug("Sending $device\[$type]=$current\n");
   return $self->xpl->send(%args);
 }
 

@@ -240,8 +240,8 @@ sub create_listen_socket {
   my $addr;
   ($self->{_listen_port}, $addr) = sockaddr_in(getsockname($listen));
   $self->{_listen_addr} = inet_ntoa($addr);
-  print 'Listening on ', $self->{_listen_addr}.':'.$self->{_listen_port}, "\n"
-      if ($self->verbose);
+  $self->info('Listening on ',
+              $self->{_listen_addr}, ':', $self->{_listen_port}, "\n");
 
   $self->add_input(handle => $listen,
                    callback => sub { $self->xpl_message(@_) });
@@ -267,7 +267,7 @@ sub create_send_socket {
   }
   $self->{_send_sock} = $send;
   $self->{_send_sin} = sockaddr_in(3865, inet_aton($self->{_broadcast}));
-  print 'Sending on ', $self->{_broadcast}, "\n" if ($self->verbose);
+  $self->info('Sending on ', $self->{_broadcast}, "\n");
   return 1;
 }
 

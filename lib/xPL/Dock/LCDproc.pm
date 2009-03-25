@@ -35,6 +35,13 @@ our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_readonly_accessor($_) foreach (qw/server delay/);
 
+=head2 C<getopts( )>
+
+This method returns the L<Getopt::Long> option definition for the
+plugin.
+
+=cut
+
 sub getopts {
   my $self = shift;
   $self->{_delay} = 10;
@@ -129,9 +136,8 @@ sub read_lcdproc {
       $self->{_waiting} = undef;
       $self->{_columns} = $1 if ($line =~ /\bwid\s+(\d+)/);
       $self->{_rows} = $1 if ($line =~ /\bhgt\s+(\d+)/);
-      print 'Connected to LCD (',
-        $self->{_columns}||'?', 'x', $self->{_rows}||'?', ")\n"
-          if ($self->verbose);
+      $self->info('Connected to LCD (',
+                  $self->{_columns}||'?', 'x', $self->{_rows}||'?', ")\n");
       if ($line =~ /\bprotocol\s+(\S+)/ && $1 ne $self->{_protocol_expected}) {
         warn "LCDproc daemon protocol $1 not ".$self->{_protocol_expected}.
           " as expected.\n";
@@ -155,7 +161,7 @@ sub read_lcdproc {
 sub queue_lcdproc {
   my ($self,$msg) = @_;
   $self->{_q}->enqueue($msg);
-  print "queued: $msg\n" if ($self->verbose);
+  $self->info('queued: ', $msg, "\n");
   return $self->write_lcdproc()  if (!defined $self->{_waiting});
   return 1;
 }
@@ -164,7 +170,7 @@ sub write_lcdproc {
   my $self = shift;
   my $msg = $self->{_q}->dequeue;
   return if (!defined $msg);
-  print "sending: $msg\n" if ($self->verbose);
+  $self->info('sending: ', $msg, "\n");
   $msg .= "\n";
   syswrite($self->{_lcdproc}, $msg, length $msg);
   $self->{_lcdproc}->flush();
