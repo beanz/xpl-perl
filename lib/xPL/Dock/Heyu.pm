@@ -189,14 +189,14 @@ sub heyu_monitor {
       my $h = lc($2);
       my $level = $4;
       my $u = join ',', sort { $a <=> $b } @{$self->{_unit}->{$h}|| ['0']};
-      send_xpl($class, $h.$u, $f, $level);
+      $self->send_xpl($class, $h.$u, $f, $level);
       delete $self->{_unit}->{$h};
     } elsif (m!function\s+xPreset\s+:\s+housecode\s+(\w)\s+unit\s+(\d+)\s+level\s+(\d+)!) {
       my $f = 'xfunc';
       my $h = lc($1);
       my $u = $2;
       my $level = [ 49, $3 ];
-      send_xpl($class, $h.$u, $f, $level);
+      $self->send_xpl($class, $h.$u, $f, $level);
       delete $self->{_unit}->{$h}; # TODO: should we do this? need to check spec
     } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
       push @{$self->{_unit}->{lc($2)}}, $1;
