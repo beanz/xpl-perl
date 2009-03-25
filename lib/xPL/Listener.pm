@@ -126,18 +126,21 @@ sub new {
     $self->{_port} = 0;
   }
 
-  if (exists $p{interface}) {
-    $self->{_interface_info} = $self->interface_info($p{interface}) or
-      $self->argh("Unable to detect interface ".$p{interface});
-  } else {
-    $self->{_interface_info} =
-      $self->default_interface_info() || $self->interface_info('lo');
-  }
+  unless (exists $p{ip} && exists $p{broadcast}) {
 
-  if ($self->{_interface_info}) {
-    $self->{_interface} = $self->{_interface_info}->{device};
-    $self->{_ip} = $self->{_interface_info}->{ip};
-    $self->{_broadcast} = $self->{_interface_info}->{broadcast};
+    if (exists $p{interface}) {
+      $self->{_interface_info} = $self->interface_info($p{interface}) or
+        $self->argh("Unable to detect interface ".$p{interface});
+    } else {
+      $self->{_interface_info} =
+        $self->default_interface_info() || $self->interface_info('lo');
+    }
+
+    if ($self->{_interface_info}) {
+      $self->{_interface} = $self->{_interface_info}->{device};
+      $self->{_ip} = $self->{_interface_info}->{ip};
+      $self->{_broadcast} = $self->{_interface_info}->{broadcast};
+    }
   }
 
   foreach (qw/ip broadcast/) {
