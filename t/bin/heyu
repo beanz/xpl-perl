@@ -1,0 +1,16 @@
+#!/usr/bin/perl -w
+use strict;
+$|=1;
+#print STDERR "Executed: heyu @ARGV\n";
+if ($ARGV[0] && $ARGV[0] eq 'monitor') {
+  print "01/01 09:00:00  Monitor started\n";
+  print "function On : housecode a\n";
+  print "address unit 2 : housecode a\n";
+  print "function Bright : housecode a by %8\n";
+  print "address unit 3 : housecode a\n";
+  print "sndc: function On : housecode a\n";
+  print "function xPreset : housecode l unit 6 level 63\n";
+  sleep 2;
+} else {
+  exit;
+}

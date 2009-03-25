@@ -80,7 +80,6 @@ sub init {
 
     sub sig {
       waitpid(-1,WNOHANG);
-      die "Caught signal\n";
     }
     $SIG{CHLD} = \&sig;
     $SIG{PIPE} = \&sig;
@@ -101,12 +100,12 @@ sub init {
     open(STDIN,"<&$rfd") or die "dup of stdin failed: $!";
     open(STDOUT,">&=$wfd") or die "dup of stdout failed: $!";
     open(STDERR,"+>&$wfd") or die "dup of stderr failed: $!";
-    my $path = ($0=~m!^(.*/)!) ? $1 : '';
-    exec($path.'xpl-heyu-helper',  @ARGV) or
-      $self->argh("Failed to exec ${path}xpl-heyu-helper: $!\n");
+    exec('xpl-heyu-helper', @ARGV) or
+      $self->argh("Failed to exec xpl-heyu-helper: $!\n");
   } else {
     $self->argh("Fork for xpl-heyu-helper failed: $!\n");
   }
+  $self->{_monitor_ready} = 0;
   return $self;
 }
 
@@ -184,7 +183,9 @@ sub heyu_monitor {
     my $class = 'x10.basic';
     $class = 'x10.confirm' if (/sndc/);
     # TOFIX: process timestamps
-    if (m!function\s+(On|Off|Bright|Dim)\s+:\s+housecode\s+(\w+)(.*\s+by\s+%(\d+))?!) {
+    if (m!Monitor started!) {
+      $self->{_monitor_ready} = 1;
+    } elsif (m!function\s+(On|Off|Bright|Dim)\s+:\s+housecode\s+(\w+)(.*\s+by\s+%(\d+))?!) {
       my $f = lc($1);
       my $h = lc($2);
       my $level = $4;
