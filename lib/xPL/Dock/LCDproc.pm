@@ -126,6 +126,12 @@ sub xpl_in {
   return 1;
 }
 
+=head2 C<read_lcdproc( )>
+
+This callback handles responses the input from the lcdproc server.
+
+=cut
+
 sub read_lcdproc {
   my $self = shift;
   my $bytes = $self->{_lcdproc}->sysread($self->{_buffer}, 512,
@@ -150,12 +156,18 @@ sub read_lcdproc {
       undef $self->{_waiting};
       $self->write_lcdproc();
     } elsif ($line =~ /^huh\?/) {
-      warn "Failed sending ", $self->{_waiting}, ": ", $line, "\n";
+      warn "Failed sending ", $self->{_waiting}, "got: ", $line, "\n";
       undef $self->{_waiting};
       $self->write_lcdproc();
     }
   }
 }
+
+=head2 C<queue_lcdproc( $msg )>
+
+This method queues messages to be sent to the lcdproc server.
+
+=cut
 
 sub queue_lcdproc {
   my ($self,$msg) = @_;
@@ -164,6 +176,12 @@ sub queue_lcdproc {
   return $self->write_lcdproc()  if (!defined $self->{_waiting});
   return 1;
 }
+
+=head2 C<write_lcdproc( )>
+
+This method sends messages to the lcdproc server.
+
+=cut
 
 sub write_lcdproc {
   my $self = shift;
@@ -176,15 +194,30 @@ sub write_lcdproc {
   $self->{_waiting} = $msg;
 }
 
+=head2 C<clear_screen( )>
+
+This method clears the entire lcdproc display.  It hides the xPL "screen"
+and removes all "widgets" from it.
+
+=cut
+
 sub clear_screen {
   my $self = shift;
   $self->queue_lcdproc('screen_set xplosd -priority hidden')
-    if ($$self->{_visible});
-  undef $$self->{_visible};
+    if ($self->{_visible});
+  undef $self->{_visible};
   foreach (1..($self->{_rows}||1)) {
     $self->clear_row($_);
   }
 }
+
+=head2 C<clear_row( $row )>
+
+This method clears a single row of the lcdproc display.  It removes any
+widget defined for the row and if that was the last widget it also hides
+the xPL "screen".
+
+=cut
 
 sub clear_row {
   my ($self, $row) = @_;
@@ -197,6 +230,14 @@ sub clear_row {
     undef $self->{_visible};
   }
 }
+
+=head2 C<write_row( $row, $msg )>
+
+This method writes text to a single row of the lcdproc display.  It uses
+a string widget or if the text is longer than the number of columns a
+scroller widget.
+
+=cut
 
 sub write_row {
   my ($self, $row, $msg) = @_;

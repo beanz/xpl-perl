@@ -6,7 +6,8 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 27;
+use Test::More tests => 100;
+use Time::HiRes;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -73,8 +74,175 @@ is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
    "sending: screen_set xplosd -priority hidden\n", 'screen_set priority');
 
 check_line($client_sel, $client, $buf, "screen_set xplosd -priority hidden");
-#print $client "huh?n"; # let's pretend that failed
-#is(test_warn(sub { $xpl->main_loop(1) }), '', 'nothing to write');
+print $client "huh? just testing failure warning\n";
+is(test_warn(sub { $xpl->main_loop(1) }),
+   "Failed sending screen_set xplosd -priority hidden\n".
+   "got: huh? just testing failure warning\n", 'failure warning');
+
+$xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
+                                             head =>
+                                             {
+                                              source => 'acme-lcdproc.test',
+                                             },
+                                             class=> 'osd',
+                                             class_type => 'basic',
+                                             body =>
+                                             {
+                                              'command' => 'clear',
+                                              'text' => 'test',
+                                             }));
+
+foreach my $r (['widget_add xplosd row1 string' =>
+                'sending: widget_set xplosd row1 1 1 "test"'],
+               ['widget_set xplosd row1 1 1 "test"' =>
+                'sending: screen_set xplosd -priority alert'],
+               ['screen_set xplosd -priority alert' =>
+                ''],
+              ) {
+  my ($input, $output) = @$r;
+  check_line($client_sel, $client, $buf, $input);
+  print $client "success\n";
+  is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
+     ($output ? $output."\n" : ''), "output '$input'");
+}
+
+$xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
+                                             head =>
+                                             {
+                                              source => 'acme-lcdproc.test',
+                                             },
+                                             class=> 'osd',
+                                             class_type => 'basic',
+                                             body =>
+                                             {
+                                              # row intentionally out of range
+                                              row => 20,
+                                              'command' => 'clear',
+                                              'text' =>
+                                                'this is a long string',
+                                             }));
+
+foreach my $r (['screen_set xplosd -priority hidden' =>
+                'sending: widget_del xplosd row1'],
+               ['widget_del xplosd row1' =>
+                'sending: widget_add xplosd row1 scroller'],
+               ['widget_add xplosd row1 scroller' =>
+                'sending: widget_set xplosd row1 1 1 20 1 h 2 '.
+                '"this is a long string"'],
+               ['widget_set xplosd row1 1 1 20 1 h 2 "this is a long string"'=>
+                'sending: screen_set xplosd -priority alert'],
+               ['screen_set xplosd -priority alert' =>
+                ''],
+              ) {
+  my ($input, $output) = @$r;
+  check_line($client_sel, $client, $buf, $input);
+  print $client "success\n";
+  is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
+     ($output ? $output."\n" : ''), "output '$input'");
+}
+
+$xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
+                                             head =>
+                                             {
+                                              source => 'acme-lcdproc.test',
+                                             },
+                                             class=> 'osd',
+                                             class_type => 'basic',
+                                             body =>
+                                             {
+                                              # row intentionally out of range
+                                              row => 0,
+                                              'command' => 'write',
+                                              'text' => 'short string',
+                                              delay => 60,
+                                             }));
+
+ok($xpl->timer_next('row1') <= (Time::HiRes::time + $plugin->delay),
+   'max delay used');
+
+foreach my $r (['widget_del row1' =>
+                'sending: widget_add xplosd row1 string'],
+               ['widget_add xplosd row1 string' =>
+                'sending: widget_set xplosd row1 1 1 "short string"'],
+               ['widget_set xplosd row1 1 1 "short string"' =>
+                ''],
+              ) {
+  my ($input, $output) = @$r;
+  check_line($client_sel, $client, $buf, $input);
+  print $client "success\n";
+  is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
+     ($output ? $output."\n" : ''), "output '$input'");
+}
+
+$xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
+                                             head =>
+                                             {
+                                              source => 'acme-lcdproc.test',
+                                             },
+                                             class=> 'osd',
+                                             class_type => 'basic',
+                                             body =>
+                                             {
+                                              'command' => 'write',
+                                              'text' =>
+                                                'another short one',
+                                              delay => 0.1,
+                                             }));
+
+foreach my $r (['widget_set xplosd row1 1 1 "another short one"' => '']) {
+  my ($input, $output) = @$r;
+  check_line($client_sel, $client, $buf, $input);
+  print $client "success\n";
+  is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
+     ($output ? $output."\n" : ''), "output '$input'");
+}
+
+do {
+  $xpl->main_loop(1);
+} while ($xpl->exists_timer('row1'));
+
+check_line($client_sel, $client, $buf, 'widget_del xplosd row1');
+print $client "success\n";
+$xpl->main_loop(1);
+
+$xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
+                                             head =>
+                                             {
+                                              source => 'acme-lcdproc.test',
+                                             },
+                                             class=> 'osd',
+                                             class_type => 'basic',
+                                             body =>
+                                             {
+                                              'command' => 'clear',
+                                             }));
+
+foreach my $r (['screen_set xplosd -priority hidden' => '']) {
+  my ($input, $output) = @$r;
+  check_line($client_sel, $client, $buf, $input);
+  print $client "success\n";
+  is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
+     ($output ? $output."\n" : ''), "output '$input'");
+}
+
+print $client "connect LCDproc 0.2 protocol 0.2 lcd\n";
+is(test_warn(sub { $xpl->main_loop(1) }),
+   "LCDproc daemon protocol 0.2 not 0.3 as expected.\n",
+   'protocol warning');
+
+$device->close;
+{
+  local $0 = 'dingus';
+  local @ARGV = ('-v',
+                 '--interface', 'lo',
+                 '--define', 'hubless=1',
+                 '--lcdproc-verbose',
+                 '--lcdproc-server' => '127.0.0.1:'.$port);
+  is(test_error(sub { $xpl = xPL::Dock->new(port => 0); }),
+     'Failed to connect to 127.0.0.1:'.$port.": Connection refused\n",
+     'connection refused');
+}
+
 
 sub check_line {
   ok($_[0]->can_read(0.2), "check_line '$_[3]' - can read");
