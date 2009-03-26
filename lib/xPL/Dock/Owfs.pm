@@ -173,22 +173,23 @@ sub owfs_reader {
   }
   foreach my $type (qw/read write/) {
     my $dir = $ow_dir.'/statistics/'.$type;
-    my @tries = map { read_ow_file($dir.'/tries.'.$_) } (0 .. 2);
     my $calls = read_ow_file($dir.'/calls');
-    my $success = read_ow_file($dir.'/success');
-    my $failure = $calls-$success;
     if ($calls == 0) {
       printf "1st try %s success %6.2f\n", $type, 100;
       printf "2nd try %s success %6.2f\n", $type, 0;
       printf "3rd try %s success %6.2f\n", $type, 0;
       printf "        %s failure %6.2f\n", $type, 0;
     } else {
+      my $success = read_ow_file($dir.'/success');
+      my $cache = read_ow_file($dir.'/cachesuccess')||0;
+      my $failure = $calls-($success+$cache);
+      my @tries = map { read_ow_file($dir.'/tries.'.$_) } (0 .. 2);
       printf "1st try %s success %6.2f\n",
         $type, 100*($tries[0]-$tries[1])/$calls;
       printf "2nd try %s success %6.2f\n",
         $type, 100*($tries[1]-$tries[2])/$calls;
       printf "3rd try %s success %6.2f\n",
-        $type, 100*($tries[2]-$failure)/$calls;
+        $type, 100*($tries[2]-$failure)/$calls; # broken for read
       printf "        %s failure %6.2f\n",
         $type, 100*$failure/$calls;
     }
