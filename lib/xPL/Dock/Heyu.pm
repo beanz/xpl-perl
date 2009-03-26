@@ -92,7 +92,7 @@ sub init {
 
   my $rh = $self->{_helper_rh} = IO::Pipe->new;
   my $wh = $self->{_helper_wh} = IO::Pipe->new;
-  my $pid = fork;
+  my $pid = fork();
   if ($pid) {
 
     $SIG{CHLD} = \&sig;

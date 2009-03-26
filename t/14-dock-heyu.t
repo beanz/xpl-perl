@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 11;
+use Test::More tests => 17;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -38,30 +38,50 @@ ok($xpl, 'created dock client');
 my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::Heyu', 'plugin has correct type');
+my $out = '';
 while (!$plugin->{_monitor_ready}) {
-  $xpl->main_loop(1);
+  $out .= test_output(sub { $xpl->main_loop(1) }, \*STDERR);
 }
 ok(1, 'monitor ready');
+my $sel = IO::Select->new($plugin->{_monitor_fh});
+while ($sel->can_read(0.1)) {
+  $out .= test_output(sub { $xpl->main_loop(1) }, \*STDERR);
+}
+is($out,
+   q{Sending x10.basic a0 on
+Sending x10.basic a2 bright 8
+Sending x10.confirm a3,10 on
+Sending x10.basic l6 xfunc data1=49 data2=63
+monitor reported unsupported line:
+  testing unsupported line
+},
+ 'unsupported line output');
 
-$xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
-                                             head =>
-                                             {
-                                              source => 'acme-heyu.test',
-                                             },
-                                             class=> 'x10',
-                                             class_type => 'basic',
-                                             body =>
-                                             {
-                                              'command' => 'on',
-                                              'device' => 'a3',
-                                             }));
+is(test_output(sub {
+                 $xpl->dispatch_xpl_message(
+                   xPL::Message->new(message_type => 'xpl-cmnd',
+                                     head =>
+                                     {
+                                      source => 'acme-heyu.test',
+                                     },
+                                     class=> 'x10',
+                                     class_type => 'basic',
+                                     body =>
+                                     {
+                                      'command' => 'on',
+                                      'device' => 'a3',
+                                     })); }, \*STDERR),
+   ("queued: 00000000 on a3\n".
+    "sent: 00000000 on a3\n"),
+   'x10.basic command=extended output');
+
 my $count = $xpl->input_callback_count($plugin->{_helper_rh});
-my $out = '';
+$out = '';
 while ($count == $xpl->input_callback_count($plugin->{_helper_rh})) {
   $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
 }
 
-is($out, "Acknowledged 00000000\n", 'helper output');
+is($out, "Acknowledged 00000000\n", 'helper ack 0');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
@@ -86,7 +106,7 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'x10.confirm',
                 body => {
-                         device => 'a3',
+                         device => 'a3,a10',
                          command => 'on',
                         },
                }, 'monitor: a3 on');
@@ -102,19 +122,24 @@ check_sent_msg({
                         },
                }, 'monitor: l6 xfunc 49 63');
 
-$xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
-                                             head =>
-                                             {
-                                              source => 'acme-heyu.test',
-                                             },
-                                             class=> 'x10',
-                                             class_type => 'basic',
-                                             body =>
-                                             {
-                                              'command' => 'dim',
-                                              'level' => 10,
-                                              'house' => 'a',
-                                             }));
+is(test_output(sub {
+                 $xpl->dispatch_xpl_message(
+                   xPL::Message->new(message_type => 'xpl-cmnd',
+                                     head =>
+                                     {
+                                      source => 'acme-heyu.test',
+                                     },
+                                     class=> 'x10',
+                                     class_type => 'basic',
+                                     body =>
+                                     {
+                                      'command' => 'dim',
+                                      'level' => 10,
+                                      'house' => 'a',
+                                     })); }, \*STDERR),
+   ("queued: 00000001 dim a1 2\n".
+    "sent: 00000001 dim a1 2\n"),
+   'x10.basic command=extended output');
 
 $count = $xpl->input_callback_count($plugin->{_helper_rh});
 $out = '';
@@ -122,7 +147,43 @@ while ($count == $xpl->input_callback_count($plugin->{_helper_rh})) {
   $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
 }
 
-is($out, "Acknowledged 00000001\n", 'helper output');
+is($out, "Acknowledged 00000001\n", 'helper ack 1');
+
+is(test_output(sub {
+                 $xpl->dispatch_xpl_message(
+                   xPL::Message->new(message_type => 'xpl-cmnd',
+                                     head =>
+                                     {
+                                      source => 'acme-heyu.test',
+                                     },
+                                     class=> 'x10',
+                                     class_type => 'basic',
+                                     body =>
+                                     {
+                                      command => 'extended',
+                                      device => 'a10,a12',
+                                      data1 => 49,
+                                      data2 => 63,
+                                     })); }, \*STDERR),
+   ("queued: 00000002 xfunc 31 a10,12 3f\n".
+    "sent: 00000002 xfunc 31 a10,12 3f\n"),
+   'x10.basic command=extended output');
+
+$count = $xpl->input_callback_count($plugin->{_helper_rh});
+$out = '';
+while ($count == $xpl->input_callback_count($plugin->{_helper_rh})) {
+  $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
+}
+
+is($out, "Helper wrote: Testing error case\n", 'helper output');
+
+$count = $xpl->input_callback_count($plugin->{_helper_rh});
+$out = '';
+while ($count == $xpl->input_callback_count($plugin->{_helper_rh})) {
+  $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
+}
+
+is($out, "Received 00000002: 65280 65280\n", 'helper error');
 
 sub check_sent_msg {
   my ($expected, $desc) = @_;
