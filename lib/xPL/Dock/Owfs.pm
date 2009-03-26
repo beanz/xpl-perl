@@ -129,7 +129,10 @@ file system.
 
 sub owfs_write {
   my ($self, $file, $value) = @_;
-  my $fh = FileHandle->new('>'.$self->{_mount}.'/'.$file) or return;
+  my $fh = FileHandle->new('>'.$self->{_mount}.'/'.$file) or do {
+    warn "Failed to write ow file, $file: $!\n";
+    return;
+  };
   $self->debug("Writing $value to $file\n");
   $fh->print($value);
   $fh->flush();
@@ -265,7 +268,10 @@ This function returns the contents of a owfs file or undef on failure.
 
 sub read_ow_file {
   my $file = shift;
-  my $fh = FileHandle->new("<".$file) || return;
+  my $fh = FileHandle->new("<".$file) or do {
+    warn "Failed to read ow file, $file: $!\n";
+    return;
+  };
   my $value = <$fh>;
   chomp($value);
   $value =~ s/\s+$//;

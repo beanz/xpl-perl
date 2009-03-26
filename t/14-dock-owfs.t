@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 23;
+use Test::More tests => 25;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -120,7 +120,7 @@ my $file = 't/ow/2/05.CFCFCF000000/PIO';
 unlink $file;
 $xpl->dispatch_xpl_message(
   xPL::Message->new(class => 'control.basic',
-                    head => { source => 'acme-udin.test' },
+                    head => { source => 'acme-owfs.test' },
                     body =>
                     {
                      type => 'output',
@@ -132,7 +132,7 @@ unlink $file;
 
 $xpl->dispatch_xpl_message(
   xPL::Message->new(class => 'control.basic',
-                    head => { source => 'acme-udin.test' },
+                    head => { source => 'acme-owfs.test' },
                     body =>
                     {
                      type => 'output',
@@ -145,7 +145,7 @@ unlink $file;
 is(test_output(sub {
   $xpl->dispatch_xpl_message(
     xPL::Message->new(class => 'control.basic',
-                      head => { source => 'acme-udin.test' },
+                      head => { source => 'acme-owfs.test' },
                       body =>
                       {
                        type => 'output',
@@ -162,7 +162,20 @@ unlink $file;
 is(test_warn(sub {
   $xpl->dispatch_xpl_message(
     xPL::Message->new(class => 'control.basic',
-                      head => { source => 'acme-udin.test' },
+                      head => { source => 'acme-owfs.test' },
+                      body =>
+                      {
+                       type => 'output',
+                       device => '05.DFDFDF000000',
+                       current => 'high',
+                      })); }),
+   "Failed to write ow file, 05.DFDFDF000000/PIO: No such file or directory\n",
+   'file write warning');
+
+is(test_warn(sub {
+  $xpl->dispatch_xpl_message(
+    xPL::Message->new(class => 'control.basic',
+                      head => { source => 'acme-owfs.test' },
                       body =>
                       {
                        type => 'output',
@@ -174,7 +187,7 @@ is(test_warn(sub {
 is(test_output(sub {
   $xpl->dispatch_xpl_message(
     xPL::Message->new(class => 'control.basic',
-                      head => { source => 'acme-udin.test' },
+                      head => { source => 'acme-owfs.test' },
                       body =>
                       {
                        type => 'output',
@@ -200,6 +213,9 @@ is(test_warn(sub { $xpl->main_loop(1); }),
 No devices found?
 ', 'invalid mount');
 
+is(test_warn(sub { xPL::Dock::Owfs::read_ow_file('t/ow/3/invalid'); }),
+   "Failed to read ow file, t/ow/3/invalid: No such file or directory\n",
+   'file read warning');
 
 sub read_file {
   my $file = shift;
