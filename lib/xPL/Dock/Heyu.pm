@@ -25,6 +25,7 @@ use warnings;
 use English qw/-no_match_vars/;
 use FileHandle;
 use IO::Pipe;
+use IPC::Open3;
 use POSIX ":sys_wait_h";
 use xPL::Queue;
 use xPL::Dock::Plug;
@@ -90,35 +91,14 @@ sub init {
         $self->argh("'heyu monitor|' failed: $! $@\n");
   $xpl->add_input(handle => $fh, callback => sub { $self->heyu_monitor(@_) });
 
-  my $rh = $self->{_helper_rh} = IO::Pipe->new;
-  my $wh = $self->{_helper_wh} = IO::Pipe->new;
-  my $pid = fork();
-  if ($pid) {
-
-    $SIG{CHLD} = \&sig;
-    $SIG{PIPE} = \&sig;
-
-    # parent
-    $rh->reader();
-    $wh->writer();
-    $wh->autoflush(1);
-    $xpl->add_input(handle => $rh,
-                    callback => sub { $self->heyu_helper_read(@_) });
-  } elsif (defined $pid) {
-    # child
-    $rh->writer();
-    $rh->autoflush(1);
-    $wh->reader();
-    my $wfd = $rh->fileno;
-    my $rfd = $wh->fileno;
-    open(STDIN,"<&$rfd") or die "dup of stdin failed: $!";
-    open(STDOUT,">&=$wfd") or die "dup of stdout failed: $!";
-    open(STDERR,"+>&$wfd") or die "dup of stderr failed: $!";
-    exec('xpl-heyu-helper', @ARGV) or
-      $self->argh("Failed to exec xpl-heyu-helper: $!\n");
-  } else {
-    $self->argh("Fork for xpl-heyu-helper failed: $!\n");
-  }
+  my ($rh, $wh);
+  my $pid = open3($wh, $rh, undef, 'xpl-heyu-helper', @ARGV);
+  $self->{_helper_rh} = $rh;
+  $self->{_helper_wh} = $wh;
+  $SIG{CHLD} = \&sig;
+  $SIG{PIPE} = \&sig;
+  $xpl->add_input(handle => $rh,
+                  callback => sub { $self->heyu_helper_read(@_) });
   $self->{_monitor_ready} = 0;
   return $self;
 }
