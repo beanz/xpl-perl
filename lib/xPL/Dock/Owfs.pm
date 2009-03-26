@@ -253,6 +253,12 @@ sub find_ow_devices {
   return $res;
 }
 
+=head2 C<read_ow_file( $file )>
+
+This function returns the contents of a owfs file or undef on failure.
+
+=cut
+
 sub read_ow_file {
   my $file = shift;
   my $fh = FileHandle->new("<".$file) || return;
