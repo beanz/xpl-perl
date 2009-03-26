@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 13;
+use Test::More tests => 23;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -73,6 +73,7 @@ check_sent_msg({
 {
   local $0 = 'dingus';
   local @ARGV = ('--verbose',
+                 '--owfs-verbose',
                  '--interface', 'lo',
                  '--define', 'hubless=1', 't/ow/2');
   $xpl = xPL::Dock->new(port => 0);
@@ -114,6 +115,101 @@ check_sent_msg({
                 'message_type' => 'xpl-trig',
                 'class' => 'sensor.basic'
                }, 'humidity reported');
+
+my $file = 't/ow/2/05.CFCFCF000000/PIO';
+unlink $file;
+$xpl->dispatch_xpl_message(
+  xPL::Message->new(class => 'control.basic',
+                    head => { source => 'acme-udin.test' },
+                    body =>
+                    {
+                     type => 'output',
+                     device => '05.CFCFCF000000',
+                     current => 'low',
+                    }));
+is(read_file($file), '0', 'output set low');
+unlink $file;
+
+$xpl->dispatch_xpl_message(
+  xPL::Message->new(class => 'control.basic',
+                    head => { source => 'acme-udin.test' },
+                    body =>
+                    {
+                     type => 'output',
+                     device => '05.CFCFCF000000',
+                     current => 'high',
+                    }));
+is(read_file($file), '1', 'output set high');
+unlink $file;
+
+is(test_output(sub {
+  $xpl->dispatch_xpl_message(
+    xPL::Message->new(class => 'control.basic',
+                      head => { source => 'acme-udin.test' },
+                      body =>
+                      {
+                       type => 'output',
+                       device => '05.CFCFCF000000',
+                       current => 'pulse',
+                      })); }, \*STDERR),
+   'Writing 1 to 05.CFCFCF000000/PIO
+Writing 0 to 05.CFCFCF000000/PIO
+',
+   'debug output');
+is(read_file($file), '0', 'output set pulse');
+unlink $file;
+
+is(test_warn(sub {
+  $xpl->dispatch_xpl_message(
+    xPL::Message->new(class => 'control.basic',
+                      head => { source => 'acme-udin.test' },
+                      body =>
+                      {
+                       type => 'output',
+                       device => '05.CFCFCF000000',
+                       current => 'toggle',
+                      })); }),
+   "Unsupported setting: toggle\n", 'output set toggle - unsupported');
+
+is(test_output(sub {
+  $xpl->dispatch_xpl_message(
+    xPL::Message->new(class => 'control.basic',
+                      head => { source => 'acme-udin.test' },
+                      body =>
+                      {
+                       type => 'output',
+                       device => 'o01',
+                       current => 'high',
+                      })); }, \*STDERR),
+   '', 'no debug output - unknown device');
+
+{
+  local $0 = 'dingus';
+  local @ARGV = ('--verbose',
+                 '--owfs-verbose',
+                 '--interface', 'lo',
+                 '--define', 'hubless=1', 't/ow/3');
+  $xpl = xPL::Dock->new(port => 0);
+}
+ok($xpl, 'created dock client');
+$plugin = ($xpl->plugins)[0];
+ok($plugin, 'plugin exists');
+is(ref $plugin, 'xPL::Dock::Owfs', 'plugin has correct type');
+is(test_warn(sub { $xpl->main_loop(1); }),
+   'Failed to open ow dir, t/ow/3: No such file or directory
+No devices found?
+', 'invalid mount');
+
+
+sub read_file {
+  my $file = shift;
+  my $fh;
+  open $fh, '<'.$file or return undef;
+  my $l = <$fh>;
+  $fh->close;
+  chomp $l;
+  return $l;
+}
 
 sub check_sent_msg {
   my ($expected, $desc) = @_;

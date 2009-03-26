@@ -114,6 +114,8 @@ sub xpl_in {
     $self->owfs_write($device.'/PIO', 1);
     select(undef,undef,undef,0.15); # TOFIX
     $self->owfs_write($device.'/PIO', 0);
+  } else {
+    warn "Unsupported setting: $current\n";
   }
   return 1;
 }
@@ -166,6 +168,12 @@ sub owfs_reader {
       $self->send_xpl( $message_type, $id, $type, $value, $index);
     }
   }
+
+  unless ($found) {
+    warn "No devices found?\n";
+    return 1;
+  }
+
   foreach (8, 16) {
     my $errors = read_ow_file($ow_dir.'/statistics/errors/CRC'.$_.'_errors');
     my $tries = read_ow_file($ow_dir.'/statistics/errors/CRC'.$_.'_tries');
@@ -193,11 +201,6 @@ sub owfs_reader {
       printf "        %s failure %6.2f\n",
         $type, 100*$failure/$calls;
     }
-  }
-
-  unless ($found) {
-    warn "No devices found?\n";
-    return 1;
   }
   return 1;
 }
