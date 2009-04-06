@@ -57,6 +57,7 @@ lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
 lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/LCDproc.pm
+lib/xPL/Dock/LIRC.pm
 lib/xPL/Dock/Owfs.pm
 lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm

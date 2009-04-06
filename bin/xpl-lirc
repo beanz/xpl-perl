@@ -31,95 +31,17 @@ and transmits them as xPL C<remote.basic> messages.
 
 use strict;
 use warnings;
-use English qw/-no_match_vars/;
-use DirHandle;
-use FileHandle;
-use Getopt::Long;
-use Pod::Usage;
-use IO::Socket::UNIX;
-use IO::Socket::INET;
-use xPL::Client;
+use xPL::Dock qw/LIRC/;
 $|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new();
+$xpl->main_loop;
 
-my %args = ( vendor_id => 'bnz', device_id => 'lirc', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $server = '/dev/lircd';
-GetOptions('verbose+' => \$verbose,
-           'interface=s' => \$interface,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-           'server=s' => \$server,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
-
-my $ss;
-if ($server =~ m!^/!) {
-  $ss = IO::Socket::UNIX->new($server);
-} else {
-  $server .= ':8765' unless ($server =~ /:/);
-  $ss = IO::Socket::INET->new($server);
-}
-unless ($ss) {
-  die "Can't connect to $server: $!\n";
-}
-
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
-
-my $buf = "";
-
-END {
-  # send a 'hbeat.end' message on exit
-  $xpl->send_hbeat_end() if (defined $xpl);
-}
-
-$xpl->add_input(handle => $ss, callback => \&lirc_reader);
-
-# Run the main loop
-$xpl->main_loop();
-
-=head2 C<lirc_reader()>
-
-This is the callback that processes output from the C<lirc> program.
-It is responsible for sending out the remote.basic xpl-trig messages.
-
-=cut
-
-sub lirc_reader {
-  my $bytes = $ss->sysread($buf, 512, length($buf));
-  if (!$bytes) {
-    die 'lircd socket '.(defined $bytes ? 'closed' : 'error')."\n";
-  }
-  while ($buf =~ s/^(.*?)\n//) {
-    $_ = $1;
-    print $_, "\n" if ($verbose);
-    if (m!^\S+ \S{2} (\S+) (\S+)!) {
-      my $device = lc($2);
-      my $key = lc($1);
-      my %args =
-        (
-         message_type => 'xpl-trig',
-         class => 'remote.basic',
-         body => { device => $device, 'keys' => $key },
-        );
-      print STDERR "Sending $device $key\n" if ($verbose);
-      return $xpl->send(%args);
-    }
-  }
-}
+# send a "hbeat.end" message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 
-xPL::Client(3), xPL::Listener(3)
+xPL::Dock(3), lircd(8)
 
 Project website: http://www.xpl-perl.org.uk/
 
