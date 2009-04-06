@@ -12,7 +12,7 @@ xPL::Dock::Lcdproc - xPL::Dock plugin for an LCDproc client
 
 =head1 DESCRIPTION
 
-This L<xPL::Dock> plugin adds lcdproc proximity reporting.
+This L<xPL::Dock> plugin adds an LCDproc client.
 
 =head1 METHODS
 
