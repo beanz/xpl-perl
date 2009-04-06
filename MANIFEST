@@ -67,6 +67,7 @@ lib/xPL/Dock/Serial.pm
 lib/xPL/Dock/UDIN.pm
 lib/xPL/Dock/VIOM.pm
 lib/xPL/Dock/W800.pm
+lib/xPL/Dock/Xvkbd.pm
 lib/xPL/Gtk2Client.pm
 lib/xPL/HomeEasy.pm
 lib/xPL/Hub.pm

@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 =head1 NAME
 
 xpl-xvkbd - Perl script for an xPL virtual keyboard application
@@ -27,72 +25,17 @@ to an X11 application.
 
 use strict;
 use warnings;
-use English qw/-no_match_vars/;
-use FileHandle;
-use Getopt::Long;
-use Pod::Usage;
-use xPL::Client;
+use xPL::Dock qw/Xvkbd/;
 $|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new();
+$xpl->main_loop;
 
-my %args = ( vendor_id => 'bnz', device_id => 'xvkbd', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-GetOptions('verbose+' => \$verbose,
-           'interface=s' => \$interface,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
-
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
-
-# Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'xvkbd', callback => \&xpl_in,
-                      filter => {
-                                 message_type => 'xpl-cmnd',
-                                 class => 'remote',
-                                 class_type => 'basic',
-                                });
-
-# Run the main loop
-$xpl->main_loop();
-
-=head2 C<xpl_in(%xpl_callback_parameters)>
-
-This is the callback that processes incoming xPL messages.  It handles
-a limited subset of the full remote.basic schema but could easily be
-extended.
-
-=cut
-
-sub xpl_in {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  my @cmd = qw/xvkbd -text/;
-  push @cmd, $msg->keys;
-  print STDERR "Executing '@cmd'\n" if ($verbose);
-  system(@cmd);
-  return 1;
-}
-
-# send a 'hbeat.end' message on exit
+# send a "hbeat.end" message on exit
 END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 
-xPL::Client(3), xPL::Listener(3), heyu(1)
+xPL::Dock::Xvkbd(3), xvkbd(1)
 
 Project website: http://www.xpl-perl.org.uk/
 
