@@ -38,7 +38,7 @@ my $xpl;
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock lcdproc client');
-ok($sel->can_read, 'lcdproc device ready to accept');
+ok($sel->can_read(0.5), 'lcdproc device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 my $client_sel = IO::Select->new($client);

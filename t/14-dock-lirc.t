@@ -38,7 +38,7 @@ my $xpl;
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock lirc client');
-ok($sel->can_read, 'lirc device ready to accept');
+ok($sel->can_read(0.5), 'lirc device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 my $client_sel = IO::Select->new($client);
@@ -97,7 +97,7 @@ $sel = IO::Select->new($device);
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock lirc client');
-ok($sel->can_read, 'lirc device ready to accept');
+ok($sel->can_read(0.5), 'lirc device ready to accept');
 $client = $device->accept;
 ok($client, 'client accepted');
 $client_sel = IO::Select->new($client);

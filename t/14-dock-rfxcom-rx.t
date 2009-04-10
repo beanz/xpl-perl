@@ -36,7 +36,7 @@ my $xpl;
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
-ok($sel->can_read, 'device ready to accept');
+ok($sel->can_read(0.5), 'device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 my $client_sel = IO::Select->new($client);
@@ -47,7 +47,7 @@ is(ref $plugin, 'xPL::Dock::RFXComRX', 'plugin has correct type');
 
 foreach my $r (['F020' => '4d26'], ['F02A' => '41'], ['F041' => '41']) {
   my ($recv,$send) = @$r;
-  ok($client_sel->can_read, 'device receive a message - '.$recv);
+  ok($client_sel->can_read(0.5), 'device receive a message - '.$recv);
   my $buf = '';
   is((sysread $client, $buf, 64), length($recv)/2,
      'read is correct size - '.$recv);

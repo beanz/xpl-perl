@@ -38,7 +38,7 @@ my $count = 0;
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
-ok($sel->can_read, 'device ready to accept');
+ok($sel->can_read(0.5), 'device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 my $client_sel = IO::Select->new($client);
@@ -52,7 +52,7 @@ $plugin->{_ack_timeout_callback} = sub { $count++ };
 
 my $buf;
 
-ok($client_sel->can_read, 'device receive a message - 4200');
+ok($client_sel->can_read(0.5), 'device receive a message - 4200');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - 4200');
 my $m = xPL::BinaryMessage->new(raw => $buf);
@@ -69,7 +69,7 @@ my $msg = xPL::Message->new(class => 'control.basic',
                              current => 'high',
                             });
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read, 'device receive a message - o1/high');
+ok($client_sel->can_read(0.5), 'device receive a message - o1/high');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - o1/high');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -79,7 +79,7 @@ wait_for_tick($xpl, $count);
 
 $msg->current('low');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read, 'device receive a message - o1/low');
+ok($client_sel->can_read(0.5), 'device receive a message - o1/low');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - o1/low');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -89,13 +89,13 @@ wait_for_tick($xpl, $count);
 $msg->current('pulse');
 $msg->device('o3');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read, 'device receive a message - o3/pulse');
+ok($client_sel->can_read(0.5), 'device receive a message - o3/pulse');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - o3/pulse');
 $m = xPL::BinaryMessage->new(raw => $buf);
 is($m, '4304', 'content is correct - o3/pulse');
 wait_for_tick($xpl, $count);
-ok($client_sel->can_read, 'device receive a message - o3/pulse');
+ok($client_sel->can_read(0.5), 'device receive a message - o3/pulse');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - o3/pulse');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -114,7 +114,7 @@ ok(!$client_sel->can_read(0.1), 'device received no message - invalid/pulse');
 $msg->current('high');
 $msg->device('debug');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read, 'device receive a message - debug/high');
+ok($client_sel->can_read(0.5), 'device receive a message - debug/high');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - debug/high');
 $m = xPL::BinaryMessage->new(raw => $buf);

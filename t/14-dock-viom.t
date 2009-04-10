@@ -36,7 +36,7 @@ my $xpl;
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
-ok($sel->can_read, 'device ready to accept');
+ok($sel->can_read(0.5), 'device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 my $client_sel = IO::Select->new($client);
@@ -47,7 +47,7 @@ is(ref $plugin, 'xPL::Dock::VIOM', 'plugin has correct type');
 
 my $buf;
 
-ok($client_sel->can_read, 'device receive a message - CSV');
+ok($client_sel->can_read(0.5), 'device receive a message - CSV');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - CSV');
 is($buf, "CSV\r\n", 'content is correct - CSV');
@@ -59,7 +59,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
     "queued: CIN\n"),
    'read response - CSV');
 
-ok($client_sel->can_read, 'device receive a message - CIC1');
+ok($client_sel->can_read(0.5), 'device receive a message - CIC1');
 $buf = '';
 is((sysread $client, $buf, 64), 6, 'read is correct size - CIC1');
 is($buf, "CIC1\r\n", 'content is correct - CIC1');
@@ -68,7 +68,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Input Change Reporting is On\nsending: COR\n",
    'read response - CIC1');
 
-ok($client_sel->can_read, 'device receive a message - COR');
+ok($client_sel->can_read(0.5), 'device receive a message - COR');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - COR');
 is($buf, "COR\r\n", 'content is correct - COR');
@@ -77,7 +77,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 Inactive\nsending: CIN\n",
    'read response - COR');
 
-ok($client_sel->can_read, 'device receive a message - CIN');
+ok($client_sel->can_read(0.5), 'device receive a message - CIN');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - CIN');
 is($buf, "CIN\r\n", 'content is correct - CIN');
@@ -132,7 +132,7 @@ my $msg = xPL::Message->new(class => 'control.basic',
                              current => 'high',
                             });
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read, 'device receive a message - o01/high');
+ok($client_sel->can_read(0.5), 'device receive a message - o01/high');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - o01/high');
 is($buf, "XA1\r\n", 'content is correct - o01/high');
@@ -143,7 +143,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 $msg->current('low');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read, 'device receive a message - o01/low');
+ok($client_sel->can_read(0.5), 'device receive a message - o01/low');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - o01/low');
 is($buf, "XB1\r\n", 'content is correct - o01/low');
@@ -153,7 +153,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 $msg->current('pulse');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read, 'device receive a message - o01/pulse');
+ok($client_sel->can_read(0.5), 'device receive a message - o01/pulse');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - o01/pulse');
 is($buf, "XA1\r\n", 'content is correct - o01/pulse');
@@ -170,7 +170,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 $msg->current('toggle');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read, 'device receive a message - o01/toggle');
+ok($client_sel->can_read(0.5), 'device receive a message - o01/toggle');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - o01/toggle');
 is($buf, "XA1\r\n", 'content is correct - o01/toggle');
@@ -181,7 +181,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 $msg->current('toggle');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read, 'device receive a message - o01/toggle(off)');
+ok($client_sel->can_read(0.5), 'device receive a message - o01/toggle(off)');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - o01/toggle(off)');
 is($buf, "XB1\r\n", 'content is correct - o01/toggle(off)');

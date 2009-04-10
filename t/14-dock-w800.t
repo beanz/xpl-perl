@@ -37,7 +37,7 @@ my $xpl;
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
-ok($sel->can_read, 'device ready to accept');
+ok($sel->can_read(0.5), 'device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 my $client_sel = IO::Select->new($client);

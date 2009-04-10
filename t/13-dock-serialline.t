@@ -36,7 +36,7 @@ sub device_reader {
 }
 ok($xpl, 'created dock serial line client');
 is($xpl->device_id, 'dingus', 'device_id set correctly');
-ok($sel->can_read, 'serial device ready to accept');
+ok($sel->can_read(0.5), 'serial device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 
@@ -46,7 +46,7 @@ is(ref $plugin, 'xPL::Dock::SerialLine', 'plugin has correct type');
 $plugin->write('test');
 
 my $client_sel = IO::Select->new($client);
-ok($client_sel->can_read, 'serial device ready to read');
+ok($client_sel->can_read(0.5), 'serial device ready to read');
 
 my $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size');

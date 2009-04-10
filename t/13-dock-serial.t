@@ -38,7 +38,7 @@ sub device_reader {
 }
 ok($xpl, 'created dock serial client');
 is($xpl->device_id, 'dungis', 'device_id set correctly');
-ok($sel->can_read, 'serial device ready to accept');
+ok($sel->can_read(0.5), 'serial device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 
@@ -49,7 +49,7 @@ $plugin->write(xPL::BinaryMessage->new(raw => 'test',
                                                   desc => 'test'));
 
 my $client_sel = IO::Select->new($client);
-ok($client_sel->can_read, 'serial device ready to read');
+ok($client_sel->can_read(0.5), 'serial device ready to read');
 
 my $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size');

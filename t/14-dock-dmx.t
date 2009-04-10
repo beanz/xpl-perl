@@ -35,7 +35,7 @@ my $xpl;
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock dmx client');
-ok($sel->can_read, 'dmx device ready to accept');
+ok($sel->can_read(0.5), 'dmx device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 my $client_sel = IO::Select->new($client);
@@ -57,7 +57,7 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
   $msg->value($val);
   $xpl->dispatch_xpl_message($msg);
 
-  ok($client_sel->can_read, 'serial device ready to read - '.$color);
+  ok($client_sel->can_read(0.5), 'serial device ready to read - '.$color);
 
   my $buf = '';
   is((sysread $client, $buf, 64), 6, 'read is correct size - '.$color);
@@ -74,7 +74,7 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
 $msg->base('1x2');
 $xpl->dispatch_xpl_message($msg);
 
-ok($client_sel->can_read, 'serial device ready to read - base=1x2');
+ok($client_sel->can_read(0.5), 'serial device ready to read - base=1x2');
 
 my $buf = '';
 is((sysread $client, $buf, 64), 9, 'read is correct size - base=1x2');
@@ -105,7 +105,7 @@ $msg->base('hex');
 $msg->value('010001ff');
 $xpl->dispatch_xpl_message($msg);
 
-ok($client_sel->can_read, 'serial device ready to read - base=hex');
+ok($client_sel->can_read(0.5), 'serial device ready to read - base=hex');
 
 $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - base=hex');

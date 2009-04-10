@@ -36,7 +36,7 @@ my $xpl;
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
-ok($sel->can_read, 'device ready to accept');
+ok($sel->can_read(0.5), 'device ready to accept');
 my $client = $device->accept;
 ok($client, 'client accepted');
 my $client_sel = IO::Select->new($client);
@@ -45,7 +45,7 @@ my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::RFXComTX', 'plugin has correct type');
 
-ok($client_sel->can_read, 'device receive a message - F030F030');
+ok($client_sel->can_read(0.5), 'device receive a message - F030F030');
 my $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - F030F030');
 my $m = xPL::BinaryMessage->new(raw => $buf);
@@ -56,7 +56,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
     "sending: F037F037: variable length mode w/o receiver connected\n"),
    'read response - F030F030');
 
-ok($client_sel->can_read, 'device receive a message - F037F037');
+ok($client_sel->can_read(0.5), 'device receive a message - F037F037');
 $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - F037F037');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -67,7 +67,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
     "sending: F03FF03F: disabling x10\n"),
    'read response - F037F037');
 
-ok($client_sel->can_read, 'device receive a message - f03ff03f');
+ok($client_sel->can_read(0.5), 'device receive a message - f03ff03f');
 $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - f03ff03f');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -87,7 +87,7 @@ my $msg = xPL::Message->new(strict => 0,
                             });
 $xpl->dispatch_xpl_message($msg);
 
-ok($client_sel->can_read, 'serial device ready to read - a1/on');
+ok($client_sel->can_read(0.5), 'serial device ready to read - a1/on');
 
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - a1/on');
@@ -107,7 +107,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 $msg->extra_field(repeat => 2);
 $xpl->dispatch_xpl_message($msg);
 
-ok($client_sel->can_read, 'serial device ready to read - a1/on');
+ok($client_sel->can_read(0.5), 'serial device ready to read - a1/on');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - a1/on');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -118,7 +118,7 @@ print $client pack 'H*', '37';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\nsending: 20609f00ff: a1 on\n", 'read response - a1/on');
 
-ok($client_sel->can_read, 'serial device ready to read - a1/on');
+ok($client_sel->can_read(0.5), 'serial device ready to read - a1/on');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - a1/on');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -139,7 +139,7 @@ $msg = xPL::Message->new(class => 'x10.basic',
                          });
 $xpl->dispatch_xpl_message($msg);
 
-ok($client_sel->can_read, 'serial device ready to read - p/all_lights_off');
+ok($client_sel->can_read(0.5), 'serial device ready to read - p/all_lights_off');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - p/all_lights_off');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -153,7 +153,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 $msg->extra_field(repeat => 2);
 $xpl->dispatch_xpl_message($msg);
 
-ok($client_sel->can_read, 'serial device ready to read - p/all_lights_off');
+ok($client_sel->can_read(0.5), 'serial device ready to read - p/all_lights_off');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - p/all_lights_off');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -165,7 +165,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\nsending: 2030cf807f: p all_lights_off\n",
    'read response - p/all_lights_off');
 
-ok($client_sel->can_read, 'serial device ready to read - p/all_lights_off');
+ok($client_sel->can_read(0.5), 'serial device ready to read - p/all_lights_off');
 $buf = '';
 is((sysread $client, $buf, 64), 5, 'read is correct size - p/all_lights_off');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -200,7 +200,7 @@ $msg = xPL::Message->new(class => 'homeeasy.basic',
                          });
 $xpl->dispatch_xpl_message($msg);
 
-ok($client_sel->can_read, 'serial device ready to read - homeeasy');
+ok($client_sel->can_read(0.5), 'serial device ready to read - homeeasy');
 $buf = '';
 is((sysread $client, $buf, 64), 6, 'read is correct size - homeeasy');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -214,7 +214,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 $msg->extra_field(repeat => 2);
 $xpl->dispatch_xpl_message($msg);
 
-ok($client_sel->can_read, 'serial device ready to read - homeeasy');
+ok($client_sel->can_read(0.5), 'serial device ready to read - homeeasy');
 $buf = '';
 is((sysread $client, $buf, 64), 6, 'read is correct size - homeeasy');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -228,7 +228,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
     "xpl-cmnd/homeeasy.basic: acme-homeeasy.test -> * - off/0x31f8177 10\n"),
    'read response - homeeasy');
 
-ok($client_sel->can_read, 'serial device ready to read - homeeasy');
+ok($client_sel->can_read(0.5), 'serial device ready to read - homeeasy');
 $buf = '';
 is((sysread $client, $buf, 64), 6, 'read is correct size - homeeasy');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -250,7 +250,7 @@ $msg = xPL::Message->new(class => 'homeeasy.basic',
                          });
 $xpl->dispatch_xpl_message($msg);
 
-ok($client_sel->can_read, 'serial device ready to read - homeeasy');
+ok($client_sel->can_read(0.5), 'serial device ready to read - homeeasy');
 $buf = '';
 is((sysread $client, $buf, 64), 6, 'read is correct size - homeeasy');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -291,13 +291,13 @@ is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
 $plugin->{_ack_timeout} = 0.1;
 $plugin->{_receiver_connected} = 1;
 $plugin->write(xPL::BinaryMessage->new(hex => 'f03ff03f', desc => 'no x10'));
-ok($client_sel->can_read, 'serial device ready to read - no ack');
+ok($client_sel->can_read(0.5), 'serial device ready to read - no ack');
 $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - no ack');
 $m = xPL::BinaryMessage->new(raw => $buf);
 is($m, 'f03ff03f', 'content is correct - no ack');
 is(test_output(sub { $xpl->main_loop(1) }, \*STDERR), "No ack!\n", 'no ack');
-ok($client_sel->can_read, 'serial device ready to read - no ack');
+ok($client_sel->can_read(0.5), 'serial device ready to read - no ack');
 $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - no ack');
 $m = xPL::BinaryMessage->new(raw => $buf);
@@ -327,7 +327,7 @@ queued: F03EF03E: enabling flamingo
   is_deeply([split /\n/, $output], \@expected, 'all options output');
 }
 ok($xpl, 'created dock client');
-ok($sel->can_read, 'device ready to accept');
+ok($sel->can_read(0.5), 'device ready to accept');
 $client = $device->accept;
 ok($client, 'client accepted');
 $client_sel = IO::Select->new($client);
