@@ -1,7 +1,5 @@
 package xPL::Validation::Any;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Validation::Any - Perl extension for xPL Validation any class

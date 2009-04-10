@@ -1,7 +1,5 @@
 package xPL::Timer::simple;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Timer::simple - Perl extension for xPL simple timer

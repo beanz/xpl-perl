@@ -1,7 +1,5 @@
 package xPL::Validation::IP;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Validation::IP - Perl extension for xPL Validation IP address class

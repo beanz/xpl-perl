@@ -1,7 +1,5 @@
 package xPL::RF;
 
-# $Id$
-
 =head1 NAME
 
 xPL::RF - Perl extension for an xPL RF Class

@@ -1,7 +1,5 @@
 package xPL::RF::HomeEasy;
 
-# $Id$
-
 =head1 NAME
 
 xPL::RF::HomeEasy - Perl extension for decoding HomeEasy RF messages

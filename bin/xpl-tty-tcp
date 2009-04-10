@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 =head1 NAME
 
 xpl-tty-tcp - Perl script to make a tty serial port available as TCP socket

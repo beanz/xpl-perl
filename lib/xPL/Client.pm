@@ -1,7 +1,5 @@
 package xPL::Client;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Client - Perl extension for an xPL Client

@@ -1,7 +1,5 @@
 package xPL::Validation::IntegerRange;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Validation::IntegerRange - Perl extension for xPL Validation integer range

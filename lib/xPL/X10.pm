@@ -1,7 +1,5 @@
 package xPL::X10;
 
-# $Id$
-
 =head1 NAME
 
 xPL::X10 - Perl extension for xPL X10 Encoding/Decoding

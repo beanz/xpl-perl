@@ -1,7 +1,5 @@
 package xPL::HomeEasy;
 
-# $Id: HomeEasy.pm 370 2007-09-30 10:27:48Z beanz $
-
 =head1 NAME
 
 xPL::HomeEasy - Perl extension for xPL HomeEasy Encoding/Decoding

@@ -1,7 +1,5 @@
 package xPL::RF::RFXSensor;
 
-# $Id$
-
 =head1 NAME
 
 xPL::RF::RFXSensor - Perl extension for decoding RFXCOM Sensor RF messages

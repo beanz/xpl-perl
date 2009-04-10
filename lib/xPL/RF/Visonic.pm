@@ -1,7 +1,5 @@
 package xPL::RF::Visonic;
 
-# $Id$
-
 =head1 NAME
 
 xPL::RF::Visonic - Perl extension for decoding Visonic device RF messages

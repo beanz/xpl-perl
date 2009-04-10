@@ -1,7 +1,5 @@
 package xPL::RF::Oregon;
 
-# $Id$
-
 =head1 NAME
 
 xPL::RF::Oregon - Perl extension for decoding Oregon Scientific RF messages

@@ -1,7 +1,5 @@
 package xPL::Utils;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Utils - Perl extension for xPL timer base class

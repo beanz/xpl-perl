@@ -1,7 +1,5 @@
 package xPL::RF::X10Security;
 
-# $Id$
-
 =head1 NAME
 
 xPL::RF::X10Security - Perl extension for decoding X10 Security device messages

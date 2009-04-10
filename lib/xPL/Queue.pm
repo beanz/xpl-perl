@@ -1,7 +1,5 @@
 package xPL::Queue;
 
-# $Id: Queue.pm 281 2007-06-15 16:53:50Z beanz $
-
 =head1 NAME
 
 xPL::Queue - Perl extension for simple queue for use by xPL clients

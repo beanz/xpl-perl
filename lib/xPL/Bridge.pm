@@ -1,7 +1,5 @@
 package xPL::Bridge;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Bridge - Perl extension for an xPL Bridge

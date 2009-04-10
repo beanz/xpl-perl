@@ -1,7 +1,5 @@
 package xPL::Base;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Base - Perl extension for an xPL Base Class

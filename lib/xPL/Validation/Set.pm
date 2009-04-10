@@ -1,7 +1,5 @@
 package xPL::Validation::Set;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Validation::Set - Perl extension for xPL Validation set class

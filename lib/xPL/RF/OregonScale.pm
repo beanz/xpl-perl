@@ -1,7 +1,5 @@
 package xPL::RF::OregonScale;
 
-# $Id: OregonScale.pm 407 2007-11-19 18:00:09Z beanz $
-
 =head1 NAME
 
 xPL::RF::OregonScale - Perl extension for Oregon Scientific scale RF messages

@@ -1,7 +1,5 @@
 package xPL::Timer::cron;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Timer::cron - Perl extension for xPL cron-like timer

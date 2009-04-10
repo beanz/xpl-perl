@@ -1,7 +1,5 @@
 package t::Helpers;
 
-# $Id$
-
 =head1 NAME
 
 t::Helpers - Perl extension for Helper functions for tests.

@@ -1,7 +1,5 @@
 package SMS::Send::SMSDiscount;
 
-# $Id$
-
 =head1 NAME
 
 SMS::Send::SMSDiscount - SMS::Send SMS Discount Driver

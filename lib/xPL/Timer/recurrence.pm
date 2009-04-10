@@ -1,7 +1,5 @@
 package xPL::Timer::recurrence;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Timer::recurrence - Perl extension for xPL recurrent timer

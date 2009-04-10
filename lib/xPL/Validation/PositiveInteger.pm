@@ -1,7 +1,5 @@
 package xPL::Validation::PositiveInteger;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Validation::PositiveInteger - Perl extension for xPL Validation +ive int

@@ -1,7 +1,5 @@
 package xPL::Timer::sunrise;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Timer::sunrise - Perl extension for xPL sunrise timer

@@ -1,7 +1,5 @@
 package xPL::Message;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Message - Perl extension for xPL message base class

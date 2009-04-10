@@ -1,7 +1,5 @@
 package xPL::Hub;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Hub - Perl extension for an xPL Hub

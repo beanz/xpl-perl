@@ -1,7 +1,5 @@
 package xPL::RF::Electrisave;
 
-# $Id$
-
 =head1 NAME
 
 xPL::RF::Electrisave - Perl extension for decoding electrisave RF messages

@@ -1,7 +1,5 @@
 package xPL::RF::RFXMeter;
 
-# $Id$
-
 =head1 NAME
 
 xPL::RF::RFXMeter - Perl extension for decoding RFXCOM Meter RF messages

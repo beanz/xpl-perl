@@ -1,7 +1,5 @@
 package xPL::Timer::sunset;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Timer::sunset - Perl extension for xPL sunset timer

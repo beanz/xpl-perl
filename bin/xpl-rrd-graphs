@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 =head1 NAME
 
 xpl-rrd-graphs - Perl script for producing graphs from xpl-rrd directory.

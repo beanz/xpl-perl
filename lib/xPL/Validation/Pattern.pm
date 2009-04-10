@@ -1,7 +1,5 @@
 package xPL::Validation::Pattern;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Validation::Pattern - Perl extension for xPL Validation pattern class

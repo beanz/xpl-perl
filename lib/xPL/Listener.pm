@@ -1,7 +1,5 @@
 package xPL::Listener;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Listener - Perl extension for an xPL Listener

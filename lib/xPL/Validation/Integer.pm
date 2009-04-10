@@ -1,7 +1,5 @@
 package xPL::Validation::Integer;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Validation::Integer - Perl extension for xPL Validation integer class

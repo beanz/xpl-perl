@@ -1,7 +1,5 @@
 package SMS::Send::CSoft;
 
-# $Id$
-
 =head1 NAME
 
 SMS::Send::CSoft - SMS::Send CSoft Driver

@@ -1,7 +1,5 @@
 package xPL::RF::X10;
 
-# $Id$
-
 =head1 NAME
 
 xPL::RF::X10 - Perl extension for decoding X10 device RF messages

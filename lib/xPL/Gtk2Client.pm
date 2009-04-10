@@ -1,7 +1,5 @@
 package xPL::Gtk2Client;
 
-# $Id$
-
 =head1 NAME
 
 xPL::Gtk2Client - Perl extension for a graphical xPL Client
