@@ -55,8 +55,8 @@ lib/xPL/Dock/Bluetooth.pm
 lib/xPL/Dock/DawnDusk.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
-lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/HDDTemp.pm
+lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/LCDproc.pm
 lib/xPL/Dock/LIRC.pm
 lib/xPL/Dock/Owfs.pm
@@ -185,8 +185,8 @@ t/14-dock-bluetooth.t
 t/14-dock-dawndusk.t
 t/14-dock-dmx.t
 t/14-dock-easydaq.t
-t/14-dock-heyu.t
 t/14-dock-hddtemp.t
+t/14-dock-heyu.t
 t/14-dock-lcdproc.t
 t/14-dock-lirc.t
 t/14-dock-owfs.t
@@ -195,8 +195,10 @@ t/14-dock-rfxcom-tx.t
 t/14-dock-udin.t
 t/14-dock-viom.t
 t/14-dock-w800.t
+t/14-dock-xvkbd.t
 t/bin/heyu
 t/bin/stty
+t/bin/xvkbd
 t/Helpers.pm
 t/interfaces/ifconfig.empty/ifconfig
 t/interfaces/ifconfig.freebsd/ifconfig
