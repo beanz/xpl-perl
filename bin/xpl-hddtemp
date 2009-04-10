@@ -1,7 +1,5 @@
 #!/usr/bin/perl -w
 
-# $Id$
-
 =head1 NAME
 
 xpl-hddtemp - Perl script for an xPL hddtemp monitor
@@ -33,99 +31,13 @@ disks.
 
 use strict;
 use warnings;
-use Getopt::Long;
-use Pod::Usage;
-use POSIX qw/strftime/;
-use xPL::Client;
-use IO::Socket;
+use xPL::Dock qw/HDDTemp/;
 $|=1; # autoflush helps debugging
-
-my %args = ( vendor_id => 'bnz', device_id => 'hddtemp', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $interval = 120;
-GetOptions('verbose+' => \$verbose,
-           'interface|i=s' => \$interface,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-           'interval|s=i' => \$interval,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
-
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
-my $state = {};
-my $buf = "";
-
-# Add a timer to the xPL Client event loop to generate the
-# "hddtemp.update" messages.  The negative interval causes the timer to
-# trigger immediately rather than waiting for the first interval.
-$xpl->add_timer(id => 'poll',
-                timeout => -$interval,
-                callback => \&poll_hddtemp);
-
-$SIG{TERM} = \&end;
-$SIG{QUIT} = \&end;
-
-# Run the main loop
-$xpl->main_loop();
-
-# The callback to connect to hddtemp
-sub poll_hddtemp {
-  my $sock = IO::Socket::INET->new('127.0.0.1:7634');
-  unless ($sock) {
-    warn "Failed to contact hddtemp daemon: $!\n";
-    return 1;
-  }
-  $xpl->add_input(handle => $sock, callback => \&read_hddtemp);
-  return 1;
-}
-
-# The callback to read hddtemp response and send the "sensor.basic" messages
-sub read_hddtemp {
-  my $sock = shift;
-  my $bytes = $sock->sysread($buf, 512, length($buf));
-  unless ($bytes) {
-    $buf = "";
-    $xpl->remove_input($sock);
-    $sock->close;
-  }
-  while ($buf =~ s/^\|([^\|]+)\|([^\|]+)\|([^\|]+)\|([^\|]+)\|//) {
-    my $device = $1;
-    my $temp = $3;
-    my $unit = $4;
-
-    # sometimes temp isn't numeric - value is 'SPL'
-    # avoid reporting these
-    next if ($temp =~ /[^\d\.]/);
-
-    $device =~ s!/dev/!!;
-    $device = $xpl->instance_id."-".$device;
-    my $old = $state->{$device};
-    $state->{$device} = $temp;
-    my $type;
-    if (!defined $old || $temp != $old) {
-      $type = 'xpl-trig';
-      print "$device $temp $unit\n" if ($verbose);
-    } else {
-      $type = 'xpl-stat';
-    }
-    $xpl->send(message_type => $type, class => 'sensor.basic',
-               body => { device => $device, type => 'temp', current => $temp });
-  }
-  return 1;
-}
+my $xpl = xPL::Dock->new();
+$xpl->main_loop;
 
 # send a "hbeat.end" message on exit
-sub end { defined $xpl && undef $xpl;exit; }#->send_hbeat_end(); exit; }
+END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

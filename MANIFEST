@@ -56,6 +56,7 @@ lib/xPL/Dock/DawnDusk.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
 lib/xPL/Dock/Heyu.pm
+lib/xPL/Dock/HDDTemp.pm
 lib/xPL/Dock/LCDproc.pm
 lib/xPL/Dock/LIRC.pm
 lib/xPL/Dock/Owfs.pm
@@ -185,7 +186,9 @@ t/14-dock-dawndusk.t
 t/14-dock-dmx.t
 t/14-dock-easydaq.t
 t/14-dock-heyu.t
+t/14-dock-hddtemp.t
 t/14-dock-lcdproc.t
+t/14-dock-lirc.t
 t/14-dock-owfs.t
 t/14-dock-rfxcom-rx.t
 t/14-dock-rfxcom-tx.t
