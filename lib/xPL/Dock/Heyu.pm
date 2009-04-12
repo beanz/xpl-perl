@@ -179,21 +179,24 @@ sub heyu_monitor {
     # TOFIX: process timestamps
     if (m!Monitor started!) {
       $self->{_monitor_ready} = 1;
-    } elsif (m!function\s+(On|Off|Bright|Dim)\s+:\s+housecode\s+(\w+)(.*\s+by\s+%(\d+))?!) {
+    } elsif (m!function\s+(On|Off|Bright|Dim)\s+:\s+housecode\s+(\w+)(.*\s+by\s+%(\d+))?! ||
+             m!func\s+(On|Off|Bright|Dim)\s+:\s+hc\s+(\w+)(.*\s+%(\d+))?!) {
       my $f = lc($1);
       my $h = lc($2);
       my $level = $4;
       my $u = join ',', sort { $a <=> $b } @{$self->{_unit}->{$h}|| ['0']};
       $self->send_xpl($class, $h.$u, $f, $level);
       delete $self->{_unit}->{$h};
-    } elsif (m!function\s+xPreset\s+:\s+housecode\s+(\w)\s+unit\s+(\d+)\s+level\s+(\d+)!) {
+    } elsif (m!function\s+xPreset\s+:\s+housecode\s+(\w)\s+unit\s+(\d+)\s+level\s+(\d+)! ||
+             m!func\s+xPreset\s+:\s+hu\s+(\w)(\d+)\s+level\s+(\d+)!) {
       my $f = 'xfunc';
       my $h = lc($1);
       my $u = $2;
       my $level = [ 49, $3 ];
       $self->send_xpl($class, $h.$u, $f, $level);
       delete $self->{_unit}->{$h}; # TODO: should we do this? need to check spec
-    } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
+    } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)! ||
+             m!addr\s+unit\s+(\S+)\s+:\s+hc\s+(\w+)!) {
       push @{$self->{_unit}->{lc($2)}}, $1;
     } else {
       print STDERR "monitor reported unsupported line:\n  $_\n";

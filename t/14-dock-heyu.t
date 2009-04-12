@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 17;
+use Test::More tests => 19;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -51,6 +51,8 @@ is($out,
    q{Sending x10.basic a0 on
 Sending x10.basic a2 bright 8
 Sending x10.confirm a3,10 on
+Sending x10.basic l6 xfunc data1=49 data2=63
+Sending x10.basic a2 on
 Sending x10.basic l6 xfunc data1=49 data2=63
 monitor reported unsupported line:
   testing unsupported line
@@ -110,6 +112,26 @@ check_sent_msg({
                          command => 'on',
                         },
                }, 'monitor: a3 on');
+
+check_sent_msg({
+                message_type => 'xpl-trig',
+                class => 'x10.basic',
+                body => {
+                         device => 'l6',
+                         command => 'extended',
+                         data1 => 49,
+                         data2 => 63,
+                        },
+               }, 'monitor: l6 xfunc 49 63');
+
+check_sent_msg({
+                message_type => 'xpl-trig',
+                class => 'x10.basic',
+                body => {
+                         device => 'a2',
+                         command => 'on',
+                        },
+               }, 'monitor: a2');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
