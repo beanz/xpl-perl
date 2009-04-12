@@ -195,9 +195,10 @@ sub heyu_monitor {
       my $level = [ 49, $3 ];
       $self->send_xpl($class, $h.$u, $f, $level);
       delete $self->{_unit}->{$h}; # TODO: should we do this? need to check spec
-    } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)! ||
-             m!addr\s+unit\s+(\S+)\s+:\s+hc\s+(\w+)!) {
+    } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
       push @{$self->{_unit}->{lc($2)}}, $1;
+    } elsif (m!addr\s+unit\s+\S+\s+:\s+hu\s+(\w+)(\d+)!) {
+      push @{$self->{_unit}->{lc($1)}}, $2;
     } else {
       print STDERR "monitor reported unsupported line:\n  $_\n";
     }
