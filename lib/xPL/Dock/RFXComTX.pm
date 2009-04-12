@@ -70,7 +70,7 @@ sub getopts {
     my $n = $_;
     $n =~ s/_/-/g;
     $self->{'_'.$_} = undef;
-    push @opts, $n => \$self->{'_'.$_};
+    push @opts, $n.'!' => \$self->{'_'.$_};
   }
   return @opts;
 }
