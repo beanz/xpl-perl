@@ -48,9 +48,9 @@ sub getopts {
   $self->{_server} = '127.0.0.1:13666';
   return
     (
-     'lcdproc-verbose|lcdprocverbose+' => \$self->{_verbose},
-     'lcdproc-server|lcdprocserver=s' => \$self->{_server},
-     'lcdproc-delay|lcdprocdelay=i' => $self->{_delay},
+     'lcdproc-verbose+' => \$self->{_verbose},
+     'lcdproc-server=s' => \$self->{_server},
+     'lcdproc-delay=i' => $self->{_delay},
     );
 }
 

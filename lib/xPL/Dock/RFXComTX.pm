@@ -62,9 +62,9 @@ sub getopts {
   $self->{_baud} = 4800;
   $self->{_x10} = 1;
   my @opts = (
-              'rfxcom-tx-verbose|rfxcomtxverbose+' => \$self->{_verbose},
-              'rfxcom-tx-baud|rfxcomtxbaud=i' => \$self->{_baud},
-              'rfxcom-tx|rfxcomtx=s' => \$self->{_device},
+              'rfxcom-tx-verbose+' => \$self->{_verbose},
+              'rfxcom-tx-baud=i' => \$self->{_baud},
+              'rfxcom-tx-tty=s' => \$self->{_device},
              );
   foreach (@fields) {
     my $n = $_;
@@ -85,7 +85,8 @@ sub init {
   my %p = @_;
 
   $self->required_field($xpl,
-                        'device', 'The --rfxcom-tx parameter is required', 1);
+                        'device',
+                        'The --rfxcom-tx-tty parameter is required', 1);
   $self->SUPER::init($xpl,
                      ack_timeout => 6,
                      ack_timeout_callback => \&reset_device,

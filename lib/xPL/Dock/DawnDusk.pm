@@ -50,7 +50,7 @@ sub getopts {
   $self->{_iteration} = undef;
   return
     (
-     'dawndusk-verbose|dawnduskverbose+' => \$self->{_verbose},
+     'dawndusk-verbose+' => \$self->{_verbose},
      'dawndusk-latitude=s' => \$self->{_latitude},
      'dawndusk-longitude=s' => \$self->{_longitude},
      'dawndusk-altitude=s' => \$self->{_altitude},

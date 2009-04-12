@@ -46,8 +46,8 @@ sub getopts {
   my $self = shift;
   $self->{_mount} = undef;
   return (
-          'owfs-verbose|owfsverbose+' => \$self->{_verbose},
-          'owfs-mount|owfsmount=s' => \$self->{_mount},
+          'owfs-verbose+' => \$self->{_verbose},
+          'owfs-mount=s' => \$self->{_mount},
          );
 }
 

@@ -47,8 +47,8 @@ sub getopts {
   $self->{_server} = '/dev/lircd';
   return
     (
-     'lirc-verbose|lircverbose+' => \$self->{_verbose},
-     'lirc-server|lircserver=s' => \$self->{_server},
+     'lirc-verbose+' => \$self->{_verbose},
+     'lirc-server=s' => \$self->{_server},
     );
 }
 

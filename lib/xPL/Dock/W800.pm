@@ -56,9 +56,9 @@ sub getopts {
   $self->{_baud} = 4800;
   return
     (
-     'w800-verbose|w800verbose+' => \$self->{_verbose},
-     'w800-baud|w800baud=i' => \$self->{_baud},
-     'w800=s' => \$self->{_device},
+     'w800-verbose+' => \$self->{_verbose},
+     'w800-baud=i' => \$self->{_baud},
+     'w800-tty=s' => \$self->{_device},
     );
 }
 
@@ -71,7 +71,8 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  $self->required_field($xpl, 'device', 'The --w800 parameter is required', 1);
+  $self->required_field($xpl,
+                        'device', 'The --w800-tty parameter is required', 1);
   $self->SUPER::init($xpl, reader_callback => \&device_reader, @_);
   $self->{_rf} = xPL::RF->new(source => $xpl->id);
 

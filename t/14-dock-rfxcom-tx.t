@@ -32,7 +32,7 @@ my $xpl;
   local @ARGV = ('-v', '--interface', 'lo',
                  '--rfxcom-tx-verbose',
                  '--define', 'hubless=1',
-                 '--rfxcom-tx', '127.0.0.1:'.$port);
+                 '--rfxcom-tx-tty', '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
@@ -322,7 +322,7 @@ queued: F03EF03E: enabling flamingo
                  '--define', 'hubless=1',
                  '--receiver-connected',
                  '--x10', '--harrison', '--koko', '--flamingo',
-                 '--rfxcom-tx', '127.0.0.1:'.$port);
+                 '--rfxcom-tx-tty', '127.0.0.1:'.$port);
   my $output = test_output(sub { $xpl = xPL::Dock->new(port => 0) }, \*STDOUT);
   is_deeply([split /\n/, $output], \@expected, 'all options output');
 }
@@ -345,7 +345,7 @@ BEGIN{
                  }, \*STDOUT),
      q{Listening on 127.0.0.1:3865
 Sending on 127.0.0.1
-The --rfxcom-tx parameter is required
+The --rfxcom-tx-tty parameter is required
 or the value can be given as a command line argument
 }, 'missing parameter');
 }

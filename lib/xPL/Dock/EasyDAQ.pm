@@ -55,9 +55,9 @@ sub getopts {
   my $self = shift;
   $self->{_baud} = 9600;
   return (
-          'easydaq-verbose|easydaqverbose+' => \$self->{_verbose},
-          'easydaq-baud|easydaqbaud=i' => \$self->{_baud},
-          'easydaq=s' => \$self->{_device},
+          'easydaq-verbose+' => \$self->{_verbose},
+          'easydaq-baud=i' => \$self->{_baud},
+          'easydaq-tty=s' => \$self->{_device},
          );
 }
 
@@ -71,7 +71,7 @@ sub init {
   my %p = @_;
 
   $self->required_field($xpl,
-                        'device', 'The --easydaq parameter is required', 1);
+                        'device', 'The --easydaq-tty parameter is required', 1);
   $self->SUPER::init($xpl,
                      ack_timeout => 0.05,
                      reader_callback => \&device_reader,

@@ -27,7 +27,7 @@ my $count = 0;
                  '--udin-verbose', '--udin-verbose',
                  '--interface', 'lo',
                  '--define', 'hubless=1',
-                 '--udin', '127.0.0.1:'.$port);
+                 '--udin-tty', '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
@@ -137,7 +137,7 @@ BEGIN{
                  }, \*STDOUT),
      q{Listening on 127.0.0.1:3865
 Sending on 127.0.0.1
-The --udin parameter is required
+The --udin-tty parameter is required
 or the value can be given as a command line argument
 }, 'missing parameter');
 }

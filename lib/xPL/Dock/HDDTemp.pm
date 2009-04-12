@@ -47,8 +47,8 @@ sub getopts {
   $self->{_server} = '127.0.0.1:7634';
   return
     (
-     'hddtemp-verbose|hddtempverbose+' => \$self->{_verbose},
-     'hddtemp-poll-interval|hddtemp-interval=i' => \$self->{_interval},
+     'hddtemp-verbose+' => \$self->{_verbose},
+     'hddtemp-poll-interval=i' => \$self->{_interval},
      'hddtemp-server=s' => \$self->{_server},
     );
 }

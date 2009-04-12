@@ -44,9 +44,9 @@ sub getopts {
   my $self = shift;
   $self->{_baud} = 9600;
   return (
-          'udin-verbose|udinverbose+' => \$self->{_verbose},
-          'udin-baud|udinbaud=i' => \$self->{_baud},
-          'udin=s' => \$self->{_device},
+          'udin-verbose+' => \$self->{_verbose},
+          'udin-baud=i' => \$self->{_baud},
+          'udin-tty=s' => \$self->{_device},
          );
 }
 
@@ -59,7 +59,8 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  $self->required_field($xpl, 'device', 'The --udin parameter is required', 1);
+  $self->required_field($xpl,
+                        'device', 'The --udin-tty parameter is required', 1);
   $self->SUPER::init($xpl,
                      reader_callback => \&process_line,
                      ack_timeout => 0.05,

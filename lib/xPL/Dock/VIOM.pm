@@ -52,9 +52,9 @@ sub getopts {
   $self->{_baud} = 9600;
   $self->{_verbose} = 0;
   return (
-          'viom-verbose|viomverbose+' => \$self->{_verbose},
-          'viom-baud|viombaud=i' => \$self->{_baud},
-          'viom=s' => \$self->{_device},
+          'viom-verbose+' => \$self->{_verbose},
+          'viom-baud=i' => \$self->{_baud},
+          'viom-tty=s' => \$self->{_device},
          );
 }
 
@@ -67,7 +67,8 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  $self->required_field($xpl, 'device', 'The --viom parameter is required', 1);
+  $self->required_field($xpl,
+                        'device', 'The --viom-tty parameter is required', 1);
   $self->SUPER::init($xpl,
                      reader_callback => \&process_line,
                      output_record_separator => "\r\n",

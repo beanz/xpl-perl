@@ -47,9 +47,9 @@ sub getopts {
   $self->{_addresses} = [];
   return
     (
-     'bluetooth-verbose|bluetoothverbose+' => \$self->{_verbose},
-     'bluetooth-poll-interval|bluetoothpollinterval=i' => \$self->{_interval},
-     'bluetooth-address|bluetoothaddress=s' => $self->{_addresses},
+     'bluetooth-verbose+' => \$self->{_verbose},
+     'bluetooth-poll-interval=i' => \$self->{_interval},
+     'bluetooth-address=s' => $self->{_addresses},
     );
 }
 
@@ -63,7 +63,7 @@ sub init {
   my %p = @_;
 
   $self->required_field($xpl, 'addresses',
-             'At least one --bluetooth-addresses parameter is required',
+             'At least one --bluetooth-address parameter is required',
              1);
   $self->SUPER::init($xpl, @_);
 

@@ -56,9 +56,9 @@ sub getopts {
   $self->{_baud} = 4800;
   return
     (
-     'rfxcom-rx-verbose|rfxcomrxverbose+' => \$self->{_verbose},
-     'rfxcom-rx-baud|rfxcomrxbaud=i' => \$self->{_baud},
-     'rfxcom-rx|rfxcomrx=s' => \$self->{_device},
+     'rfxcom-rx-verbose+' => \$self->{_verbose},
+     'rfxcom-rx-baud=i' => \$self->{_baud},
+     'rfxcom-rx-tty=s' => \$self->{_device},
     );
 }
 
@@ -72,7 +72,8 @@ sub init {
   my %p = @_;
 
   $self->required_field($xpl,
-                        'device', 'The --rfxcom-rx parameter is required', 1);
+                        'device',
+                        'The --rfxcom-rx-tty parameter is required', 1);
   $self->SUPER::init($xpl,
                      discard_buffer_timeout => 0.03,
                      reader_callback => \&device_reader,

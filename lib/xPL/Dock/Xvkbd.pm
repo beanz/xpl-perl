@@ -42,7 +42,7 @@ sub getopts {
   my $self = shift;
   return
     (
-     'xvkbd-verbose|xvkbdverbose+' => \$self->{_verbose},
+     'xvkbd-verbose+' => \$self->{_verbose},
     );
 }
 

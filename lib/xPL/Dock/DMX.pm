@@ -54,9 +54,9 @@ sub getopts {
   $self->{_baud} = 9600;
   $self->{_rgb_txt} = '/etc/X11/rgb.txt';
   return (
-          'dmx-verbose|dmxverbose+' => \$self->{_verbose},
-          'dmx-baud|dmxaud=i' => \$self->{_baud},
-          'dmx=s' => \$self->{_device},
+          'dmx-verbose+' => \$self->{_verbose},
+          'dmx-baud=i' => \$self->{_baud},
+          'dmx-tty=s' => \$self->{_device},
           'rgb=s' => \$self->{_rgb_txt},
          );
 }
@@ -70,7 +70,8 @@ sub init {
   my $xpl = shift;
   my %p = @_;
 
-  $self->required_field($xpl, 'device', 'The --dmx parameter is required', 1);
+  $self->required_field($xpl,
+                        'device', 'The --dmx-tty parameter is required', 1);
   $self->SUPER::init($xpl, reader_callback => \&device_reader, @_);
 
   # Add a callback to receive incoming xPL messages

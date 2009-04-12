@@ -32,7 +32,7 @@ my $xpl;
   local @ARGV = ('-v',
                  '--interface', 'lo',
                  '--define', 'hubless=1',
-                 '--rfxcom-rx', '127.0.0.1:'.$port);
+                 '--rfxcom-rx-tty', '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0);
 }
 ok($xpl, 'created dock client');
@@ -119,7 +119,7 @@ BEGIN{
                  }, \*STDOUT),
      q{Listening on 127.0.0.1:3865
 Sending on 127.0.0.1
-The --rfxcom-rx parameter is required
+The --rfxcom-rx-tty parameter is required
 or the value can be given as a command line argument
 }, 'missing parameter');
 }

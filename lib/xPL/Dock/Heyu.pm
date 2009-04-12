@@ -46,7 +46,7 @@ plugin.
 sub getopts {
   my $self = shift;
   return (
-          'heyu-verbose|heyuverbose+' => \$self->{_verbose},
+          'heyu-verbose+' => \$self->{_verbose},
          );
 }
 
