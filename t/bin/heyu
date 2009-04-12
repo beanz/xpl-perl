@@ -11,7 +11,10 @@ if ($ARGV[0] && $ARGV[0] eq 'monitor') {
   print "address unit 10 : housecode a\n";
   print "sndc: function On : housecode a\n";
   print "function xPreset : housecode l unit 6 level 63\n";
-  print "addr unit 2 : hu A2\n";
+  print "addr unit 5 : hu A5\n";
+  print "addr unit 6 : hu A6\n";
+  print "addr unit 4 : hu A4\n";
+  print "addr unit 10 : hu A10\n";
   print "func On : hc A\n";
   print "func xPreset : hu L6 level 63\n";
   print "testing unsupported line\n";

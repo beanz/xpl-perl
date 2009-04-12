@@ -197,7 +197,7 @@ sub heyu_monitor {
       delete $self->{_unit}->{$h}; # TODO: should we do this? need to check spec
     } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
       push @{$self->{_unit}->{lc($2)}}, $1;
-    } elsif (m!addr\s+unit\s+\S+\s+:\s+hu\s+(\w+)(\d+)!) {
+    } elsif (m!addr\s+unit\s+\S+\s+:\s+hu\s+([a-pA-P])(\d+)!) {
       push @{$self->{_unit}->{lc($1)}}, $2;
     } else {
       print STDERR "monitor reported unsupported line:\n  $_\n";

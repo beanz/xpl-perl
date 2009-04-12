@@ -52,7 +52,7 @@ is($out,
 Sending x10.basic a2 bright 8
 Sending x10.confirm a3,10 on
 Sending x10.basic l6 xfunc data1=49 data2=63
-Sending x10.basic a2 on
+Sending x10.basic a4,5,6,10 on
 Sending x10.basic l6 xfunc data1=49 data2=63
 monitor reported unsupported line:
   testing unsupported line
@@ -128,10 +128,10 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'x10.basic',
                 body => {
-                         device => 'a2',
+                         device => 'a4,a5,a6,a10',
                          command => 'on',
                         },
-               }, 'monitor: a2');
+               }, 'monitor: a4,a5,a6,a10');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
