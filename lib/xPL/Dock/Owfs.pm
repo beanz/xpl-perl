@@ -192,7 +192,7 @@ sub owfs_reader {
       printf "        %s failure %6.2f\n", $type, 0;
     } else {
       my $success = read_ow_file($dir.'/success');
-      my $cache = read_ow_file($dir.'/cachesuccess')||0;
+      my $cache = read_ow_file($dir.'/cachesuccess', 1) || 0;
       my $failure = $calls-($success+$cache);
       my @tries = map { read_ow_file($dir.'/tries.'.$_) } (0 .. 2);
       printf "1st try %s success %6.2f\n",
@@ -267,9 +267,9 @@ This function returns the contents of a owfs file or undef on failure.
 =cut
 
 sub read_ow_file {
-  my $file = shift;
+  my ($file, $quiet) = @_;
   my $fh = FileHandle->new("<".$file) or do {
-    warn "Failed to read ow file, $file: $!\n";
+    warn "Failed to read ow file, $file: $!\n" unless ($quiet);
     return;
   };
   my $value = <$fh>;
