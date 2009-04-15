@@ -25,11 +25,8 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use FileHandle;
-use Time::HiRes;
-use IO::Socket::INET;
 use Pod::Usage;
 use xPL::Dock::Serial;
-use xPL::Queue;
 use xPL::RF;
 
 our @ISA = qw(xPL::Dock::Serial);
@@ -37,12 +34,6 @@ our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
-
-{ # shortcut to save typing
-  package Msg;
-  use base 'xPL::BinaryMessage';
-  1;
-}
 
 =head2 C<getopts( )>
 
