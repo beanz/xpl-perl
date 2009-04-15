@@ -135,7 +135,7 @@ sub poll {
         }
         $self->xpl->send(message_type => $type, class => 'sensor.basic',
                          body => {
-                                  device => $dev,
+                                  device => $device,
                                   type => 'battery',
                                   current => $bat,
                                   units => '%',
