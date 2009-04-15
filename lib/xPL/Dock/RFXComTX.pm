@@ -25,11 +25,8 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use FileHandle;
-use Time::HiRes;
-use IO::Socket::INET;
 use Pod::Usage;
 use xPL::Dock::Serial;
-use xPL::Queue;
 use xPL::RF;
 use xPL::X10 qw/:all/;
 use xPL::HomeEasy qw/:all/;
