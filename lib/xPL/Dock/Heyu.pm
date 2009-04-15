@@ -27,7 +27,7 @@ use FileHandle;
 use IO::Pipe;
 use IPC::Open3;
 use POSIX ":sys_wait_h";
-use xPL::Queue;
+use xPL::IOHandler;
 use xPL::Dock::Plug;
 
 our @ISA = qw(xPL::Dock::Plug);
@@ -72,10 +72,7 @@ sub init {
   $self->SUPER::init($xpl, @_);
 
   $self->{_buffer} = q{};
-  $self->{_helper_buffer} = q{};
   $self->{_helper_seq} = 0;
-  $self->{_waiting} = undef;
-  $self->{_q} = xPL::Queue->new();
   $self->{_unit} = {};
 
   # Add a callback to receive all incoming xPL messages
@@ -93,14 +90,21 @@ sub init {
 
   my ($rh, $wh);
   my $pid = open3($wh, $rh, undef, 'xpl-heyu-helper', @ARGV);
-  $self->{_helper_rh} = $rh;
-  $self->{_helper_wh} = $wh;
   $SIG{CHLD} = \&sig;
   $SIG{PIPE} = \&sig;
-  $xpl->add_input(handle => $rh,
-                  callback => sub { $self->heyu_helper_read(@_) });
+  $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        input_handle => $rh, output_handle => $wh,
+                        reader_callback => sub { $self->read_helper(@_) },
+                        input_record_type => 'xPL::IORecord::ZeroSplitLine',
+                        output_record_type => 'xPL::IORecord::ZeroSplitLine',
+                        @_);
   $self->{_monitor_ready} = 0;
   return $self;
+}
+
+sub seq {
+  sprintf "%08x", $_[0]->{_helper_seq}++
 }
 
 =head2 C<xpl_in(%xpl_callback_parameters)>
@@ -141,7 +145,8 @@ sub xpl_in {
     $data1 = sprintf '%02x', $data1;
     $data2 = sprintf '%02x', $data2;
     foreach my $device (@devices) {
-      $self->heyu_helper_queue($heyu_command, $data1, $device, $data2);
+      $self->{_io}->write(fields =>
+                          [$self->seq, $heyu_command, $data1, $device, $data2]);
       my %args = (
                   message_type => 'xpl-trig',
                   class => 'x10.confirm',
@@ -155,7 +160,7 @@ sub xpl_in {
   }
 
   foreach my $device (@devices) {
-    $self->heyu_helper_queue($heyu_command, $device, @args);
+    $self->{_io}->write(fields => [$self->seq, $heyu_command, $device, @args]);
   }
   return 1;
 }
@@ -206,7 +211,6 @@ sub heyu_monitor {
   return 1;
 }
 
-
 =head2 C<heyu_helper_read()>
 
 This is the callback that processes output from the "heyu helper"
@@ -214,62 +218,19 @@ command.  It is responsible for reading the results of heyu commands.
 
 =cut
 
-sub heyu_helper_read {
-  my $self = shift;
-  my $bytes = $self->{_helper_rh}->sysread($self->{_helper_buffer}, 512,
-                                           length $self->{_helper_buffer});
-  while ($self->{_helper_buffer} =~ s/^(.*?)\n//) {
-    $_ = $LAST_PAREN_MATCH;
-    my ($recvseq, $rc, $err) = split /\000/, $_, 3;
-    unless ($recvseq =~ /^[0-9a-f]{8}$/) {
-      print STDERR "Helper wrote: $_\n";
-      next;
-    }
-    if ($recvseq eq $self->{_waiting} && $rc == 0) {
-      print STDERR "Acknowledged ".$self->{_waiting}."\n";
-    } else {
-      print STDERR "Received $recvseq: $rc ", $err||"", "\n";
-    }
-    undef $self->{_waiting};
-    $self->heyu_helper_write();
+sub read_helper {
+  my ($self, $handler, $msg, $waiting) = @_;
+  my ($recvseq, $rc, $err) = @{$msg->fields};
+  unless ($recvseq =~ /^[0-9a-f]{8}$/) {
+    print STDERR "Helper wrote: $_\n";
+    return 1;
+  }
+  if ($waiting && $recvseq eq $waiting->fields->[0] && $rc == 0) {
+    print STDERR "Acknowledged ".$waiting."\n";
+  } else {
+    print STDERR "Received $recvseq: $rc ", $err||"", "\n";
   }
   return 1;
-}
-
-=head2 C<heyu_helper_queue()>
-
-This method is used to queue commands to the heyu helper.
-
-=cut
-
-sub heyu_helper_queue {
-  my $self = shift;
-  my $seq_str = sprintf "%08x", $self->{_helper_seq}++;
-  my $msg = join chr(0), $seq_str, @_;
-  $msg .= "\n";
-  $self->{_q}->enqueue([$seq_str, $msg]);
-  $msg =~ s/\0/ /g;
-  $self->debug('queued: ', $msg);
-  return $self->heyu_helper_write() if (!defined $self->{_waiting});
-  return $seq_str;
-}
-
-=head2 C<heyu_helper_write()>
-
-This method is used to send commands to the heyu helper.
-
-=cut
-
-sub heyu_helper_write {
-  my $self = shift;
-  my $item = $self->{_q}->dequeue;
-  return unless (defined $item);
-  my ($seq_str, $msg) = @$item;
-  $self->{_helper_wh}->syswrite($msg);
-  $msg =~ s/\0/ /g;
-  $self->debug('sent: ', $msg);
-  $self->{_waiting} = $seq_str;
-  return $seq_str;
 }
 
 =head2 C<send_xpl( $class, $device, $command, [ $level ] )>

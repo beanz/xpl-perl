@@ -76,6 +76,7 @@ lib/xPL/Hub.pm
 lib/xPL/IOHandler.pm
 lib/xPL/IORecord/Simple.pm
 lib/xPL/IORecord/LFLine.pm
+lib/xPL/IORecord/ZeroSplitLine.pm
 lib/xPL/Listener.pm
 lib/xPL/Message.pm
 lib/xPL/Queue.pm
