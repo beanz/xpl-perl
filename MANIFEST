@@ -1,3 +1,4 @@
+bin/xpl-apcups
 bin/xpl-bluetooth
 bin/xpl-bridge
 bin/xpl-clock
@@ -52,6 +53,7 @@ lib/xPL/Base.pm
 lib/xPL/BinaryMessage.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
+lib/xPL/Dock/APCUPS.pm
 lib/xPL/Dock/Bluetooth.pm
 lib/xPL/Dock/DawnDusk.pm
 lib/xPL/Dock/DMX.pm

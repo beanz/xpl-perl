@@ -1,0 +1,58 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-apcups - Perl script for an xPL apcups daemon monitor
+
+=head1 SYNOPSIS
+
+  xpl-apcups [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -s nn  - number of seconds between polling the system (60)
+
+  # start the apcups client with poll interval of 120 seconds
+  xpl-apcups -s 120
+
+  # start the apcups client listening and broadcasting on first ethernet
+  # interface in verbose mode using poll interval of 120 seconds
+  xpl-apcups -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that polls a APC UPS daemon.
+
+=cut
+
+use strict;
+use warnings;
+use xPL::Dock qw/APCUPS/;
+$|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new();
+$xpl->main_loop;
+
+# send a "hbeat.end" message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Dock(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2006, 2008 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
