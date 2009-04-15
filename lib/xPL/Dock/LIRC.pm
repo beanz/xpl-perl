@@ -24,7 +24,6 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use xPL::Dock::Plug;
-use xPL::Queue;
 use IO::Socket::INET;
 
 our @ISA = qw(xPL::Dock::Plug);
