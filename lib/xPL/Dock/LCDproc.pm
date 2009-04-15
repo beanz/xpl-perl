@@ -84,7 +84,8 @@ sub init {
                         handle => $self->{_lcdproc},
                         reader_callback => sub { $self->read_lcdproc(@_) },
                         input_record_type => 'xPL::IORecord::LFLine',
-                        output_record_type => 'xPL::IORecord::LFLine');
+                        output_record_type => 'xPL::IORecord::LFLine',
+                        @_);
 
   $self->{_widget} = {};
   $self->{_visible} = undef;
