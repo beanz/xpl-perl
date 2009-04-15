@@ -57,9 +57,9 @@ print $client "connect LCDproc 0.5dev ".
 is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
    q{Connected to LCD (20x4)
 queued: screen_add xplosd
-sending: screen_add xplosd
 queued: screen_set xplosd -name xplosd
 queued: screen_set xplosd -priority hidden
+sending: screen_add xplosd
 },
    'connected message');
 

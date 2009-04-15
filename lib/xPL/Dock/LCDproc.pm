@@ -24,7 +24,7 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use xPL::Dock::Plug;
-use xPL::Queue;
+use xPL::IOHandler;
 use IO::Socket::INET;
 
 our @ISA = qw(xPL::Dock::Plug);
@@ -33,7 +33,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-__PACKAGE__->make_readonly_accessor($_) foreach (qw/server delay/);
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/server delay io/);
 
 =head2 C<getopts( )>
 
@@ -68,8 +68,6 @@ sub init {
   my $lcdproc = $self->{_lcdproc} =
     IO::Socket::INET->new($self->{_server}) or
         die "Failed to connect to ", $self->{_server}, ": $!\n";
-  $xpl->add_input(handle => $lcdproc,
-                  callback => sub { $self->read_lcdproc(@_) });
 
   # Add a callback to receive all incoming xPL messages
   $xpl->add_xpl_callback(id => 'xpl', self_skip => 0,
@@ -80,12 +78,17 @@ sub init {
                                    });
 
   $self->{_protocol_expected} = '0.3';
-  $self->{_buffer} = '';
-  $self->{_q} = xPL::Queue->new;
-  $self->{_waiting} = undef;
+
+  $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        handle => $self->{_lcdproc},
+                        reader_callback => sub { $self->read_lcdproc(@_) },
+                        input_record_type => 'xPL::IORecord::LFLine',
+                        output_record_type => 'xPL::IORecord::LFLine');
+
   $self->{_widget} = {};
   $self->{_visible} = undef;
-  $self->queue_lcdproc('hello');
+  $self->{_io}->write('hello');
 
   return $self;
 }
@@ -133,65 +136,30 @@ This callback handles responses the input from the lcdproc server.
 =cut
 
 sub read_lcdproc {
-  my $self = shift;
-  my $bytes = $self->{_lcdproc}->sysread($self->{_buffer}, 512,
-                                         length $self->{_buffer});
-  while ($self->{_buffer} =~ s/^(.*?)\r?\n//) {
-    my $line = $LAST_PAREN_MATCH;
-    if ($line =~ /^connect\b/) {
-      $self->{_waiting} = undef;
-      $self->{_columns} = $1 if ($line =~ /\bwid\s+(\d+)/);
-      $self->{_rows} = $1 if ($line =~ /\bhgt\s+(\d+)/);
-      $self->info('Connected to LCD (',
-                  $self->{_columns}||'?', 'x', $self->{_rows}||'?', ")\n");
-      if ($line =~ /\bprotocol\s+(\S+)/ && $1 ne $self->{_protocol_expected}) {
-        warn "LCDproc daemon protocol $1 not ".$self->{_protocol_expected}.
-          " as expected.\n";
-      }
-      $self->queue_lcdproc('screen_add xplosd');
-      $self->queue_lcdproc('screen_set xplosd -name xplosd');
-      $self->queue_lcdproc('screen_set xplosd -priority hidden');
-      undef $self->{_visible};
-    } elsif ($line eq 'success') {
-      undef $self->{_waiting};
-      $self->write_lcdproc();
-    } elsif ($line =~ /^huh\?/) {
-      warn "Failed sending ", $self->{_waiting}, "got: ", $line, "\n";
-      undef $self->{_waiting};
-      $self->write_lcdproc();
+  my ($self, $handler, $msg, $waiting) = @_;
+  return unless ($msg);
+  my $line = $msg->raw;
+  if ($line =~ /^connect\b/) {
+    $self->{_columns} = $1 if ($line =~ /\bwid\s+(\d+)/);
+    $self->{_rows} = $1 if ($line =~ /\bhgt\s+(\d+)/);
+    $self->info('Connected to LCD (',
+                $self->{_columns}||'?', 'x', $self->{_rows}||'?', ")\n");
+    if ($line =~ /\bprotocol\s+(\S+)/ && $1 ne $self->{_protocol_expected}) {
+      warn "LCDproc daemon protocol $1 not ".$self->{_protocol_expected}.
+        " as expected.\n";
     }
+    $handler->write('screen_add xplosd');
+    $handler->write('screen_set xplosd -name xplosd');
+    $handler->write('screen_set xplosd -priority hidden');
+    undef $self->{_visible};
+    $handler->write_next();
+  } elsif ($line eq 'success') {
+    $handler->write_next();
+  } elsif ($line =~ /^huh\?/) {
+    warn "Failed sending ", $waiting, "\ngot: ", $line, "\n";
+    $handler->write_next();
   }
-}
-
-=head2 C<queue_lcdproc( $msg )>
-
-This method queues messages to be sent to the lcdproc server.
-
-=cut
-
-sub queue_lcdproc {
-  my ($self,$msg) = @_;
-  $self->{_q}->enqueue($msg);
-  $self->info('queued: ', $msg, "\n");
-  return $self->write_lcdproc()  if (!defined $self->{_waiting});
-  return 1;
-}
-
-=head2 C<write_lcdproc( )>
-
-This method sends messages to the lcdproc server.
-
-=cut
-
-sub write_lcdproc {
-  my $self = shift;
-  my $msg = $self->{_q}->dequeue;
-  return if (!defined $msg);
-  $self->info('sending: ', $msg, "\n");
-  $msg .= "\n";
-  syswrite($self->{_lcdproc}, $msg, length $msg);
-  $self->{_lcdproc}->flush();
-  $self->{_waiting} = $msg;
+  return 0;
 }
 
 =head2 C<clear_screen( )>
@@ -203,7 +171,7 @@ and removes all "widgets" from it.
 
 sub clear_screen {
   my $self = shift;
-  $self->queue_lcdproc('screen_set xplosd -priority hidden')
+  $self->{_io}->write('screen_set xplosd -priority hidden')
     if ($self->{_visible});
   undef $self->{_visible};
   foreach (1..($self->{_rows}||1)) {
@@ -222,11 +190,11 @@ the xPL "screen".
 sub clear_row {
   my ($self, $row) = @_;
   if (exists $self->{_widget}->{$row}) {
-    $self->queue_lcdproc('widget_del xplosd row'.$row);
+    $self->{_io}->write('widget_del xplosd row'.$row);
   }
   delete $self->{_widget}->{$row};
   if ($self->{_visible} && !keys %{$self->{_widget}}) {
-    $self->queue_lcdproc('screen_set xplosd -priority hidden');
+    $self->{_io}->write('screen_set xplosd -priority hidden');
     undef $self->{_visible};
   }
 }
@@ -245,9 +213,9 @@ sub write_row {
                 (length $msg) > $self->{_columns}) ? 'scroller' : 'string';
   if (exists $self->{_widget}->{$row} && $self->{_widget}->{$row} eq $widget) {
   } else {
-    $self->queue_lcdproc('widget_del row'.$row)
+    $self->{_io}->write('widget_del row'.$row)
       if (exists $self->{_widget}->{$row});
-    $self->queue_lcdproc('widget_add xplosd row'.$row.' '.$widget);
+    $self->{_io}->write('widget_add xplosd row'.$row.' '.$widget);
   }
   my $cmd = 'widget_set xplosd row'.$row.' 1 '.$row.' ';
   if ($widget eq 'scroller') {
@@ -256,8 +224,8 @@ sub write_row {
   $msg =~ s/"/'/g;
   $cmd .= '"'.$msg.'"';
   $self->{_widget}->{$row} = $widget;
-  $self->queue_lcdproc($cmd);
-  $self->queue_lcdproc('screen_set xplosd -priority alert')
+  $self->{_io}->write($cmd);
+  $self->{_io}->write('screen_set xplosd -priority alert')
     unless ($self->{_visible});
   $self->{_visible} = 1;
 }
