@@ -119,7 +119,7 @@ sub read {
     my %f =
       (
        LINEV     => [ 'voltage' ],
-       LOADPCT   => [ 'battery' ],
+       LOADPCT   => [ 'generic', 'percent' ],
        BCHARGE   => [ 'battery' ],
        TIMELEFT  => [ 'generic', 's', 60 ],
        OUTPUTV   => [ 'voltage' ],
