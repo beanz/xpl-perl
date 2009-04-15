@@ -13,6 +13,7 @@ bin/xpl-heyu-helper
 bin/xpl-hub
 bin/xpl-lcdproc
 bin/xpl-linux-cpu
+bin/xpl-linux
 bin/xpl-lirc
 bin/xpl-logger
 bin/xpl-monitor
@@ -59,6 +60,7 @@ lib/xPL/Dock/HDDTemp.pm
 lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/LCDproc.pm
 lib/xPL/Dock/LIRC.pm
+lib/xPL/Dock/Linux.pm
 lib/xPL/Dock/Owfs.pm
 lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm
