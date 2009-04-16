@@ -104,7 +104,7 @@ sub device_open {
   my $fh;
   if ($dev =~ /\//) {
     # TODO: use Device::SerialPort?
-    system("stty -F $dev ospeed $baud pass8 raw >/dev/null") == 0 or
+    system("stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
       $self->argh("Setting serial port with stty failed: $!\n");
     $fh = FileHandle->new;
     sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
