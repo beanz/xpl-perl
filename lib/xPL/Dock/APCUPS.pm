@@ -43,7 +43,7 @@ plugin.
 
 sub getopts {
   my $self = shift;
-  $self->{_interval} = 120;
+  $self->{_interval} = 60;
   $self->{_server} = '127.0.0.1:3551';
   return
     (
@@ -180,7 +180,10 @@ sub decode_nis_string {
   return unless ($buf_len >= 2);
   my ($c, $l) = unpack "C C", $_[0];
   warn "Invalid string?" unless ($c == 0);
-  return '' if ($l == 0);
+  if ($l == 0) {
+    substr $_[0], 0, $l+2, '';
+    return '';
+  }
   return unless ($buf_len >= $l+2);
   my $res = substr $_[0], 0, $l+2, '';
   return substr $res, 2;
