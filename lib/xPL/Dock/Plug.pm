@@ -28,6 +28,7 @@ are several usage examples provided by the xPL Perl distribution.
 use 5.006;
 use strict;
 use warnings;
+use Fcntl;
 use xPL::Base;
 use Pod::Usage;
 our @ISA = qw(xPL::Base);
@@ -115,6 +116,32 @@ sub required_field {
     }
   }
   return 1;
+}
+
+=head2 C<device_open()>
+
+=cut
+
+sub device_open {
+  my ($self, $dev) = @_;
+  my $xpl = $self->xpl;
+  my $baud = $self->baud;
+  my $fh;
+  if ($dev =~ /\//) {
+    # TODO: use Device::SerialPort?
+    system("stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+      $self->argh("Setting serial port with stty failed: $!\n");
+    $fh = FileHandle->new;
+    sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+      or $self->argh("open of '$dev' failed: $!\n");
+    $fh->autoflush(1);
+    binmode($fh);
+  } else {
+    $dev .= ':10001' unless ($dev =~ /:/);
+    $fh = IO::Socket::INET->new($dev)
+      or $self->argh("TCP connect to '$dev' failed: $!\n");
+  }
+  return $self->{_device_handle} = $fh;
 }
 
 1;

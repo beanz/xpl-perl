@@ -1,12 +1,12 @@
-package xPL::IORecord::Simple;
+package xPL::IORecord::CRLFLine;
 
 =head1 NAME
 
-xPL::IORecord::Simple - xPL module for xPL::IOHandle records
+xPL::IORecord::CRLFLine - xPL module for xPL::IOHandle records
 
 =head1 SYNOPSIS
 
-  use xPL::IORecord::Simple;
+  use xPL::IORecord::CRLFLine;
 
 
 =head1 DESCRIPTION
@@ -23,8 +23,8 @@ make debug output clearer.
 use 5.006;
 use strict;
 use warnings;
-use Exporter;
-our @ISA = qw(Exporter);
+use xPL::IORecord::Simple;
+our @ISA = qw(xPL::IORecord::Simple);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
@@ -32,8 +32,8 @@ our $VERSION = qw/$Revision$/[1];
 
 =head2 C<new(%params)>
 
-The constructor creates a new xPL::BinaryMessage object.  It takes a
-parameter hash as arguments.  Valid parameters in the hash are:
+The constructor creates a new xPL::IORecord::Simple object.  It takes
+a parameter hash as arguments.  Valid parameters in the hash are:
 
 =over 4
 
@@ -57,11 +57,8 @@ It returns a blessed reference when successful or undef otherwise.
 
 sub new {
   my $pkg = shift;
-  my %p = @_;
-  my $self = bless \%p, $pkg;
-  use Carp;
-  confess $pkg." no message defined\n" unless (defined $self->raw);
-  return $self;
+  unshift @_, 'raw' if (scalar @_ == 1);
+  return $pkg->SUPER::new(@_);
 }
 
 =head2 C<read($buffer)>
@@ -72,63 +69,19 @@ buffer.
 =cut
 
 sub read {
-  return $_[0]->new(raw => (substr $_[1], 0, length $_[1], ''));
-}
-
-=head2 C<raw()>
-
-Return the contents of the message as a binary string.
-
-=cut
-
-sub raw {
-  $_[0]->{raw};
+  $_[1] =~ s/^(.*?)\r?\n// ? $_[0]->new(raw => $1) : undef;
 }
 
 =head2 C<out()>
 
-Return the contents of the message as a binary string with output record
-separators appended.
+Return the contents of the message as a binary string with
+output record separators appended.
 
 =cut
 
 sub out {
-  $_[0]->raw;
+  $_[0]->raw."\r\n"
 }
-
-=head2 C<str()>
-
-Return a string summary of the message (including the description if
-it was supplied).
-
-=cut
-
-sub str {
-  my $desc = $_[0]->{desc};
-  $_[0]->raw.($desc ? ': '.$desc : '');
-}
-
-=head2 C<data()>
-
-Return any user data that was supplied or undef otherwise.
-
-=cut
-
-sub data {
-  $_[0]->{data};
-}
-
-=head2 C<desc()>
-
-Return any user description that was supplied or undef otherwise.
-
-=cut
-
-sub desc {
-  $_[0]->{desc};
-}
-
-use overload ( '""'  => \&str);
 
 1;
 __END__

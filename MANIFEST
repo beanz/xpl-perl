@@ -79,6 +79,7 @@ lib/xPL/HomeEasy.pm
 lib/xPL/Hub.pm
 lib/xPL/IOHandler.pm
 lib/xPL/IORecord/Simple.pm
+lib/xPL/IORecord/CRLFLine.pm
 lib/xPL/IORecord/LFLine.pm
 lib/xPL/IORecord/ZeroSplitLine.pm
 lib/xPL/Listener.pm

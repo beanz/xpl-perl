@@ -25,9 +25,10 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use Pod::Usage;
-use xPL::Dock::SerialLine;
+use xPL::IOHandler;
+use xPL::Dock::Plug;
 
-our @ISA = qw(xPL::Dock::SerialLine);
+our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
@@ -39,6 +40,8 @@ our %state_map =
    high   => 'high', low      => 'low',
    1      => 'high', 0        => 'low',
   );
+
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
 
 =head2 C<getopts( )>
 
@@ -69,10 +72,7 @@ sub init {
 
   $self->required_field($xpl,
                         'device', 'The --viom-tty parameter is required', 1);
-  $self->SUPER::init($xpl,
-                     reader_callback => \&process_line,
-                     output_record_separator => "\r\n",
-                     @_);
+  $self->SUPER::init($xpl, @_);
 
   # initialize states
   $self->{_state} = {};
@@ -91,20 +91,28 @@ sub init {
                                     class_type => 'basic',
                                     type => 'output',
                                    });
+  $self->device_open($self->{_device});
 
-  $self->write('CSV', 1); # report software version
-  $self->write('CIC1', 1); # turn on input status change reporting
+  my $io = $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        handle => $self->{_device_handle},
+                        reader_callback => sub { $self->process_line(@_) },
+                        input_record_type => 'xPL::IORecord::CRLFLine',
+                        output_record_type => 'xPL::IORecord::CRLFLine',
+                        @_);
+
+  $io->write('CSV'); # report software version
+  $io->write('CIC1'); # turn on input status change reporting
 
   # sanity check the inputs immediately and periodically so we keep
   # the current state sane even when viom is unplugged, etc.
   $xpl->add_timer(id => 'input-check', timeout => -631,
-                  callback => sub { $self->write('CIN'); 1; });
+                  callback => sub { $self->{_io}->write('CIN'); 1; });
 
   # sanity check the outputs immediately and periodically so we keep
   # the current state sane even when viom is unplugged, etc.
   $xpl->add_timer(id => 'output-check', timeout => -641,
-                  callback =>
-                  sub { $self->write('COR'); 1; });
+                  callback => sub { $self->{_io}->write('COR'); 1; });
 
   return $self;
 }
@@ -128,24 +136,25 @@ sub xpl_in {
   return 1 unless ($msg->device =~ /^o(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
   my $command = lc $msg->current;
+  my $io = $self->{_io};
   if ($command eq "high") {
-    $self->write(sprintf("XA%d", $num));
+    $io->write(sprintf("XA%d", $num));
     $self->state_changed('o', $num, 'high', time);
   } elsif ($command eq "low") {
-    $self->write(sprintf("XB%d", $num));
+    $io->write(sprintf("XB%d", $num));
     $self->state_changed('o', $num, 'low', time);
   } elsif ($command eq "pulse") {
-    $self->write(sprintf("XA%d", $num));
+    $io->write(sprintf("XA%d", $num));
     select(undef,undef,undef,0.15);
-    $self->write(sprintf("XB%d", $num));
+    $io->write(sprintf("XB%d", $num));
     $self->state_changed('o', $num, 'low', time);
   } elsif ($command eq "toggle") {
     my $state = $self->current_state('o', $num);
     if ($state eq 'high') {
-      $self->write(sprintf("XB%d", $num));
+      $io->write(sprintf("XB%d", $num));
       $self->state_changed('o', $num, 'low', time);
     } else {
-      $self->write(sprintf("XA%d", $num));
+      $io->write(sprintf("XA%d", $num));
       $self->state_changed('o', $num, 'high', time);
     }
   } else {
@@ -162,8 +171,9 @@ is responsible for sending out the sensor.basic xpl-trig messages.
 =cut
 
 sub process_line {
-  my ($self, $line) = @_;
-  return unless (defined $line && $line ne '');
+  my ($self, $handler, $msg, $waiting) = @_;
+  my $line = $msg->raw;
+  return unless ($line ne '');
   my $xpl = $self->xpl;
   my $state = $self->{_state};
   my $time = time;
