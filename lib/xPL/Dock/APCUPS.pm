@@ -133,6 +133,7 @@ sub read {
       my $device = $self->xpl->instance_id.'-'.(lc $field);
       my $old = $self->{_state}->{$device};
       $value =~ s/ .*$//g;
+      $value =~ s/^0+//g;
       $value *= $multi if (defined $multi);
       $self->{_state}->{$device} = $value;
       my $msgtype;
