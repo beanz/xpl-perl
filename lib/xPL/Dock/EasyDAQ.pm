@@ -22,20 +22,22 @@ are several usage examples provided by the xPL Perl distribution.
 use 5.006;
 use strict;
 use warnings;
-
 use English qw/-no_match_vars/;
-use Pod::Usage;
-use xPL::Dock::Serial;
+use xPL::IOHandler;
+use xPL::Dock::Plug;
+use xPL::IORecord::Hex;
 
-our @ISA = qw(xPL::Dock::Serial);
+our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-{ # shortcut to save typing
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
+
+{
   package Msg;
-  use base 'xPL::BinaryMessage';
+  use base 'xPL::IORecord::Hex';
   sub new {
     my ($pkg, $letter, $number, $desc) = @_;
     return $pkg->SUPER::new(raw => pack('aC', $letter, $number),
@@ -72,10 +74,17 @@ sub init {
 
   $self->required_field($xpl,
                         'device', 'The --easydaq-tty parameter is required', 1);
-  $self->SUPER::init($xpl,
-                     ack_timeout => 0.05,
-                     reader_callback => \&device_reader,
-                     @_);
+  $self->SUPER::init($xpl, @_);
+
+  $self->device_open($self->{_device});
+  my $io = $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        handle => $self->{_device_handle},
+                        reader_callback => sub { $self->device_reader(@_) },
+                        ack_timeout => 0.05,
+                        input_record_type => 'xPL::IORecord::Hex',
+                        output_record_type => 'xPL::IORecord::Hex',
+                        @_);
 
   # Add a callback to receive incoming xPL messages
   $xpl->add_xpl_callback(id => 'easydaq', callback => \&xpl_in,
@@ -88,7 +97,7 @@ sub init {
                           type => 'output',
                          });
   $self->{_state} = 0;
-  $self->write(Msg->new('B', 0, 'set all ports to outputs'));
+  $self->{_io}->write(Msg->new('B', 0, 'set all ports to outputs'));
   return $self;
 }
 
@@ -108,22 +117,26 @@ sub xpl_in {
   my $xpl = $self->xpl;
 
   if ($msg->device eq 'debug') {
-    $self->write(Msg->new('A', 0, 'query status of outputs'));
+    $self->{_io}->write(Msg->new('A', 0, 'query status of outputs'));
   }
   return 1 unless ($msg->device =~ /^o(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
   my $command = lc $msg->current;
   if ($command eq "high") {
     $self->{_state} |= 1<<($num-1);
-    $self->write(Msg->new('C', $self->{_state}, "setting port $num high"));
+    $self->{_io}->write(Msg->new('C', $self->{_state},
+                                 "setting port $num high"));
   } elsif ($command eq "low") {
     $self->{_state} &= 0xf^(1<<($num-1));
-    $self->write(Msg->new('C', $self->{_state}, "setting port $num low"));
+    $self->{_io}->write(Msg->new('C', $self->{_state},
+                                 "setting port $num low"));
   } elsif ($command eq "pulse") {
     $self->{_state} |= 1<<($num-1);
-    $self->write(Msg->new('C', $self->{_state}, "setting port $num high"));
+    $self->{_io}->write(Msg->new('C', $self->{_state},
+                                 "setting port $num high"));
     $self->{_state} &= 0xf^(1<<($num-1));
-    $self->write(Msg->new('C', $self->{_state}, "setting port $num low"));
+    $self->{_io}->write(Msg->new('C', $self->{_state},
+                                 "setting port $num low"));
   } else {
     warn "Unsupported setting: $command\n";
   }
@@ -139,9 +152,9 @@ queued transmit messages.
 =cut
 
 sub device_reader {
-  my ($self, $buf, $last) = @_;
-  print 'received: ', unpack('H*', $buf), "\n";
-  return '';
+  my ($self, $handler, $msg, $last) = @_;
+  print 'received: ', $msg, "\n";
+  return 1;
 }
 
 1;

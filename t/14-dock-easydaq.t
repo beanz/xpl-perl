@@ -48,14 +48,14 @@ ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::EasyDAQ', 'plugin has correct type');
 
 # for synchronization
-$plugin->{_ack_timeout_callback} = sub { $count++ };
+$plugin->{_io}->{_ack_timeout_callback} = sub { $count++ };
 
 my $buf;
 
 ok($client_sel->can_read(0.5), 'device receive a message - 4200');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - 4200');
-my $m = xPL::BinaryMessage->new(raw => $buf);
+my $m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, '4200', 'content is correct - 4200');
 
 wait_for_tick($xpl, $count);
@@ -72,7 +72,7 @@ $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - o1/high');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - o1/high');
-$m = xPL::BinaryMessage->new(raw => $buf);
+$m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, '4301', 'content is correct - o1/high');
 
 wait_for_tick($xpl, $count);
@@ -82,7 +82,7 @@ $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - o1/low');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - o1/low');
-$m = xPL::BinaryMessage->new(raw => $buf);
+$m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, '4300', 'content is correct - o1/low');
 
 wait_for_tick($xpl, $count);
@@ -92,13 +92,13 @@ $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - o3/pulse');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - o3/pulse');
-$m = xPL::BinaryMessage->new(raw => $buf);
+$m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, '4304', 'content is correct - o3/pulse');
 wait_for_tick($xpl, $count);
 ok($client_sel->can_read(0.5), 'device receive a message - o3/pulse');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - o3/pulse');
-$m = xPL::BinaryMessage->new(raw => $buf);
+$m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, '4300', 'content is correct - o3/pulse');
 wait_for_tick($xpl, $count);
 
@@ -117,7 +117,7 @@ $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - debug/high');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - debug/high');
-$m = xPL::BinaryMessage->new(raw => $buf);
+$m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, '4100', 'content is correct - debug/high');
 print $client chr(0);
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
