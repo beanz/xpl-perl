@@ -153,7 +153,8 @@ $device->close;
                                                       name => 'dingus')
                               }, \*STDERR) });
   is($warn, undef, 'stty worked');
-  is($err, "-F /dev/null ospeed 9600 pass8 raw\n", 'stty called correctly');
+  is($err, "-F /dev/null ospeed 9600 pass8 raw -echo\n",
+     'stty called correctly');
 }
 
 # The begin block is global of course but this is where it is really used.
