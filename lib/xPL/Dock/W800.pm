@@ -25,15 +25,17 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use FileHandle;
-use Pod::Usage;
-use xPL::Dock::Serial;
+use xPL::IOHandler;
+use xPL::Dock::Plug;
 use xPL::RF;
 
-our @ISA = qw(xPL::Dock::Serial);
+our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
+
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
 
 =head2 C<getopts( )>
 
@@ -64,7 +66,16 @@ sub init {
 
   $self->required_field($xpl,
                         'device', 'The --w800-tty parameter is required', 1);
-  $self->SUPER::init($xpl, reader_callback => \&device_reader, @_);
+  $self->SUPER::init($xpl, @_);
+
+  $self->device_open($self->{_device});
+  my $io = $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        handle => $self->{_device_handle},
+                        reader_callback => sub { $self->device_reader(@_) },
+                        input_record_type => 'xPL::IORecord::Hex',
+                        output_record_type => 'xPL::IORecord::Hex');
+
   $self->{_rf} = xPL::RF->new(source => $xpl->id);
 
   return $self;
@@ -78,19 +89,20 @@ responsible for sending out the xPL messages.
 =cut
 
 sub device_reader {
-  my ($self, $buf, $last) = @_;
+  my ($self, $handler, $msg, $last) = @_;
+  my $buf = $msg->raw;
   my $xpl = $self->xpl;
   while (length($buf) >= 4) {
     my $m = substr($buf, 0, 4, '');
     $self->info("Processing: ", unpack("H*", $m), "\n");
     my $res = $self->{_rf}->process_32bit($m);
     return 1 unless (@$res);
-    foreach my $msg (@$res) {
-      print $msg->summary,"\n";
-      $xpl->send($msg);
+    foreach my $xplmsg (@$res) {
+      print $xplmsg->summary,"\n";
+      $xpl->send($xplmsg);
     }
   }
-  return ''; # TOFIX: Discard?  Perhaps set discard_buffer_timeout
+  return 1;
 }
 
 1;
