@@ -211,7 +211,7 @@ sub heyu_monitor {
   return 1;
 }
 
-=head2 C<heyu_helper_read()>
+=head2 C<read_helper()>
 
 This is the callback that processes output from the "heyu helper"
 command.  It is responsible for reading the results of heyu commands.
