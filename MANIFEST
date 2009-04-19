@@ -68,7 +68,6 @@ lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm
 lib/xPL/Dock/RFXComRX.pm
 lib/xPL/Dock/RFXComTX.pm
-lib/xPL/Dock/SerialLine.pm
 lib/xPL/Dock/Serial.pm
 lib/xPL/Dock/UDIN.pm
 lib/xPL/Dock/VIOM.pm
