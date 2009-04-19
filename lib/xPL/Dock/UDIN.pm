@@ -22,16 +22,17 @@ are several usage examples provided by the xPL Perl distribution.
 use 5.006;
 use strict;
 use warnings;
-
 use English qw/-no_match_vars/;
-use Pod::Usage;
-use xPL::Dock::SerialLine;
+use xPL::IOHandler;
+use xPL::Dock::Plug;
 
-our @ISA = qw(xPL::Dock::SerialLine);
+our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
+
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
 
 =head2 C<getopts( )>
 
@@ -61,6 +62,19 @@ sub init {
 
   $self->required_field($xpl,
                         'device', 'The --udin-tty parameter is required', 1);
+
+  $self->SUPER::init($xpl, @_);
+
+  $self->device_open($self->{_device});
+  my $io = $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        handle => $self->{_device_handle},
+                        reader_callback => sub { $self->process_line(@_) },
+                        ack_timeout => 0.05,
+                        input_record_type => 'xPL::IORecord::CRLFLine',
+                        output_record_type => 'xPL::IORecord::CRLine',
+                        @_);
+
   $self->SUPER::init($xpl,
                      reader_callback => \&process_line,
                      ack_timeout => 0.05,
@@ -76,7 +90,7 @@ sub init {
                                     type => 'output',
                                    });
 
-  $self->write('?');
+  $self->{_io}->write('?');
   return $self;
 }
 
@@ -96,21 +110,21 @@ sub xpl_in {
   my $xpl = $self->xpl;
 
   if ($msg->device eq 'debug') {
-    $self->write('s0');
+    $self->{_io}->write('s0');
   }
   return 1 unless ($msg->device =~ /^o(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
   my $command = lc $msg->current;
   if ($command eq "high") {
-    $self->write(sprintf("n%d", $num));
+    $self->{_io}->write(sprintf("n%d", $num));
   } elsif ($command eq "low") {
-    $self->write(sprintf("f%d", $num));
+    $self->{_io}->write(sprintf("f%d", $num));
   } elsif ($command eq "pulse") {
-    $self->write(sprintf("n%d", $num));
+    $self->{_io}->write(sprintf("n%d", $num));
     #select(undef,undef,undef,0.15);
-    $self->write(sprintf("f%d", $num));
+    $self->{_io}->write(sprintf("f%d", $num));
   } elsif ($command eq "toggle") {
-    $self->write(sprintf("t%d", $num));
+    $self->{_io}->write(sprintf("t%d", $num));
   } else {
     warn "Unsupported setting: $command\n";
   }
@@ -125,8 +139,9 @@ is responsible for sending out the sensor.basic xpl-trig messages.
 =cut
 
 sub process_line {
-  my ($self, $line) = @_;
-  return unless (defined $line && $line ne '');
+  my ($self, $handler, $msg, $last) = @_;
+  my $line = $msg->raw;
+  return unless ($line ne '');
   $self->info("received: '$line'\n");
   return 1;
 }

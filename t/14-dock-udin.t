@@ -41,7 +41,7 @@ ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::UDIN', 'plugin has correct type');
 
 # for synchronization
-$plugin->{_ack_timeout_callback} = sub { $count++ };
+$plugin->{_io}->{_ack_timeout_callback} = sub { $count++ };
 
 my $buf;
 
