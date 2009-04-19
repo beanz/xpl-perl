@@ -25,22 +25,18 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use FileHandle;
-use Pod::Usage;
 use List::Util qw/min max/;
 use Time::HiRes;
-use xPL::Dock::Serial;
+use xPL::IOHandler;
+use xPL::Dock::Plug;
 
-our @ISA = qw(xPL::Dock::Serial);
+our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-{ # shortcut to save typing
-  package Msg;
-  use base 'xPL::BinaryMessage';
-  1;
-}
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
 
 =head2 C<getopts( )>
 
@@ -72,7 +68,16 @@ sub init {
 
   $self->required_field($xpl,
                         'device', 'The --dmx-tty parameter is required', 1);
-  $self->SUPER::init($xpl, reader_callback => \&device_reader, @_);
+  $self->SUPER::init($xpl, @_);
+
+  $self->device_open($self->{_device});
+  my $io = $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        handle => $self->{_device_handle},
+                        reader_callback => sub { $self->device_reader(@_) },
+                        input_record_type => 'xPL::IORecord::Hex',
+                        output_record_type => 'xPL::IORecord::Hex',
+                        @_);
 
   # Add a callback to receive incoming xPL messages
   $xpl->add_xpl_callback(id => 'dmx', callback => \&xpl_in,
@@ -107,8 +112,8 @@ sub xpl_in {
   my $xpl = $self->xpl;
 
   if ($msg->base =~ /hex/) { # hack to aid debug
-    $self->write(Msg->new(hex => $msg->value, data => $msg,
-                          desc => 'debug message'));
+    $self->{_io}->write(hex => $msg->value, data => $msg,
+                        desc => 'debug message');
     return 1;
   }
   return 1 unless ($msg->base =~ /^(\d+)(x(\d+))?$/);
@@ -149,8 +154,8 @@ sub dmx_set {
     $values->[$base+$i] = $v[$i%$l];
   }
   my $comm = '01'.(sprintf "%04x", $base).($hex x $multi);
-  $self->write(Msg->new(hex => $comm, data => $msg,
-                        desc => "set ${base}x$multi=$hex"));
+  $self->{_io}->write(hex => $comm, data => $msg,
+                      desc => "set ${base}x$multi=$hex");
   return 1;
 }
 
@@ -275,10 +280,10 @@ This is the callback that processes output from the DMX transmitter.
 =cut
 
 sub device_reader {
-  my ($self, $buf, $last) = @_;
-  print 'received: ', unpack('H*', $buf), "\n";
+  my ($self, $handler, $msg, $last) = @_;
+  print 'received: ', $msg, "\n";
   $self->send_xpl_confirm($last->data) if (ref $last && ref $last->data);
-  return '';
+  return 1;
 }
 
 =head2 C<send_xpl_confirm()>
