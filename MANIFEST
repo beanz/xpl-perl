@@ -189,7 +189,6 @@ t/11-sms-send-csoft.t
 t/11-sms-send-smsdiscount.t
 t/12-dock.t
 t/13-dock-plug.t
-t/13-dock-serialline.t
 t/13-dock-serial.t
 t/14-dock-bluetooth.t
 t/14-dock-dawndusk.t
