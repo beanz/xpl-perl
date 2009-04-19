@@ -25,13 +25,14 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use FileHandle;
-use Pod::Usage;
-use xPL::Dock::Serial;
 use xPL::RF;
 use xPL::X10 qw/:all/;
 use xPL::HomeEasy qw/:all/;
+use xPL::IOHandler;
+use xPL::Dock::Plug;
+use xPL::IORecord::Hex;
 
-our @ISA = qw(xPL::Dock::Serial);
+our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
@@ -40,12 +41,7 @@ our $VERSION = qw/$Revision$/[1];
 our @fields = qw/receiver_connected flamingo harrison koko x10/;
 
 __PACKAGE__->make_readonly_accessor($_) foreach (@fields);
-
-{ # shortcut to save typing
-  package Msg;
-  use base 'xPL::BinaryMessage';
-  1;
-}
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
 
 =head2 C<getopts( )>
 
@@ -84,11 +80,18 @@ sub init {
   $self->required_field($xpl,
                         'device',
                         'The --rfxcom-tx-tty parameter is required', 1);
-  $self->SUPER::init($xpl,
-                     ack_timeout => 6,
-                     ack_timeout_callback => \&reset_device,
-                     reader_callback => \&device_reader,
-                     @_);
+  $self->SUPER::init($xpl, @_);
+
+  $self->device_open($self->{_device});
+  my $io = $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        handle => $self->{_device_handle},
+                        ack_timeout => 6,
+                        ack_timeout_callback => sub { $self->reset_device(@_) },
+                        reader_callback => sub { $self->device_reader(@_) },
+                        input_record_type => 'xPL::IORecord::Hex',
+                        output_record_type => 'xPL::IORecord::Hex');
+
 
   # Add a callback to receive incoming xPL messages
   $xpl->add_xpl_callback(id => 'xpl-x10', callback => \&xpl_x10,
@@ -111,15 +114,15 @@ sub init {
 
   $self->{_rf} = xPL::RF->new(source => $xpl->id);
 
-  $self->write(Msg->new(hex => 'F030F030', desc => 'init/version check'));
+  $io->write(hex => 'F030F030', desc => 'init/version check');
   $self->init_device();
-  $self->write(Msg->new(hex => 'F03CF03C', desc => 'enabling harrison'))
+  $io->write(hex => 'F03CF03C', desc => 'enabling harrison')
     if ($self->harrison);
-  $self->write(Msg->new(hex => 'F03DF03D', desc => 'enabling klikon-klikoff'))
+  $io->write(hex => 'F03DF03D', desc => 'enabling klikon-klikoff')
     if ($self->koko);
-  $self->write(Msg->new(hex => 'F03EF03E', desc => 'enabling flamingo'))
+  $io->write(hex => 'F03EF03E', desc => 'enabling flamingo')
     if ($self->flamingo);
-  $self->write(Msg->new(hex => 'F03FF03F', desc => 'disabling x10'))
+  $io->write(hex => 'F03FF03F', desc => 'disabling x10')
     unless ($self->x10);
 
   return $self;
@@ -142,23 +145,23 @@ sub xpl_x10 {
   if ($msg->house) {
     foreach (split //, $msg->house) {
       my $rf_msg =
-        Msg->new(raw => encode_x10(command => $msg->command,
-                                   house => $msg->house),
+        xPL::IORecord::Hex->new(raw => encode_x10(command => $msg->command,
+                                                  house => $msg->house),
                  desc => $msg->house.' '.$msg->command);
       foreach (1..$msg->extra_field('repeat')||1) {
-        $self->write($rf_msg);
+        $self->{_io}->write($rf_msg);
       }
     }
   } elsif ($msg->device) {
     foreach (split /,/, $msg->device) {
       my ($house, $unit) = /^([a-p])(\d+)$/i or next;
       my $rf_msg =
-        Msg->new(raw => encode_x10(command => $msg->command,
-                                   house => $house,
-                                   unit => $unit),
-                 desc => $house.$unit.' '.$msg->command);
+        xPL::IORecord::Hex->new(raw => encode_x10(command => $msg->command,
+                                                  house => $house,
+                                                  unit => $unit),
+                                desc => $house.$unit.' '.$msg->command);
       foreach (1..$msg->extra_field('repeat')||1) {
-        $self->write($rf_msg);
+        $self->{_io}->write($rf_msg);
       }
     }
   } else {
@@ -198,9 +201,10 @@ sub xpl_homeeasy {
     }
     $args{level} = $level;
   }
-  my $rf_msg = Msg->new(raw => encode_homeeasy(%args), desc => $msg->summary);
+  my $rf_msg = xPL::IORecord::Hex->new(raw => encode_homeeasy(%args),
+                                       desc => $msg->summary);
   foreach (1..$msg->extra_field('repeat')||1) {
-    $self->write($rf_msg);
+    $self->{_io}->write($rf_msg);
   }
   return 1;
 }
@@ -214,10 +218,10 @@ queued transmit messages.
 =cut
 
 sub device_reader {
-  my ($self, $buf) = @_;
+  my ($self, $handler, $msg, $last) = @_;
   # TOFIX: send confirm messages?
-  print 'received: ', unpack('H*', $buf), "\n";
-  return '';
+  print 'received: ', $msg, "\n";
+  return 1;
 }
 
 =head2 C<init_device( )>
@@ -228,13 +232,11 @@ This method sends the initialization command to the RFXCom transmitter.
 
 sub init_device {
   my ($self) = @_;
-  $self->write($self->receiver_connected ?
-               Msg->new(hex => 'F033F033',
-                        desc =>
-                        'variable length mode w/receiver connected') :
-               Msg->new(hex => 'F037F037',
-                        desc =>
-                        'variable length mode w/o receiver connected'));
+  $self->{_io}->write($self->receiver_connected ?
+                      (hex => 'F033F033',
+                       desc => 'variable length mode w/receiver connected') :
+                      (hex => 'F037F037',
+                       desc => 'variable length mode w/o receiver connected'));
 }
 
 =head2 C<reset_device( $waiting )>
