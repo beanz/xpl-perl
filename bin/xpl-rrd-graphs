@@ -145,6 +145,7 @@ foreach my $dir (sort keys %rrds) {
                         "LINE1:avg#EFD80E:C Avg",
                         "LINE1:max#EF500E:C Max",
                         "GPRINT:min:MIN:Min %7.2lf",
+                        "VDEF:gavg=avg,AVERAGE", "GPRINT:gavg:Avg %7.2lf",
                         "GPRINT:max:MAX:Max %7.2lf\\l",
                         "COMMENT:".strftime('%Y-%m-%d %H\:%m\r',
                                             localtime(time)),
