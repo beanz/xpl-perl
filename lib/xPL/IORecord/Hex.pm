@@ -73,9 +73,8 @@ Return the contents of the message as a binary string.
 
 =cut
 
-use Carp;
 sub raw {
-  $_[0]->{raw} or $_[0]->{raw} = pack 'H*', $_[0]->{hex} || confess;
+  $_[0]->{raw} or $_[0]->{raw} = pack 'H*', $_[0]->{hex};
 }
 
 =head2 C<str()>
