@@ -50,7 +50,6 @@ doc/Makefile
 lib/SMS/Send/CSoft.pm
 lib/SMS/Send/SMSDiscount.pm
 lib/xPL/Base.pm
-lib/xPL/BinaryMessage.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
 lib/xPL/Dock/APCUPS.pm

@@ -6,13 +6,12 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 13;
+use Test::More tests => 12;
 use t::Helpers qw/test_warn test_error test_output/;
 
 $|=1;
 
 use_ok('xPL::Dock','W800');
-use_ok('xPL::BinaryMessage');
 
 my @msg;
 sub xPL::Dock::send_aux {
