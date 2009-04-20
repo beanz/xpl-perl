@@ -24,22 +24,17 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
-use FileHandle;
-use Pod::Usage;
-use xPL::Dock::Serial;
 use xPL::RF qw/hex_dump/;
+use xPL::IOHandler;
+use xPL::Dock::Plug;
 
-our @ISA = qw(xPL::Dock::Serial);
+our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-{ # shortcut to save typing
-  package Msg;
-  use base 'xPL::BinaryMessage';
-  1;
-}
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
 
 =head2 C<getopts( )>
 
@@ -71,16 +66,22 @@ sub init {
   $self->required_field($xpl,
                         'device',
                         'The --rfxcom-rx-tty parameter is required', 1);
-  $self->SUPER::init($xpl,
-                     discard_buffer_timeout => 0.03,
-                     reader_callback => \&device_reader,
-                     @_);
+  $self->SUPER::init($xpl, @_);
+
+  $self->device_open($self->{_device});
+  my $io = $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        handle => $self->{_device_handle},
+                        reader_callback => sub { $self->device_reader(@_) },
+                        input_record_type => 'xPL::IORecord::VariableLength',
+                        output_record_type => 'xPL::IORecord::Hex',
+                        discard_buffer_timeout => 0.03);
+
   $self->{_rf} = xPL::RF->new(source => $xpl->id);
 
-  $self->write(Msg->new(hex => 'F020', desc => 'version check'));
-  $self->write(Msg->new(hex => "F02A",
-                        desc => 'enable all possible receiving modes'));
-  $self->write(Msg->new(hex => 'F041', desc => 'variable length with visonic'));
+  $io->write(hex => 'F020', desc => 'version check');
+  $io->write(hex => "F02A", desc => 'enable all possible receiving modes');
+  $io->write(hex => 'F041', desc => 'variable length with visonic');
 
   return $self;
 }
@@ -93,25 +94,16 @@ responsible for sending out the xPL messages.
 =cut
 
 sub device_reader {
-  my ($self, $buf, $last) = @_;
+  my ($self, $handler, $msg, $last) = @_;
   my $xpl = $self->xpl;
-  my $res = $self->{_rf}->process_variable_length($buf);
-  if (defined $res) {
-    # truncate buffer by given length
-    my $m = substr($buf, 0, $res->{length}, '') if ($res->{length});
-    print "Processed: ", unpack("H*", $m), "\n"
-      if ($self->verbose && $m && !$res->{duplicate});
-    return $buf unless ($res->{messages} && (ref $res->{messages}));
-    foreach my $msg (@{$res->{messages}}) {
-      print $msg->summary,"\n";
-      $xpl->send($msg);
-    }
-  } else {
-    # discard buffer
-    print "Not a variable length message: ", hex_dump($buf), "\n";
-    $buf = '';
+  my $res = $self->{_rf}->process_variable_length($msg->raw);
+  print "Processed: $msg\n" if ($self->verbose && !$res->{duplicate});
+  return 1 unless ($res->{messages} && (ref $res->{messages}));
+  foreach my $xplmsg (@{$res->{messages}}) {
+    print $xplmsg->summary,"\n";
+    $xpl->send($xplmsg);
   }
-  return $buf;
+  return 1;
 }
 
 1;

@@ -11,7 +11,7 @@ use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
 use_ok('xPL::Dock','RFXComRX');
-use_ok('xPL::BinaryMessage');
+use_ok('xPL::IORecord::Hex');
 
 my @msg;
 sub xPL::Dock::send_aux {
@@ -51,19 +51,15 @@ foreach my $r (['F020' => '4d26'], ['F02A' => '41'], ['F041' => '41']) {
   my $buf = '';
   is((sysread $client, $buf, 64), length($recv)/2,
      'read is correct size - '.$recv);
-  my $m = xPL::BinaryMessage->new(raw => $buf);
+  my $m = xPL::IORecord::Hex->new(raw => $buf);
   is($m, lc $recv, 'content is correct - '.$recv);
 
   print $client pack 'H*', $send;
 
-  if ($send eq "4d26") {
-    is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-       "Not a variable length message: 4d26\n", 'read response - '.$send);
-  } else {
-    $xpl->main_loop(1);
-    is((unpack 'H*', $plugin->{_buffer}), $send, 'read response - '.$send);
-    $plugin->{_buffer} = '';
-  }
+  $xpl->main_loop(1);
+  is((unpack 'H*', $plugin->{_io}->{_buffer}),
+     $send, 'read response - '.$send);
+  $plugin->{_io}->{_buffer} = '';
 #  check_sent_msg('dmx.confirm', '0x'.$color, '1');
 }
 

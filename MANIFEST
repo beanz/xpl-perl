@@ -68,7 +68,6 @@ lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm
 lib/xPL/Dock/RFXComRX.pm
 lib/xPL/Dock/RFXComTX.pm
-lib/xPL/Dock/Serial.pm
 lib/xPL/Dock/UDIN.pm
 lib/xPL/Dock/VIOM.pm
 lib/xPL/Dock/W800.pm
@@ -82,6 +81,7 @@ lib/xPL/IORecord/CRLine.pm
 lib/xPL/IORecord/Hex.pm
 lib/xPL/IORecord/LFLine.pm
 lib/xPL/IORecord/Simple.pm
+lib/xPL/IORecord/VariableLength.pm
 lib/xPL/IORecord/ZeroSplitLine.pm
 lib/xPL/Listener.pm
 lib/xPL/Message.pm
@@ -189,7 +189,6 @@ t/11-sms-send-csoft.t
 t/11-sms-send-smsdiscount.t
 t/12-dock.t
 t/13-dock-plug.t
-t/13-dock-serial.t
 t/14-dock-bluetooth.t
 t/14-dock-dawndusk.t
 t/14-dock-dmx.t
