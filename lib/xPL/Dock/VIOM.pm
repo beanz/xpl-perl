@@ -41,7 +41,7 @@ our %state_map =
    1      => 'high', 0        => 'low',
   );
 
-__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device/);
 
 =head2 C<getopts( )>
 
@@ -91,11 +91,10 @@ sub init {
                                     class_type => 'basic',
                                     type => 'output',
                                    });
-  $self->device_open($self->{_device});
 
   my $io = $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
-                        handle => $self->{_device_handle},
+                        device => $self->{_device},
                         reader_callback => sub { $self->process_line(@_) },
                         input_record_type => 'xPL::IORecord::CRLFLine',
                         output_record_type => 'xPL::IORecord::CRLFLine',

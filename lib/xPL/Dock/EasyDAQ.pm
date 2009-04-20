@@ -33,7 +33,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device/);
 
 {
   package Msg;
@@ -76,10 +76,9 @@ sub init {
                         'device', 'The --easydaq-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
-  $self->device_open($self->{_device});
   my $io = $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
-                        handle => $self->{_device_handle},
+                        device => $self->{_device},
                         reader_callback => sub { $self->device_reader(@_) },
                         ack_timeout => 0.05,
                         input_record_type => 'xPL::IORecord::Hex',

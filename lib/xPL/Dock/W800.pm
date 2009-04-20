@@ -35,7 +35,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device/);
 
 =head2 C<getopts( )>
 
@@ -68,10 +68,9 @@ sub init {
                         'device', 'The --w800-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
-  $self->device_open($self->{_device});
   my $io = $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
-                        handle => $self->{_device_handle},
+                        device => $self->{_device},
                         reader_callback => sub { $self->device_reader(@_) },
                         input_record_type => 'xPL::IORecord::Hex',
                         output_record_type => 'xPL::IORecord::Hex');

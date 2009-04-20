@@ -32,7 +32,9 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use FileHandle;
+use IO::Socket::INET;
 use Time::HiRes;
+use xPL::Base;
 use xPL::Queue;
 
 our @ISA = qw(xPL::Base);
@@ -60,9 +62,12 @@ sub new {
   my %p = @_;
   my $self =
     {
-     input_record_type => 'xPL::IORecord::Simple',
-     output_record_type => 'xPL::IORecord::Simple',
+     _input_record_type => 'xPL::IORecord::Simple',
+     _output_record_type => 'xPL::IORecord::Simple',
     };
+  if ($p{device}) {
+    $p{handle} = $pkg->device_open($p{device}, $p{baud});
+  }
   foreach ('verbose', @FIELDS) {
     next unless (exists $p{$_});
     $self->{'_'.$_} = $p{$_};
@@ -74,17 +79,47 @@ sub new {
     die $@ if ($@);
   }
   $xpl->add_input(handle => $self->input_handle,
-                   callback => sub {
-                     my ($handle, $obj) = @_;
-                     return $obj->reader_wrapper($handle);
-                   },
-                   arguments => $self);
+                  callback => sub {
+                    my ($handle, $obj) = @_;
+                    return $obj->reader_wrapper($handle);
+                  },
+                  arguments => $self);
   $self->{_q} = xPL::Queue->new;
   $self->{_buffer} = '';
   return $self;
 }
 
+=head2 C<device_open( $device, [$baud] )>
+
+Helper that opens a device where the device is either a serial port
+or a server of the form C<ip-address:port>.  This helper dies on
+failure.
+
+=cut
+
+sub device_open {
+  my ($self, $dev, $baud) = @_;
+  my $fh;
+  if ($dev =~ /\//) {
+    # TODO: use Device::SerialPort?
+    system("stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+      $self->argh("Setting serial port with stty failed: $!\n");
+    $fh = FileHandle->new;
+    sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+      or $self->argh("open of '$dev' failed: $!\n");
+    $fh->autoflush(1);
+    binmode($fh);
+  } else {
+    $dev .= ':10001' unless ($dev =~ /:/);
+    $fh = IO::Socket::INET->new($dev)
+      or $self->argh("TCP connect to '$dev' failed: $!\n");
+  }
+  return $fh;
+}
+
 =head2 C<input_handle()>
+
+Returns the file handle being used for input.
 
 =cut
 
@@ -92,7 +127,9 @@ sub input_handle {
   $_[0]->{_input_handle} or $_[0]->{_input_handle} = $_[0]->{_handle};
 }
 
-=head2 C<input_handle()>
+=head2 C<output_handle()>
+
+Returns the file handle being used for output.
 
 =cut
 
@@ -131,7 +168,8 @@ dies with an appropriate error.
 sub read {
   my ($self, $handle) = @_;
   $self->discard_buffer_check();
-  my $bytes = $handle->sysread($self->{_buffer}, 2048, length($self->{_buffer}));
+  my $bytes =
+    $handle->sysread($self->{_buffer}, 2048, length($self->{_buffer}));
   unless ($bytes) {
     $self->argh("failed: $!\n") unless (defined $bytes);
     $self->argh("closed\n");

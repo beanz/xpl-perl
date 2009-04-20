@@ -41,7 +41,7 @@ our $VERSION = qw/$Revision$/[1];
 our @fields = qw/receiver_connected flamingo harrison koko x10/;
 
 __PACKAGE__->make_readonly_accessor($_) foreach (@fields);
-__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device device_handle/);
+__PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device/);
 
 =head2 C<getopts( )>
 
@@ -82,10 +82,9 @@ sub init {
                         'The --rfxcom-tx-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
-  $self->device_open($self->{_device});
   my $io = $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
-                        handle => $self->{_device_handle},
+                        device => $self->{_device},
                         ack_timeout => 6,
                         ack_timeout_callback => sub { $self->reset_device(@_) },
                         reader_callback => sub { $self->device_reader(@_) },
