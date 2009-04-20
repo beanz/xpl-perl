@@ -79,6 +79,7 @@ lib/xPL/IORecord/CRLFLine.pm
 lib/xPL/IORecord/CRLine.pm
 lib/xPL/IORecord/Hex.pm
 lib/xPL/IORecord/LFLine.pm
+lib/xPL/IORecord/Line.pm
 lib/xPL/IORecord/Simple.pm
 lib/xPL/IORecord/VariableLength.pm
 lib/xPL/IORecord/ZeroSplitLine.pm
