@@ -23,8 +23,8 @@ make debug output clearer.
 use 5.006;
 use strict;
 use warnings;
-use xPL::IORecord::Simple;
-our @ISA = qw(xPL::IORecord::Simple);
+use xPL::IORecord::Line;
+our @ISA = qw(xPL::IORecord::Line);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
@@ -53,14 +53,6 @@ a parameter hash as arguments.  Valid parameters in the hash are:
 
 It returns a blessed reference when successful or undef otherwise.
 
-=cut
-
-sub new {
-  my $pkg = shift;
-  unshift @_, 'raw' if (scalar @_ == 1);
-  return $pkg->SUPER::new(@_);
-}
-
 =head2 C<read($buffer)>
 
 Creates a new message from a given buffer and removes it from the
@@ -69,18 +61,17 @@ buffer.
 =cut
 
 sub read {
-  $_[1] =~ s/^(.*?)\r// ? $_[0]->new(raw => $1) : undef;
+  $_[1] =~ s/(.*?)\r// ? $_[0]->new(raw => $1) : undef;
 }
 
-=head2 C<out()>
+=head2 C<eol()>
 
-Return the contents of the message as a binary string with
-output record separators appended.
+Return the eol character for this type of line.
 
 =cut
 
-sub out {
-  $_[0]->raw."\r"
+sub eol {
+  "\r";
 }
 
 1;

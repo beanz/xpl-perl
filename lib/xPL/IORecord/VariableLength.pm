@@ -127,7 +127,7 @@ it was supplied).
 
 sub str {
   my $desc = $_[0]->desc;
-  (pack 'H*', $_[0]->bits).$_[0]->hex.($desc ? ': '.$desc : '');
+  (sprintf "%02x", $_[0]->bits).$_[0]->hex.($desc ? ': '.$desc : '');
 }
 
 use overload ( '""'  => \&str);

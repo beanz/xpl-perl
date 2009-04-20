@@ -58,12 +58,6 @@ It returns a blessed reference when successful or undef otherwise.
 Creates a new message from a given buffer and removes it from the
 buffer.
 
-=cut
-
-sub read {
-  $_[1] =~ s/^(.*?)\n// ? $_[0]->new(raw => $1) : undef;
-}
-
 =head2 C<raw()>
 
 Return the contents of the message as a string.

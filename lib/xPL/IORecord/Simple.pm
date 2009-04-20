@@ -57,10 +57,10 @@ It returns a blessed reference when successful or undef otherwise.
 
 sub new {
   my $pkg = shift;
+  unshift @_, 'raw' if (scalar @_ == 1);
   my %p = @_;
   my $self = bless \%p, $pkg;
-  use Carp;
-  confess $pkg." no message defined\n" unless (defined $self->raw);
+  die $pkg." no message defined\n" unless (defined $self->raw);
   return $self;
 }
 
