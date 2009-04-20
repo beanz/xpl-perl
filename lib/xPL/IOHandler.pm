@@ -154,8 +154,13 @@ sub reader_wrapper {
   while (length $self->{_buffer}) {
     my $obj = $self->{_input_record_type}->read($self->{_buffer});
     defined $obj or last;
-    $self->{_reader_callback}->($self, $obj, $self->{_waiting}) &&
-      $self->write_next();
+    if (ref $obj) {
+      $self->{_reader_callback}->($self, $obj, $self->{_waiting}) &&
+        $self->write_next();
+    } else {
+      $obj && $self->write_next();
+      last;
+    }
   }
   return 1;
 }
