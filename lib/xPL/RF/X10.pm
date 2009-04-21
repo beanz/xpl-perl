@@ -69,7 +69,7 @@ sub parse {
   return [$self->x10_xpl_message($parent, $f, $h.$u)];
 }
 
-=head2 C<x10_xpl_message( $parent, $command, $device, $level )>
+=head2 C<x10_xpl_message( $parent, $command, $device )>
 
 This functions is used to construct x10.basic xpl-trig messages as a
 result of RF messages decoded from the RF data.
@@ -81,10 +81,9 @@ sub x10_xpl_message {
   my $parent = shift;
   my $command = shift;
   my $device = shift;
-  my $level = shift;
   my %body = ( device => $device, command => $command );
   if ($command eq 'bright' or $command eq 'dim') {
-    $body{level} = $level || $parent->{_default_x10_level};
+    $body{level} = $parent->{_default_x10_level};
   }
   my %args =
     (
