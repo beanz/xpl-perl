@@ -23,8 +23,8 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
+use xPL::IOHandler;
 use xPL::Dock::Plug;
-use IO::Socket::INET;
 
 our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
@@ -61,56 +61,37 @@ sub init {
   my %p = @_;
 
   $self->SUPER::init($xpl, @_);
-
-  my $server = $self->server;
-  my $ss;
-  if ($server =~ m!^/!) {
-    $ss = IO::Socket::UNIX->new($server);
-  } else {
-    $server .= ':8765' unless ($server =~ /:/);
-    $ss = IO::Socket::INET->new($server);
-  }
-  unless ($ss) {
-    die "Failed to connect to $server: $!\n";
-  }
-
-  $xpl->add_input(handle => $ss, callback => sub { $self->read_lirc(@_) });
-
-  $self->{_lirc} = $ss;
-  $self->{_buf} = q{};
-
+  my $io = $self->{_io} =
+    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
+                        device => $self->{_server},
+                        port => 8765,
+                        input_record_type => 'xPL::IORecord::LFLine',
+                        reader_callback => sub { $self->lirc_reader(@_) });
   return $self;
 }
 
-=head2 C<read_lirc( )>
+=head2 C<lirc_reader( )>
 
 This callback reads data from the LIRC server.
 
 =cut
 
-sub read_lirc {
-  my $self = shift;
-  my $bytes =
-    $self->{_lirc}->sysread($self->{_buf}, 512, length($self->{_buf}));
-  if (!$bytes) {
-    die 'lircd socket '.(defined $bytes ? 'closed' : 'error')."\n";
+sub lirc_reader {
+  my ($self, $handler, $msg, $last) = @_;
+  $self->info($msg,"\n");
+  if ($msg->raw =~ m!^\S+ \S{2} (\S+) (\S+)!) {
+    my $device = lc($2);
+    my $key = lc($1);
+    my %args =
+      (
+       message_type => 'xpl-trig',
+       class => 'remote.basic',
+       body => { device => $device, 'keys' => $key },
+      );
+    $self->info("Sending $device $key\n");
+    return $self->xpl->send(%args);
   }
-  while ($self->{_buf} =~ s/^(.*?)\n//) {
-    $_ = $1;
-    $self->info($_, "\n");
-    if (m!^\S+ \S{2} (\S+) (\S+)!) {
-      my $device = lc($2);
-      my $key = lc($1);
-      my %args =
-        (
-         message_type => 'xpl-trig',
-         class => 'remote.basic',
-         body => { device => $device, 'keys' => $key },
-        );
-      $self->info("Sending $device $key\n");
-      return $self->xpl->send(%args);
-    }
-  }
+  return 0;
 }
 
 1;

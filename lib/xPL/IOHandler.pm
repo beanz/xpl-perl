@@ -66,7 +66,7 @@ sub new {
      _output_record_type => 'xPL::IORecord::Simple',
     };
   if ($p{device}) {
-    $p{handle} = $pkg->device_open($p{device}, $p{baud});
+    $p{handle} = $pkg->device_open($p{device}, $p{baud}, $p{port});
   }
   foreach ('verbose', @FIELDS) {
     next unless (exists $p{$_});
@@ -98,19 +98,24 @@ failure.
 =cut
 
 sub device_open {
-  my ($self, $dev, $baud) = @_;
+  my ($self, $dev, $baud, $port) = @_;
   my $fh;
   if ($dev =~ /\//) {
-    # TODO: use Device::SerialPort?
-    system("stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
-      $self->argh("Setting serial port with stty failed: $!\n");
-    $fh = FileHandle->new;
-    sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
-      or $self->argh("open of '$dev' failed: $!\n");
-    $fh->autoflush(1);
-    binmode($fh);
+    if (-S $dev) {
+      $fh = IO::Socket::UNIX->new($dev)
+        or $self->argh("Unix domain socket connect to '$dev' failed: $!\n");
+    } else {
+      # TODO: use Device::SerialPort?
+      system("stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
+        $self->argh("Setting serial port with stty failed: $!\n");
+      $fh = FileHandle->new;
+      sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+        or $self->argh("open of '$dev' failed: $!\n");
+      $fh->autoflush(1);
+      binmode($fh);
+    }
   } else {
-    $dev .= ':10001' unless ($dev =~ /:/);
+    $dev .= ':'.($port||'10001') unless ($dev =~ /:/);
     $fh = IO::Socket::INET->new($dev)
       or $self->argh("TCP connect to '$dev' failed: $!\n");
   }

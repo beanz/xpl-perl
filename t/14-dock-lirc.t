@@ -67,7 +67,8 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "END\n", 'non-key message');
 $client->close;
 
-is(test_error(sub { $xpl->main_loop(1); }), "lircd socket closed\n", 'close');
+is(test_error(sub { $xpl->main_loop(1); }),
+   "xPL::IOHandler->read: closed", 'close');
 
 $device->close;
 {
@@ -78,7 +79,8 @@ $device->close;
                  '--lirc-verbose',
                  '--lirc-server' => '127.0.0.1:'.$port);
   is(test_error(sub { $xpl = xPL::Dock->new(port => 0); }),
-     'Failed to connect to 127.0.0.1:'.$port.": Connection refused\n",
+     (q{xPL::IOHandler->device_open: TCP connect to '127.0.0.1:}.$port.
+      q{' failed: Connection refused}),
      'connection refused');
 }
 
