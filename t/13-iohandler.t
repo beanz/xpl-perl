@@ -3,9 +3,11 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 24;
+use Test::More tests => 27;
 use IO::Select;
 use IO::Socket::INET;
+use IO::Socket::UNIX;
+use Cwd;
 use t::Helpers qw/test_warn test_error test_output/;
 use lib 't/lib';
 $|=1;
@@ -162,3 +164,23 @@ is(test_warn(sub {
             }),
    'IO::Socket::INET: 127.0.0.1:10001', 'test default port');
 
+is(test_warn(sub {
+               my $io = MyIOH->device_open('127.0.0.1', undef, '12345');
+             }),
+   'IO::Socket::INET: 127.0.0.1:12345', 'test default port');
+
+my $fifo = getcwd.'/t/fifo.'.$$;
+ok(IO::Socket::UNIX->new(Listen => 1, Local => $fifo),
+   'creating fake unix domain socket');
+
+no warnings;
+*{IO::Socket::UNIX::new} = sub { return };
+use warnings;
+
+like(test_warn(sub {
+              my $io = MyIOH->new(device => $fifo,
+                                  reader_callback => \&device_reader,
+                                  xpl => $xpl);
+            }),
+   qr!MyIOH: Unix domain socket connect to '\Q$fifo\E' failed: !,
+     'test unix domain socket failure');
