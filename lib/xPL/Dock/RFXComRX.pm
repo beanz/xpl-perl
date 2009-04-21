@@ -97,7 +97,7 @@ sub device_reader {
   my $xpl = $self->xpl;
   my $res = $self->{_rf}->process_variable_length($msg->raw);
   print "Processed: $msg\n" if ($self->verbose && !$res->{duplicate});
-  return 1 unless ($res->{messages} && (ref $res->{messages}));
+  return 1 unless (ref $res->{messages});
   foreach my $xplmsg (@{$res->{messages}}) {
     print $xplmsg->summary,"\n";
     $xpl->send($xplmsg);

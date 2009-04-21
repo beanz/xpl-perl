@@ -27,14 +27,14 @@ ok(!defined $res, 'ignores short message - 2c response');
 $res = $rf->process_variable_length(pack 'H*','00');
 ok($res, 'recognizes valid length - 0-bit null');
 is($res->{length}, 1, 'recognizes sufficient data - 0-bit null');
-is(scalar @{$res->{messages}}, 0, 'array has no messages - 0-bit null');
+is($res->{messages}, undef, 'no messages - 0-bit null');
 
 $rf = xPL::RF->new(source => 'bnz-rfxcom.localhost', verbose => 1);
 is(test_warn(sub { $res = $rf->process_variable_length(pack 'H*','100000'); }),
    "Unknown message, len=16:\n  0000\n", 'warning - 16-bit null');
 ok($res, 'recognizes valid length - 16-bit null');
 is($res->{length}, 3, 'recognizes sufficient data - 16-bit null');
-is(scalar @{$res->{messages}}, 0, 'array has no messages - 16-bit null');
+is($res->{messages}, undef, 'no messages - 16-bit null');
 
 $res = $rf->process_variable_length(pack 'H*', '20649b');
 ok($res, 'recognizes valid length w/insufficent data');
@@ -77,5 +77,5 @@ is(test_warn(sub { $res = $rf->process_variable_length(pack 'H*','0710'); }),
    "Unknown message, len=7:\n  10\n", 'short unrecognized - warning');
 ok($res, 'short unrecognized but valid command');
 is($res->{length}, 2, 'short unrecognized but valid command - two bytes');
-is(scalar @{$res->{messages}}, 0,
+is($res->{messages}, undef,
    'short unrecognized but valid command - no messages');

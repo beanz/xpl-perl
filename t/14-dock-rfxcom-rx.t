@@ -79,6 +79,7 @@ command=on
 device=a11
 }
 !);
+$plugin->{_verbose} = 1;
 print $client pack 'H*', '20649b08f7';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    '', # duplicate
@@ -88,7 +89,8 @@ check_sent_msg(undef);
 $xpl->verbose(0);
 print $client pack 'H*', '20649b28d7';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   "xpl-trig/x10.basic: bnz-dingus.mytestid -> * - off a11\n",
+   ("Processed: 20649b28d7\n".
+    "xpl-trig/x10.basic: bnz-dingus.mytestid -> * - off a11\n"),
    'read response - a11/off');
 check_sent_msg(q!xpl-trig
 {

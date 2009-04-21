@@ -70,12 +70,12 @@ foreach my $m (sort keys %msg) {
      $m.' - test warning');
 
   my $length = $res ? $res->{length}.' bytes' : 'undef';
-  my $count = $res ? scalar @{$res->{messages}}.' messages' : 'undef';
+  my $count = $res ? scalar @{$res->{messages}||[]}.' messages' : 'undef';
   is($length, $rec->{len}, $m.' - correct number of bytes');
   is($count, $rec->{count}, $m.' - correct number of messages');
   my $string = 'empty';
   if (defined $res) {
-    if (@{$res->{messages}}) {
+    if (@{$res->{messages}||[]}) {
       $string = $EMPTY;
       foreach (@{$res->{messages}}) {
         $string .= $_->string;

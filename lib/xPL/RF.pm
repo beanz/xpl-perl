@@ -164,17 +164,17 @@ sub process_variable_length {
 
   # TODO: master/slave ?
   my $length_bits = $hdr_byte & 0x7f;
-  return { length => 1, messages => [] } if ($length_bits == 0);
+  return { length => 1 } if ($length_bits == 0);
   my $length = $length_bits / 8;
   if (scalar @bytes < $length) {
     # not enough data in buffer
-    return { length => 0, messages => [] };
+    return { length => 0 };
   }
   if ($length != int $length) {
     # not a whole number of bytes so we must round it up
     $length = 1 + int $length;
   }
-  my $res = { length => $length+1, messages => [] };
+  my $res = { length => $length+1 };
   my $msg = substr $buf, 1, $length; # message from buffer
   if ($self->is_duplicate($length_bits, $msg)) {
     $res->{duplicate} = 1;
