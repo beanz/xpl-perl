@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 25;
+use Test::More tests => 28;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -35,6 +35,7 @@ $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::Owfs', 'plugin has correct type');
 
+$plugin->owfs_write('28.FEFEFE000000/counters.A', 101);
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    'CRC8 error rate   0.01
 CRC16 error rate   0.00
@@ -58,8 +59,24 @@ check_sent_msg({
                 'message_type' => 'xpl-trig',
                 'class' => 'sensor.basic'
                }, 'temp reported');
+check_sent_msg({
+                'body' => {
+                           'current' => '101',
+                           'type' => 'count',
+                           'device' => '28.FEFEFE000000.0'
+                          },
+                'message_type' => 'xpl-trig',
+                'class' => 'sensor.basic'
+               }, 'count.1 reported');
 
-$plugin->owfs_reader();
+$plugin->owfs_write('28.FEFEFE000000/counters.A', 102);
+$plugin->owfs_write('28.FEFEFE000000/counters.B', 102);
+chmod 0, 't/ow/1/28.FEFEFE000000/counters.B';
+
+
+like(test_warn(sub { $plugin->owfs_reader(); }),
+     qr!^Failed to read ow file, t/ow/1/28\.FEFEFE000000/counters\.B: !,
+     'read failure');
 check_sent_msg({
                 'body' => {
                            'current' => '20.1',
@@ -69,6 +86,17 @@ check_sent_msg({
                 'message_type' => 'xpl-stat',
                 'class' => 'sensor.basic'
                }, 'temp reported');
+check_sent_msg({
+                'body' => {
+                           'current' => '102',
+                           'type' => 'count',
+                           'device' => '28.FEFEFE000000.0'
+                          },
+                'message_type' => 'xpl-trig',
+                'class' => 'sensor.basic'
+               }, 'count.1 reported');
+unlink 't/ow/1/28.FEFEFE000000/counters.A';
+unlink 't/ow/1/28.FEFEFE000000/counters.B';
 
 {
   local $0 = 'dingus';

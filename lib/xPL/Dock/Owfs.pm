@@ -160,7 +160,8 @@ sub owfs_reader {
       my ($filebase, $type, $index) = @$rec;
       my $file = $dev.'/'.$filebase;
       next unless (-f $file);
-      my $value = read_ow_file($file) or next;
+      my $value = read_ow_file($file);
+      next unless (defined $value);
       $found++;
       my $old = $self->{_state}->{$dev}->{$filebase};
       my $message_type =
