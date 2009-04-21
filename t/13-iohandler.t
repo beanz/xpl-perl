@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 22;
+use Test::More tests => 24;
 use IO::Select;
 use IO::Socket::INET;
 use t::Helpers qw/test_warn test_error test_output/;
@@ -92,6 +92,9 @@ $client->close;
 is(test_error(sub { $cb->($in, $io); }),
    'MyIOH->read: closed', 'dies on close');
 
+like(test_error(sub { $io->read(FileHandle->new()) }),
+   qr/^MyIOH->read: failed: /, 'read failed error');
+
 $device->close;
 is(test_error(sub {
                 my $io = MyIOH->new(device => '127.0.0.1:'.$port,
@@ -147,4 +150,15 @@ $warn =
 
 is($warn, undef, 'stty worked');
 is($err, "-F /dev/null ospeed 9600 pass8 raw -echo\n", 'stty called correctly');
+
+no warnings;
+*{IO::Socket::INET::new} = sub { my $self = shift; warn $self.': ',@_; };
+use warnings;
+
+is(test_warn(sub {
+              my $io = MyIOH->new(device => '127.0.0.1',
+                                  reader_callback => \&device_reader,
+                                  xpl => $xpl);
+            }),
+   'IO::Socket::INET: 127.0.0.1:10001', 'test default port');
 
