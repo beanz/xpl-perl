@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 9;
+use Test::More tests => 12;
 
 use_ok('xPL::Message');
 
@@ -94,3 +94,21 @@ fred.schema
 
 is(xPL::Message->new_from_payload($payload)->string, $payload,
    'new_from_payload with empty body');
+
+$payload =
+'xpl-stat
+{
+hop=1
+source=vendor-device.instance
+target=*
+}
+hbeat.basic
+{
+interval=5
+}
+';
+
+my $m = xPL::Message->new_from_payload($payload);
+ok($m, 'new_from_pauload hbeat.basic');
+is($m->string, $payload, 'new_from_payload hbeat.basic body');
+is($m->interval(40), 40, 'new_from_payload hbeat.basic field not-strict');
