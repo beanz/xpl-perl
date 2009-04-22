@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 13;
+use Test::More tests => 19;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -36,6 +36,8 @@ my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::DawnDusk', 'plugin has correct type');
 my $state = $plugin->state;
+my $opposite = { day => 'night', 'night' => 'day' }->{$state};
+
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-dawndusk.test' },
@@ -74,6 +76,25 @@ foreach my $timer (@$timers) {
                  }, 'response - verbose '.$timer);
 }
 
+{
+  local $0 = 'dingus';
+  local @ARGV = ('--verbose',
+                 '--dawndusk-verbose', '--dawndusk-verbose',
+                 '--dawndusk-longitude' => +179,
+                 '--dawndusk-latitude' => -51,
+                 '--dawndusk-altitude' => -0.583,
+                 '--dawndusk-iteration' => 1,
+                 '--interface', 'lo',
+                 '--define', 'hubless=1');
+  $xpl = xPL::Dock->new(port => 0);
+}
+ok($xpl, 'created dock client');
+$plugin = ($xpl->plugins)[0];
+ok($plugin, 'plugin exists');
+is(ref $plugin, 'xPL::Dock::DawnDusk', 'plugin has correct type');
+is($plugin->state, $opposite, 'check opposite state');
+is($plugin->altitude, -0.583, 'check altitude');
+is($plugin->iteration, 1, 'check iteration');
 
 sub check_sent_msg {
   my ($expected, $desc) = @_;
