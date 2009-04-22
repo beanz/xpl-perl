@@ -251,9 +251,9 @@ sub write_next {
   if (defined $ack_timeout) {
     $xpl->add_timer(id => '!waiting'.$self, timeout => $ack_timeout,
                     callback => sub {
-                      defined $self->{_ack_timeout_callback} and
-                        $self->{_ack_timeout_callback}->($self,
-                                                         $self->{_waiting});
+                      $self->{_ack_timeout_callback}->($self,
+                                                       $self->{_waiting})
+                        if (defined $self->{_ack_timeout_callback});
                       $self->write_next(); 1; });
   }
   $fh->flush();
