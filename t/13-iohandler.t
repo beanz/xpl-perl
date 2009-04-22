@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 27;
+use Test::More tests => 34;
 use IO::Select;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
@@ -28,6 +28,10 @@ my @input;
   sub add_input {
     my $self = shift;
     $self->{input} = { @_ };
+  }
+  sub add_timer {
+    my $self = shift;
+    $self->{timer} = { @_ };
   }
   sub exists_timer { 0 }
   1;
@@ -93,6 +97,29 @@ is($count, 1, 'write_next not called (again)');
 $client->close;
 is(test_error(sub { $cb->($in, $io); }),
    'MyIOH->read: closed', 'dies on close');
+
+# write ack_timeout test
+$io = MyIOH->new(device => '127.0.0.1:'.$port,
+                 reader_callback => \&device_reader,
+                 ack_timeout => 0.1,
+                 input_record_type => 'xPL::IORecord::LFLine',
+                 output_record_type => 'xPL::IORecord::LFLine',
+                 xpl => $xpl);
+ok($sel->can_read(0.5), 'serial device ready to accept');
+$client = $device->accept;
+ok($client, 'client accepted');
+my $client_sel = IO::Select->new($client);
+
+$io->write('1');
+is($count, 2, 'write_next called (again)');
+ok($client_sel->can_read(0.5), 'serial device ready to read - 1');
+my $buf = '';
+is((sysread $client, $buf, 512), 2, 'serial device read length - 1');
+is($buf, "1\n", 'serial device read content - 1');
+
+$cb = $xpl->{timer}->{callback};
+$cb->();
+is($count, 3, 'write_next called (yet again)');
 
 like(test_error(sub { $io->read(FileHandle->new()) }),
    qr/^MyIOH->read: failed: /, 'read failed error');
