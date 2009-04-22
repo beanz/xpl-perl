@@ -138,7 +138,6 @@ This callback handles responses the input from the lcdproc server.
 
 sub read_lcdproc {
   my ($self, $handler, $msg, $waiting) = @_;
-  return unless ($msg);
   my $line = $msg->raw;
   if ($line =~ /^connect\b/) {
     $self->{_columns} = $1 if ($line =~ /\bwid\s+(\d+)/);
@@ -156,9 +155,10 @@ sub read_lcdproc {
     $handler->write_next();
   } elsif ($line eq 'success') {
     $handler->write_next();
-  } elsif ($line =~ /^huh\?/) {
-    warn "Failed sending ", $waiting, "\ngot: ", $line, "\n";
-    $handler->write_next();
+  } else {
+    my $str = (defined $waiting ? $waiting : '*nothing*');
+    warn "Failed. Sent: ", $str, "\ngot: ", $line, "\n";
+    $handler->write_next() if ($line =~ /^huh\?/);
   }
   return 0;
 }
