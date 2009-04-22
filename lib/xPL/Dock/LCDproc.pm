@@ -109,7 +109,7 @@ sub xpl_in {
   my $peerport = $p{peerport};
 
   my $row = $msg->row;
-  unless ($row && $row >= 1 && $row <= $self->{_rows}) {
+  unless ($row && $row >= 1 && $row <= ($self->{_rows}||1)) {
     $row = 1;
   }
   if ((lc $msg->command) eq 'clear') {

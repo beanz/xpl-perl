@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 112;
+use Test::More tests => 113;
 use Time::HiRes;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
@@ -92,14 +92,14 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              class_type => 'basic',
                                              body =>
                                              {
-                                              row => 1,
+                                              row => 2,
                                               'command' => 'clear',
                                               'text' => 'test',
                                              }));
 
-foreach my $r (['widget_add xplosd row1 string' =>
-                'sending: widget_set xplosd row1 1 1 "test"'],
-               ['widget_set xplosd row1 1 1 "test"' =>
+foreach my $r (['widget_add xplosd row2 string' =>
+                'sending: widget_set xplosd row2 1 2 "test"'],
+               ['widget_set xplosd row2 1 2 "test"' =>
                 'sending: screen_set xplosd -priority alert'],
                ['screen_set xplosd -priority alert' =>
                 ''],
@@ -110,6 +110,9 @@ foreach my $r (['widget_add xplosd row1 string' =>
   is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
      ($output ? $output."\n" : ''), "output '$input'");
 }
+
+is(test_output(sub { $plugin->clear_row(1) }, \*STDOUT),
+   '', 'clear row');
 
 $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              head =>
@@ -128,8 +131,8 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              }));
 
 foreach my $r (['screen_set xplosd -priority hidden' =>
-                'sending: widget_del xplosd row1'],
-               ['widget_del xplosd row1' =>
+                'sending: widget_del xplosd row2'],
+               ['widget_del xplosd row2' =>
                 'sending: widget_add xplosd row1 scroller'],
                ['widget_add xplosd row1 scroller' =>
                 'sending: widget_set xplosd row1 1 1 20 1 h 2 '.
@@ -315,6 +318,7 @@ is(test_output(
                                              class_type => 'basic',
                                              body =>
                                              {
+                                              row => 2,
                                               'command' => 'clear',
                                               'text' =>
                                                 'another string',
