@@ -31,6 +31,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
+our $FILE_PREFIX = '';
 
 __PACKAGE__->make_readonly_accessor($_) foreach (qw/interval/);
 
@@ -85,81 +86,75 @@ sub poll {
   my $self = shift;
   my $xpl = $self->xpl;
 #   my $p = '/sys/class/thermal';
-#   my $dh = DirHandle->new($p);
-#   if ($dh) {
-#     foreach my $zone ($dh->read) {
-#       my $f = $p.'/'.$zone.'/temp';
-#       next unless (-f $f);
-#       my $temp = read_line($f);
-#       next unless (defined $temp && $temp !~ /\D/);
-#       $temp /= 1000;
-#       $zone =~ s/thermal_//;
-#       my $device = $self->xpl->instance_id."-".$zone;
-#       my $old = $self->{_state}->{$device.'-temp'};
-#       $self->{_state}->{$device.'-temp'} = $temp;
-#       my $type;
-#       if (!defined $old || $temp != $old) {
-#         $type = 'xpl-trig';
-#         $self->info("$device $temp\n");
-#       } else {
-#         $type = 'xpl-stat';
-#       }
-#       $self->xpl->send(message_type => $type, class => 'sensor.basic',
-#                        body =>
-#                        { device => $device, type => 'temp', current => $temp });
+#   foreach my $zone (@{dir_entries($p)}) {
+#     my $f = $p.'/'.$zone.'/temp';
+#     next unless (-f $f);
+#     my $temp = read_line($f);
+#     next unless (defined $temp && $temp !~ /\D/);
+#     $temp /= 1000;
+#     $zone =~ s/thermal_//;
+#     my $device = $self->xpl->instance_id."-".$zone;
+#     my $old = $self->{_state}->{$device.'-temp'};
+#     $self->{_state}->{$device.'-temp'} = $temp;
+#     my $type;
+#     if (!defined $old || $temp != $old) {
+#       $type = 'xpl-trig';
+#       $self->info("$device $temp\n");
+#     } else {
+#       $type = 'xpl-stat';
 #     }
+#     $self->xpl->send(message_type => $type, class => 'sensor.basic',
+#                      body =>
+#                      { device => $device, type => 'temp', current => $temp });
 #   }
 
   my $p = '/sys/class/power_supply';
-  my $dh = DirHandle->new($p);
-  if ($dh) {
-    foreach my $dev ($dh->read) {
-      my $f;
-      if (-f ($f = $p.'/'.$dev.'/charge_full') ||
-          -f ($f = $p.'/'.$dev.'/energy_full')) {
-        my $full = read_line($f);
-        next unless (defined $full && $full !~ /\D/);
-        $f =~ s/_full$/_now/;
-        my $now = read_line($f);
-        next unless (defined $now && $now !~ /\D/);
-        my $bat = $now*100/$full;
-        my $device = $self->xpl->instance_id."-".(lc $dev);
-        my $old = $self->{_state}->{$device.'-battery'};
-        $self->{_state}->{$device.'-battery'} = $bat;
-        my $type;
-        if (!defined $old || $bat != $old) {
-          $type = 'xpl-trig';
-          $self->info("$device $bat%\n");
-        } else {
-          $type = 'xpl-stat';
-        }
-        $self->xpl->send(message_type => $type, class => 'sensor.basic',
-                         body => {
-                                  device => $device,
-                                  type => 'battery',
-                                  current => $bat,
-                                  units => '%',
-                                 }
-                        );
-      } elsif (-f ($f = $p.'/'.$dev.'/online')) {
-        my $online = read_line($f);
-        next unless (defined $online);
-        my $state = $online ? 'mains' : 'battery';
-        my $device = $self->xpl->instance_id."-".(lc $dev);
-        my $old = $self->{_state}->{$device.'-power'};
-        $self->{_state}->{$device.'-power'} = $state;
-        my $type;
-        if (!defined $old || $state ne $old) {
-          $self->info("$device $state ($online)\n");
-          if (defined $old) {
-            $self->xpl->send(message_type => 'xpl-trig',
-                             class => 'ups.basic',
-                             body => {
-                                      status => $state,
-                                      event => 'on'.$state,
-                                     }
-                            );
-          }
+  foreach my $dev (@{dir_entries($p)}) {
+    my $f;
+    if (is_file($f = $p.'/'.$dev.'/charge_full') ||
+        is_file($f = $p.'/'.$dev.'/energy_full')) {
+      my $full = read_line($f);
+      next unless (defined $full && $full !~ /\D/);
+      $f =~ s/_full$/_now/;
+      my $now = read_line($f);
+      next unless (defined $now && $now !~ /\D/);
+      my $bat = sprintf "%.2f", $now*100/$full;
+      my $device = $self->xpl->instance_id."-".(lc $dev);
+      my $old = $self->{_state}->{$device.'-battery'};
+      $self->{_state}->{$device.'-battery'} = $bat;
+      my $type;
+      if (!defined $old || $bat != $old) {
+        $type = 'xpl-trig';
+        $self->info("$device $bat%\n");
+      } else {
+        $type = 'xpl-stat';
+      }
+      $self->xpl->send(message_type => $type, class => 'sensor.basic',
+                       body => {
+                                device => $device,
+                                type => 'battery',
+                                current => $bat,
+                                units => '%',
+                               }
+                      );
+    } elsif (is_file($f = $p.'/'.$dev.'/online')) {
+      my $online = read_line($f);
+      next unless (defined $online);
+      my $state = $online ? 'mains' : 'battery';
+      my $device = $self->xpl->instance_id."-".(lc $dev);
+      my $old = $self->{_state}->{$device.'-power'};
+      $self->{_state}->{$device.'-power'} = $state;
+      my $type;
+      if (!defined $old || $state ne $old) {
+        $self->info("$device $state ($online)\n");
+        if (defined $old) {
+          $self->xpl->send(message_type => 'xpl-trig',
+                           class => 'ups.basic',
+                           body => {
+                                    status => $state,
+                                    event => 'on'.$state,
+                                   }
+                          );
         }
       }
     }
@@ -167,7 +162,20 @@ sub poll {
   return 1;
 }
 
-=head2 C<read( $file )>
+=head2 C<dir_entries( $path )>
+
+Returns a list reference of directory entries or an empty list reference.
+
+=cut
+
+sub dir_entries {
+  my $dh = DirHandle->new($FILE_PREFIX.$_[0]) or return [];
+  my @e = $dh->read;
+  $dh->close;
+  return \@e;
+}
+
+=head2 C<read_line( $file )>
 
 Reads a value from a file.
 
@@ -175,11 +183,22 @@ Reads a value from a file.
 
 sub read_line {
   my ($file) = @_;
-  open my $fh, '<'.$file or return undef;
+  open my $fh, '<'.$FILE_PREFIX.$file or return undef;
   my $v = <$fh>;
   close $fh;
   chomp $v;
   return $v;
+}
+
+=head2 C<is_file( $file )>
+
+Returns true if the named path represents a file.
+
+=cut
+
+sub is_file {
+  my ($file) = @_;
+  return -f $FILE_PREFIX.$file;
 }
 
 1;
