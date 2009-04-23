@@ -94,8 +94,8 @@ foreach my $m (sort keys %msg) {
     }
     is($result, $expected_result,
        $m.' - message->'.$method.$OPEN_B.(join $COMMA, @args).$CLOSE_B);
-    if ($error) {
-      $error =~ s/\s+at \S+ line \d+\.?\s*$//;
+    if (defined $error) {
+      $error =~ s/\s+at \S+ line \d+\.?\s*$//m;
     }
     is($error, $expected_error,
        $m.' - error from message->'.$method.

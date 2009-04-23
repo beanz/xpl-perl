@@ -21,6 +21,7 @@ contains a number of helper methods.
 use 5.006;
 use strict;
 use warnings;
+use Carp;
 use English qw/-no_match_vars/;
 use FileHandle;
 use Socket;
@@ -691,7 +692,7 @@ sub argh {
   if (ref $pkg) { $pkg = ref $pkg }
   my ($file, $line, $method) = (caller 1)[1,2,3];
   $method =~ s/.*:://;
-  die $pkg."->$method: @_\n  at $file line $line.\n";
+  croak $pkg."->$method: @_\n";
 }
 
 =head2 C<ouch(@message)>
@@ -705,7 +706,7 @@ sub ouch {
   if (ref $pkg) { $pkg = ref $pkg }
   my ($file, $line, $method) = (caller 1)[1,2,3];
   $method =~ s/.*:://;
-  warn $pkg."->$method: @_\n  at $file line $line.\n";
+  carp $pkg."->$method: @_\n";
   return;
 }
 
@@ -719,8 +720,7 @@ sub argh_named {
   my $pkg = shift;
   my $name = shift;
   if (ref $pkg) { $pkg = ref $pkg }
-  my ($file, $line) = (caller 1)[1,2];
-  die $pkg."->$name: @_\n  at $file line $line.\n";
+  croak $pkg."->$name: @_\n";
 }
 
 =head2 C<ouch_named(@message)>
@@ -733,8 +733,7 @@ sub ouch_named {
   my $pkg = shift;
   my $name = shift;
   if (ref $pkg) { $pkg = ref $pkg }
-  my ($file, $line) = (caller 1)[1,2];
-  warn $pkg."->$name: @_\n  at $file line $line.\n";
+  carp $pkg."->$name: @_\n";
   return;
 }
 
