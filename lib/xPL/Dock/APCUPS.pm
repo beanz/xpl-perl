@@ -153,7 +153,7 @@ sub read {
       $self->xpl->send(message_type => $msgtype, class => 'sensor.basic',
                        body => \%body);
     } elsif ($field eq 'STATUS') {
-      my $state = $value =~ /ONBATT/ ? 'mains' : 'battery';
+      my $state = $value =~ /ONLINE/ ? 'mains' : 'battery';
       $value =~ s/\s+$//;
       my $device = $self->xpl->instance_id.'-'.(lc $field);
       my $old = $self->{_state}->{$device};
@@ -176,11 +176,17 @@ sub read {
   return 1;
 }
 
+=head2 C<decode_nis_string( $string )>
+
+Decodes a string to be sent by the apcups daemon.
+
+=cut
+
 sub decode_nis_string {
   my $buf_len = length $_[0];
   return unless ($buf_len >= 2);
   my ($c, $l) = unpack "C C", $_[0];
-  warn "Invalid string?" unless ($c == 0);
+  warn "Invalid string? ", (unpack 'H*', $_[0]), "\n" unless ($c == 0);
   if ($l == 0) {
     substr $_[0], 0, $l+2, '';
     return '';
@@ -189,6 +195,12 @@ sub decode_nis_string {
   my $res = substr $_[0], 0, $l+2, '';
   return substr $res, 2;
 }
+
+=head2 C<encode_nis_string( $string )>
+
+Encodes a string to be sent to the apcups daemon.
+
+=cut
 
 sub encode_nis_string {
   return pack "C C a*", 0, length $_[0], $_[0];
