@@ -189,6 +189,8 @@ t/11-sms-send-csoft.t
 t/11-sms-send-smsdiscount.t
 t/12-dock.t
 t/13-dock-plug.t
+t/13-iohandler.t
+t/13-iorecords.t
 t/14-dock-bluetooth.t
 t/14-dock-dawndusk.t
 t/14-dock-dmx.t
@@ -196,6 +198,7 @@ t/14-dock-easydaq.t
 t/14-dock-hddtemp.t
 t/14-dock-heyu.t
 t/14-dock-lcdproc.t
+t/14-dock-linux.t
 t/14-dock-lirc.t
 t/14-dock-owfs.t
 t/14-dock-rfxcom-rx.t
@@ -215,6 +218,19 @@ t/interfaces/ifconfig.loopback.only/ifconfig
 t/interfaces/ifconfig.macosx/ifconfig
 t/interfaces/ip.addr.show.linux/ip
 t/lib/xPL/Dock/Test.pm
+t/linux/1/sys/class/power_supply/AC/online
+t/linux/1/sys/class/power_supply/BAT0/energy_full
+t/linux/1/sys/class/power_supply/BAT0/energy_now
+t/linux/1/sys/class/power_supply/BAT1/charge_full
+t/linux/1/sys/class/power_supply/BAT2/charge_full
+t/linux/1/sys/class/power_supply/BAT2/charge_now
+t/linux/1/sys/class/power_supply/BAT3/charge_full
+t/linux/2/sys/class/power_supply/AC/online
+t/linux/2/sys/class/power_supply/BAT0/charge_full
+t/linux/2/sys/class/power_supply/BAT0/charge_now
+t/linux/3/sys/class/power_supply/AC/online
+t/linux/3/sys/class/power_supply/BAT0/charge_full
+t/linux/3/sys/class/power_supply/BAT0/charge_now
 t/msg/000.xpl.test.txt
 t/msg/001.hbeat.basic.txt
 t/msg/002.hbeat.basic.def.txt
