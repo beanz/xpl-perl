@@ -103,6 +103,12 @@ sub init {
   return $self;
 }
 
+=head2 C<seq( )>
+
+Next sequence number to use for communications with the heyu helper script.
+
+=cut
+
 sub seq {
   sprintf "%08x", $_[0]->{_helper_seq}++
 }
