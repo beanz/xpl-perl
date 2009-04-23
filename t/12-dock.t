@@ -30,11 +30,16 @@ my $fh;
 
 my $code;
 my $lines;
+my $has_perldoc;
 
 # The begin block is global of course but this is where it is really used.
 BEGIN{
   *CORE::GLOBAL::exit = sub { $code = $_[0]; die "EXIT\n" };
   require Pod::Usage; import Pod::Usage;
+  if (open my $f, 'perldoc 2>&1 |') {
+    $has_perldoc = 1 if (<$f> =~ /^perldoc/);
+    close $f;
+  }
 }
 {
   local @ARGV = ('--help', '--interface' => 'lo');
@@ -54,10 +59,14 @@ undef $lines;
                   eval { xPL::Dock->new(port => 0, name => 'dingus'); }
                 }, \*STDOUT);
 }
-like((split /\n/, $lines)[0],
-  qr{^12-DOCK\.T\(1\)\s+User Contributed Perl Documentation\s+12-DOCK\.T\(1\)},
-     'man content');
-is($code, 0, 'man exit code');
+SKIP: {
+  skip 'broken perldoc? not perl-doc package perhaps?', 2 unless ($has_perldoc);
+  like((split /\n/, $lines)[0],
+       qr{^12-DOCK\.T\(1\)\s+User Contributed Perl Documentation\s+12-DOCK\.T\(1\)},
+       'man content');
+  is($code, 0, 'man exit code');
+}
+
 
 undef $code;
 undef $lines;

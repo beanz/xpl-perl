@@ -6,9 +6,26 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 19;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
+
+BEGIN {
+  require Test::More;
+
+  eval {
+    require DateTime::Event::sunrise;
+  };
+  if ($@) {
+    import Test::More skip_all => 'No DateTime::Event::sunrise perl module';
+  }
+  eval {
+    require DateTime::Event::sunset;
+  };
+  if ($@) {
+    import Test::More skip_all => 'No DateTime::Event::sunset perl module';
+  }
+  import Test::More tests => 19;
+}
 
 use_ok('xPL::Dock','DawnDusk');
 

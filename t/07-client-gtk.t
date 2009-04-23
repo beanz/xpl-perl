@@ -7,14 +7,20 @@ use Socket;
 
 BEGIN {
   require Test::More;
-  if (exists $ENV{DISPLAY}) {
-    import Test::More tests => 11;
-  } else {
+  unless (exists $ENV{DISPLAY}) {
     import Test::More skip_all => 'No X11 DISPLAY defined';
     exit;
   }
+  eval {
+    require Gtk2; import Gtk2 -init;
+  };
+  if ($@) {
+    import Test::More skip_all => 'No Gtk2 perl module installed';
+    exit;
+  }
+  import Test::More tests => 11;
 }
-use Gtk2 -init;
+
 use FileHandle;
 use t::Helpers qw/test_error test_warn/;
 $|=1;

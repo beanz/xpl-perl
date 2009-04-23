@@ -297,7 +297,7 @@ $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - no ack');
 $m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, 'f03ff03f', 'content is correct - no ack');
-is(test_output(sub { $xpl->main_loop(1) }, \*STDERR), "No ack!\n", 'no ack');
+is(test_output(sub { $xpl->main_loop(2) }, \*STDERR), "No ack!\n", 'no ack');
 ok($client_sel->can_read(0.5), 'serial device ready to read - no ack');
 $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - no ack');

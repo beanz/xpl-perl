@@ -197,17 +197,24 @@ while ($count == $xpl->input_callback_count($plugin->{_io}->{_input_handle})) {
   $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
 }
 
-# TOFIX: not sure why this changed
-is($out, "Helper wrote: testing unsupported line\n", 'helper output');
-#is($out, "Helper wrote: Testing error case\n", 'helper output');
+# hack to fix timing issue... sometimes we get both lines in one read
+if ($out !~ /Received/) {
+  is($out, "Helper wrote: testing unsupported line\n", 'helper output');
 
-$count = $xpl->input_callback_count($plugin->{_io}->{_input_handle});
-$out = '';
-while ($count == $xpl->input_callback_count($plugin->{_io}->{_input_handle})) {
-  $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
+  $count = $xpl->input_callback_count($plugin->{_io}->{_input_handle});
+  $out = '';
+  while ($count ==
+           $xpl->input_callback_count($plugin->{_io}->{_input_handle})) {
+    $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
+  }
+
+  is($out, "Received 00000002: 65280 65280\n", 'helper error');
+} else {
+  is($out,
+     "Helper wrote: testing unsupported line\nReceived 00000002: 65280 65280\n",
+     'helper error');
+  ok(1, 'helper output'); # dummy to keep with plan
 }
-
-is($out, "Received 00000002: 65280 65280\n", 'helper error');
 
 sub check_sent_msg {
   my ($expected, $desc) = @_;

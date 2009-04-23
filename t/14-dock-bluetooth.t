@@ -6,9 +6,17 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 10;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
+BEGIN {
+  require Test::More;
+
+  eval { require Net::Bluetooth; };
+  if ($@) {
+    import Test::More skip_all => 'No Net::Bluetooth perl module';
+  }
+  import Test::More tests => 10;
+}
 
 use_ok('xPL::Dock','Bluetooth');
 
