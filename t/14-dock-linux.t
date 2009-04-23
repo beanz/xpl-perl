@@ -52,7 +52,7 @@ open $f, '>'.$unreadable2 or
 close $f;
 chmod 0, $unreadable2;
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   "mytestid-bat0 98.13%\nmytestid-ac mains (1)\n", 'first output');
+   "mytestid-ac mains (1)\nmytestid-bat0 98.13%\n", 'first output');
 unlink $unreadable;
 unlink $unreadable2;
 rmdir $dir.'/AC2';
@@ -94,8 +94,17 @@ $xPL::Dock::Linux::FILE_PREFIX = 't/linux/3';
 use warnings;
 
 is(test_output(sub { $xpl->dispatch_timer('linux!'.$plugin); }, \*STDOUT),
-   "mytestid-bat0 8.33%\nmytestid-ac battery (0)\n", 'third output');
+   "mytestid-ac battery (0)\nmytestid-bat0 8.33%\n", 'third output');
 
+check_sent_msg({
+                message_type => 'xpl-trig',
+                class => 'ups.basic',
+                body =>
+                {
+                 status => 'battery',
+                 event => 'onbattery',
+                },
+               }, 'checking xPL message - ac trig');
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
@@ -107,15 +116,6 @@ check_sent_msg({
                  units => '%',
                 },
                }, 'checking xPL message - bat0 trig');
-check_sent_msg({
-                message_type => 'xpl-trig',
-                class => 'ups.basic',
-                body =>
-                {
-                 status => 'battery',
-                 event => 'onbattery',
-                },
-               }, 'checking xPL message - ac trig');
 
 is_deeply(xPL::Dock::Linux::dir_entries('/non-existent'), [],
           'non-existent directory');

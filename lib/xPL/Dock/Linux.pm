@@ -170,7 +170,7 @@ Returns a list reference of directory entries or an empty list reference.
 
 sub dir_entries {
   my $dh = DirHandle->new($FILE_PREFIX.$_[0]) or return [];
-  my @e = $dh->read;
+  my @e = sort $dh->read;
   $dh->close;
   return \@e;
 }
