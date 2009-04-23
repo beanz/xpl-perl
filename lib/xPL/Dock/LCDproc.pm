@@ -25,7 +25,6 @@ use warnings;
 use English qw/-no_match_vars/;
 use xPL::Dock::Plug;
 use xPL::IOHandler;
-use IO::Socket::INET;
 
 our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
@@ -45,7 +44,7 @@ plugin.
 sub getopts {
   my $self = shift;
   $self->{_delay} = 10;
-  $self->{_server} = '127.0.0.1:13666';
+  $self->{_server} = '127.0.0.1';
   return
     (
      'lcdproc-verbose+' => \$self->{_verbose},
@@ -65,10 +64,6 @@ sub init {
 
   $self->SUPER::init($xpl, @_);
 
-  my $lcdproc = $self->{_lcdproc} =
-    IO::Socket::INET->new($self->{_server}) or
-        die "Failed to connect to ", $self->{_server}, ": $!\n";
-
   # Add a callback to receive all incoming xPL messages
   $xpl->add_xpl_callback(id => 'xpl', self_skip => 0,
                          callback => sub { $self->xpl_in(@_) },
@@ -81,7 +76,8 @@ sub init {
 
   $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
-                        handle => $self->{_lcdproc},
+                        device => $self->{_server},
+                        port => 13666,
                         reader_callback => sub { $self->read_lcdproc(@_) },
                         input_record_type => 'xPL::IORecord::LFLine',
                         output_record_type => 'xPL::IORecord::LFLine',

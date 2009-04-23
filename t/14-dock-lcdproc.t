@@ -283,7 +283,8 @@ $device->close;
                  '--lcdproc-verbose',
                  '--lcdproc-server' => '127.0.0.1:'.$port);
   is(test_error(sub { $xpl = xPL::Dock->new(port => 0); }),
-     'Failed to connect to 127.0.0.1:'.$port.": Connection refused\n",
+     (q{xPL::IOHandler->device_open: TCP connect to '127.0.0.1:}.$port.
+      q{' failed: Connection refused}),
      'connection refused');
 }
 
