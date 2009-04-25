@@ -54,6 +54,7 @@ lib/xPL/Bridge.pm
 lib/xPL/Client.pm
 lib/xPL/Dock/APCUPS.pm
 lib/xPL/Dock/Bluetooth.pm
+lib/xPL/Dock/CurrentCost.pm
 lib/xPL/Dock/DawnDusk.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
@@ -82,6 +83,7 @@ lib/xPL/IORecord/LFLine.pm
 lib/xPL/IORecord/Line.pm
 lib/xPL/IORecord/Simple.pm
 lib/xPL/IORecord/VariableLength.pm
+lib/xPL/IORecord/XML.pm
 lib/xPL/IORecord/ZeroSplitLine.pm
 lib/xPL/Listener.pm
 lib/xPL/Message.pm
@@ -192,6 +194,7 @@ t/13-dock-plug.t
 t/13-iohandler.t
 t/13-iorecords.t
 t/14-dock-bluetooth.t
+t/14-dock-currentcost.t
 t/14-dock-dawndusk.t
 t/14-dock-dmx.t
 t/14-dock-easydaq.t
