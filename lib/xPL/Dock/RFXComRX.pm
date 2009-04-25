@@ -71,6 +71,7 @@ sub init {
   my $io = $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
                         device => $self->{_device},
+                        baud => $self->{_baud},
                         reader_callback => sub { $self->device_reader(@_) },
                         input_record_type => 'xPL::IORecord::VariableLength',
                         output_record_type => 'xPL::IORecord::Hex',

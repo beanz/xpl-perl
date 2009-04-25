@@ -85,6 +85,7 @@ sub init {
   my $io = $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
                         device => $self->{_device},
+                        baud => $self->{_baud},
                         ack_timeout => 6,
                         ack_timeout_callback => sub { $self->reset_device(@_) },
                         reader_callback => sub { $self->device_reader(@_) },
