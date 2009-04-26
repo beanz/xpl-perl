@@ -95,12 +95,14 @@ responsible for sending out the xPL messages.
 sub device_reader {
   my ($self, $handler, $msg, $last) = @_;
   my $xpl = $self->xpl;
+  my $xml = $msg->str;
   # discard messages without a start tag - incomplete messages
-  return 1 if ($msg =~ /<hist>/); # ignore historical data messages
+  return 1 if ($xml =~ /<hist>/); # ignore historical data messages
+  $xml =~ m!<msg>(.*?)</msg>!s;
   my $data = $1;
   my $base_type;
   my @dev_keys;
-  if ($msg =~ s!<src><name>([^<]+)</name>(.*?)</src>!<src>$1</src>$2!g) {
+  if ($data =~ s!<src><name>([^<]+)</name>(.*?)</src>!<src>$1</src>$2!g) {
     $base_type = 'curcost';
     @dev_keys = qw/id/;
   } else {
