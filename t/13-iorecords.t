@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 51;
+use Test::More tests => 54;
 use t::Helpers qw/test_warn test_error test_output/;
 use lib 't/lib';
 $|=1;
@@ -75,3 +75,9 @@ $m = $class->new(fields => [qw/hello world/], desc => 'description');
 ok($m, $class.'->new(fields => ..., desc ...)');
 is($m->str, 'hello world: description', $class.'->new->str');
 
+$class = 'xPL::IORecord::XML';
+use_ok($class);
+$buf = '<this><that>...</that><next>...</next>';
+$m = $class->read($buf);
+is($m->str, '<that>...</that>', $class.'->read->str');
+is($buf, '<next>...</next>', $class.'->read remaining');
