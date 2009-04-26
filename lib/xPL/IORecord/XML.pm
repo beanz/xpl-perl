@@ -62,7 +62,20 @@ available it returns undef without modifying the buffer.
 =cut
 
 sub read {
-  $_[1] =~ s!^.*?(<([^>]+)>.*?</\2>)\s*!!s ? $_[0]->new(raw => $1) : undef;
+  my $re = $_[0]->tag;
+  $_[1] =~ s!^.*?(<($re)>.*?</\2>)\s*!!s ? $_[0]->new(raw => $1) : undef;
+}
+
+=head2 C<tag()>
+
+Regular expression for tags that form records.  Default is C<qr/[^>]+/>
+which is almost certainly too general and should be overrided.  See
+L<xPL::Dock::CurrentCost> for example usage.
+
+=cut
+
+sub tag {
+  qr/[^>]+/
 }
 
 1;

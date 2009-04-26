@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 26;
+use Test::More tests => 27;
 use t::Helpers qw/test_warn test_error test_output/;
 
 $|=1;
@@ -57,7 +57,7 @@ xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371.2[current]=0
 xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371.3[current]=0
 xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371[temp]=20.7
 },
-   'read response - a11/on');
+   'read response - curcost');
 foreach my $rec (['curcost.02371', 'current', '8.87916666666667'],
                  ['curcost.02371.1', 'current', '8.87916666666667'],
                  ['curcost.02371.2', 'current', '0'],
@@ -107,7 +107,7 @@ xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.2[current]=8.962
 xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.3[current]=0
 xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1[temp]=18.7
 },
-   'read response');
+   'read response - cc128');
 foreach my $rec (['cc128.01234.1', 'current', '10.4'],
                  ['cc128.01234.1.1', 'current', '1.4375'],
                  ['cc128.01234.1.2', 'current', '8.9625'],
@@ -160,7 +160,12 @@ print $client q{
    <dsb>02999</dsb>
    <time>13:02:39</time>
    <tmpr>18.7</tmpr>
-   <sensor>1</sensor>
+};
+
+is(test_output(sub { $xpl->main_loop(1); }, \*STDERR),
+   '', 'ignoring partial message');
+
+print $client q{   <sensor>1</sensor>
    <id>01234</id>
    <type>2</type>
    <ch1>
@@ -198,15 +203,11 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDERR),
    'new sensor type');
 check_sent_msg();
 
-print $client q{
-</msg><invalid>
+print $client q{<invalid>
 </invalid>
 };
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   'Unsupported message:
-<invalid>
-</invalid>
-', 'unsupported');
+is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT), '',
+   'invalid tag ignored');
 check_sent_msg();
 
 # The begin block is global of course but this is where it is really used.

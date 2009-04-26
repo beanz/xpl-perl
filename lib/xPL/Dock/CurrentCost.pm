@@ -35,6 +35,13 @@ our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device/);
 
+{
+ package xPL::IORecord::CCXML;
+ use base 'xPL::IORecord::XML';
+ sub tag { qr/msg/ }
+ 1;
+}
+
 =head2 C<getopts( )>
 
 This method returns the L<Getopt::Long> option definition for the
@@ -73,7 +80,7 @@ sub init {
                         device => $self->{_device},
                         baud => $self->{_baud},
                         reader_callback => sub { $self->device_reader(@_) },
-                        input_record_type => 'xPL::IORecord::XML',
+                        input_record_type => 'xPL::IORecord::CCXML',
                         discard_buffer_timeout => 0.1);
   return $self;
 }
