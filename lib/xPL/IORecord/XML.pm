@@ -53,26 +53,16 @@ a parameter hash as arguments.  Valid parameters in the hash are:
 
 It returns a blessed reference when successful or undef otherwise.
 
+=head2 C<read()>
+
+Creates a new message from a given buffer (if a complete message is
+available) and removes it from the buffer.  If a message isn't
+available it returns undef without modifying the buffer.
+
 =cut
 
 sub read {
-#qprint "@_\n";
-  $_[1] =~ s!^\s*(<([^>]+)>.*?</\2>)\s*!!s ? $_[0]->new(raw => $1) : undef;
-}
-
-sub tag {
-  qr/[^>]+/;
-}
-
-=head2 C<out()>
-
-Return the contents of the message as a binary string with
-output record separators appended.
-
-=cut
-
-sub out {
-  $_[0]->raw
+  $_[1] =~ s!^.*?(<([^>]+)>.*?</\2>)\s*!!s ? $_[0]->new(raw => $1) : undef;
 }
 
 1;

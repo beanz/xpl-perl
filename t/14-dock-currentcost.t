@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 24;
+use Test::More tests => 26;
 use t::Helpers qw/test_warn test_error test_output/;
 
 $|=1;
@@ -32,6 +32,7 @@ my $xpl;
   local @ARGV = ('-v',
                  '--interface', 'lo',
                  '--define', 'hubless=1',
+                 '--currentcost-verbose',
                  '--currentcost-tty', '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0);
 }
@@ -149,7 +150,26 @@ print $client q{
 </msg>
 };
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT), '', 'no output');
+is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+   q{Unsupported message:
+<msg>
+   <src>CC128-v0.11</src>
+   <dsb>00089</dsb>
+   <time>13:10:50</time>
+   <hist>
+      <dsw>00032</dsw>
+      <type>1</type>
+      <units>kwhr</units>
+      <data>
+         <sensor>0</sensor>
+         <h024>001.1</h024>
+         <h022>000.9</h022>
+         <h020>000.3</h020>
+         <h018>000.4</h018>
+      </data>>
+   </hist>>
+</msg>
+}, 'unsupported - 1');
 check_sent_msg();
 
 print $client q{
@@ -172,7 +192,18 @@ print $client q{
    </ch3>
 </msg>
 };
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT), '', 'no output');
+is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT), '', 'no output - 2');
+check_sent_msg();
+
+print $client q{
+</msg><invalid>
+</invalid>
+};
+is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+   'Unsupported message:
+<invalid>
+</invalid>
+', 'unsupported - 2');
 check_sent_msg();
 
 # The begin block is global of course but this is where it is really used.

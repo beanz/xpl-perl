@@ -117,6 +117,7 @@ sub device_reader {
     %data = split / +/, $data;
     $device = 'cc128.'.(lc $data{'id'}).'.'.$data{'sensor'};
   } else {
+    $self->info("Unsupported message:\n", $msg, "\n");
     return 1;
   }
   #print "D: $_ => ", $data{$_}, "\n" foreach (keys %data);
