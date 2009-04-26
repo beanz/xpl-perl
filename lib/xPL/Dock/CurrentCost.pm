@@ -89,8 +89,6 @@ sub device_reader {
   my ($self, $handler, $msg, $last) = @_;
   my $xpl = $self->xpl;
   # discard messages without a start tag - incomplete messages
-  my $device;
-  my %data;
   return 1 if ($msg =~ /<hist>/); # ignore historical data messages
   unless ($msg =~ m!<msg>(.*?)</msg>!s) { # report and ignore invalid messages
     $self->info("Unsupported message:\n", $msg, "\n");
@@ -111,7 +109,7 @@ sub device_reader {
   $data =~ s!\s*<([^>]+)>([^<]+)</\1>\s*! $1.$2!g;
   my %data = map { split /=/, $_, 2 } split /\s+/, $data;
   #print "D: $_ => ", $data{$_}, "\n" foreach (keys %data);
-  $device = join '.', $base_type, map { lc $_ } @data{@dev_keys};
+  my $device = join '.', $base_type, map { lc $_ } @data{@dev_keys};
 
   if ($data{'type'} == 1) { # elec
     $data{'total.watts'} =
