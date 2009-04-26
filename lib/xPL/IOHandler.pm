@@ -75,7 +75,8 @@ sub new {
   bless $self, $pkg;
   my $xpl = $self->{_xpl};
   foreach my $c ($self->{_input_record_type}, $self->{_output_record_type}) {
-    eval "unless (defined *$c) { require $c; import $c; }";
+    next if ($c->can('out'));
+    eval "require $c; import $c; ";
     die $@ if ($@);
   }
   $xpl->add_input(handle => $self->input_handle,
