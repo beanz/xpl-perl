@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 10;
+use Test::More tests => 24;
 use t::Helpers qw/test_warn test_error test_output/;
 
 $|=1;
@@ -57,7 +57,14 @@ xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371.3[current]=0
 xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371[temp]=20.7
 },
    'read response - a11/on');
-check_sent_msg(q!xpl-trig
+foreach my $rec (['curcost.02371', 'current', '8.87916666666667'],
+                 ['curcost.02371.1', 'current', '8.87916666666667'],
+                 ['curcost.02371.2', 'current', '0'],
+                 ['curcost.02371.3', 'current', '0'],
+                 ['curcost.02371', 'temp', '20.7'],
+                ) {
+  my ($device, $type, $current) = @$rec;
+  check_sent_msg(qq!xpl-trig
 {
 hop=1
 source=bnz-dingus.mytestid
@@ -65,11 +72,108 @@ target=*
 }
 sensor.basic
 {
-device=curcost.02371
-type=current
-current=8.87916666666667
+device=$device
+type=$type
+current=$current
 }
 !);
+}
+print $client q{
+<msg>
+   <src>CC128-v0.11</src>
+   <dsb>00089</dsb>
+   <time>13:02:39</time>
+   <tmpr>18.7</tmpr>
+   <sensor>1</sensor>
+   <id>01234</id>
+   <type>1</type>
+   <ch1>
+      <watts>00345</watts>
+   </ch1>
+   <ch2>
+      <watts>02151</watts>
+   </ch2>
+   <ch3>
+      <watts>00000</watts>
+   </ch3>
+</msg>
+};
+
+is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+   q{xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1[current]=10.4
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.1[current]=1.4375
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.2[current]=8.9625
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.3[current]=0
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1[temp]=18.7
+},
+   'read response - a11/on');
+foreach my $rec (['cc128.01234.1', 'current', '10.4'],
+                 ['cc128.01234.1.1', 'current', '1.4375'],
+                 ['cc128.01234.1.2', 'current', '8.9625'],
+                 ['cc128.01234.1.3', 'current', '0'],
+                 ['cc128.01234.1', 'temp', '18.7'],
+                ) {
+  my ($device, $type, $current) = @$rec;
+  check_sent_msg(qq!xpl-trig
+{
+hop=1
+source=bnz-dingus.mytestid
+target=*
+}
+sensor.basic
+{
+device=$device
+type=$type
+current=$current
+}
+!);
+}
+
+print $client q{
+<msg>
+   <src>CC128-v0.11</src>
+   <dsb>00089</dsb>
+   <time>13:10:50</time>
+   <hist>
+      <dsw>00032</dsw>
+      <type>1</type>
+      <units>kwhr</units>
+      <data>
+         <sensor>0</sensor>
+         <h024>001.1</h024>
+         <h022>000.9</h022>
+         <h020>000.3</h020>
+         <h018>000.4</h018>
+      </data>>
+   </hist>>
+</msg>
+};
+
+is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT), '', 'no output');
+check_sent_msg();
+
+print $client q{
+<msg>
+   <src>CC128-v0.11</src>
+   <dsb>02999</dsb>
+   <time>13:02:39</time>
+   <tmpr>18.7</tmpr>
+   <sensor>1</sensor>
+   <id>01234</id>
+   <type>2</type>
+   <ch1>
+      <medichlorians>00345</medichlorians>
+   </ch1>
+   <ch2>
+      <medichlorians>02151</medichlorians>
+   </ch2>
+   <ch3>
+      <medichlorians>00000</medichlorians>
+   </ch3>
+</msg>
+};
+is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT), '', 'no output');
+check_sent_msg();
 
 # The begin block is global of course but this is where it is really used.
 BEGIN{
