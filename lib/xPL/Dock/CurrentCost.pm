@@ -97,10 +97,6 @@ sub device_reader {
   my $xpl = $self->xpl;
   # discard messages without a start tag - incomplete messages
   return 1 if ($msg =~ /<hist>/); # ignore historical data messages
-  unless ($msg =~ m!<msg>(.*?)</msg>!s) { # report and ignore invalid messages
-    $self->info("Unsupported message:\n", $msg, "\n");
-    return 1;
-  }
   my $data = $1;
   my $base_type;
   my @dev_keys;
