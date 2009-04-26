@@ -13,16 +13,11 @@ BEGIN {
   require Test::More;
 
   eval {
-    require DateTime::Event::sunrise;
+    require DateTime::Event::Sunrise;
   };
   if ($@) {
-    import Test::More skip_all => 'No DateTime::Event::sunrise perl module';
-  }
-  eval {
-    require DateTime::Event::sunset;
-  };
-  if ($@) {
-    import Test::More skip_all => 'No DateTime::Event::sunset perl module';
+    print STDERR "$@\n";
+    import Test::More skip_all => 'No DateTime::Event::Sunrise perl module';
   }
   import Test::More tests => 19;
 }
