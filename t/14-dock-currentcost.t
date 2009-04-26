@@ -107,7 +107,7 @@ xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.2[current]=8.962
 xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.3[current]=0
 xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1[temp]=18.7
 },
-   'read response - a11/on');
+   'read response');
 foreach my $rec (['cc128.01234.1', 'current', '10.4'],
                  ['cc128.01234.1.1', 'current', '1.4375'],
                  ['cc128.01234.1.2', 'current', '8.9625'],
@@ -151,25 +151,7 @@ print $client q{
 };
 
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   q{Unsupported message:
-<msg>
-   <src>CC128-v0.11</src>
-   <dsb>00089</dsb>
-   <time>13:10:50</time>
-   <hist>
-      <dsw>00032</dsw>
-      <type>1</type>
-      <units>kwhr</units>
-      <data>
-         <sensor>0</sensor>
-         <h024>001.1</h024>
-         <h022>000.9</h022>
-         <h020>000.3</h020>
-         <h018>000.4</h018>
-      </data>>
-   </hist>>
-</msg>
-}, 'unsupported - 1');
+   q{}, 'historical data ignored');
 check_sent_msg();
 
 print $client q{
@@ -192,7 +174,28 @@ print $client q{
    </ch3>
 </msg>
 };
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT), '', 'no output - 2');
+is(test_output(sub { $xpl->main_loop(1); }, \*STDERR),
+   q{Sensor type: 2 not supported.  Message was:
+<msg>
+   <src>CC128-v0.11</src>
+   <dsb>02999</dsb>
+   <time>13:02:39</time>
+   <tmpr>18.7</tmpr>
+   <sensor>1</sensor>
+   <id>01234</id>
+   <type>2</type>
+   <ch1>
+      <medichlorians>00345</medichlorians>
+   </ch1>
+   <ch2>
+      <medichlorians>02151</medichlorians>
+   </ch2>
+   <ch3>
+      <medichlorians>00000</medichlorians>
+   </ch3>
+</msg>
+},
+   'new sensor type');
 check_sent_msg();
 
 print $client q{
@@ -203,7 +206,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    'Unsupported message:
 <invalid>
 </invalid>
-', 'unsupported - 2');
+', 'unsupported');
 check_sent_msg();
 
 # The begin block is global of course but this is where it is really used.

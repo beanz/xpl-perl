@@ -91,36 +91,27 @@ sub device_reader {
   # discard messages without a start tag - incomplete messages
   my $device;
   my %data;
-  if ($msg =~ m!<date>.*?</date><src>(.*?)</src>(.*?)</tmpr>!) {
-    my $src = $1;
-    my $data = $2;
-    $src =~ s!</[^>]*>!!g;
-    $src =~ s![<>]! !g;
-    $src =~ s/^\s+//;
-    $src =~ s/\s+$//;
-    $data =~ s!</[^>]*>!!g;
-    $data =~ s!>\s*<watts>!.watts>!g;
-    $data =~ s![<>]! !g;
-    $data =~ s/^\s+//;
-    $data =~ s/\s+$//;
-    # print STDERR $src, " ! ", $data, "\n";
-    %data = split / +/, $src.' '.$data;
-    $device = 'curcost.'.(lc $data{'id'});
-  } elsif ($msg !~ /<hist>/ && $msg =~ m!<msg>(.*?)</msg>!s) {
-    my $data = $1;
-    $data =~ s!\r?\n!!g;
-    $data =~ s!</[^>]*>!!g;
-    $data =~ s!>\s*<watts>!.watts>!g;
-    $data =~ s![<>]! !g;
-    $data =~ s/^\s+//;
-    $data =~ s/\s+$//;
-    %data = split / +/, $data;
-    $device = 'cc128.'.(lc $data{'id'}).'.'.$data{'sensor'};
-  } else {
+  return 1 if ($msg =~ /<hist>/); # ignore historical data messages
+  unless ($msg =~ m!<msg>(.*?)</msg>!s) { # report and ignore invalid messages
     $self->info("Unsupported message:\n", $msg, "\n");
     return 1;
   }
+  my $data = $1;
+  my $base_type;
+  my @dev_keys;
+  if ($msg =~ s!<src><name>([^<]+)</name>(.*?)</src>!<src>$1</src>$2!g) {
+    $base_type = 'curcost';
+    @dev_keys = qw/id/;
+  } else {
+    $base_type = 'cc128';
+    @dev_keys = qw/id sensor/;
+  }
+  # xml hack
+  $data =~ s!\s*<([^>]+)>([^<]+)</\1>\s*!$1=$2 !g;
+  $data =~ s!\s*<([^>]+)>([^<]+)</\1>\s*! $1.$2!g;
+  my %data = map { split /=/, $_, 2 } split /\s+/, $data;
   #print "D: $_ => ", $data{$_}, "\n" foreach (keys %data);
+  $device = join '.', $base_type, map { lc $_ } @data{@dev_keys};
 
   if ($data{'type'} == 1) { # elec
     $data{'total.watts'} =
@@ -143,7 +134,7 @@ sub device_reader {
     }
     my $xplmsg =
       xPL::Message->new(message_type => 'xpl-trig',
-                          head => { source => $xpl->id, },
+                        head => { source => $xpl->id, },
                         class => 'sensor.basic',
                         body =>
                         {
@@ -151,8 +142,8 @@ sub device_reader {
                          type => 'temp',
                          current => $data{tmpr},
                         });
-      print $xplmsg->summary,"\n";
-      $xpl->send($xplmsg);
+    print $xplmsg->summary,"\n";
+    $xpl->send($xplmsg);
   } else {
     warn "Sensor type: ", $data{type},
       " not supported.  Message was:\n", $msg,"\n";
