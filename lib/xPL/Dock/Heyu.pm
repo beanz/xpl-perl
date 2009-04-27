@@ -80,8 +80,6 @@ sub init {
 
   my ($rh, $wh);
   my $pid = open3($wh, $rh, undef, 'xpl-heyu-helper', @ARGV);
-  $SIG{CHLD} = \&sig;
-  $SIG{PIPE} = \&sig;
   $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
                         input_handle => $rh, output_handle => $wh,
