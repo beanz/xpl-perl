@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 19;
+use Test::More tests => 26;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -215,6 +215,102 @@ if ($out !~ /Received/) {
      'helper error');
   ok(1, 'helper output'); # dummy to keep with plan
 }
+
+is(test_output(sub {
+                 $xpl->dispatch_xpl_message(
+                   xPL::Message->new(message_type => 'xpl-cmnd',
+                                     head =>
+                                     {
+                                      source => 'acme-heyu.test',
+                                     },
+                                     class=> 'x10',
+                                     class_type => 'basic',
+                                     body =>
+                                     {
+                                      command => 'extended',
+                                      device => 'a10,a12',
+                                      data2 => 63,
+                                     })); }, \*STDOUT),
+   '',
+   'x10.basic command=extended missing data1');
+is(test_output(sub {
+                 $xpl->dispatch_xpl_message(
+                   xPL::Message->new(message_type => 'xpl-cmnd',
+                                     head =>
+                                     {
+                                      source => 'acme-heyu.test',
+                                     },
+                                     class=> 'x10',
+                                     class_type => 'basic',
+                                     body =>
+                                     {
+                                      command => 'extended',
+                                      device => 'a10,a12',
+                                      data1 => 49,
+                                     })); }, \*STDOUT),
+   '',
+   'x10.basic command=extended missing data2');
+is(test_output(sub {
+                 $xpl->dispatch_xpl_message(
+                   xPL::Message->new(strict => 0,
+                                     message_type => 'xpl-cmnd',
+                                     head =>
+                                     {
+                                      source => 'acme-heyu.test',
+                                     },
+                                     class=> 'x10',
+                                     class_type => 'basic',
+                                     body =>
+                                     {
+                                      command => 'invalid',
+                                      device => 'a10',
+                                     })); }, \*STDOUT),
+   '',
+   'x10.basic command=invalid');
+
+is(test_output(sub {
+                 $xpl->dispatch_xpl_message(
+                   xPL::Message->new(strict => 0,
+                                     message_type => 'xpl-cmnd',
+                                     head =>
+                                     {
+                                      source => 'acme-heyu.test',
+                                     },
+                                     class=> 'x10',
+                                     class_type => 'basic',
+                                     body =>
+                                     {
+                                      command => 'bright',
+                                      device => 'a10',
+                                     })); }, \*STDOUT),
+   "queued: 00000003 bright a10\nsending: 00000003 bright a10\n",
+   'x10.basic command=bright no level');
+
+is(test_output(
+     sub {
+       $plugin->read_helper(
+         $plugin->{_io},
+         xPL::IORecord::ZeroSplitLine->new(fields => ['00000001', 0 ]),
+         xPL::IORecord::ZeroSplitLine->new(fields => ['00000002']),
+       );
+     }, \*STDERR),
+   "Received 00000001: 0 \n",
+   'ack with wrong sequence number');
+
+is(test_output(
+     sub {
+       $plugin->read_helper(
+         $plugin->{_io},
+         xPL::IORecord::ZeroSplitLine->new(fields => ['00000002', 1, "err" ]),
+         xPL::IORecord::ZeroSplitLine->new(fields => ['00000002']),
+       );
+     }, \*STDERR),
+   "Received 00000002: 1 err\n",
+   'ack with non-zero return code');
+
+is(test_output(sub { $plugin->send_xpl('x10.basic', 'a1', 'invalid'); },
+               \*STDERR),
+   '', 'no message sent for invalid command');
 
 sub check_sent_msg {
   my ($expected, $desc) = @_;
