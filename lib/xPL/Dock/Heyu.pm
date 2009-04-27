@@ -50,16 +50,6 @@ sub getopts {
          );
 }
 
-=head2 C<sig( )>
-
-Simple signal handler to wait on child processes.
-
-=cut
-
-sub sig {
-  waitpid(-1,WNOHANG);
-}
-
 =head2 C<init(%params)>
 
 =cut
