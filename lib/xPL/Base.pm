@@ -436,8 +436,9 @@ sub interfaces {
     # I was going to use Net::Ifconfig::Wrapper but it appears to hide
     # the order of interfaces.  This is important since I wanted to make
     # the first non-loopback interface the default
-    $self->{_interfaces} =
-      $self->interfaces_ifconfig() || $self->interfaces_ip() || [];
+    my $interfaces = $self->interfaces_ifconfig();
+    $interfaces = $self->interfaces_ip() unless($interfaces && @{$interfaces});
+    $self->{_interfaces} = $interfaces || [];
   }
   return $self->{_interfaces};
 }
