@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 26;
+use Test::More tests => 27;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -311,6 +311,25 @@ is(test_output(
 is(test_output(sub { $plugin->send_xpl('x10.basic', 'a1', 'invalid'); },
                \*STDERR),
    '', 'no message sent for invalid command');
+
+{
+  local $0 = 'dingus';
+  local @ARGV = ('--verbose',
+                 '--heyu-verbose', '--heyu-verbose',
+                 '--define', 'ip=127.0.0.1',
+                 '--define', 'broadcast=127.0.0.1',
+                 '--define', 'hubless=1',
+                 #'--', '-v',
+                );
+  no strict;
+  no warnings;
+  *IO::Pipe::reader = sub { $@ = '$@'; return 0 };
+  use warnings;
+  use strict;
+  like(test_error(sub { $xpl = xPL::Dock->new(port => 0); }),
+       qr/xPL::Dock::Heyu->init: 'heyu monitor\|' failed:/,
+       'heyu monitor pipe failure');
+}
 
 sub check_sent_msg {
   my ($expected, $desc) = @_;
