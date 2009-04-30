@@ -211,3 +211,4 @@ like(test_warn(sub {
             }),
    qr!MyIOH: Unix domain socket connect to '\Q$fifo\E' failed: !,
      'test unix domain socket failure');
+unlink $fifo;
