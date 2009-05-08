@@ -99,6 +99,7 @@ sub init {
                         reader_callback => sub { $self->process_line(@_) },
                         input_record_type => 'xPL::IORecord::CRLFLine',
                         output_record_type => 'xPL::IORecord::CRLFLine',
+                        ack_timeout => 0.03,
                         @_);
 
   $io->write('CSV'); # report software version
