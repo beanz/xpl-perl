@@ -117,10 +117,12 @@ sub device_reader {
   my $device = join '.', $base_type, map { lc $_ } @data{@dev_keys};
 
   if ($data{'type'} == 1) { # elec
-    $data{'total.watts'} =
-      $data{'ch1.watts'}+$data{'ch2.watts'}+$data{'ch3.watts'};
-    foreach my $p ('total', 'ch1', 'ch2', 'ch3') {
-      my $v = $data{$p.'.watts'}/240;
+    $data{'total.watts'} = 0;
+    foreach my $p ('ch1', 'ch2', 'ch3', 'total') {
+      my $item = $p.'.watts';
+      next unless (exists $data{$item});
+      $data{'total.watts'} += $data{$item} unless ($p eq 'total');
+      my $v = $data{$item}/240;
       my $dev = $device.($p eq 'total' ? '' : '.'.substr $p, 2, 1);
       my $xplmsg =
         xPL::Message->new(message_type => 'xpl-trig',
