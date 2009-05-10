@@ -86,12 +86,6 @@ if [ "`id -u`" != "0" ]; then
     exit 1
 fi
 
-if test \! -e /var/www ; then
-    echo xpl-rdd-graphs requires a web server.
-    echo perhaps "apt-get install lighttpd"
-    exit 1
-fi
-
 if test \! -e $SVDIR ; then
     SVDIR=/etc/service
     TYPE=daemontools
@@ -248,19 +242,26 @@ echo Setting up xpl-rrd service
 make_dir /var/lib/rrd xplperl:xplperl
 make_service xpl-rrd "$BIN/xpl-rrd -v -x $ETC/devices.txt /var/lib/rrd"
 link_service xpl-rrd
-make_dir /var/www/rrd xplperl:xplperl
 echo
 
-echo Setting up xpl-rrd crontab
-if test -e /etc/cron.d/xpl-rrd ; then
-    echo /etc/cron.d/xpl-rrd already exists
+if test \! -e /var/www ; then
+    echo xpl-rdd-graphs requires a web server.
+    echo perhaps "apt-get install lighttpd"
 else
-    echo /etc/cron.d/xpl-rrd created
-    sed -e"s_BIN_${BIN}_g" >/etc/cron.d/xpl-rrd <<EOF
+    make_dir /var/www/rrd xplperl:xplperl
+    echo
+
+    echo Setting up xpl-rrd crontab
+    if test -e /etc/cron.d/xpl-rrd ; then
+        echo /etc/cron.d/xpl-rrd already exists
+    else
+        echo /etc/cron.d/xpl-rrd created
+        sed -e"s_BIN_${BIN}_g" >/etc/cron.d/xpl-rrd <<EOF
 7,12,17,22,27,32,37,42,47,52,57 * * * * xplperl BIN/xpl-rrd-graphs /var/lib/rrd /var/www/rrd 1h >/dev/null
 2 * * * * xplperl BIN/xpl-rrd-graphs /var/lib/rrd /var/www/rrd >/dev/null
 EOF
-    chmod a+rx /etc/cron.d/xpl-rrd
+        chmod a+rx /etc/cron.d/xpl-rrd
+    fi
 fi
 echo
 
