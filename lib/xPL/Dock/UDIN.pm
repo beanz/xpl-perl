@@ -112,7 +112,7 @@ sub xpl_in {
   if ($msg->device eq 'debug') {
     $self->{_io}->write('s0');
   }
-  return 1 unless ($msg->device =~ /^o(\d+)$/);
+  return 1 unless ($msg->device =~ /^udin-r(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
   my $command = lc $msg->current;
   if ($command eq "high") {
