@@ -65,46 +65,46 @@ my $msg = xPL::Message->new(class => 'control.basic',
                             body =>
                             {
                              type => 'output',
-                             device => 'o1',
+                             device => 'easydaq-r1',
                              current => 'high',
                             });
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read(0.5), 'device receive a message - o1/high');
+ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r1/high');
 $buf = '';
-is((sysread $client, $buf, 64), 2, 'read is correct size - o1/high');
+is((sysread $client, $buf, 64), 2, 'read is correct size - easydaq-r1/high');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4301', 'content is correct - o1/high');
+is($m, '4301', 'content is correct - easydaq-r1/high');
 
 wait_for_tick($xpl, $count);
 
 $msg->current('low');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read(0.5), 'device receive a message - o1/low');
+ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r1/low');
 $buf = '';
-is((sysread $client, $buf, 64), 2, 'read is correct size - o1/low');
+is((sysread $client, $buf, 64), 2, 'read is correct size - easydaq-r1/low');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4300', 'content is correct - o1/low');
+is($m, '4300', 'content is correct - easydaq-r1/low');
 
 wait_for_tick($xpl, $count);
 $msg->current('pulse');
-$msg->device('o3');
+$msg->device('easydaq-r3');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read(0.5), 'device receive a message - o3/pulse');
+ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r3/pulse');
 $buf = '';
-is((sysread $client, $buf, 64), 2, 'read is correct size - o3/pulse');
+is((sysread $client, $buf, 64), 2, 'read is correct size - easydaq-r3/pulse');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4304', 'content is correct - o3/pulse');
+is($m, '4304', 'content is correct - easydaq-r3/pulse');
 wait_for_tick($xpl, $count);
-ok($client_sel->can_read(0.5), 'device receive a message - o3/pulse');
+ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r3/pulse');
 $buf = '';
-is((sysread $client, $buf, 64), 2, 'read is correct size - o3/pulse');
+is((sysread $client, $buf, 64), 2, 'read is correct size - easydaq-r3/pulse');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4300', 'content is correct - o3/pulse');
+is($m, '4300', 'content is correct - easydaq-r3/pulse');
 wait_for_tick($xpl, $count);
 
 $msg->current('toggle');
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg) }),
-   "Unsupported setting: toggle\n", 'unsupported - o3/toggle');
+   "Unsupported setting: toggle\n", 'unsupported - easydaq-r3/toggle');
 
 $msg->current('pulse');
 $msg->device('oXX');
