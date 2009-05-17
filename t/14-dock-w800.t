@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 12;
+use Test::More tests => 14;
 use t::Helpers qw/test_warn test_error test_output/;
 
 $|=1;
@@ -62,7 +62,12 @@ device=a11
 }
 !);
 $plugin->{_verbose} = 1;
-print $client pack 'H*', '649b08f7';
+print $client pack 'H*', '649b08';
+is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+   '', 'read response - incomplete');
+check_sent_msg(undef);
+
+print $client pack 'H*', 'f7';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Processing: 649b08f7\n", # duplicate so no xPL message summary
    'read response - a11/on');
