@@ -57,51 +57,52 @@ my $msg = xPL::Message->new(class => 'control.basic',
                             body =>
                             {
                              type => 'output',
-                             device => 'o1',
+                             device => 'udin-r1',
                              current => 'high',
                             });
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read(0.5), 'device receive a message - o1/high');
+ok($client_sel->can_read(0.5), 'device receive a message - udin-r1/high');
 $buf = '';
-is((sysread $client, $buf, 64), 3, 'read is correct size - o1/high');
-is($buf, "n1\r", 'content is correct - o1/high');
+is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r1/high');
+is($buf, "n1\r", 'content is correct - udin-r1/high');
 
 wait_for_tick($xpl, $count);
 
 $msg->current('low');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read(0.5), 'device receive a message - o1/low');
+ok($client_sel->can_read(0.5), 'device receive a message - udin-r1/low');
 $buf = '';
-is((sysread $client, $buf, 64), 3, 'read is correct size - o1/low');
-is($buf, "f1\r", 'content is correct - o1/low');
+is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r1/low');
+is($buf, "f1\r", 'content is correct - udin-r1/low');
 
 wait_for_tick($xpl, $count);
 $msg->current('pulse');
-$msg->device('o3');
+$msg->device('udin-r3');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read(0.5), 'device receive a message - o3/pulse');
+ok($client_sel->can_read(0.5), 'device receive a message - udin-r3/pulse');
 $buf = '';
-is((sysread $client, $buf, 64), 3, 'read is correct size - o3/pulse');
-is($buf, "n3\r", 'content is correct - o3/pulse');
+is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r3/pulse');
+is($buf, "n3\r", 'content is correct - udin-r3/pulse');
 wait_for_tick($xpl, $count);
-ok($client_sel->can_read(0.5), 'device receive a message - o3/pulse');
+ok($client_sel->can_read(0.5), 'device receive a message - udin-r3/pulse');
 $buf = '';
-is((sysread $client, $buf, 64), 3, 'read is correct size - o3/pulse');
-is($buf, "f3\r", 'content is correct - o3/pulse');
+is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r3/pulse');
+is($buf, "f3\r", 'content is correct - udin-r3/pulse');
 wait_for_tick($xpl, $count);
 
 $msg->current('toggle');
 $xpl->dispatch_xpl_message($msg);
-ok($client_sel->can_read(0.5), 'device receive a message - o3/toggle');
+ok($client_sel->can_read(0.5), 'device receive a message - udin-r3/toggle');
 $buf = '';
-is((sysread $client, $buf, 64), 3, 'read is correct size - o3/toggle');
-is($buf, "t3\r", 'content is correct - o3/toggle');
+is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r3/toggle');
+is($buf, "t3\r", 'content is correct - udin-r3/toggle');
 wait_for_tick($xpl, $count);
 
 $msg->current('invalid');
-$msg->device('o4');
+$msg->device('udin-r4');
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
-   "Unsupported setting: invalid\n", 'device receive a message - o4/invalid');
+   "Unsupported setting: invalid\n",
+   'device receive a message - udin-r4/invalid');
 # can read tested below
 
 $msg->current('pulse');
