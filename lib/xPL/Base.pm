@@ -35,7 +35,7 @@ our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw(simple_tokenizer) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 our $SVNVERSION = qw/$Revision$/[1];
 
 my $EMPTY = q{};

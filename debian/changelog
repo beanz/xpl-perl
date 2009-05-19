@@ -1,3 +1,57 @@
+libxpl-perl (0.10-1) unstable; urgency=low
+
+  * Lots of refactoring:
+    - Removed approximately 1/5th of the code.
+    - Moved code from scripts (w/ 0% test coverage) to modules
+      (99.6% test coverage) which should make things easier to
+      maintain.  Script directory now has 28% of the total
+      codebase rather than 67% as in previous release.
+  * New helper modules:
+    - xPL::IOHandler - generic handler writing common record
+      types to serial or socket-based devices.  Handles queuing
+      writes and encoding/decoding of outgoing/incoming
+      messages.
+    - xPL::Dock - support clients as "plugins".  Most existing
+      clients have been converted to this form and one client
+      xpl-rfxcom has been created as an example of how to use
+      two plugins (RFXComRX and RFXComTX) in one client.  This
+      is intended to help developers wanting to write a single
+      "embedded-style" client with support for multiple devices.
+      A side-effect of this is that much more code is now in
+      modules and not scripts so much more code can be tested
+      effectively.
+  * New client: xpl-mythtv - monitor utilisation of tuners on a
+    mythtv backend
+  * New client: xpl-easydaq - for EasyDAQ usb relay modules from
+    http://www.easydaq.biz
+  * New client: xpl-bluetooth - for simple bluetooth proximity
+  * New client: xpl-linux - for monitoring linux health (mostly
+    laptops since my house now runs on a Samsung NC10).
+  * New client: xpl-apcupsd - for monitor a UPS using the apcups
+    daemon, http://www.apcupsd.com/
+  * Renamed client: xpl-rfxcom w/device id rfxcom to
+    xpl-rfxcom-rx/rfxcomrx.
+  * Renamed client: xpl-rfxcom-trans w/id rfxcomt to
+    xpl-rfxcom-tx/rfxcomtx.
+  * Renamed client: xpl-x10 to xpl-heyu with corresponding
+    device id change.
+  * xpl-heyu: support for new "heyu monitor" output format.
+  * xpl-currentcost: support new CC128/Envi energy monitors.
+  * xpl-rfxcom-tx: increased ack timeout as suggested by Bert.
+  * xpl-rfxcom-rx: support for THN132N
+  * Lots of documentation updates.
+  * Support of using YAML::Syck instead of YAML for schema
+    parsing for faster startup of clients.
+  * xPL::Message 20% speedup on 10k message benchmark
+  * xPL::Message lazy instantiation of schema classes - speedup
+    of 10% for xpl-sender using only 1 schema class.
+  * xpl-perl-setup several fixes suggested by Clarke Brunt.
+  * All clients: Support hubless mode (using SO_REUSEADDR) for
+    use on devices like the NSLU2 when only xPL-Perl is being
+    used.
+
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Tue, 19 May 2009 22:40:35 +0100
+
 libxpl-perl (0.09-1) unstable; urgency=low
 
   * New client: xpl-udin for a Audon UDIN usb relay device.
