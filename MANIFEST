@@ -193,6 +193,7 @@ t/12-dock.t
 t/13-dock-plug.t
 t/13-iohandler.t
 t/13-iorecords.t
+t/14-dock-apcups.t
 t/14-dock-bluetooth.t
 t/14-dock-currentcost.t
 t/14-dock-dawndusk.t
