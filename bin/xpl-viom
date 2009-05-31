@@ -6,18 +6,20 @@ xpl-viom - Perl script for an xPL VIOM IO controller application
 
 =head1 SYNOPSIS
 
-  xpl-viom [flags] [options] --viom <device>
+  xpl-viom [flags] [options] --viom-tty <device>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --viom-verbose - verbose mode (for the VIOM layer)
   and valid options are (default shown in brackets):
-    -i if0           - the interface for xPL messages (first non-loopback or
-                                                       loopback)
-    --viom-baud baud - the baud rate (9600)
-    --viom <device>  - the tty device for the VIOM
+    --interface if0      - the interface for xPL messages (first
+                           non-loopback or loopback)
+    --viom-baud baud     - the baud rate (9600)
+    --viom-tty <device>  - the tty device for the VIOM
 
-  # start the viom application on first ethernet interface in verbose mode
-  xpl-viom -i eth0 -v --viom /dev/ttyUSB1
+  # start the VIOM application on first ethernet interface in verbose mode
+  xpl-viom --interface eth0 --verbose \
+           --viom-verbose --viom-tty /dev/ttyUSB1
 
 =head1 DESCRIPTION
 
@@ -56,7 +58,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2008 by Mark Hindess
+Copyright (C) 2006, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
