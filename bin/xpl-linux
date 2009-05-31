@@ -10,7 +10,7 @@ xpl-linux - Perl script for an xPL linux monitor
   where valid flags are:
     --help          - show this help text
     --verbose       - verbose mode (for the xPL layer)
-    --linux-verbose - verbose mode (for the LCDproc layer)
+    --linux-verbose - verbose mode (for the Linux layer)
   and valid options are (default shown in brackets):
     --interface if0          - the interface for xPL messages (first
                                non-loopback or loopback)
