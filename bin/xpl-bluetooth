@@ -8,21 +8,24 @@ xpl-bluetooth - Perl script for an xPL bluetooth proximity monitor
 
   xpl-bluetooth [flags] [options] <addr> [<addr2> ...]
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help              - show this help text
+    --verbose           - verbose mode (for the xPL layer)
+    --bluetooth-verbose - verbose mode (for the bluetooth layer)
   and valid options are (default shown in brackets):
-    -i if0           - the interface for xPL messages (first non-loopback
-                       or loopback)
-    -s nn            - number of seconds between polling for proximity (60)
+   --interface if0             - the interface for xPL messages (first
+                                 non-loopback or loopback)
+   --bluetooth-address aa:bb:cc:dd:ee:ff
+                               - bluetooth address to monitor (may
+                                 be provided multiple times to monitor
+                                 multiple addresses)
+   --bluetooth-poll-interval nn
+                               - number of seconds between polling for
+                                 proximity (60)
 
   # start the bluetooth application with poll interval of 120 seconds
   # monitoring one named address
-  xpl-bluetooth -s 120 00:1a:75:de:de:de
-
-  # start the bluetooth monitor listening and broadcasting on first
-  # ethernet interface in verbose mode using poll interval of 60
-  # seconds, monitoring two named addresses.
-  xpl-bluetooth -i eth0 -v 00:1a:75:de:de:de 00:1a:75:ed:ed:ed
+  xpl-bluetooth --bluetooth-poll-interval 120 \
+                --bluetooth-address 00:1a:75:de:de:de
 
 =head1 DESCRIPTION
 
