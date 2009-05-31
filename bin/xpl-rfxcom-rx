@@ -8,14 +8,20 @@ xpl-rfxcom-rx - Perl script for an xPL RFXCOM RF receiver application
 
   xpl-rfxcom-rx [flags] [options] --rfxcom-rx <device>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help              - show this help text
+    --verbose           - verbose mode (for the xPL layer)
+    --rfxcom-rx-verbose - verbose mode (for the RFXCOM receiver layer)
   and valid options are (default shown in brackets):
-    -i if0  - the interface for xPL messages (first non-loopback or loopback)
-    -B baud - the baud rate (4800)
+    --interface if0          - the interface for xPL messages (first
+                               non-loopback or loopback)
+    --rfxcom-rx-tty /dev/tty - the serial device for the receiver
+    --rfxcom-rx-baud nnnn    - the baud rate for the receiver (4800)
+    --rfxcom-tx-tty /dev/tty - the serial device for the transmitter
 
-  # start the rfxcom-rx application on first ethernet interface in verbose mode
-  xpl-rfxcom-rx -i eth0 -v --rfxcom-rx <device>
+  # start the rfxcom-rx application on first ethernet interface in
+  # verbose mode
+  xpl-rfxcom-rx --interface eth0 --verbose \
+                --rfxcom-verbose --rfxcom-rx <device>
 
 =head1 DESCRIPTION
 

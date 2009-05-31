@@ -8,20 +8,26 @@ xpl-rfxcom-tx - Perl script for an xPL RFXCOM RF transmitter application
 
   xpl-rfxcom-tx [flags] [options] --rfxcom-tx <device>
   where valid flags are:
-    -h                   - show this help text
-    -v                   - verbose mode
+    --help              - show this help text
+    --verbose           - verbose mode (for the xPL layer)
+    --rfxcom-tx-verbose - verbose mode (for the RFXCOM receiver layer)
+  and valid options are (default shown in brackets):
+    --interface if0          - the interface for xPL messages (first
+                               non-loopback or loopback)
+    --rfxcom-tx-tty /dev/tty - the serial device for the receiver
+    --rfxcom-tx-baud nnnn    - the baud rate for the receiver (4800)
+    --rfxcom-tx-tty /dev/tty - the serial device for the transmitter
     --receiver-connector - receiver connected
     --flamingo           - enable Flamingo/Koppla RF
     --harrison           - enable Harrison RF
     --koko               - enable KlikOn-KlikOff, NEXA, ELRO AB600,
                                   Domia Lite RF
     --no-x10             - disable X10/security RF
-  and valid options are (default shown in brackets):
-    -i if0  - the interface for xPL messages (first non-loopback or loopback)
 
   # start the rfxcom-tx application on first ethernet interface in
   # verbose mode
-  xpl-rfxcom-tx -i eth0 -v --rfxcom-tx <device>
+  xpl-rfxcom-tx --interface eth0 --verbose \
+                --rfxcom-verbose --rfxcom-tx <device>
 
 =head1 DESCRIPTION
 

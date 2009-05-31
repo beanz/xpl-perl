@@ -8,14 +8,22 @@ xpl-rfxcom - Perl script for an xPL RFXCOM RF receiver/transmitter application
 
   xpl-rfxcom [flags] [options] --rfxcom-rx <device> --rfxcom-tx <device>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help              - show this help text
+    --verbose           - verbose mode (for the xPL layer)
+    --rfxcom-rx-verbose - verbose mode (for the RFXCOM receiver layer)
+    --rfxcom-tx-verbose - verbose mode (for the RFXCOM transmitter layer)
   and valid options are (default shown in brackets):
-    -i if0  - the interface for xPL messages (first non-loopback or loopback)
-    -B baud - the baud rate (4800)
+    --interface if0          - the interface for xPL messages (first
+                               non-loopback or loopback)
+    --rfxcom-rx-tty /dev/tty - the serial device for the receiver
+    --rfxcom-rx-baud nnnn    - the baud rate for the receiver (4800)
+    --rfxcom-tx-tty /dev/tty - the serial device for the transmitter
+    --rfxcom-tx-baud nnnn    - the baud rate for the transmitter (4800)
 
   # start the rfxcom-rx application on first ethernet interface in verbose mode
-  xpl-rfxcom -i eth0 -v --rfxcom-rx <device> --rfxcom-tx <device>
+  xpl-rfxcom --interface eth0 --verbose \
+             --rfxcom-rx-verbose --rfxcom-tx-verbose \
+             --rfxcom-rx <device> --rfxcom-tx <device>
 
 =head1 DESCRIPTION
 
@@ -44,7 +52,8 @@ can be provided - such as the output of the sample RFreceiver.exe.
 
 =head1 SEE ALSO
 
-xPL::Dock(3), xPL::Dock::RFXComRX(3), xPL::Dock::RFXComTX(3), xPL::Listener(3)
+xPL::Dock(3), xPL::Dock::RFXComRX(3), xPL::Dock::RFXComTX(3),
+xPL::Listener(3)
 
 Project website: http://www.xpl-perl.org.uk/
 
@@ -56,7 +65,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2007, 2008 by Mark Hindess
+Copyright (C) 2007, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
