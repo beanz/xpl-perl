@@ -10,9 +10,9 @@ xpl-apcups - Perl script for an xPL apcups daemon monitor
   where valid flags are:
     --help           - show this help text
     --verbose        - verbose mode (for the xPL layer)
-    --apcups-verbose - verbose mode (for the APCUPS layer)
+    --apcups-verbose - verbose mode (for the APC UPS layer)
   and valid options are (default shown in brackets):
-   --interface if0             - the interface for xPL messages (first
+    --interface if0            - the interface for xPL messages (first
                                  non-loopback or loopback)
     --apcups-poll-interval nn  - number of seconds between polling the
                                  daemon (60)

@@ -8,10 +8,16 @@ xpl-dawndusk - Perl script for an xPL dawndusk application
 
   xpl-dawndusk [flags] [options] latitude longitude
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help              - show this help text
+    --verbose           - verbose mode (for the xPL layer)
+    --dawndusk-verbose  - verbose mode (for the dawndusk layer)
   and valid options are (default shown in brackets):
-    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    --interface if0          - the interface for xPL messages (first
+                               non-loopback or loopback)
+    --dawndusk-latitude  nn  - latitude (51);
+    --dawndusk-longitude nn  - longitude (-1)
+    --dawndusk-altitude nn   - altitude
+    --dawndusk-iteration nn  - iteration
 
   # start the dawndusk application listening and broadcasting on first
   # ethernet interface in verbose mode
