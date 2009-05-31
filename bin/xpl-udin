@@ -6,17 +6,19 @@ xpl-udin - Perl script for an xPL Audon UDIN USB Relay client
 
 =head1 SYNOPSIS
 
-  xpl-udin [flags] [options] --udin <device>
+  xpl-udin [flags] [options] --udin-tty <device>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --udin-verbose - verbose mode (for the UDIN layer)
   and valid options are (default shown in brackets):
-    -i if0  - the interface for xPL messages (first non-loopback or loopback)
-    --udin-baud baud - the baud rate (9600)
-    --udin <device>  - the ttyUSB device for the UDIN module
+    --interface if0      - the interface for xPL messages (first
+                           non-loopback or loopback)
+    --udin-baud baud     - the baud rate (9600)
+    --udin-tty <device>  - the ttyUSB device for the UDIN module
 
-  # start the udin application on first ethernet interface in verbose mode
-  xpl-udin -i eth0 -v --udin /dev/ttyUSB6
+  # start the UDIN application on first ethernet interface in verbose mode
+  xpl-udin --interface eth0 --verbose --udin-tty /dev/ttyUSB6
 
 =head1 DESCRIPTION
 
@@ -58,7 +60,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2008 by Mark Hindess
+Copyright (C) 2008, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
