@@ -10,7 +10,7 @@ xpl-dmx - Perl script for an xPL DMX Transmitter application
   where valid flags are:
     --help        - show this help text
     --verbose     - verbose mode (for the xPL layer)
-    --dmx-verbose - verbose mode (for the currentcost layer)
+    --dmx-verbose - verbose mode (for the dmx layer)
   and valid options are (default shown in brackets):
     --interface if0    - the interface for xPL messages (first
                          non-loopback or loopback)
