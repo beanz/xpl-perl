@@ -8,17 +8,24 @@ xpl-currentcost - Perl script for an xPL Current Cost application
 
   xpl-currentcost [flags] [options] <device>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help                - show this help text
+    --verbose             - verbose mode (for the xPL layer)
+    --currentcost-verbose - verbose mode (for the currentcost layer)
   and valid options are (default shown in brackets):
-    -i if0  - the interface for xPL messages (first non-loopback or loopback)
-    -b baud - the baud rate (9600)
+    --interface if0            - the interface for xPL messages (first
+                                 non-loopback or loopback)
+    --currentcost-baud nnnn    - baud rate for current cost serial
+                                 device (57600).  A value of 9600
+                                 should be used for an older current
+                                 cost unit
+    --currentcost-tty /dev/xxx - tty for the serial device
 
-  # start the currentcost application reading serial device ttyS0 in verbose mode
-  xpl-currentcost -v /dev/ttyS0
+  # start the currentcost application reading serial device ttyS0 in
+  # verbose mode
+  xpl-currentcost --currentcost-verbose /dev/ttyS0
 
   # start at the slower baud rate used by older devices
-  xpl-currentcost -v -b 2400 /dev/ttyS0
+  xpl-currentcost --currentcost-baud 9600 /dev/ttyS0
 
 =head1 DESCRIPTION
 
@@ -51,7 +58,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2008 by Mark Hindess
+Copyright (C) 2008, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
