@@ -8,18 +8,18 @@ xpl-linux - Perl script for an xPL linux monitor
 
   xpl-linux [flags] [options]
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help          - show this help text
+    --verbose       - verbose mode (for the xPL layer)
+    --linux-verbose - verbose mode (for the LCDproc layer)
   and valid options are (default shown in brackets):
-    -i if0 - the interface for xPL messages (first non-loopback or loopback)
-    -s nn  - number of seconds between polling the system (120)
-
-  # start the linux application with poll interval of 120 seconds
-  xpl-linux -s 120
+    --interface if0          - the interface for xPL messages (first
+                               non-loopback or loopback)
+    --linux-poll-interval nn - number of seconds between polling the
+                               system (120)
 
   # start the linux client listening and broadcasting on first ethernet
   # interface in verbose mode using poll interval of 120 seconds
-  xpl-linux -i eth0 -v
+  xpl-linux --interface eth0 --verbose --linux-verbose
 
 =head1 DESCRIPTION
 
@@ -50,7 +50,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2008 by Mark Hindess
+Copyright (C) 2006, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
