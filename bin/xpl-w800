@@ -6,17 +6,20 @@ xpl-w800 - Perl script for an xPL W800 RF receiver application
 
 =head1 SYNOPSIS
 
-  xpl-w800 [flags] [options] --w800 <device>
+  xpl-w800 [flags] [options] --w800-tty <device>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --w800-verbose - verbose mode (for the W800 layer)
   and valid options are (default shown in brackets):
-    --w800  - the tty device for the W800 receiver
-    -i if0  - the interface for xPL messages (first non-loopback or loopback)
-    -B baud - the baud rate (4800)
+    --interface if0      - the interface for xPL messages (first
+                           non-loopback or loopback)
+    --w800-tty <device>  - the tty device for the W800 receiver
+    --w800-baud nnnn     - the baud rate (4800)
 
   # start the w800 application on first ethernet interface in verbose mode
-  xpl-w800 -i eth0 -v --w800 /dev/ttyUSB0
+  xpl-w800 --interface eth0 --verbose \
+           --w800-verbose --w800-tty /dev/ttyUSB0
 
 =head1 DESCRIPTION
 
