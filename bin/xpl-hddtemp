@@ -8,18 +8,22 @@ xpl-hddtemp - Perl script for an xPL hddtemp monitor
 
   xpl-hddtemp [flags] [options]
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help            - show this help text
+    --verbose         - verbose mode (for the xPL layer)
+    --hddtemp-verbose - verbose mode (for the hddtemp layer)
   and valid options are (default shown in brackets):
-    -i if0 - the interface for xPL messages (first non-loopback or loopback)
-    -s nn  - number of seconds between polling the hddtemp daemon (120)
+    --interface if0            - the interface for xPL messages (first
+                                 non-loopback or loopback)
+    --hddtemp-poll-interval nn - number of seconds between polling
+                                 the hddtemp daemon (120)
+    --hddtemp-server host:port - address of hddtemp daemon (127.0.0.1:7634)
 
-  # start the hddtemp application with poll interval of 120 seconds
-  xpl-hddtemp -s 120
+  # start the hddtemp application with poll interval of 60 seconds
+  xpl-hddtemp --hddtemp-poll-interval 60
 
   # start the hddtemp listening and broadcasting on first ethernet
   # interface in verbose mode using poll interval of 120 seconds
-  xpl-hddtemp -i eth0 -v
+  xpl-hddtemp --interface eth0 --verbose --hddtemp-verbose
 
 =head1 DESCRIPTION
 
@@ -51,7 +55,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2008 by Mark Hindess
+Copyright (C) 2006, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
