@@ -20,8 +20,8 @@ xpl-dawndusk - Perl script for an xPL dawndusk application
     --dawndusk-iteration nn  - iteration
 
   # start the dawndusk application listening and broadcasting on first
-  # ethernet interface in verbose mode
-  xpl-dawndusk -i eth0 -v
+  # ethernet interface using specified latitude and longitude
+  xpl-dawndusk --dawndusk-latitude 37.37 --dawndusk-longitude 115.64
 
 =head1 DESCRIPTION
 
