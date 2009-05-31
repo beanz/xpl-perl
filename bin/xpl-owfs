@@ -8,13 +8,16 @@ xpl-owfs - Perl script for an xPL interface to the one-wire filesystem
 
   xpl-owfs [flags] [options] <owfs-mountpoint>
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --owfs-verbose - verbose mode (for the owfs layer)
   and valid options are (default shown in brackets):
-    -i if0  - the interface for xPL messages (first non-loopback or loopback)
+    --interface if0          - the interface for xPL messages (first
+                               non-loopback or loopback)
+    --owfs-mount /mountpoint - the owfs mount point
 
   # start the owfs application on first ethernet interface in verbose mode
-  xpl-owfs -i eth0 -v
+  xpl-owfs --interface eth0 --verbose --owfs-verbose
 
 =head1 DESCRIPTION
 
@@ -23,7 +26,8 @@ filesystem.  It supports the use of control.basic messages with
 current fields set to 'high', 'low' or 'pulse' of devices with PIO
 files.  It also sends sensor.basic messages for devices with
 'temperature', 'humidity', 'current', 'counters.A' or 'counters.B'
-files.  For more details, see the table at http://owfs.sourceforge.net/ow_table.html
+files.  For more details, see the table at
+http://owfs.sourceforge.net/ow_table.html
 
 =cut
 
@@ -51,7 +55,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2008 by Mark Hindess
+Copyright (C) 2006, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
