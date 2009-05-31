@@ -6,20 +6,24 @@ xpl-dmx - Perl script for an xPL DMX Transmitter application
 
 =head1 SYNOPSIS
 
-  xpl-dmx [flags] [options] --dmx <device>
+  xpl-dmx [flags] [options] <device>
   where valid flags are:
-    -h    - show this help text
-    -v    - verbose mode
+    --help        - show this help text
+    --verbose     - verbose mode (for the xPL layer)
+    --dmx-verbose - verbose mode (for the currentcost layer)
   and valid options are (default shown in brackets):
-    -i if0       - the interface for xPL messages (first non-loopback or
-                                                   loopback)
-    --rgb colors - rgb.txt file to use for colours (/etc/X11/rgb.txt)
-                    If this doesn't exist, then only the colours red,
-                    green, blue, cyan, magenta, yellow, black, and white
-                    are supported.
+    --interface if0    - the interface for xPL messages (first
+                         non-loopback or loopback)
+    --dmx-baud nnnn    - baud rate to use for Milford serial device (9600)
+    --dmx-tty /dev/xxx - baud rate to use for Milford serial device (9600)
+    --rgb colors       - rgb.txt file to use for colours (/etc/X11/rgb.txt)
+                         If this doesn't exist, then only the colours red,
+                         green, blue, cyan, magenta, yellow, black, and white
+                         are supported.
 
   # start the dmx application on first ethernet interface in verbose mode
-  xpl-dmx -i eth0 -v --dmx <device>
+  # with the Milford device attached to /dev/ttyUSB0
+  xpl-dmx --interface eth0 --verbose --dmx-verbose /dev/ttyUSB0
 
 =head1 DESCRIPTION
 
@@ -52,7 +56,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2008 by Mark Hindess
+Copyright (C) 2006, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
