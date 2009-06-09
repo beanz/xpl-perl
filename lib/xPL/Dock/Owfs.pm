@@ -280,6 +280,13 @@ sub read_ow_file {
   return $value;
 }
 
+1;
+__END__
+
+=head1 EXPORT
+
+None by default.
+
 =head1 SEE ALSO
 
 xPL::Client(3), xPL::Listener(3)
