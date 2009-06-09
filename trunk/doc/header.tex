@@ -1,0 +1,30 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{fullpage}
+\usepackage[dvips]{graphicx}
+\usepackage{epsfig}
+
+\title{xPL Perl Toolkit}
+\author{Mark Hindess\\
+  \texttt{soft-xpl-perl@temporalanomaly.com}\\
+  Copyright (C) 2005, 2008}
+
+\begin{document}
+
+% Use the following defn. for drafts
+%\newcommand{\comment}[1]{\footnote{#1}}
+% otherwise use this...
+\newcommand{\comment}[1]{}
+\setlength{\parindent}{0pt}
+\addtolength{\parskip}{5pt}
+
+% Macro for http reference inclusion, per hypertex.
+\def\href#1#2{\special{html:<a href="#1">}{#2}\special{html:</a>}}
+\def\url#1{\special{html:<a href="#1">}{\tt{#1}}\special{html:</a>}}
+\def\msg#1{\texttt{#1}}
+\def\method#1{\texttt{#1}}
+\def\field#1{\texttt{#1}}
+\def\cmd#1{\texttt{#1}}
+
+\maketitle
+\newpage
+\tableofcontents

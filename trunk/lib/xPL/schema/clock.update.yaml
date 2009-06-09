@@ -1,0 +1,13 @@
+---
+default_message_type: xpl-stat
+types:
+  xpl-stat:
+    fields:
+      - name: time
+        error: "It should be 14 digits of the form 'YYYYMMDDhhmmss'."
+        die: 1
+        validation:
+          type: Pattern
+          pattern: '\d{14}'
+    summary:
+      - name: time

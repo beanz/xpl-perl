@@ -1,0 +1,60 @@
+$args =
+  {
+   message_type => 'xpl-trig',
+   head =>
+   {
+    hop => 1,
+    source => 'acme-1wire.node0',
+    target => '*',
+   },
+   class => 'sensor.basic',
+   body =>
+   {
+    device => 'bed1',
+    type => 'temp',
+    current => '21.05',
+   },
+  };
+
+xpl-trig
+{
+hop=1
+source=acme-1wire.node0
+target=*
+}
+sensor.basic
+{
+device=bed1
+type=temp
+current=21.05
+}
+
+message_type=xpl-trig
+
+hop=1
+
+source=acme-1wire.node0
+
+target=*
+
+class=sensor
+
+class_type=basic
+
+summary=xpl-trig/sensor.basic: acme-1wire.node0 -> * - bed1[temp]=21.05
+
+device=bed1
+
+type=temp
+
+current=21.05
+
+device[bed2]=bed2
+
+type[voltage]=voltage
+
+current[blah]=blah
+
+type[scent]=scent
+xPL::Message::sensor::basic::xpltrig->type: type, scent, is invalid.
+It should be one of 'battery', 'count', 'current', 'direction', 'distance', 'energy', 'fan', 'generic', 'humidity', 'input', 'pressure', 'speed', 'temp', 'uv', 'voltage', 'volume' or 'weight'.

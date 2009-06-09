@@ -1,0 +1,19 @@
+2000f0ffc6
+
+5 bytes
+
+1 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=rfxsensor00f0
+type=temp
+current=-0.25
+base_device=00f0
+}

@@ -1,0 +1,5 @@
+#!/bin/sh
+# Copyright (C) 2007 by Mark Hindess
+/bin/cat <<EOF
+	inet 192.168.99.13 netmask 0xffffff00 broadcast 192.168.99.255
+EOF

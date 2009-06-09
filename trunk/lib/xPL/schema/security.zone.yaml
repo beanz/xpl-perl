@@ -1,0 +1,51 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_SECURITY
+default_message_type: xpl-trig
+types:
+  xpl-trig:
+    fields:
+      - name: event
+        die: 1
+        validation: 
+          type: Set
+          set:
+            - armed
+            - arm-failed
+            - disarmed
+            - alarm
+            - alert
+            - tamper
+            - isolated
+            - bypassed
+            - dark
+            - low-battery
+      - name: zone
+        die: 1
+        required: 1
+      - name: state
+        validation: 
+          type: Set
+          set:
+            - true
+            - false
+      - name: alarm-type
+        validation:
+          type: Set
+          set:
+            - burglary
+            - fire
+            - flood
+            - gas
+            - silent
+            - duress
+      - name: user
+    summary:
+      - name: event
+      - name: zone
+        prefix: "/"
+      - name: state
+        prefix: " state="
+      - name: alarm-type
+        prefix: " type="
+      - name: user
+        prefix: " user="

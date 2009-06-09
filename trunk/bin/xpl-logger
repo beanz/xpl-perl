@@ -1,0 +1,112 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-logger - Perl script for an example xPL logger application
+
+=head1 SYNOPSIS
+
+  xpl-logger [flags] [options] [filter...]
+  where valid flags are:
+    -h - show this help text
+    -head - dump the head of all xPL messages
+    -body - dump the body of all xPL messages
+    -v - verbose client mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+  Any filter arguments are concatenated with space and passed to the
+  xPL callback setup.
+
+  # start the logger listening and broadcasting on first ethernet
+  # interface in verbose mode
+  xpl-logger -i eth0 -v
+
+  # start but only log "x10.*" messages
+  xpl-logger -i eth0 -v class=x10
+
+=head1 DESCRIPTION
+
+This script is an xPL client that logs xPL incoming messages.  By
+default it logs all incoming messages but filter arguments can be
+passed on the command line which are concatenated (with spaces) and
+passed to the xPL callback setup.  See L<xPL::Listener> man page for
+more details of filters.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Pod::Usage;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+my %args = ( vendor_id => 'bnz', device_id => 'listener', );
+my %opt = ();
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $verbose_head;
+my $verbose_body;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'head' => \$verbose_head,
+           'body' => \$verbose_body,
+           ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => "logger",
+                       self_skip => 0, targetted => 0,
+                       callback => \&log,
+                       filter => "@ARGV");
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to log the incoming messages
+sub log {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  print "$peeraddr:$peerport [", $msg->summary, "]\n";
+  print $msg->head_string if ($verbose_head);
+  print $msg->body_string if ($verbose_body);
+  return 1;
+};
+
+# send a "hbeat.end" message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005, 2008 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

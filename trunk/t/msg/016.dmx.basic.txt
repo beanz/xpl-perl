@@ -1,0 +1,55 @@
+$args =
+  {
+   head =>
+   {
+    hop => 1,
+    source => 'acme-dmx.node0',
+    target => '*',
+   },
+   class => 'dmx.basic',
+   body =>
+   {
+    base => '1',
+    type => 'set',
+    value => 10,
+   },
+  };
+
+xpl-cmnd
+{
+hop=1
+source=acme-dmx.node0
+target=*
+}
+dmx.basic
+{
+base=1
+type=set
+value=10
+}
+
+message_type=xpl-cmnd
+
+hop=1
+
+source=acme-dmx.node0
+
+target=*
+
+class=dmx
+
+class_type=basic
+
+summary=xpl-cmnd/dmx.basic: acme-dmx.node0 -> * - set:1=10
+
+base=1
+
+type=set
+
+value=10
+
+base[2]=2
+
+type[get]=get
+xPL::Message::dmx::basic::xplcmnd->type: type, get, is invalid.
+It should be one of 'set'.

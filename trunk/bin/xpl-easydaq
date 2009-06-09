@@ -1,0 +1,69 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-easydaq - Perl script for an xPL EasyDAQ USB Relay client
+
+=head1 SYNOPSIS
+
+  xpl-easydaq [flags] [options] <device>
+  where valid flags are:
+    --help            - show this help text
+    --verbose         - verbose mode (for the xPL layer)
+    --easydaq-verbose - verbose mode (for the easydaq layer)
+  and valid options are (default shown in brackets):
+    --interface if0        - the interface for xPL messages (first
+                             non-loopback or loopback)
+    --easydaq-baud nnnn    - the baud rate (9600)
+    --easydaq-tty /dev/xxx - the USB/serial device
+
+  # start the easydaq application on first ethernet interface in verbose mode
+  xpl-easydaq --interface eth0 --verbose \
+              --easydaq-verbose --easydaq-tty /dev/ttyUSB6
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a EasyDAQ USB Relay
+device.  It supports the use of control.basic messages with current
+fields set to 'high', 'low', or 'pulse' with devices of the form 'oNN'
+where NN is a number from 1 to 16.  There is no support for EasyDAQ
+inputs.
+
+This script may also work with other Audon devices which have similar
+firmware.  For this reason, control.basic current=pulse messages are
+handled in the manner expected by an SPO-RL8 Serial Relay device even
+though these will be ignored by a EasyDAQ USB device.
+
+=cut
+
+use strict;
+use warnings;
+use xPL::Dock qw/EasyDAQ/;
+$|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new;
+$xpl->main_loop;
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Dock(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+EasyDAQ website: http://www.easydaq.com/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2008, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

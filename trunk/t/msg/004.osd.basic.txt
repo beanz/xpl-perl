@@ -1,0 +1,72 @@
+$args =
+  {
+   message_type => "xpl-cmnd",
+   head =>
+   {
+    hop => 2,
+    source => "acme-phone.livingroom",
+    target => "acme-tv.livingroom",
+   },
+   class => "osd.basic",
+   body =>
+   {
+    command => "clear",
+    text => "Ring, Ring",
+    row => 1,
+    column => 2,
+    delay => 5,
+   },
+  };
+
+xpl-cmnd
+{
+hop=2
+source=acme-phone.livingroom
+target=acme-tv.livingroom
+}
+osd.basic
+{
+command=clear
+text=Ring, Ring
+row=1
+column=2
+delay=5
+}
+
+message_type=xpl-cmnd
+
+hop=2
+
+source=acme-phone.livingroom
+
+target=acme-tv.livingroom
+
+class=osd
+
+class_type=basic
+
+command=clear
+
+text=Ring, Ring
+
+row=1
+
+column=2
+
+delay=5
+
+summary=xpl-cmnd/osd.basic: acme-phone.livingroom -> acme-tv.livingroom - clear:Ring, Ring
+
+command[write]=write
+
+command[exclusive]=exclusive
+
+command[release]=release
+
+command[foo]=foo
+xPL::Message::osd::basic::xplcmnd->command: command, foo, is invalid.
+It should be one of 'clear', 'write', 'exclusive' or 'release'.
+
+delay[bar]=bar
+xPL::Message::osd::basic::xplcmnd->delay: delay, bar, is invalid.
+It should be a positive number.

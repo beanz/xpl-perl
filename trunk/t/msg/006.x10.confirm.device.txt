@@ -1,0 +1,45 @@
+$args =
+  {
+   head =>
+   {
+    hop => 1,
+    source => "acme-x10heyu.node0",
+    target => "*",
+   },
+   class => "x10.confirm",
+   body =>
+   {
+    command => "on",
+    device => "a2",
+   },
+  };
+
+xpl-trig
+{
+hop=1
+source=acme-x10heyu.node0
+target=*
+}
+x10.confirm
+{
+command=on
+device=a2
+}
+
+message_type=xpl-trig
+
+hop=1
+
+source=acme-x10heyu.node0
+
+target=*
+
+class=x10
+
+class_type=confirm
+
+summary=xpl-trig/x10.confirm: acme-x10heyu.node0 -> * - on a2
+
+command=on
+
+device=a2

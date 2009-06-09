@@ -1,0 +1,46 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_UPS.BASIC
+default_message_type: xpl-trig
+types:
+  xpl-trig:
+    fields:
+      - name: status
+        die: 1
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - mains
+            - battery
+            - unknown
+      - name: event
+        die: 1
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - onmains
+            - onbattery
+            - battlow
+            - battfull
+            - bti
+            - btp
+            - btf
+            - comms_lost
+            - comms_ok
+            - input_freq_error
+            - input_freq_ok
+            - input_voltage_high
+            - input_voltage_low
+            - input_voltage_ok
+            - output_voltage_high
+            - output_voltage_low
+            - output_voltage_ok
+            - output_overload
+            - output_ok
+            - temp_high
+            - temp_ok
+    summary:
+      - name: status
+      - name: event
+        prefix: " "

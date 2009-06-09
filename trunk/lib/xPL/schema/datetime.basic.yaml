@@ -1,0 +1,25 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_DATETIME.BASIC
+default_message_type: xpl-trig
+types:
+  xpl-trig:
+    fields:
+      - name: datetime
+        die: 1
+        required: 1
+      - name: date
+        die: 1
+        required: 1
+      - name: time
+        die: 1
+        required: 1
+    summary:
+      - name: date
+      - name: time
+  xpl-stat:
+    fields:
+      - name: status
+        die: 1
+        required: 1
+    summary:
+      - name: status

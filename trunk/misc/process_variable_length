@@ -1,0 +1,33 @@
+#!/usr/bin/perl -w
+
+# perl -Iblib/lib misc/process_variable_length 50aacc134d422470455310
+# will dump the full decode for that message
+
+use strict;
+use xPL::RF;
+my $rf = xPL::RF->new(source => "bnz-rftest.default", verbose => 0);
+foreach (@ARGV) {
+  print lc $_, "\n\n";
+  my $warn;
+  local $SIG{__WARN__} = sub { $warn .= $_[0]; };
+  my $r;
+  eval { $r = $rf->process_variable_length(pack "H*", $_); };
+  die $@ if ($@);
+  if ($r) {
+    print $r->{length}," bytes\n\n";
+    if ($r->{messages} && @{$r->{messages}}) {
+      print scalar @{$r->{messages}}, " messages\n\n";
+      foreach my $m (@{$r->{messages}}) {
+        print $m->string();
+      }
+      print "\n";
+    } else {
+      print "0 messages\n\nempty\n\n";
+    }
+  } else {
+    print "undef\n\nundef\n\n";
+  }
+  if ($warn) {
+    print $warn,"\n";
+  }
+}

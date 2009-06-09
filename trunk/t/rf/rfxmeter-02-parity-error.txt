@@ -1,0 +1,9 @@
+3000f00006000b
+
+7 bytes
+
+0 messages
+
+empty
+
+RFXMeter parity error 10 != 11

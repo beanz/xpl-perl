@@ -1,0 +1,10 @@
+205246330a
+
+5 bytes
+
+0 messages
+
+empty
+
+RFXSensor Type-3, version 0a, transmit mode fast, initialized
+

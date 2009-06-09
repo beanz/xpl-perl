@@ -1,0 +1,20 @@
+---
+doc: http://wiki.xplproject.org.uk/index.php/Schema_-_CID.BASIC
+default_message_type: xpl-trig
+types:
+  xpl-trig:
+    fields:
+      - name: calltype
+        die: 1
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - inbound
+            - outbound
+      - name: phone
+        required: 1
+    summary:
+      - name: calltype
+      - name: phone
+        prefix: /

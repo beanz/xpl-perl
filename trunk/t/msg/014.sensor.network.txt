@@ -1,0 +1,60 @@
+$args =
+  {
+   message_type => 'xpl-trig',
+   head =>
+   {
+    hop => 1,
+    source => 'acme-1wire.node0',
+    target => '*',
+   },
+   class => 'sensor.network',
+   body =>
+   {
+    device => 'router1',
+    type => 'packets',
+    current => '1234',
+   },
+  };
+
+xpl-trig
+{
+hop=1
+source=acme-1wire.node0
+target=*
+}
+sensor.network
+{
+device=router1
+type=packets
+current=1234
+}
+
+message_type=xpl-trig
+
+hop=1
+
+source=acme-1wire.node0
+
+target=*
+
+class=sensor
+
+class_type=network
+
+summary=xpl-trig/sensor.network: acme-1wire.node0 -> * - router1[packets]=1234
+
+device=router1
+
+type=packets
+
+current=1234
+
+device[router2]=router2
+
+type[bytes]=bytes
+
+current[blah]=blah
+
+type[scent]=scent
+xPL::Message::sensor::network::xpltrig->type: type, scent, is invalid.
+It should be one of 'packets', 'bytes', 'bps' or 'db'.

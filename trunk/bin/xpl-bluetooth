@@ -1,0 +1,67 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-bluetooth - Perl script for an xPL bluetooth proximity monitor
+
+=head1 SYNOPSIS
+
+  xpl-bluetooth [flags] [options]
+  where valid flags are:
+    --help              - show this help text
+    --verbose           - verbose mode (for the xPL layer)
+    --bluetooth-verbose - verbose mode (for the bluetooth layer)
+  and valid options are (default shown in brackets):
+    --interface if0             - the interface for xPL messages (first
+                                  non-loopback or loopback)
+    --bluetooth-address aa:bb:cc:dd:ee:ff
+                                - bluetooth address to monitor (may
+                                  be provided multiple times to monitor
+                                  multiple addresses)
+    --bluetooth-poll-interval nn
+                                - number of seconds between polling for
+                                  proximity (60)
+
+  # start the bluetooth application with poll interval of 120 seconds
+  # monitoring one named address
+  xpl-bluetooth --bluetooth-poll-interval 120 \
+                --bluetooth-address 00:1a:75:de:de:de
+
+=head1 DESCRIPTION
+
+This script is an xPL client that polls a bluetooth device to check
+for proximity of bluetooth devices.
+
+=cut
+
+use strict;
+use warnings;
+use xPL::Dock qw/Bluetooth/;
+$|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new(name => 'blue');
+$SIG{TERM} = \&end;
+$SIG{QUIT} = \&end;
+$xpl->main_loop;
+
+# send a "hbeat.end" message on exit
+sub end { defined $xpl && $xpl->send_hbeat_end(); exit; }
+
+=head1 SEE ALSO
+
+xPL::Dock::Bluetooth(3), xPL::Dock(3), Net::Bluetooth(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2008, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

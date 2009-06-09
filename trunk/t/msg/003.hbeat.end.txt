@@ -1,0 +1,54 @@
+$args =
+  {
+   message_type => "xpl-stat",
+   head =>
+   {
+    hop => 2,
+    source => "acme-lamp.livingroom",
+    target => "*",
+   },
+   class => "hbeat.end",
+   body =>
+   {
+    interval => 10,
+    port => 12345,
+    remote_ip => "127.0.0.1",
+   },
+  };
+
+xpl-stat
+{
+hop=2
+source=acme-lamp.livingroom
+target=*
+}
+hbeat.end
+{
+interval=10
+port=12345
+remote-ip=127.0.0.1
+}
+
+message_type=xpl-stat
+
+hop=2
+
+source=acme-lamp.livingroom
+
+target=*
+
+class=hbeat
+
+class_type=end
+
+interval=10
+
+summary=xpl-stat/hbeat.end: acme-lamp.livingroom -> *
+
+port[1023]=undef
+xPL::Message::hbeat::end::xplstat->port: port, 1023, is invalid.
+It should be an integer between 1024 and 65535.
+
+remote_ip[not-ip]=undef
+xPL::Message::hbeat::end::xplstat->remote_ip: remote_ip, not-ip, is invalid.
+It should be an IP address.

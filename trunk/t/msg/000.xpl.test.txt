@@ -1,0 +1,39 @@
+$args =
+  {
+   message_type => "xpl-stat",
+   head =>
+   {
+    source => "acme-hammer.shed",
+   },
+   class => "xpl.test",
+   body =>
+   {
+    extra => "test of extra field",
+   },
+   verbose => 1,
+  };
+
+xpl-stat
+{
+hop=1
+source=acme-hammer.shed
+target=*
+}
+xpl.test
+{
+extra=test of extra field
+}
+
+message_type=xpl-stat
+
+source=acme-hammer.shed
+
+target=*
+
+class=xpl
+
+class_type=test
+
+extra_field[extra]=test of extra field
+
+summary=xpl-stat/xpl.test: acme-hammer.shed -> *

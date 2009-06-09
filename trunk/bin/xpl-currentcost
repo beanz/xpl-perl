@@ -1,0 +1,67 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-currentcost - Perl script for an xPL Current Cost application
+
+=head1 SYNOPSIS
+
+  xpl-currentcost [flags] [options] <device>
+  where valid flags are:
+    --help                - show this help text
+    --verbose             - verbose mode (for the xPL layer)
+    --currentcost-verbose - verbose mode (for the currentcost layer)
+  and valid options are (default shown in brackets):
+    --interface if0            - the interface for xPL messages (first
+                                 non-loopback or loopback)
+    --currentcost-baud nnnn    - baud rate for current cost serial
+                                 device (57600).  A value of 9600
+                                 should be used for an older current
+                                 cost unit
+    --currentcost-tty /dev/xxx - tty for the serial device
+
+  # start the currentcost application reading serial device ttyS0 in
+  # verbose mode
+  xpl-currentcost --currentcost-verbose /dev/ttyS0
+
+  # start at the slower baud rate used by older devices
+  xpl-currentcost --currentcost-baud 9600 /dev/ttyS0
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a Current Cost Energy
+Meter receiver.
+
+=cut
+
+use strict;
+use warnings;
+use xPL::Dock qw/CurrentCost/;
+$|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new(name => 'ccost');
+$xpl->main_loop;
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+Current Cost website: http://www.currentcost.com/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2008, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

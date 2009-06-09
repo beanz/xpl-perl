@@ -1,0 +1,13 @@
+*~
+/temp
+/blib
+/cover_db
+/Makefile
+/Makefile.old
+/pm_to_blib
+/install-stamp
+/build-stamp
+/.tdldb.bak
+/doc/xpl-perl-*.*
+/doc/tmp.*.tex
+/Makefile.local

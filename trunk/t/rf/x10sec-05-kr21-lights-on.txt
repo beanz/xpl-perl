@@ -1,0 +1,29 @@
+29c6c98679ef80
+
+7 bytes
+
+2 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+security.basic
+{
+command=disarm
+user=x10sec63
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+x10.security
+{
+command=disarm
+device=99
+}
+

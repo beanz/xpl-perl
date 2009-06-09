@@ -1,0 +1,17 @@
+Source: libxpl-perl
+Section: perl
+Priority: optional
+Build-Depends: debhelper (>= 4.0.2)
+Build-Depends-Indep: perl (>= 5.8.0-7), libyaml-perl, libyaml-syck-perl, libmodule-pluggable-perl, libtimedate-perl, net-tools, netbase
+Maintainer: Mark Hindess <soft-debian@temporalanomaly.com>
+Standards-Version: 3.6.1
+
+Package: libxpl-perl
+Architecture: all
+Depends: ${perl:Depends}, ${misc:Depends}, libyaml-syck-perl, libmodule-pluggable-perl
+Suggests: librrds-perl, libx-osd-perl, libgtk2-perl, libdatetime-event-sunrise-perl, libdatetime-event-recurrence-perl, libdatetime-event-cron-perl, libtimedate-perl, rrdtool, runit | daemontools, hddtemp, libwww-perl, libsms-send-perl
+Description:  Perl extension for xPL Protocol
+ These modules are intended to provide a framework for writing xPL
+ applications (see http://wiki.xplproject.org.uk/) in Perl.  A number
+ of sample applications are also provided including a hub, a logging
+ client, a bridge and a command line message sender.

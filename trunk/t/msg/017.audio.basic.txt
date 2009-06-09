@@ -1,0 +1,47 @@
+$args =
+  {
+   head =>
+   {
+    hop => 1,
+    source => 'acme-boombox.kitchen',
+    target => '*',
+   },
+   class => 'audio.basic',
+   body =>
+   {
+    command => 'play',
+   },
+  };
+
+xpl-cmnd
+{
+hop=1
+source=acme-boombox.kitchen
+target=*
+}
+audio.basic
+{
+command=play
+}
+
+message_type=xpl-cmnd
+
+hop=1
+
+source=acme-boombox.kitchen
+
+target=*
+
+class=audio
+
+class_type=basic
+
+command=play
+
+summary=xpl-cmnd/audio.basic: acme-boombox.kitchen -> * - play
+
+command[stop]=stop
+
+command[replay]=replay
+xPL::Message::audio::basic::xplcmnd->command: command, replay, is invalid.
+It should match the pattern "(play|stop|volume\s?[-+<>]?\d+|skip|back|random|clear)".

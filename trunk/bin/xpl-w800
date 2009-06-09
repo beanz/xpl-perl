@@ -1,0 +1,60 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-w800 - Perl script for an xPL W800 RF receiver application
+
+=head1 SYNOPSIS
+
+  xpl-w800 [flags] [options] --w800-tty <device>
+  where valid flags are:
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --w800-verbose - verbose mode (for the W800 layer)
+  and valid options are (default shown in brackets):
+    --interface if0      - the interface for xPL messages (first
+                           non-loopback or loopback)
+    --w800-tty <device>  - the tty device for the W800 receiver
+    --w800-baud nnnn     - the baud rate (4800)
+
+  # start the w800 application on first ethernet interface in verbose mode
+  xpl-w800 --interface eth0 --verbose \
+           --w800-verbose --w800-tty /dev/ttyUSB0
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with a W800 RF receiver.
+
+=cut
+
+use strict;
+use warnings;
+use xPL::Dock qw/W800/;
+$|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new;
+$xpl->main_loop;
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Dock(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+W800 website: http://www.wgldesigns.com/w800.html
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2006, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
