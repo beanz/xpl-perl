@@ -1,6 +1,6 @@
 Revision history for Perl extension xPL.
 
-0.10 Tue, 19 May 2009 22:40:35 +0100
+0.10 Tue,  9 Jun 2009 22:42:11 +0100
 
         - Lots of refactoring:
           * Removed approximately 1/5th of the code.

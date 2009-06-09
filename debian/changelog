@@ -50,7 +50,7 @@ libxpl-perl (0.10-1) unstable; urgency=low
     use on devices like the NSLU2 when only xPL-Perl is being
     used.
 
- -- Mark Hindess <soft-debian@temporalanomaly.com>  Tue, 19 May 2009 22:40:35 +0100
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Tue,  9 Jun 2009 22:42:11 +0100
 
 libxpl-perl (0.09-1) unstable; urgency=low
 
