@@ -73,30 +73,32 @@ $plugin->owfs_write('28.FEFEFE000000/counters.A', 102);
 $plugin->owfs_write('28.FEFEFE000000/counters.B', 102);
 chmod 0, 't/ow/1/28.FEFEFE000000/counters.B';
 
-
-like(test_warn(sub { $plugin->owfs_reader(); }),
-     qr!^Failed to read ow file, t/ow/1/28\.FEFEFE000000/counters\.B: !,
-     'read failure');
-check_sent_msg({
-                'body' => {
-                           'current' => '20.1',
-                           'type' => 'temp',
-                           'device' => '28.FEFEFE000000'
+SKIP: {
+  skip "Can't test read failure when running as root", 3 if ($> == 0);
+  like(test_warn(sub { $plugin->owfs_reader(); }),
+       qr!^Failed to read ow file, t/ow/1/28\.FEFEFE000000/counters\.B: !,
+       'read failure');
+  check_sent_msg({
+                  'body' => {
+                             'current' => '20.1',
+                             'type' => 'temp',
+                             'device' => '28.FEFEFE000000'
                           },
-                'message_type' => 'xpl-stat',
-                'class' => 'sensor.basic'
-               }, 'temp reported');
-check_sent_msg({
-                'body' => {
-                           'current' => '102',
-                           'type' => 'count',
-                           'device' => '28.FEFEFE000000.0'
-                          },
-                'message_type' => 'xpl-trig',
-                'class' => 'sensor.basic'
-               }, 'count.1 reported');
-unlink 't/ow/1/28.FEFEFE000000/counters.A';
-unlink 't/ow/1/28.FEFEFE000000/counters.B';
+                  'message_type' => 'xpl-stat',
+                  'class' => 'sensor.basic'
+                 }, 'temp reported');
+  check_sent_msg({
+                  'body' => {
+                             'current' => '102',
+                             'type' => 'count',
+                             'device' => '28.FEFEFE000000.0'
+                            },
+                  'message_type' => 'xpl-trig',
+                  'class' => 'sensor.basic'
+                 }, 'count.1 reported');
+  unlink 't/ow/1/28.FEFEFE000000/counters.A';
+  unlink 't/ow/1/28.FEFEFE000000/counters.B';
+}
 
 {
   local $0 = 'dingus';
