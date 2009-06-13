@@ -40,7 +40,7 @@ Revision history for Perl extension xPL.
         - xpl-heyu: support for new "heyu monitor" output format.
         - xpl-currentcost: support new CC128/Envi energy monitors.
         - xpl-rfxcom-tx: increased ack timeout as suggested by Bert.
-        - xpl-rfxcom-rx: support for THN132N
+        - xpl-rfxcom-rx: support for THN132N - thanks to roger78.
         - Lots of documentation updates.
         - Support of using YAML::Syck instead of YAML for schema
           parsing for faster startup of clients.
