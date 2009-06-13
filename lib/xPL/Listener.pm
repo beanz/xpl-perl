@@ -617,6 +617,8 @@ sub main_loop {
   my $count = shift;
 
   local $SIG{'USR1'} = sub { $self->dump_statistics };
+  local $SIG{'INT'} = sub { $self->exiting(@_) };
+  local $SIG{'QUIT'} = sub { $self->exiting(@_) };
 
   my $select = $self->{_select} = IO::Select->new();
   $select->add($_) foreach ($self->inputs);
@@ -630,6 +632,31 @@ sub main_loop {
     $self->dispatch_timers();
   }
   return 1;
+}
+
+=head2 C<exit( )>
+
+This method closes down the client.
+
+=cut
+
+sub exit {
+  $_[0]->exiting();
+}
+
+=head2 C<exiting( )>
+
+This method is called when we are exiting and can be overriden to provide
+additional behaviour.  When overriden the exiting method should probably
+end with:
+
+  return $self->SUPER::exiting(@_);
+
+=cut
+
+sub exiting {
+  # do nothing
+  CORE::exit;
 }
 
 =head1 TIMER METHODS

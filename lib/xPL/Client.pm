@@ -560,6 +560,18 @@ sub send_hbeat_end {
   return 1;
 }
 
+=head2 C<exiting( )>
+
+This method is called when we are exiting.
+
+=cut
+
+sub exiting {
+  my ($self) = @_;
+  $self->send_hbeat_end();
+  return $self->SUPER::exiting();
+}
+
 1;
 __END__
 
