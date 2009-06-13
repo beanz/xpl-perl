@@ -24,6 +24,7 @@ use 5.006;
 use strict;
 use warnings;
 
+use Carp;
 use English qw/-no_match_vars/;
 use FileHandle;
 use Getopt::Long;
@@ -39,24 +40,57 @@ our $VERSION = qw/$Revision$/[1];
 
 my @plugins;
 
+sub guess_plugin {
+  my ($pkg, $name) = @_;
+  $name = lc $name;
+  $name =~ s!^.*/([^/]+)!$1!;
+  $name =~ s/^xpl-//;
+  my $subdir = $pkg;
+  $subdir =~ s!::!/!g;
+  foreach (@INC) {
+    my $d = $_."/".$subdir;
+    next unless -d $d;
+    opendir my $dh, $d or next;
+    foreach (readdir $dh) {
+      next unless (/^([^.]+)\.pm$/);
+      return $1 if ($name eq lc $1)
+    }
+  }
+  return;
+}
+
 sub import {
   my $pkg = shift;
-  foreach (@_) {
-    my $module = $pkg.'::'.$_;
+  my @imp = @_;
+  my $run;
+  foreach my $p (@imp) {
+    if ($p eq '-run') {
+      $run++;
+      next;
+    }
+    if ($p eq '-guess') {
+      $p = guess_plugin($pkg, $0) or
+        croak "Failed to find plugin for: ", $0, "\n";
+    }
+    my $module = $pkg.'::'.$p;
     my $file = $module.'.pm';
     $file =~ s/::/\//g;
     eval { require $file; };
     die "Failed loading plugin: $@\n" if ($@);
     push @plugins, $module;
   }
+  if ($run) {
+    my $xpl = xPL::Dock->new;
+    $xpl->main_loop;
+  }
 }
 
 =head2 C<new(%params)>
 
-The constructor creates a new xPL::Dock object.  The
-constructor takes a parameter hash as arguments.  Valid parameters in
-the hash are those described in L<xPL::Client>, those of any instantiated
-plugins and the following additional elements:
+The constructor creates a new xPL::Dock object.  The constructor takes
+a parameter hash as arguments.  Valid parameters in the hash are those
+described in L<xPL::Client>, those of any instantiated plugins and the
+following additional elements:
 
 =over 4
 
