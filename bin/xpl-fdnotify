@@ -1,0 +1,56 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-fdnotify - Perl script for an xPL X OSD application
+
+=head1 SYNOPSIS
+
+  xpl-fdnotify [flags] [options]
+  where valid flags are:
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --fdnotify-verbose - verbose mode (for the X OSD layer)
+  and valid options are (default shown in brackets):
+    --interface if0       - the interface for xPL messages (first
+                            non-loopback or loopback)
+
+  # start the notify client on first ethernet interface in verbose mode
+  xpl-fdnotify --verbose --fdnotify-verbose
+
+=head1 DESCRIPTION
+
+This script is an xPL client that displays xPL C<osd.basic> messages using
+freedesktop notification service.
+
+=cut
+
+use strict;
+use warnings;
+use xPL::Dock qw/FDNotify/;
+$|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new;
+$xpl->main_loop;
+
+# send a 'hbeat.end' message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Dock(3), xPL::Dock::FDNotify(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

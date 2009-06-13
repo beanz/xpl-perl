@@ -1,5 +1,11 @@
 Revision history for Perl extension xPL.
 
+0.11 XXX
+
+        - Renamed xpl-osd to xpl-xosd
+        - New client: xpl-fdnotify display osd.basic messages using standard
+            (Linux) desktop notifications.
+
 0.10 Tue,  9 Jun 2009 22:42:11 +0100
 
         - Lots of refactoring:

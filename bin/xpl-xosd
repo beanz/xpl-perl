@@ -8,14 +8,19 @@ xpl-xosd - Perl script for an xPL X OSD application
 
   xpl-xosd [flags] [options]
   where valid flags are:
-    -h - show this help text
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --xosd-verbose - verbose mode (for the X OSD layer)
   and valid options are (default shown in brackets):
-    -i if0 - the interface for xPL messages (first non-loopback or loopback)
-    -d nnn - the maximum delay in seconds that a message is allowed to remain
-             on screen for (10)
+    --interface if0       - the interface for xPL messages (first
+                            non-loopback or loopback)
+    --xosd-max-delay nnnn - maximum number of seconds that a message may
+                            remain on the screen (10)
+    --xosd-rows nn        - the number of rows to display (4)
+    --xosd-font fontname  - name of font to use (-adobe-courier-bold-...)
 
   # start the xosd on first ethernet interface in verbose mode
-  xpl-xosd -i eth0 -v
+  xpl-xosd --verbose --xosd-verbose
 
 =head1 DESCRIPTION
 
@@ -44,90 +49,17 @@ correctly.
 
 use strict;
 use warnings;
-use Getopt::Long;
-use Pod::Usage;
-use xPL::Client;
-use X::Osd;
+use xPL::Dock qw/XOSD/;
 $|=1; # autoflush helps debugging
+my $xpl = xPL::Dock->new;
+$xpl->main_loop;
 
-my %args = ( vendor_id => 'bnz', device_id => 'osd', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $max_delay = 10;
-my $rows = 4;
-my $font = '-adobe-courier-bold-r-normal--72-0-0-0-p-0-iso8859-1';
-GetOptions('verbose+' => \$verbose,
-           'interface=s' => \$interface,
-           'delay=i' => \$max_delay,
-           'rows=i' => \$rows,
-           'font=s' => \$font,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
-
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
-
-my $xosd = X::Osd->new($rows);
-$xosd->set_font($font);
-
-# Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => 'xosd', self_skip => 0, callback => \&osd,
-                       filter => {
-                                 message_type => 'xpl-cmnd',
-                                 class => 'osd',
-                                });
-
-# Run the main loop
-$xpl->main_loop();
-
-# The callback to display the X OSD messages
-sub osd {
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
-
-  my $row = $msg->row;
-  unless ($row && $row >= 1 && $row <= $rows) {
-    $row = 1;
-  }
-  if ((lc $msg->command) eq 'clear') {
-    clear_screen();
-  }
-  unless ($msg->text) {
-    return;
-  }
-
-  my $delay = $msg->delay;
-  $delay = $max_delay if (!defined $delay || $delay > $max_delay);
-  $xosd->set_timeout($delay);
-  $xosd->string($row-1, $msg->text);
-  return 1;
-}
-
-sub clear_screen {
-  $xosd->set_timeout(0);
-  foreach my $r (0..$rows-1) {
-    $xosd->string($r, q{});
-  }
-}
-
-# send a "hbeat.end" message on exit
+# send a 'hbeat.end' message on exit
 END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 
-xPL::Client(3), xPL::Listener(3)
+xPL::Dock(3), xPL::Dock::XOSD(3), X::Osd(3)
 
 Project website: http://www.xpl-perl.org.uk/
 
@@ -139,7 +71,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2005, 2008 by Mark Hindess
+Copyright (C) 2005, 2009 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,

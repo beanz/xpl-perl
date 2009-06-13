@@ -58,6 +58,7 @@ lib/xPL/Dock/CurrentCost.pm
 lib/xPL/Dock/DawnDusk.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
+lib/xPL/Dock/FDNotify.pm
 lib/xPL/Dock/HDDTemp.pm
 lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/LCDproc.pm
@@ -71,6 +72,7 @@ lib/xPL/Dock/RFXComTX.pm
 lib/xPL/Dock/UDIN.pm
 lib/xPL/Dock/VIOM.pm
 lib/xPL/Dock/W800.pm
+lib/xPL/Dock/XOSD.pm
 lib/xPL/Dock/Xvkbd.pm
 lib/xPL/Gtk2Client.pm
 lib/xPL/HomeEasy.pm
