@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/RFXComRX -run/;
+
 =head1 NAME
 
 xpl-rfxcom-rx - Perl script for an xPL RFXCOM RF receiver application
@@ -26,18 +28,6 @@ xpl-rfxcom-rx - Perl script for an xPL RFXCOM RF receiver application
 =head1 DESCRIPTION
 
 This script is an xPL client that interfaces with an RFXCOM RF receiver.
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/RFXComRX/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new;
-$xpl->main_loop;
-
-# send a 'hbeat.end' message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 BUGS
 

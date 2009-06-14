@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/RFXComTX -run/;
+
 =head1 NAME
 
 xpl-rfxcom-tx - Perl script for an xPL RFXCOM RF transmitter application
@@ -34,18 +36,6 @@ xpl-rfxcom-tx - Perl script for an xPL RFXCOM RF transmitter application
 This script is an xPL client that interfaces with an RFXCOM RF
 transmitter.  It currently only suppports the 'number of bits to xmit
 and up to 48bits'-mode.
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/RFXComTX/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new;
-$xpl->main_loop;
-
-# send a 'hbeat.end' message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

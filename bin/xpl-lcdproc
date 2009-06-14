@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-run/;
+
 =head1 NAME
 
 xpl-lcdproc - Perl script for an xPL LCDproc OSD application
@@ -25,18 +27,6 @@ xpl-lcdproc - Perl script for an xPL LCDproc OSD application
 
 This script is an xPL client that displays OSD messages using an LCD
 connected via the LCDproc api.  This script requires an LCDproc server.
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/LCDproc/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new();
-$xpl->main_loop;
-
-# send a "hbeat.end" message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

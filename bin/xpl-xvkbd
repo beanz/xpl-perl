@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-run/;
+
 =head1 NAME
 
 xpl-xvkbd - Perl script for an xPL virtual keyboard application
@@ -20,18 +22,6 @@ xpl-xvkbd - Perl script for an xPL virtual keyboard application
 
 This script is an xPL client that interfaces with xvkbd to send key strokes
 to an X11 application.
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/Xvkbd/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new();
-$xpl->main_loop;
-
-# send a "hbeat.end" message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

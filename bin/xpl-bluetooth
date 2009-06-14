@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-name blue/;
+
 =head1 NAME
 
 xpl-bluetooth - Perl script for an xPL bluetooth proximity monitor
@@ -31,20 +33,6 @@ xpl-bluetooth - Perl script for an xPL bluetooth proximity monitor
 
 This script is an xPL client that polls a bluetooth device to check
 for proximity of bluetooth devices.
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/Bluetooth/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new(name => 'blue');
-$SIG{TERM} = \&end;
-$SIG{QUIT} = \&end;
-$xpl->main_loop;
-
-# send a "hbeat.end" message on exit
-sub end { defined $xpl && $xpl->send_hbeat_end(); exit; }
 
 =head1 SEE ALSO
 

@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-run/;
+
 =head1 NAME
 
 xpl-xosd - Perl script for an xPL X OSD application
@@ -44,18 +46,6 @@ This may require an X OSD library development package in order to build
 correctly.
 
 =back
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/XOSD/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new;
-$xpl->main_loop;
-
-# send a 'hbeat.end' message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

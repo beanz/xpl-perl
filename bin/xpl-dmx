@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-run/;
+
 =head1 NAME
 
 xpl-dmx - Perl script for an xPL DMX Transmitter application
@@ -29,18 +31,6 @@ xpl-dmx - Perl script for an xPL DMX Transmitter application
 
 This script is an xPL client that interfaces with DMX Transmitter from
 Milford Instruments.
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/DMX/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new;
-$xpl->main_loop;
-
-# send a 'hbeat.end' message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

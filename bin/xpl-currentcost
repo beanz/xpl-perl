@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-name ccost/;
+
 =head1 NAME
 
 xpl-currentcost - Perl script for an xPL Current Cost application
@@ -31,18 +33,6 @@ xpl-currentcost - Perl script for an xPL Current Cost application
 
 This script is an xPL client that interfaces with a Current Cost Energy
 Meter receiver.
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/CurrentCost/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new(name => 'ccost');
-$xpl->main_loop;
-
-# send a 'hbeat.end' message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

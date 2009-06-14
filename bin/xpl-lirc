@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-run/;
+
 =head1 NAME
 
 xpl-lirc - Perl script for an xPL interface to an LIRC daemon
@@ -27,18 +29,6 @@ xpl-lirc - Perl script for an xPL interface to an LIRC daemon
 This script is an xPL client that interfaces with the lirc client that
 comes with lirc.  It reads the remote control signals that are reported
 and transmits them as xPL C<remote.basic> messages.
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/LIRC/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new();
-$xpl->main_loop;
-
-# send a "hbeat.end" message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

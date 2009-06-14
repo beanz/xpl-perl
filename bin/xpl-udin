@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-run/;
+
 =head1 NAME
 
 xpl-udin - Perl script for an xPL Audon UDIN USB Relay client
@@ -32,19 +34,6 @@ This script may also work with other Audon devices which have similar
 firmware.  For this reason, control.basic current=pulse messages are
 handled in the manner expected by an SPO-RL8 Serial Relay device even
 though these will be ignored by a UDIN USB device.
-
-=cut
-
-use strict;
-use warnings;
-use English qw/-no_match_vars/;
-use xPL::Dock qw/UDIN/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new;
-$xpl->main_loop;
-
-# send a 'hbeat.end' message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

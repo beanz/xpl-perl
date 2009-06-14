@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-run/;
+
 =head1 NAME
 
 xpl-viom - Perl script for an xPL VIOM IO controller application
@@ -30,19 +32,6 @@ of the form 'oNN' where NN is a number from 1 to 16.  It also reports
 changes to the status of inputs as sensor.basic messages of type input
 with device names of the for 'iNN' whiere NN is a number from 1 to 16
 and single digit numbers are prefixed by 0.
-
-=cut
-
-use strict;
-use warnings;
-use English qw/-no_match_vars/;
-use xPL::Dock qw/VIOM/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new;
-$xpl->main_loop;
-
-# send a 'hbeat.end' message on exit
-END { defined $xpl && $xpl->send_hbeat_end(); }
 
 =head1 SEE ALSO
 

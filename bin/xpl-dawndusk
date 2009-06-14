@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-run/;
+
 =head1 NAME
 
 xpl-dawndusk - Perl script for an xPL dawndusk application
@@ -30,20 +32,6 @@ It sends of dawn and dusk 'xpl-trig' messages at the appropriate times
 and it responds to 'dawndusk.request' queries for 'daynight'.
 
 This script requires the L<DateTime::Event::Sunrise> perl module.
-
-=cut
-
-use strict;
-use warnings;
-use xPL::Dock qw/DawnDusk/;
-$|=1; # autoflush helps debugging
-my $xpl = xPL::Dock->new();
-$SIG{TERM} = \&end;
-$SIG{QUIT} = \&end;
-$xpl->main_loop;
-
-# send a "hbeat.end" message on exit
-sub end { defined $xpl && $xpl->send_hbeat_end(); exit; }
 
 =head1 SEE ALSO
 
