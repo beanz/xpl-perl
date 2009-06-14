@@ -617,8 +617,10 @@ sub main_loop {
   my $count = shift;
 
   local $SIG{'USR1'} = sub { $self->dump_statistics };
-  local $SIG{'INT'} = sub { $self->exiting(@_) };
-  local $SIG{'QUIT'} = sub { $self->exiting(@_) };
+  my $sub = sub { $self->exiting(@_) };
+  local $SIG{'INT'} = $sub;
+  local $SIG{'QUIT'} = $sub;
+  local $SIG{'TERM'} = $sub;
 
   my $select = $self->{_select} = IO::Select->new();
   $select->add($_) foreach ($self->inputs);
