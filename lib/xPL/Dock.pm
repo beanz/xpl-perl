@@ -63,9 +63,17 @@ sub import {
   my $pkg = shift;
   my @imp = @_;
   my $run;
-  foreach my $p (@imp) {
+  my @args;
+  while (my $p = shift @imp) {
     if ($p eq '-run') {
       $run++;
+      # -run implies -guess unless we have other things to try
+      push @imp, '-guess' unless (@imp or @plugins);
+      next;
+    }
+    if ($p eq '-name') {
+      push @args, name => shift @imp;
+      unshift @imp, '-run'; # -name implies -run
       next;
     }
     if ($p eq '-guess') {
@@ -80,7 +88,7 @@ sub import {
     push @plugins, $module;
   }
   if ($run) {
-    my $xpl = xPL::Dock->new;
+    my $xpl = xPL::Dock->new(@args);
     $xpl->main_loop;
   }
 }
