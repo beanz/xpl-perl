@@ -1,5 +1,7 @@
 #!/usr/bin/perl -w
 
+use xPL::Dock qw/-run/;
+
 =head1 NAME
 
 xpl-mythtv - Perl script for an xPL mythtv monitor
@@ -8,122 +10,24 @@ xpl-mythtv - Perl script for an xPL mythtv monitor
 
   xpl-mythtv [flags] [options]
   where valid flags are:
-    -h - show this help text
-    -v - verbose mode
+    --help           - show this help text
+    --verbose        - verbose mode (for the xPL layer)
+    --mythtv-verbose - verbose mode (for the MythTV layer)
   and valid options are (default shown in brackets):
-    -i if0 - the interface for xPL messages (first non-loopback or loopback)
-    -s nn  - number of seconds between polling the mythtv daemon (120)
+    --interface if0            - the interface for xPL messages (first
+                                 non-loopback or loopback)
+    --mythtv-poll-interval nn  - number of seconds between polling the
+                                 server (120)
+    --mythtv-server host:port  - MythTV server to contact (127.0.0.1:6544)
 
-  # start the mythtv application with poll interval of 120 seconds
-  xpl-mythtv -s 120
-
-  # start the mythtv listening and broadcasting on first ethernet
-  # interface in verbose mode using poll interval of 120 seconds
-  xpl-mythtv -i eth0 -v
+  # start the mythtv client with poll interval of 180 seconds
+  xpl-mythtv --mythtv-poll-interval 180
 
 =head1 DESCRIPTION
 
 This script is an xPL client that polls the mythtv backend daemon
 (listening on the loopback interface) to check the utilization of the
 encoders.
-
-=cut
-
-use strict;
-use warnings;
-use Getopt::Long;
-use Pod::Usage;
-use POSIX qw/strftime/;
-use xPL::Client;
-use IO::Socket;
-$|=1; # autoflush helps debugging
-
-my %args = ( vendor_id => 'bnz', device_id => 'mythtv', );
-my %opt = ();
-my $verbose;
-my $interface;
-my $help;
-my $man;
-my $interval = 120;
-GetOptions('verbose+' => \$verbose,
-           'interface|i=s' => \$interface,
-           'define=s' => \%opt,
-           'help|?|h' => \$help,
-           'man' => \$man,
-           'interval|s=i' => \$interval,
-          ) or pod2usage(2);
-pod2usage(1) if ($help);
-pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
-
-$args{'interface'} = $interface if ($interface);
-$args{'verbose'} = $verbose if ($verbose);
-
-# Create an xPL Client object
-my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
-my $state = {};
-my $buf = "";
-
-# Add a timer to the xPL Client event loop to generate the
-# "sensor.basic" messages.  The negative interval causes the timer to
-# trigger immediately rather than waiting for the first interval.
-$xpl->add_timer(id => 'poll',
-                timeout => -$interval,
-                callback => \&poll_mythtv);
-
-$SIG{TERM} = \&end;
-$SIG{QUIT} = \&end;
-
-# Run the main loop
-$xpl->main_loop();
-
-# The callback to connect to mythtv
-sub poll_mythtv {
-  my $sock = IO::Socket::INET->new('127.0.0.1:6544');
-  unless ($sock) {
-    warn "Failed to contact mythtv daemon: $!\n";
-    return 1;
-  }
-  print $sock "GET / HTTP/1.0\r\n\r\n";
-  $xpl->add_input(handle => $sock, callback => \&read_mythtv);
-  return 1;
-}
-
-# The callback to read mythtv response and send the "sensor.basic" messages
-sub read_mythtv {
-  my $sock = shift;
-  my $bytes = $sock->sysread($buf, 1024, length($buf));
-  unless ($bytes) {
-    $buf = "";
-    $xpl->remove_input($sock);
-    $sock->close;
-  }
-  if ($buf =~ m!<div \s+ class="content"> \s*
-                  <h2>Encoder \s+ status</h2> \s*
-                    (Encoder.*?)</div>!mxs) {
-    my $c = $1;
-    my $count = 0;
-    my $used = 0;
-    foreach my $s ($c =~ /(Encoder \d+ is \w+ on \S+ and is \w+)/mg) {
-      my ($num, $state) = ($s =~ /Encoder (\d+) is \w+ on \S+ and is (\w+)/);
-      #print STDERR $num, " ", $state, "\n";
-      $count++;
-      $used++ if ($state ne "not");
-    }
-    my $usage = $count ? int(10000*$used/$count)/100 : 0;
-
-    $buf = '';
-    $xpl->remove_input($sock);
-    $sock->close;
-
-    $xpl->send(message_type => 'xpl-stat', class => 'sensor.basic',
-               body => { device => $xpl->instance_id.'-myth', type => 'generic',
-                         current => $usage, units => 'percent' });
-  }
-  return 1;
-}
-
-# send a "hbeat.end" message on exit
-sub end { defined $xpl && undef $xpl;exit; }#->send_hbeat_end(); exit; }
 
 =head1 SEE ALSO
 
