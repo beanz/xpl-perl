@@ -110,6 +110,12 @@ sub xpl_handler {
   return 1;
 }
 
+=head2 C<clear_screen()>
+
+Clear the screen by removing all text from every line of the OSD.
+
+=cut
+
 sub clear_screen {
   my $self = shift;
   $self->{_xosd}->set_timeout(0);

@@ -214,6 +214,7 @@ t/14-dock-rfxcom-tx.t
 t/14-dock-udin.t
 t/14-dock-viom.t
 t/14-dock-w800.t
+t/14-dock-xosd.t
 t/14-dock-xvkbd.t
 t/bin/heyu
 t/bin/stty
