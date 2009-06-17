@@ -208,6 +208,7 @@ t/14-dock-heyu.t
 t/14-dock-lcdproc.t
 t/14-dock-linux.t
 t/14-dock-lirc.t
+t/14-dock-mythtv.t
 t/14-dock-owfs.t
 t/14-dock-rfxcom-rx.t
 t/14-dock-rfxcom-tx.t
