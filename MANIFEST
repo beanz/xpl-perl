@@ -203,6 +203,7 @@ t/14-dock-currentcost.t
 t/14-dock-dawndusk.t
 t/14-dock-dmx.t
 t/14-dock-easydaq.t
+t/14-dock-fdnotify.t
 t/14-dock-hddtemp.t
 t/14-dock-heyu.t
 t/14-dock-lcdproc.t
