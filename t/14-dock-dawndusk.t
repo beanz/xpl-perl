@@ -16,7 +16,6 @@ BEGIN {
     require DateTime::Event::Sunrise;
   };
   if ($@) {
-    print STDERR "$@\n";
     import Test::More skip_all => 'No DateTime::Event::Sunrise perl module';
   }
   import Test::More tests => 19;
