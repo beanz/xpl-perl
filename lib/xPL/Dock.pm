@@ -38,7 +38,7 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-my @plugins;
+our @plugins;
 
 sub guess_plugin {
   my ($pkg, $name) = @_;
@@ -64,6 +64,7 @@ sub import {
   my @imp = @_;
   my $run;
   my @args;
+  @plugins = ();
   while (my $p = shift @imp) {
     if ($p eq '-run') {
       $run++;
@@ -88,7 +89,7 @@ sub import {
     push @plugins, $module;
   }
   if ($run) {
-    my $xpl = xPL::Dock->new(@args);
+    my $xpl = $pkg->new(@args);
     $xpl->main_loop;
   }
 }

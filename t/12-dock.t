@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 19;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -60,7 +60,7 @@ undef $lines;
                 }, \*STDOUT);
 }
 SKIP: {
-  skip 'broken perldoc? not perl-doc package perhaps?', 2 unless ($has_perldoc);
+  skip 'broken perldoc? no perl-doc package perhaps?', 2 unless ($has_perldoc);
   like((split /\n/, $lines)[0],
        qr{^12-DOCK\.T\(1\)\s+User Contributed Perl Documentation\s+12-DOCK\.T\(1\)},
        'man content');
@@ -112,6 +112,41 @@ my @plugins;
   @plugins = xPL::Dock->new->plugins;
 }
 ok(!$plugins[0]->getopts, 'default getopts list');
+
+{
+
+  my $arg;
+  no warnings;
+  *{xPL::Dock::main_loop} = sub {
+    $arg = $_[0];
+  };
+  use warnings;
+
+  local $0 = 'xpl-mythtv';
+  eval { import xPL::Dock '-run' };
+  is(ref $arg, 'xPL::Dock', 'import xPL::Dock qw/-run/');
+  is(ref (($arg->plugins)[0]), 'xPL::Dock::Mythtv',
+     'import xPL::Dock qw/-guess/');
+
+  undef $arg;
+  local $0 = 'xpl-acme';
+  eval { import xPL::Dock '-run' };
+  like($@, qr/^Failed to find plugin for: xpl-acme/, 'failed to guess');
+
+  undef $arg;
+  local $0 = 'xpl-acme';
+  eval { import xPL::Dock qw/Mythtv -name test/ };
+  my @plugins = $arg->plugins;
+  is($arg->device_id, 'test', 'import xPL::Dock qw/Mythtv -name test/');
+  is(ref (($arg->plugins)[0]), 'xPL::Dock::Mythtv',
+     'import xPL::Dock qw/Mythtv -name test/');
+
+  eval { import xPL::Dock qw/-name test Mythtv/ };
+  @plugins = $arg->plugins;
+  is($arg->device_id, 'test', 'import xPL::Dock qw/-name test Mythtv/');
+  is(ref (($arg->plugins)[0]), 'xPL::Dock::Mythtv',
+     'import xPL::Dock qw/-name test Mythtv/');
+}
 
 # sample POD
 
