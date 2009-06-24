@@ -193,6 +193,10 @@ are:
   When the hub has responded and hbeats are being sent at the
   standard interval.
 
+=item undef
+
+  When we've sent the hub a C<hbeat.end> message.
+
 =back
 
 =head2 C<id()>
@@ -542,6 +546,8 @@ This method is called to send a dying hbeat message.
 
 sub send_hbeat_end {
   my $self = shift;
+  return unless (defined $self->{_hbeat_mode});
+  undef $self->{_hbeat_mode};
   $self->send(class => 'hbeat.end',
               body =>
               {
