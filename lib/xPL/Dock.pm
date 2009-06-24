@@ -40,25 +40,6 @@ our $VERSION = qw/$Revision$/[1];
 
 our @plugins;
 
-sub guess_plugin {
-  my ($pkg, $name) = @_;
-  $name = lc $name;
-  $name =~ s!^.*/([^/]+)!$1!;
-  $name =~ s/^xpl-//;
-  my $subdir = $pkg;
-  $subdir =~ s!::!/!g;
-  foreach (@INC) {
-    my $d = $_."/".$subdir;
-    next unless -d $d;
-    opendir my $dh, $d or next;
-    foreach (readdir $dh) {
-      next unless (/^([^.]+)\.pm$/);
-      return $1 if ($name eq lc $1)
-    }
-  }
-  return;
-}
-
 sub import {
   my $pkg = shift;
   my @imp = @_;
@@ -176,6 +157,37 @@ Returns the list of plugins in the dock.
 
 sub plugins {
   return @{$_[0]->{_plugins}};
+}
+
+=head2 C<guess_plugin( $package, $command_name)>
+
+Attempt to guess the plugin required for the named package based on
+the name of the command.  For instance:
+
+  guess_plugin('xPL::Dock', 'xpl-acme')
+
+will search case-insensitively for a plugin called 'Acme'.  It returns
+either a plugin name or undef if no matching plugin is found.
+
+=cut
+
+sub guess_plugin {
+  my ($pkg, $name) = @_;
+  $name = lc $name;
+  $name =~ s!^.*/([^/]+)!$1!;
+  $name =~ s/^xpl-//;
+  my $subdir = $pkg;
+  $subdir =~ s!::!/!g;
+  foreach (@INC) {
+    my $d = $_."/".$subdir;
+    next unless -d $d;
+    opendir my $dh, $d or next;
+    foreach (readdir $dh) {
+      next unless (/^([^.]+)\.pm$/);
+      return $1 if ($name eq lc $1)
+    }
+  }
+  return;
 }
 
 1;
