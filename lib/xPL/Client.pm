@@ -111,29 +111,14 @@ sub new {
       "The default can be overriden by setting the XPL_HOSTNAME environment\n".
       'variable');
 
-  exists $p{hbeat_interval} or $p{hbeat_interval} = 5;
-  ($p{hbeat_interval} =~ /^[\d]+$/ &&
-   $p{hbeat_interval} >= 5 && $p{hbeat_interval} <= 30) or
-     $self->argh('hbeat_interval is invalid: should be 5 - 30 (minutes)');
-
-  exists $p{fast_hbeat_interval} or $p{fast_hbeat_interval} = 3;
-  ($p{fast_hbeat_interval} =~ /^[\d]+$/ &&
-   $p{fast_hbeat_interval} >= 3 && $p{fast_hbeat_interval} <= 30) or
-     $self->argh('fast_hbeat_interval is invalid: '.
-                 'should be 3 - 30 (seconds)');
-
-  exists $p{hopeful_hbeat_interval} or $p{hopeful_hbeat_interval} = 30;
-  ($p{hopeful_hbeat_interval} =~ /^[\d]+$/ &&
-   $p{hopeful_hbeat_interval} >= 20 &&
-   $p{hopeful_hbeat_interval} <= 300) or
-     $self->argh('hopeful_hbeat_interval is invalid: '.
-                 'should be 20 - 300 (seconds)');
-
-  exists $p{hub_response_timeout} or $p{hub_response_timeout} = 120;
-  ($p{hub_response_timeout} =~ /^[\d]+$/ &&
-   $p{hub_response_timeout} >= 30 && $p{hub_response_timeout} <= 300) or
-     $self->argh('hub_response_timeout is invalid: '.
-                 'should be 30 - 300 (seconds)');
+  foreach ([hbeat_interval => 5, 5, 30, 'minutes'],
+           [fast_hbeat_interval => 3, 3, 30, 'seconds'],
+           [hopeful_hbeat_interval => 30, 20, 300, 'seconds'],
+           [hub_response_timeout => 120, 30, 300, 'seconds']) {
+    validate_param(\%p, @$_) or
+      $self->argh(sprintf '%s is invalid: should be %d - %d (%s)',
+                  (@$_)[0,2,3,4]);
+  }
 
   foreach (qw/vendor_id device_id instance_id
               hbeat_interval fast_hbeat_interval
@@ -580,11 +565,34 @@ sub exiting {
   return $self->SUPER::exiting();
 }
 
+=head2 C<add_event_callback(event => 'event_name', callback => sub {}, ...)>
+
+This method adds a callback for the named event.  Currently the only
+event provided is the 'hub_found' event.  Only one callback can be
+assigned to an particular event.
+
+=cut
+
 sub add_event_callback {
   my $self = shift;
   my %p = @_;
   exists $p{event} or $self->argh("requires 'event' argument");
   return $self->add_callback_item('event_callback', $p{event}, \%p);
+}
+
+=head2 C<validate_param($params, $name, $default, $min, $max, $units)>
+
+This method is a helper method used by the constructor to check the
+validity of integer arguments against a range and applies the default
+value if it is not provided.
+
+=cut
+
+sub validate_param {
+  my ($params, $name, $default, $min, $max, $units) = @_;
+  exists $params->{$name} or return $params->{$name} = $default;
+  ($params->{$name} =~ /^\d+$/ &&
+   $params->{$name} >= $min && $params->{$name} <= $max) or return;
 }
 
 1;
