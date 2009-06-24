@@ -51,6 +51,9 @@ my @attributes =
 foreach my $a (@attributes) {
   __PACKAGE__->make_readonly_accessor($a);
 }
+__PACKAGE__->make_collection(event_callback => [qw/callback_count
+                                                   callback_time_total
+                                                   callback_time_max/]);
 
 =head2 C<new(%params)>
 
@@ -177,6 +180,8 @@ sub new {
                            class_type => 'request',
                           },
                           callback => sub { $self->ping_request(@_) });
+
+  $self->init_event_callbacks();
 
   return $self;
 }
@@ -359,6 +364,9 @@ sub hub_response {
   $self->remove_xpl_callback('!hub-found');
 
   $self->standard_hbeat_mode();
+
+  $self->call_callback('event_callback', 'hub_found')
+    if ($self->exists_event_callback('hub_found'));
 
   return 1;
 }
@@ -570,6 +578,13 @@ sub exiting {
   my ($self) = @_;
   $self->send_hbeat_end();
   return $self->SUPER::exiting();
+}
+
+sub add_event_callback {
+  my $self = shift;
+  my %p = @_;
+  exists $p{event} or $self->argh("requires 'event' argument");
+  return $self->add_callback_item('event_callback', $p{event}, \%p);
 }
 
 1;

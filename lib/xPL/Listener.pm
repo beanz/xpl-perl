@@ -853,7 +853,7 @@ sub dispatch_timer {
     return;
   } elsif ($res == -1) {
     return;
-  } elsif (defined $self->timer_count($id)) {
+  } elsif ($self->exists_timer($id) && defined $self->timer_count($id)) {
     my $count = $self->timer_count($id);
     $count--;
     $self->timer_count($id, $count);

@@ -94,15 +94,8 @@ unless ($wait) {
 if ($xpl->hubless) {
   xpl_send();
 } else {
-  $xpl->add_xpl_callback(id => 'wait_for_hub',
-                         self_skip => 0,
-                         filter =>
-                         {
-                        class => 'hbeat',
-                          class_type => 'app',
-                          source => $xpl->id,
-                         },
-                         callback => \&xpl_hub_response);
+  $xpl->add_event_callback(event => 'hub_found',
+                           callback => \&xpl_hub_response);
 }
 
 $xpl->main_loop();
@@ -113,7 +106,6 @@ sub xpl_hub_response {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  $xpl->remove_xpl_callback('wait_for_hub');
   print STDERR "Sending\n" if ($verbose);
   xpl_send();
 }

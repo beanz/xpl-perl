@@ -194,6 +194,8 @@ sub call_callback {
   my $self = shift;
   my $type = shift;
   my $name = shift;
+  exists $self->{_col}->{$type}->{$name} or
+    return $self->argh("BUG: callback $name of type, $type, doesn't exist");
   my $r = $self->{_col}->{$type}->{$name};
   my $t = Time::HiRes::time;
   my $res = &{$r->{callback}}(@_, arguments => $r->{arguments}, xpl => $self,
