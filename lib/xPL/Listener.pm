@@ -587,7 +587,7 @@ sub dispatch_xpl_message {
         }
       }
     }
-    $self->call_callback($rec,
+    $self->call_callback('xpl_callback', $id,
                          message => $msg,
                          peeraddr => $peeraddr,
                          peerport => $peerport,
@@ -842,7 +842,8 @@ sub dispatch_timer {
     return $self->ouch("timer '$id' is not registered");
 
   my $r = $self->{_col}->{timer}->{$id};
-  my $res = $self->call_callback($r, id => $id, arguments => $r->{arguments});
+  my $res = $self->call_callback('timer', $id,
+                                 id => $id, arguments => $r->{arguments});
   if (!defined $res or !$res) {
     $self->remove_timer($id);
     return;
@@ -1010,7 +1011,7 @@ sub dispatch_input {
     return $self->ouch("input '$handle' is not registered");
 
   my $r = $self->{_col}->{input}->{$handle};
-  return $self->call_callback($r, $r->{handle}, $r->{arguments});
+  return $self->call_callback('input', $handle, $r->{handle}, $r->{arguments});
 }
 
 =head2 C<dump_statistics()>

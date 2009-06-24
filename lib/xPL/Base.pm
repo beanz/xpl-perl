@@ -184,7 +184,7 @@ sub add_callback_item {
   return $attribs;
 }
 
-=head2 C<call_callback($handle)>
+=head2 C<call_callback($type, $name)>
 
 This method wraps calls to callbacks in order to collect statistics.
 
@@ -192,7 +192,9 @@ This method wraps calls to callbacks in order to collect statistics.
 
 sub call_callback {
   my $self = shift;
-  my $r = shift;
+  my $type = shift;
+  my $name = shift;
+  my $r = $self->{_col}->{$type}->{$name};
   my $t = Time::HiRes::time;
   my $res = &{$r->{callback}}(@_);
   $t = Time::HiRes::time - $t;
