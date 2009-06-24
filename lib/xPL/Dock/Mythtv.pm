@@ -2,7 +2,7 @@ package xPL::Dock::Mythtv;
 
 =head1 NAME
 
-xPL::Dock::Mythtv - xPL::Dock plugin for APC UPS daemon monitoring
+xPL::Dock::Mythtv - xPL::Dock plugin for Mythtv monitoring
 
 =head1 SYNOPSIS
 
@@ -12,7 +12,7 @@ xPL::Dock::Mythtv - xPL::Dock plugin for APC UPS daemon monitoring
 
 =head1 DESCRIPTION
 
-This L<xPL::Dock> plugin adds APC UPS daemon monitoring.
+This L<xPL::Dock> plugin adds Mythtv monitoring.
 
 =head1 METHODS
 
