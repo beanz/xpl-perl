@@ -196,7 +196,8 @@ sub call_callback {
   my $name = shift;
   my $r = $self->{_col}->{$type}->{$name};
   my $t = Time::HiRes::time;
-  my $res = &{$r->{callback}}(@_);
+  my $res = &{$r->{callback}}(@_, arguments => $r->{arguments}, xpl => $self,
+                              id => $name);
   $t = Time::HiRes::time - $t;
   $r->{callback_time_total} += $t;
   if ($r->{callback_time_max} < $t) {

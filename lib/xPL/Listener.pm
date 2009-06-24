@@ -56,13 +56,20 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-__PACKAGE__->make_collection(input => [qw/handle callback_count
-                                         callback_time_total
-                                         callback_time_max/],
-                             timer => [qw/next timeout callback_count
+__PACKAGE__->make_collection(input => [qw/handle arguments callback
+                                          callback_count
                                           callback_time_total
                                           callback_time_max/],
-                             xpl_callback => [qw/filter callback_count
+                             timer => [qw/next timeout
+                                          timer next_fn count
+                                          arguments callback
+                                          callback_count
+                                          callback_time_total
+                                          callback_time_max/],
+                             xpl_callback => [qw/filter
+                                                 self_skip targetted
+                                                 arguments callback
+                                                 callback_count
                                                  callback_time_total
                                                  callback_time_max/],
                             );
@@ -572,14 +579,16 @@ sub dispatch_xpl_message {
   foreach my $id (sort $self->xpl_callbacks()) {
     my $rec = $self->{_col}->{xpl_callback}->{$id};
     if ($self->can('id')) {
-      next if ($rec->{self_skip} && $msg->source eq $self->id);
-      next if ($rec->{targetted} &&
+      next if ($self->xpl_callback_self_skip($id) &&
+               $msg->source eq $self->id);
+      next if ($self->xpl_callback_targetted($id) &&
                $msg->target ne '*' && $msg->target ne $self->id);
     }
-    if ($rec->{filter}) {
-      foreach my $key (keys %{$rec->{filter}}) {
+    my $filter = $self->xpl_callback_filter($id);
+    if (defined $filter) {
+      foreach my $key (keys %$filter) {
         next CB unless ($msg->can($key));
-        my $match = $rec->{filter}->{$key};
+        my $match = $filter->{$key};
         if (ref($match) eq 'CODE') {
           next CB unless (&{$match}($msg->$key()));
         } else {
@@ -591,9 +600,6 @@ sub dispatch_xpl_message {
                          message => $msg,
                          peeraddr => $peeraddr,
                          peerport => $peerport,
-                         xpl => $self,
-                         id => $id,
-                         arguments => $rec->{arguments},
                         );
   }
 
@@ -841,22 +847,24 @@ sub dispatch_timer {
   $self->exists_timer($id) or
     return $self->ouch("timer '$id' is not registered");
 
-  my $r = $self->{_col}->{timer}->{$id};
-  my $res = $self->call_callback('timer', $id,
-                                 id => $id, arguments => $r->{arguments});
+  my $res = $self->call_callback('timer', $id);
   if (!defined $res or !$res) {
     $self->remove_timer($id);
     return;
   } elsif ($res == -1) {
     return;
-  } elsif (exists $r->{count}) {
-    $r->{count}--;
-    unless ($r->{count} > 0) {
+  } elsif (defined $self->timer_count($id)) {
+    my $count = $self->timer_count($id);
+    $count--;
+    $self->timer_count($id, $count);
+    unless ($count > 0) {
       $self->remove_timer($id);
       return;
     }
   }
-  $r->{next} = &{$r->{next_fn}}();
+  if ($self->exists_timer($id)) {
+    $self->timer_next($id, $self->timer_next_fn($id)->());
+  }
   return $res;
 }
 
@@ -1009,9 +1017,9 @@ sub dispatch_input {
   my $handle = shift;
   $self->exists_input($handle) or
     return $self->ouch("input '$handle' is not registered");
-
-  my $r = $self->{_col}->{input}->{$handle};
-  return $self->call_callback('input', $handle, $r->{handle}, $r->{arguments});
+  return $self->call_callback('input', $handle,
+                              $self->input_handle($handle),
+                              $self->input_arguments($handle));
 }
 
 =head2 C<dump_statistics()>
