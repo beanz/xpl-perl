@@ -118,7 +118,7 @@ sub hub {
 
   my $msg = $p{message};
 
-  if ($msg->class eq 'hbeat' &&
+  if ($msg->class =~ /^(?:hbeat|config)$/ &&
       ($msg->class_type eq 'app' or $msg->class_type eq 'end') &&
       $self->is_local_address($msg->remote_ip)) {
     my $client = $msg->remote_ip.':'.$msg->port;
