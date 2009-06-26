@@ -395,7 +395,20 @@ L<send_from_arg_list()>.
 
 sub send_from_list {
   my $self = shift;
-  my %body = @_;
+  my %body;
+  while (@_) {
+    my $k = shift @_;
+    my $v = shift @_;
+    if ($body{$k}) {
+      if (ref $body{$k}) {
+        push @{$body{$k}}, $v;
+      } else {
+        $body{$k} = [$body{$k}, $v];
+      }
+    } else {
+      $body{$k} = $v;
+    }
+  }
   my %args = ();
   if (exists $body{'-m'}) {
     $args{message_type} = $body{'-m'};
