@@ -34,6 +34,7 @@ my $DOT = q{.};
 use POSIX qw/uname/;
 use Time::HiRes;
 use xPL::Listener;
+use xPL::Config;
 
 use Exporter;
 #use AutoLoader qw(AUTOLOAD);
@@ -129,6 +130,10 @@ sub new {
   $self->{_max_fast_hbeat_count} =
     int $self->hub_response_timeout / $self->fast_hbeat_interval;
 
+  my $needs_config = $self->init_config(\%p);
+  my $class = $needs_config ? 'config' : 'hbeat';
+  $self->{_hbeat_class} = $class;
+
   my %xpl_message_args =
     (
      head => { source => $self->id },
@@ -136,10 +141,10 @@ sub new {
     );
   if ($self->hubless) {
     $self->standard_hbeat_mode(1);
-    $xpl_message_args{class} = 'hbeat.basic';
+    $xpl_message_args{class} = $class.'.basic';
   } else {
     $self->fast_hbeat_mode();
-    $xpl_message_args{class} = 'hbeat.app';
+    $xpl_message_args{class} = $class.'.app';
     $xpl_message_args{body}->{port} = $self->listen_port;
     $xpl_message_args{body}->{remote_ip} = $self->ip;
   }
@@ -156,6 +161,25 @@ sub new {
                           },
                           callback => sub { $self->hbeat_request(@_) });
 
+  if ($self->has_config()) {
+    $self->add_xpl_callback(id => '!config-list',
+                            filter =>
+                            {
+                             message_type => 'xpl-cmnd',
+                             class => 'config',
+                             class_type => 'list',
+                            },
+                            callback => sub { $self->config_list(@_) });
+    $self->add_xpl_callback(id => '!config-response',
+                            filter =>
+                            {
+                             message_type => 'xpl-cmnd',
+                             class => 'config',
+                             class_type => 'response',
+                            },
+                            callback => sub { $self->config_response(@_) });
+  }
+
   $self->add_xpl_callback(id => '!ping-request',
                           self_skip => 0,
                           filter =>
@@ -169,6 +193,58 @@ sub new {
   $self->init_event_callbacks();
 
   return $self;
+}
+
+sub init_config {
+  my ($self, $params) = @_;
+  $self->{_config} =
+    xPL::Config->new(key => $self->vendor_id.'-'.$self->device_id);
+  return $self->needs_config();
+}
+
+sub has_config {
+  my $self = shift;
+  return defined $self->{_config};
+}
+
+sub needs_config {
+  my $self = shift;
+  return unless (defined $self->{_config});
+  my @needs = $self->{_config}->items_requiring_config();
+  $self->info("Config needed? = @needs\n") if (@needs);
+  return scalar @needs;
+}
+
+sub config_list {
+  my $self = shift;
+  $self->send(message_type => 'xpl-stat',
+              class => 'config.list',
+              body => $self->{_config}->config_types);
+  return 1
+}
+
+sub config_response {
+  my $self = shift;
+  my %p = @_;
+  my $msg = $p{message};
+  my @changed;
+  foreach my $name ($msg->extra_fields()) {
+    next unless ($self->{_config}->is_item($name));
+    my $old = $self->{_config}->get_item($name);
+    my $new = $msg->extra_field($name);
+    my $event = $self->{_config}->update_item($name, $new);
+    if ($event) {
+      # print STDERR
+      #   "E: $name $event to ", (ref $new ? (join ', ', @$new) : $new), " \n";
+      push @changed, $name;
+      my $cb = 'config_'.$name.'_'.$event;
+      $self->call_callback('event_callback', $cb, $old, $new)
+        if ($self->exists_event_callback($cb));
+    }
+  }
+  $self->call_callback('event_callback', 'config_changed', @changed)
+    if (scalar @changed && $self->exists_event_callback('config_changed'));
+  return 1
 }
 
 =head2 C<hbeat_mode()>
@@ -280,7 +356,7 @@ sub fast_hbeat_mode {
                           self_skip => 0,
                           filter =>
                           {
-                           class => 'hbeat',
+                           class => $self->{_hbeat_class},
                            class_type => 'app',
                            source => $self->id,
                           },
@@ -346,7 +422,6 @@ sub hub_response {
   my $self = shift;
   my %p = @_;
   my $msg = $p{message};
-
 
   # we have a winner, our hbeat has been returned
   $self->remove_timer('!fast-hbeat');
@@ -548,7 +623,8 @@ sub send_hbeat_end {
   my $self = shift;
   return unless (defined $self->{_hbeat_mode});
   undef $self->{_hbeat_mode};
-  $self->send(class => 'hbeat.end',
+  $self->send(class => $self->{_hbeat_class},
+              class_type => 'end',
               body =>
               {
                interval => $self->hbeat_interval,

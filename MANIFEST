@@ -53,6 +53,7 @@ lib/SMS/Send/SMSDiscount.pm
 lib/xPL/Base.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
+lib/xPL/Config.pm
 lib/xPL/Dock/APCUPS.pm
 lib/xPL/Dock/Bluetooth.pm
 lib/xPL/Dock/CurrentCost.pm
