@@ -85,7 +85,7 @@ sub read_spec {
 sub load_config {
   my $key = shift;
   my $config_path = $ENV{XPL_CONFIG_PATH} || '/var/cache/xplperl';
-  my $file = $config_path.'/'.$key;
+  my $file = $config_path.'/'.$key.'.db';
   my %h;
   my $res = tie %h, 'DB_File', $file, O_CREAT|O_RDWR, 0666, $DB_HASH;
   unless ($res) {
