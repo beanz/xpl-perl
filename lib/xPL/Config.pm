@@ -70,15 +70,23 @@ sub read_spec {
   }
   unless (ref $spec && ref $spec eq 'HASH' &&
           ref $spec->{items} && ref $spec->{items} eq 'ARRAY') {
-    croak("Config spec in, $found, must contain a hash ref with\n",
-          "items array ref\n");
+    croak("Config spec in, $found,\n",
+          "must contain a hash ref with items array ref\n");
   }
   my $cf = {};
+  my $newconf;
   foreach my $item (@{$spec->{items}}) {
     my $name = $item->{name};
+    $newconf++ if ($name eq 'newconf');
     $cf->{items}->{$name} = $item;
     push @{$cf->{order}}, $name;
   }
+  # always allow for instance_id configuration ('newconf' for some reason)
+  unless ($newconf) {
+    unshift @{$cf->{order}}, 'newconf';
+    $cf->{items}->{'newconf'} = { name => 'newconf' };
+  }
+
   return $cf;
 }
 
@@ -121,7 +129,7 @@ sub item_type {
 sub get_item {
   my $v = $_[0]->{_config}->{$_[1]};
   $_[0]->max_item_values($_[1]) > 1 ?
-    [ split /\0/, $v ] : $v;
+    (defined $v ? [ split /\0/, $v ] : undef) : $v;
 }
 
 sub set_item {
@@ -176,16 +184,12 @@ sub items_requiring_config {
 sub config_types {
   my $self = shift;
   my %type = ();
-  my $found;
   foreach my $name ($self->items) {
-    $found++ if ($name eq 'newconf');
     my $num = $self->max_item_values($name);
     my $txt = $name;
     $txt .= '['.$num.']' if ($num > 1);
     push @{$type{$self->item_type($name)}}, $txt;
   }
-  # always allow for instance_id configuration ('newconf' for some reason)
-  unshift @{$type{'reconf'}}, 'newconf' unless ($found);
 
   my %body = ();
   foreach (qw/config reconf option/) {

@@ -1,0 +1,13 @@
+---
+items:
+  - name: username
+    type: reconf
+  - name: password
+    type: reconf
+  - name: resource
+    type: option
+  - name: host
+  - name: port
+  - name: friend
+    type: option
+    number: 32
