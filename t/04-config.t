@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 100;
+use Test::More tests => 39;
 use File::Temp qw/tempdir/;
 use t::Helpers qw/test_error test_warn test_output/;
 
