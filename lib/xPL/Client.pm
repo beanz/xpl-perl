@@ -198,7 +198,8 @@ sub new {
 sub init_config {
   my ($self, $params) = @_;
   $self->{_config} =
-    xPL::Config->new(key => $self->vendor_id.'-'.$self->device_id);
+    xPL::Config->new(key => $self->vendor_id.'-'.$self->device_id,
+                     instance => $self->instance_id);
   return $self->needs_config();
 }
 
@@ -228,7 +229,7 @@ sub config_response {
   my %p = @_;
   my $msg = $p{message};
   my @changed;
-  foreach my $name ($msg->extra_fields()) {
+  foreach my $name (sort $msg->extra_fields()) {
     next unless ($self->{_config}->is_item($name));
     my $old = $self->{_config}->get_item($name);
     my $new = $msg->extra_field($name);
@@ -236,13 +237,22 @@ sub config_response {
     if ($event) {
       # print STDERR
       #   "E: $name $event to ", (ref $new ? (join ', ', @$new) : $new), " \n";
-      push @changed, $name;
-      my $cb = 'config_'.$name.'_'.$event;
-      $self->call_callback('event_callback', $cb, $old, $new)
+      push @changed, { name => $name,
+                       old => $old,
+                       new => $new,
+                       event => $event,
+                     };
+      my $cb = 'config_'.$name;
+      $self->call_callback('event_callback', $cb,
+                           {
+                            event => $event,
+                            old => $old,
+                            new => $new,
+                           })
         if ($self->exists_event_callback($cb));
     }
   }
-  $self->call_callback('event_callback', 'config_changed', @changed)
+  $self->call_callback('event_callback', 'config_changed', changes => \@changed)
     if (scalar @changed && $self->exists_event_callback('config_changed'));
   return 1
 }
@@ -674,7 +684,7 @@ sub validate_param {
   my ($params, $name, $default, $min, $max, $units) = @_;
   exists $params->{$name} or return $params->{$name} = $default;
   ($params->{$name} =~ /^\d+$/ &&
-   $params->{$name} >= $min && $params->{$name} <= $max) or return;
+   $params->{$name} >= $min && $params->{$name} <= $max);
 }
 
 1;

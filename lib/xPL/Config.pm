@@ -39,20 +39,99 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
+=head2 C<new(%params)>
+
+The constructor creates a new xPL::Client object.  The constructor
+takes a parameter hash as arguments.  Valid parameters in the hash
+are:
+
+=over 4
+
+=item key
+
+  The unique identifier for the configuration specification.
+  Typically this is the 'vendor_id.device_id' from the xPL client.
+
+=item instance
+
+  The unique identifier for this instance of the configuration.
+  Typically this is the 'instance_id' from the xPL client.
+
+=back
+
+It returns a blessed reference if a configuration specification is
+found for the given key or undef otherwise.
+
+=cut
+
 sub new {
   my $pkg = shift;
   my %p = @_;
-  my $key = $p{key};
   my $self = {};
   bless $self, $pkg;
-  $self->{_config_spec} = read_spec($key) or return;
-  $self->{_config} = load_config($key);
-
+  my $key = $self->{_key} = $p{key};
+  my $instance = $self->{_instance} = $p{instance};
+  $self->read_spec($key) or return;
+  $self->load_config($key.'.'.$instance);
   return $self;
 }
 
+=head2 C<read_spec($key)>
+
+This method reads the specification for the given key.  It looks for
+the file, C<'xPL/config/<key>.yaml'> on the C<@INC> include path.  The
+C<YAML> configuration should be a hash reference with an entry for the
+key C<items> with an array reference of configurable items.  Each
+configurable item is a hash reference containing the following keys:
+
+=over 4
+
+=item name
+
+  This is the name of the configuration item.  This is a mandatory
+  element.
+
+=item type
+
+  The type of the configuration item.  This must be one of:
+
+=over 4
+
+=item config
+
+  This type is for items that are mandatory for the device to function
+  and that cannot be changed once a device is running.
+
+=item reconf
+
+  This type is for items which are mandatory for the device to
+  operate, but who's value can be changed at any time while the device
+  is operating.
+
+=item option
+
+  This type is for items that are not required for device operation -
+  typically items for which the client has a suitable default.
+
+=back
+
+  This key is optional and defaults to 'option'.
+
+=item number
+
+  The number of values this element may have.  This key is optional and
+  defaults to '1'.
+
+=back
+
+This method returns true if a valid configuration specification is
+found.  It croaks if an invalid configuration specifications is found.
+It returns undef if no configuration specification is found.
+
+=cut
+
 sub read_spec {
-  my $key = shift;
+  my ($self, $key) = @_;
   my $file = 'xPL/config/'.$key.'.yaml';
   my $found;
   foreach (@INC) {
@@ -73,7 +152,7 @@ sub read_spec {
     croak("Config spec in, $found,\n",
           "must contain a hash ref with items array ref\n");
   }
-  my $cf = {};
+  my $cf = $self->{_config_spec} = {};
   my $newconf;
   foreach my $item (@{$spec->{items}}) {
     my $name = $item->{name};
@@ -87,44 +166,97 @@ sub read_spec {
     $cf->{items}->{'newconf'} = { name => 'newconf' };
   }
 
-  return $cf;
+  return 1;
 }
 
+=head2 C<load_config($instance_key)>
+
+This method loads the configuration for a specific instance.  It returns
+true if successful or croaks otherwise.
+
+=cut
+
 sub load_config {
-  my $key = shift;
+  my ($self, $instance_key) = @_;
   my $config_path = $ENV{XPL_CONFIG_PATH} || '/var/cache/xplperl';
-  my $file = $config_path.'/'.$key.'.db';
+  my $file = $config_path.'/'.$instance_key.'.db';
   my %h;
   my $res = tie %h, 'DB_File', $file, O_CREAT|O_RDWR, 0666, $DB_HASH;
   unless ($res) {
     croak("Failed to create configuration DB_File, $file: $!\n");
   }
-  return \%h;
+  $self->{_config} = \%h;
 }
+
+=head2 C<items()>
+
+This method returns a list of the names of the configuration items
+in the order in which they are define.
+
+=cut
 
 sub items {
   return @{$_[0]->{_config_spec}->{order}};
 }
 
+=head2 C<number_of_items()>
+
+This method returns the number of configuration items.
+
+=cut
+
 sub number_of_items {
   return scalar @{$_[0]->{_config_spec}->{order}};
 }
+
+=head2 C<is_item($name)>
+
+This method returns true if the given name is a valid item name.
+
+=cut
 
 sub is_item {
   exists $_[0]->{_config_spec}->{items}->{$_[1]}
 }
 
+=head2 C<is_item_required($name)>
+
+This method returns true if the named item requires a value.  It
+returns false if the item is optional.
+
+=cut
+
 sub is_item_required {
   $_[0]->item_type($_[1]) =~ /^(?:reconf|config)$/;
 }
+
+=head2 C<max_item_values($name)>
+
+This method returns the number of values the named item can have.  It
+returns 1 if the item is not multi-valued.
+
+=cut
 
 sub max_item_values {
   $_[0]->{_config_spec}->{items}->{$_[1]}->{number} || 1;
 }
 
+=head2 C<item_type($name)>
+
+This method returns the type of the named item.
+
+=cut
+
 sub item_type {
   $_[0]->{_config_spec}->{items}->{$_[1]}->{type} || 'option';
 }
+
+=head2 C<get_item($name)>
+
+This method returns the value of the named item.  For multi-valued
+items it will always be an array reference.
+
+=cut
 
 sub get_item {
   my $v = $_[0]->{_config}->{$_[1]};
@@ -132,10 +264,40 @@ sub get_item {
     (defined $v ? [ split /\0/, $v ] : undef) : $v;
 }
 
+=head2 C<set_item($name)>
+
+This method sets the value of the named item.  For multi-valued items
+it should be an array reference.
+
+=cut
+
 sub set_item {
   $_[0]->{_config}->{$_[1]} =
     $_[0]->max_item_values($_[1]) > 1 ? join chr(0), @{$_[2]} : $_[2];
 }
+
+=head2 C<update_item($name)>
+
+This method updates the value of the named item.  It returns one of:
+
+=over 4
+
+=item set
+
+  If the item is updated replacing an undefined value.
+
+=item changed
+
+  If the item is updated replacing a previously defined value.
+
+=item undef
+
+  If the item is not an item or the previous value is equal
+  to the new value.
+
+=back
+
+=cut
 
 sub update_item {
   my ($self, $name, $value) = @_;
@@ -170,6 +332,13 @@ sub update_item {
   return;
 }
 
+=head2 C<items_requiring_config()>
+
+This method returns a list of the items that are mandatory and which
+are currently unconfigured.
+
+=cut
+
 sub items_requiring_config {
   my $self = shift;
   my @needed;
@@ -180,6 +349,14 @@ sub items_requiring_config {
   }
   return @needed;
 }
+
+=head2 C<config_types()>
+
+This method returns a hash reference contain keys for each element
+where the values are the types of the items suffixed with '[NN]' for
+multi-valued items where 'NN' is the maximum number of values.
+
+=cut
 
 sub config_types {
   my $self = shift;
