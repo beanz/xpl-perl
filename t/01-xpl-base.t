@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2005, 2007 by Mark Hindess
+# Copyright (C) 2005, 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 13;
 use t::Helpers qw/test_warn test_error test_output/;
 
 use_ok('xPL::Base');
@@ -46,3 +46,7 @@ is(test_output(sub { $test->info("test") }, \*STDOUT),
 $test->verbose(1);
 is(test_output(sub { $test->info("test") }, \*STDOUT),
    'test', 'info method verbose');
+
+is(test_error(sub { $test->call_callback('foo', 'bar') }),
+   q{xPL::Test->call_callback: BUG: callback bar of type, foo, doesn't exist},
+   'call_callback bug case');
