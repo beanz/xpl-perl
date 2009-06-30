@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2007 by Mark Hindess
 
 use strict;
-use Test::More tests => 11;
+use Test::More tests => 13;
 use t::Helpers qw/test_error test_warn/;
 use Socket;
 use Time::HiRes;
@@ -54,6 +54,31 @@ ok($xpl->send_from_arg_list('-m', 'xpl-cmnd', '-t', 'bnz-tester.test1',
 is($xpl->last_sent_message(),
    $expected_message,
    'send_from_arg_list w/target - content');
+
+ok($xpl->send_from_arg_list('-m', 'xpl-cmnd',
+                            '-s', 'bnz-tester.default',
+                            '-t', 'bnz-tester.test1',
+                            '-c', 'config.response',
+                            'newconf=test',
+                            'option=a', 'option=b', 'option=c'),
+   'send_from_arg_list w/multi-value field');
+
+is($xpl->last_sent_message(),
+  q!xpl-cmnd
+{
+hop=1
+source=bnz-tester.default
+target=bnz-tester.test1
+}
+config.response
+{
+newconf=test
+option=a
+option=b
+option=c
+}
+!,
+   'send_from_arg_list w/multi-value field - content');
 
 is(test_error(sub {
      $xpl->send_from_string('-c osd.basic command=write text="This is a test"')
