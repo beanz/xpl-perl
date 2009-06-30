@@ -13,7 +13,7 @@ push @INC, 't/config';
 
 use_ok('xPL::Config');
 
-my $config = xPL::Config->new(key => 'test');
+my $config = xPL::Config->new(key => 'test', instance => '1');
 ok($config, 'object create');
 
 is_deeply([$config->items],
@@ -72,7 +72,7 @@ is_deeply($config->get_item('friend'),
 
 ok(!$config->update_item('notitem'), 'update_item(\'notitem\')');
 
-$config = xPL::Config->new(key => 'test2');
+$config = xPL::Config->new(key => 'test2', instance => '1');
 ok($config, 'object create');
 
 is_deeply([$config->items],
@@ -108,12 +108,12 @@ is(test_error(sub { xPL::Config->new(key => 'test6') }),
     "must contain a hash ref with items array ref"),
    'items not list');
 
-like(test_error(sub { xPL::Config->new(key => 'invalid') }),
+like(test_error(sub { xPL::Config->new(key => 'invalid', instance => '1') }),
      qr/^Failed to read config spec from t/,
      'invalid spec');
 
 delete $ENV{XPL_CONFIG_PATH};
-like(test_error(sub { xPL::Config->new(key => 'test') }),
-     qr!^Failed to create configuration DB_File, /var/cache/xplperl/test.db:!,
+like(test_error(sub { xPL::Config->new(key => 'test', instance => '1') }),
+     qr!^Failed to create configuration DB_File, /var/cache/xplperl/test.1.db:!,
      'no config dir');
 
