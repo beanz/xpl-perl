@@ -195,6 +195,14 @@ sub new {
   return $self;
 }
 
+=head2 C<init_config( $params )>
+
+This method creates a new L<xPL::Config> object for the client if
+a configuration specification is found for the C<vendor_id-device_id>
+client.
+
+=cut
+
 sub init_config {
   my ($self, $params) = @_;
   $self->{_config} =
@@ -203,10 +211,25 @@ sub init_config {
   return $self->needs_config();
 }
 
+=head2 C<has_config()>
+
+This method returns true if this client is configurable with the standard
+C<config.*> xPL messages.
+
+=cut
+
 sub has_config {
   my $self = shift;
   return defined $self->{_config};
 }
+
+=head2 C<needs_config()>
+
+This method returns true if this client is configurable with the standard
+C<config.*> xPL messages and it has configuration items that are currently
+unconfigured.
+
+=cut
 
 sub needs_config {
   my $self = shift;
@@ -216,6 +239,12 @@ sub needs_config {
   return scalar @needs;
 }
 
+=head2 C<config_list()>
+
+This method sends a response to an incoming C<config.list> request.
+
+=cut
+
 sub config_list {
   my $self = shift;
   $self->send(message_type => 'xpl-stat',
@@ -223,6 +252,15 @@ sub config_list {
               body => $self->{_config}->config_types);
   return 1
 }
+
+=head2 C<config_response()>
+
+This method processes the incoming C<config.response> messages to update
+the configuration of the client.  If a value is changed then the
+C<config_E<lt>item_nameE<gt>> event callback is called.  If any value
+is changed then the C<config_changed> event callback is invoked.
+
+=cut
 
 sub config_response {
   my $self = shift;
