@@ -184,6 +184,7 @@ t/04-queue.t
 t/05-listener-send-methods.t
 t/05-listener.t
 t/06-hub.t
+t/07-client-config.t
 t/07-client-gtk.t
 t/07-client-hubless.t
 t/07-client-ping.t
