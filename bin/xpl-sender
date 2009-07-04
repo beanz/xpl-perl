@@ -91,12 +91,8 @@ unless ($wait) {
   exit;
 }
 
-if ($xpl->hubless) {
-  xpl_send();
-} else {
-  $xpl->add_event_callback(event => 'hub_found',
-                           callback => \&xpl_hub_response);
-}
+$xpl->add_event_callback(event => 'hub_found',
+                         callback => \&xpl_hub_response);
 
 $xpl->main_loop();
 

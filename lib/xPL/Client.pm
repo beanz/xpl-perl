@@ -142,6 +142,22 @@ sub new {
   if ($self->hubless) {
     $self->standard_hbeat_mode(1);
     $xpl_message_args{class} = $class.'.basic';
+    $self->add_xpl_callback(id => '!hub-found',
+                            self_skip => 0,
+                            filter =>
+                            {
+                             class => $self->{_hbeat_class},
+                             class_type => 'basic',
+                             source => $self->id,
+                            },
+                            callback => sub {
+                              $self->call_callback('event_callback',
+                                                   'hub_found')
+                                if ($self->exists_event_callback('hub_found'));
+                              $self->remove_xpl_callback('!hub-found');
+                              0;
+                            });
+
   } else {
     $self->fast_hbeat_mode();
     $xpl_message_args{class} = $class.'.app';
