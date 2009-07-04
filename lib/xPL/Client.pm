@@ -186,6 +186,14 @@ sub new {
                              class_type => 'list',
                             },
                             callback => sub { $self->config_list(@_) });
+    $self->add_xpl_callback(id => '!config-current',
+                            filter =>
+                            {
+                             message_type => 'xpl-cmnd',
+                             class => 'config',
+                             class_type => 'current',
+                            },
+                            callback => sub { $self->config_current(@_) });
     $self->add_xpl_callback(id => '!config-response',
                             filter =>
                             {
@@ -269,6 +277,20 @@ sub config_list {
   return 1
 }
 
+=head2 C<config_current()>
+
+This method sends a response to an incoming C<config.current> request.
+
+=cut
+
+sub config_current {
+  my $self = shift;
+  $self->send(message_type => 'xpl-stat',
+              class => 'config.current',
+              body => $self->{_config}->config_current);
+  return 1
+}
+
 =head2 C<config_response()>
 
 This method processes the incoming C<config.response> messages to update
@@ -287,6 +309,9 @@ sub config_response {
     next unless ($self->{_config}->is_item($name));
     my $old = $self->{_config}->get_item($name);
     my $new = $msg->extra_field($name);
+    if (!ref $new && $self->{_config}->max_item_values($name) > 1) {
+      $new = [$new];
+    }
     my $event = $self->{_config}->update_item($name, $new);
     if ($event) {
       # print STDERR

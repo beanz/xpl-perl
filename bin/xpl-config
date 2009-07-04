@@ -1,0 +1,239 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-config - Perl script for an xPL config application
+
+=head1 SYNOPSIS
+
+  xpl-config [flags] [options] [--target vend-dev.inst [param=value ... ] ]
+
+  where valid flags are:
+    --help    - show this help text
+    --verbose - verbose mode
+  and valid options are (default shown in brackets):
+    --interface if0  - the interface for xPL messages
+                       (first non-loopback or loopback)
+    --target target  - the target type
+    --wait seconds   - time to wait for a response (10)
+
+  # send a hbeat.request to all devices and report those that return
+  # config.* hbeat messages
+  xpl-config
+
+  # send a hbeat.request to the acme-toilet.upstairs device and report
+  # if it returns a config.* hbeat messages
+  xpl-config --target acme-toilet.upstairs
+
+  # send a hbeat.request to the acme-toilet.upstairs device and report
+  # if it returns a config.* hbeat messages
+  xpl-config --target acme-toilet.upstairs fanontime=120
+
+=head1 DESCRIPTION
+
+This script is an xPL client that sends xPL configuration messages
+derived from command line arguments.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Pod::Usage;
+use Time::HiRes;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+my %args = ( vendor_id => 'bnz', device_id => 'confmgr', );
+my %opt = ();
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $target = '*';
+my $wait = 10;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           'target=s' => \$target,
+           'wait=i' => \$wait,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+my $start_time;
+
+my %clients = ();
+my $request;
+
+$xpl->add_event_callback(event => 'hub_found',
+                         callback => \&xpl_hub_response);
+
+$xpl->main_loop();
+
+sub xpl_hub_response {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  print STDERR "Sending hbeat.request\n" if ($verbose);
+  $xpl->send(head => { target => $target, }, class => 'hbeat.request');
+  $start_time = Time::HiRes::time;
+  $xpl->add_xpl_callback(id => 'wait_for_response',
+                         callback => \&hbeat_response,
+                         filter => $target ne '*' ? { source => $target } : {},
+                         );
+  $xpl->add_timer(id => 'timeout', timeout => $wait, callback => \&report);
+  return;
+}
+
+sub hbeat_response {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  return unless ($msg->class =~ /^(?:config|hbeat)$/);
+  $clients{$msg->class}->{$msg->source} = $msg;
+  if ($target eq $msg->source) {
+    $xpl->remove_xpl_callback('wait_for_response');
+    $xpl->remove_timer('timeout');
+    report();
+  }
+}
+
+sub report {
+  if (exists $clients{'hbeat'}) {
+    print "Configured:\n";
+    foreach my $source (sort keys %{$clients{'hbeat'}}) {
+      print "  ", $source, "\n";
+    }
+    print "\n";
+  }
+  if (exists $clients{'config'}) {
+    print "Awaiting configuration:\n";
+    foreach my $source (sort keys %{$clients{'config'}}) {
+      print "  ", $source, "\n";
+    }
+  }
+  exit if ($target eq '*');
+  print "Sending config.list request\n";
+  $xpl->send(message_type => 'xpl-cmnd',
+             head => { target => $target, },
+             class => 'config.list',
+             body => { command => 'request' });
+  $xpl->add_xpl_callback(id => 'wait_for_response',
+                         callback => \&config_list,
+                         filter => { class => 'config', class_type => 'list' },
+                         );
+  $request = 'config.list';
+  $xpl->add_timer(id => 'timeout', timeout => $wait, callback => \&give_up);
+  return;
+}
+
+sub config_list {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  print "Config list response:\n";
+  my %items = ();
+  foreach my $type ($msg->body_fields) {
+    my $items = $msg->$type or next;
+    foreach my $i (ref $items ? @$items : $items) {
+      my %r = ( type => $type );
+      print "  $i of type $type\n";
+      $i =~ s/\[(\d+)\]$// and $r{multi} = $1;
+      $items{$i} = \%r;
+    }
+  }
+  $xpl->remove_xpl_callback('wait_for_response');
+  $xpl->remove_timer('timeout');
+
+  if (@ARGV) {
+    my %body = ();
+    foreach (@ARGV) {
+      my ($name, $value) = split /=/, $_, 2;
+      unless (exists $items{$name}) {
+        warn "$name is not a config item\n";
+        next;
+      }
+      if ($items{$name}->{multi}) {
+        if (exists $body{$name}) {
+          push @{$body{$name}}, $value;
+        } else {
+          $body{$name} = [$value];
+        }
+      } else {
+        $body{$name} = $value;
+      }
+    }
+    print "Sending config.response request\n";
+    $xpl->send(message_type => 'xpl-cmnd',
+               head => { target => $target, },
+               class => 'config.response',
+               body => \%body);
+  }
+  print "Sending config.current request\n";
+  $xpl->send(message_type => 'xpl-cmnd',
+             head => { target => $target, },
+             class => 'config.current',
+             body => { command => 'request' });
+  $xpl->add_xpl_callback(id => 'wait_for_response',
+                         callback => \&config_current,
+                         filter =>
+                         { class => 'config', class_type => 'current' },
+                        );
+  $request = 'config.current';
+  $xpl->add_timer(id => 'timeout', timeout => $wait, callback => \&give_up);
+}
+
+sub give_up {
+  die "No response to $request request\n";
+}
+
+sub config_current {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peeraddr = $p{peeraddr};
+  my $peerport = $p{peerport};
+
+  print "Config current response:\n";
+  foreach my $f ($msg->extra_fields) {
+    my $v = $msg->extra_field($f);
+    foreach (ref $v ? @$v : $v) {
+      print "  $f=$_\n";
+    }
+  }
+  $xpl->remove_xpl_callback('wait_for_response');
+  $xpl->remove_timer('timeout');
+  exit;
+}
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005, 2008 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

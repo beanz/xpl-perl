@@ -375,6 +375,23 @@ sub config_types {
   return \%body;
 }
 
+=head2 C<config_current()>
+
+This method returns a hash reference contain keys for each element
+where the values are values of the items.
+
+=cut
+
+sub config_current {
+  my $self = shift;
+  my %body = ();
+  foreach my $name ($self->items) {
+    my $val = $self->get_item($name);
+    $body{$name} = defined $val ? $val : '';
+  }
+  return \%body;
+}
+
 1;
 
 __END__

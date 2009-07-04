@@ -2,6 +2,7 @@ bin/xpl-apcups
 bin/xpl-bluetooth
 bin/xpl-bridge
 bin/xpl-clock
+bin/xpl-config
 bin/xpl-ctx35
 bin/xpl-currentcost
 bin/xpl-dawndusk
@@ -107,6 +108,7 @@ lib/xPL/schema/audio.basic.yaml
 lib/xPL/schema/audio.request.yaml
 lib/xPL/schema/cid.basic.yaml
 lib/xPL/schema/clock.update.yaml
+lib/xPL/schema/config.current.yaml
 lib/xPL/schema/config.list.yaml
 lib/xPL/schema/config.response.yaml
 lib/xPL/schema/control.basic.yaml
