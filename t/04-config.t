@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 39;
+use Test::More tests => 40;
 use File::Temp qw/tempdir/;
 use t::Helpers qw/test_error test_warn test_output/;
 
@@ -39,6 +39,17 @@ is_deeply($config->config_types,
            option => [qw/newconf resource host port friend[32]/],
           },
           'config_types()');
+is_deeply($config->config_current,
+          {
+           newconf => '',
+           username => 'user',
+           password => '',
+           resource => '',
+           host => '',
+           port => '',
+           friend => '',
+          },
+          'config_current()');
 ok(!$config->update_item('username','user'),
    'update_item(\'username\',\'user\')');
 is($config->update_item('username','a.n.other'),
