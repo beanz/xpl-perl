@@ -91,7 +91,7 @@ unless ($wait) {
   exit;
 }
 
-$xpl->add_event_callback(event => 'hub_found',
+$xpl->add_event_callback(id => 'trigger_send', event => 'hub_found',
                          callback => \&xpl_hub_response);
 
 $xpl->main_loop();

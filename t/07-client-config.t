@@ -4,7 +4,7 @@
 
 use strict;
 use Socket;
-use Test::More tests => 18;
+use Test::More tests => 23;
 use File::Temp qw/tempdir/;
 use t::Helpers qw/test_error test_warn test_output/;
 
@@ -72,43 +72,38 @@ $msg =
                     });
 
 my @args = ();
-$xpl->add_event_callback(event => 'config_changed',
-                         callback => sub {
- push @args, ['config_changed', @_] });
+$xpl->add_event_callback(id => 'config_changed_cb', event => 'config_changed',
+                         callback => sub { push @args, \@_ });
 
-$xpl->add_event_callback(event => 'config_newconf',
-          callback => sub { push @args, ['config_newconf', @_] });
-$xpl->add_event_callback(event => 'config_username',
-          callback => sub { push @args, ['config_username', @_] });
+$xpl->add_event_callback(id => 'config_newconf_cb', event => 'config_newconf',
+                         callback => sub { push @args, \@_ });
+$xpl->add_event_callback(id => 'config_username_cb', event => 'config_username',
+                         callback => sub { push @args, \@_ });
 
 $xpl->dispatch_xpl_message($msg);
 
 is($xpl->needs_config(), 0, 'needs_config() - all set');
 
 is(scalar @args, 3, 'changes invoked 3 callbacks');
-is($args[0]->[0], 'config_newconf', 'newconf - changed');
-is_deeply($args[0]->[1],
- {
-  new => 'foo',
-  old => undef,
-  event => 'set',
- }, 'newconf changed - value');
+my %p = @{$args[0]};
+is($p{id}, 'config_newconf_cb', 'newconf - id');
+is($p{new}, 'foo', 'newconf - new value');
+is($p{old}, undef, 'newconf - old value');
+is($p{type}, 'set', 'newconf - type');
 
-is($args[1]->[0], 'config_username', 'username - set');
-is_deeply($args[1]->[1],
- {
-  new => 'user',
-  old => undef,
-  event => 'set',
- }, 'username set - value');
+%p = @{$args[1]};
+is($p{id}, 'config_username_cb', 'username - id');
+is($p{new}, 'user', 'username - new value');
+is($p{old}, undef, 'username - old value');
+is($p{type}, 'set', 'username - type');
 
-is($args[2]->[0], 'config_changed', 'config changed');
-is($args[2]->[1], 'changes', 'config changes hash key');
-is_deeply($args[2]->[2],
+%p = @{$args[2]};
+is($p{id}, 'config_changed_cb', 'config_changed - id');
+is_deeply($p{changes},
   [
-   { name => 'newconf', new => 'foo', old => undef, event => 'set' },
-   { name => 'password', new => 'pass', old => undef, event => 'set' },
-   { name => 'username', new => 'user', old => undef, event => 'set' },
+   { name => 'newconf', new => 'foo', old => undef, type => 'set' },
+   { name => 'password', new => 'pass', old => undef, type => 'set' },
+   { name => 'username', new => 'user', old => undef, type => 'set' },
   ], 'config_changed - changes');
 
 @args = ();
@@ -116,14 +111,12 @@ $xpl->dispatch_xpl_message($msg);
 is(scalar @args, 0, 'no changes so no callbacks');
 
 @args = ();
-$xpl->remove_event_callback('config_changed');
+$xpl->remove_event_callback('config_changed_cb');
 $msg->extra_field(username => 'bar');
 $xpl->dispatch_xpl_message($msg);
 is(scalar @args, 1, 'changes involved one callback');
-is($args[0]->[0], 'config_username', 'username - changed');
-is_deeply($args[0]->[1],
- {
-  new => 'bar',
-  old => 'user',
-  event => 'changed',
- }, 'username set - value');
+%p = @{$args[0]};
+is($p{id}, 'config_username_cb', 'username - id');
+is($p{new}, 'bar', 'username - new value');
+is($p{old}, 'user', 'username - old value');
+is($p{type}, 'changed', 'username - type');

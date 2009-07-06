@@ -52,7 +52,8 @@ my @attributes =
 foreach my $a (@attributes) {
   __PACKAGE__->make_readonly_accessor($a);
 }
-__PACKAGE__->make_collection(event_callback => [qw/callback_count
+__PACKAGE__->make_collection(event_callback => [qw/event
+                                                   callback_count
                                                    callback_time_total
                                                    callback_time_max/]);
 
@@ -151,9 +152,7 @@ sub new {
                              source => $self->id,
                             },
                             callback => sub {
-                              $self->call_callback('event_callback',
-                                                   'hub_found')
-                                if ($self->exists_event_callback('hub_found'));
+                              $self->call_event_callbacks('hub_found');
                               $self->remove_xpl_callback('!hub-found');
                               0;
                             });
@@ -319,20 +318,18 @@ sub config_response {
       push @changed, { name => $name,
                        old => $old,
                        new => $new,
-                       event => $event,
+                       type => $event,
                      };
       my $cb = 'config_'.$name;
-      $self->call_callback('event_callback', $cb,
-                           {
-                            event => $event,
-                            old => $old,
-                            new => $new,
-                           })
-        if ($self->exists_event_callback($cb));
+      $self->call_event_callbacks('config_'.$name,
+                                  type => $event,
+                                  old => $old,
+                                  new => $new,
+                                 );
     }
   }
-  $self->call_callback('event_callback', 'config_changed', changes => \@changed)
-    if (scalar @changed && $self->exists_event_callback('config_changed'));
+  $self->call_event_callbacks('config_changed', changes => \@changed)
+    if (@changed);
   return 1
 }
 
@@ -518,8 +515,7 @@ sub hub_response {
 
   $self->standard_hbeat_mode();
 
-  $self->call_callback('event_callback', 'hub_found')
-    if ($self->exists_event_callback('hub_found'));
+  $self->call_event_callbacks('hub_found');
 
   return 1;
 }
@@ -736,19 +732,47 @@ sub exiting {
   return $self->SUPER::exiting();
 }
 
-=head2 C<add_event_callback(event => 'event_name', callback => sub {}, ...)>
+=head2 C<add_event_callback(id => 'id', event => 'name', callback => sub {}, ...)>
 
 This method adds a callback for the named event.  Currently the only
-event provided is the 'hub_found' event.  Only one callback can be
-assigned to an particular event.
+event provided is the 'hub_found' event.  The unique identifier is
+used to distinguish multiple callbacks registered for the same event.
 
 =cut
 
 sub add_event_callback {
   my $self = shift;
   my %p = @_;
+  exists $p{id} or $self->argh("requires 'id' argument");
   exists $p{event} or $self->argh("requires 'event' argument");
-  return $self->add_callback_item('event_callback', $p{event}, \%p);
+  my $res = $self->add_callback_item('event_callback', $p{id}, \%p);
+  $self->{_event}->{$p{event}}->{$p{id}}++;
+  return $res;
+}
+
+sub remove_event_callback {
+  my ($self, $name) = @_;
+  my $event = $self->event_callback_event($name);
+  delete $self->{_event}->{$event}->{$name};
+  return $self->remove_item('event_callback', $name);
+}
+
+=head2 C<call_event_callbacks( $event )>
+
+This method calls the registered callbacks for the given event (if any
+are registered).
+
+=cut
+
+sub call_event_callbacks {
+  my $self = shift;
+  my $event = shift;
+  my $count;
+  foreach my $id (sort keys %{$self->{_event}->{$event}}) {
+    $self->call_callback('event_callback', $id, event => $event, @_);
+    $count++;
+  }
+  return $count;
 }
 
 =head2 C<validate_param($params, $name, $default, $min, $max, $units)>
