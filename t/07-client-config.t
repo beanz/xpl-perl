@@ -4,7 +4,7 @@
 
 use strict;
 use Socket;
-use Test::More tests => 23;
+use Test::More tests => 25;
 use File::Temp qw/tempdir/;
 use t::Helpers qw/test_error test_warn test_output/;
 
@@ -120,3 +120,10 @@ is($p{id}, 'config_username_cb', 'username - id');
 is($p{new}, 'bar', 'username - new value');
 is($p{old}, 'user', 'username - old value');
 is($p{type}, 'changed', 'username - type');
+
+is(test_error(sub { $xpl->add_event_callback() }),
+   q{xPL::Client->add_event_callback: requires 'id' argument},
+   'add_event_callback - id error');
+is(test_error(sub { $xpl->add_event_callback(id => 1) }),
+   q{xPL::Client->add_event_callback: requires 'event' argument},
+   'add_event_callback - event error');
