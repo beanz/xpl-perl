@@ -750,6 +750,12 @@ sub add_event_callback {
   return $res;
 }
 
+=head2 C<remove_event_callback( $id )>
+
+This method removes the event callback with the given id.
+
+=cut
+
 sub remove_event_callback {
   my ($self, $name) = @_;
   my $event = $self->event_callback_event($name);
