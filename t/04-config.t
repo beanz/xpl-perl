@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 40;
+use Test::More tests => 44;
 use File::Temp qw/tempdir/;
 use t::Helpers qw/test_error test_warn test_output/;
 
@@ -80,6 +80,18 @@ is($config->update_item('friend',['a','b','d']),
    'update_item(\'friend\',[\'a\',\'b\',\'d\'])');
 is_deeply($config->get_item('friend'),
           [qw/a b d/], 'get_item(\'friend\')');
+
+is($config->update_item('friend','one'),
+   'changed',
+   'update_item(\'friend\',\'one\')');
+is_deeply($config->get_item('friend'),
+          [qw/one/], 'get_item(\'friend\')');
+
+is($config->set_item('friend','two'),
+   'two',
+   'set_item(\'friend\',\'two\')');
+is_deeply($config->get_item('friend'),
+          [qw/two/], 'get_item(\'friend\')');
 
 ok(!$config->update_item('notitem'), 'update_item(\'notitem\')');
 

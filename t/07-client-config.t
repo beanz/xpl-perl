@@ -4,7 +4,7 @@
 
 use strict;
 use Socket;
-use Test::More tests => 25;
+use Test::More tests => 26;
 use File::Temp qw/tempdir/;
 use t::Helpers qw/test_error test_warn test_output/;
 
@@ -120,6 +120,34 @@ is($p{id}, 'config_username_cb', 'username - id');
 is($p{new}, 'bar', 'username - new value');
 is($p{old}, 'user', 'username - old value');
 is($p{type}, 'changed', 'username - type');
+
+$msg =
+  xPL::Message->new(message_type => 'xpl-cmnd',
+                    head => { source => 'acme-config.tester' },
+                    class => 'config.current',
+                    body => { command => 'request' });
+@msg = ();
+$xpl->dispatch_xpl_message($msg);
+
+is(xPL::Message->new(@{$msg[0]},
+                     head => { source => 'test-test.test' })->string,
+   'xpl-stat
+{
+hop=1
+source=test-test.test
+target=*
+}
+config.current
+{
+newconf=foo
+username=bar
+password=pass
+resource=
+host=
+port=
+friend=
+}
+', 'config.current response');
 
 is(test_error(sub { $xpl->add_event_callback() }),
    q{xPL::Client->add_event_callback: requires 'id' argument},

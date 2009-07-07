@@ -286,7 +286,8 @@ sub config_current {
   my $self = shift;
   $self->send(message_type => 'xpl-stat',
               class => 'config.current',
-              body => $self->{_config}->config_current);
+              body => $self->{_config}->config_current,
+              body_order => [$self->{_config}->items]);
   return 1
 }
 
@@ -308,9 +309,6 @@ sub config_response {
     next unless ($self->{_config}->is_item($name));
     my $old = $self->{_config}->get_item($name);
     my $new = $msg->extra_field($name);
-    if (!ref $new && $self->{_config}->max_item_values($name) > 1) {
-      $new = [$new];
-    }
     my $event = $self->{_config}->update_item($name, $new);
     if ($event) {
       # print STDERR

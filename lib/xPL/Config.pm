@@ -273,7 +273,9 @@ it should be an array reference.
 
 sub set_item {
   $_[0]->{_config}->{$_[1]} =
-    $_[0]->max_item_values($_[1]) > 1 ? join chr(0), @{$_[2]} : $_[2];
+    $_[0]->max_item_values($_[1]) > 1 ?
+      join chr(0), @{ref $_[2] ? $_[2] : [$_[2]]} :
+        $_[2];
 }
 
 =head2 C<update_item($name)>
@@ -305,6 +307,7 @@ sub update_item {
   my $old = $self->get_item($name);
   if (defined $old) {
     if ($self->max_item_values($name) > 1) {
+      $value = [$value] unless (ref $value);
       if (scalar @$old != scalar @$value) {
         $self->set_item($name, $value);
         return 'changed';
