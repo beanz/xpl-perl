@@ -26,7 +26,7 @@ ok($test);
 ok($test->module_available('strict'), 'module available test already used');
 ok(!$test->module_available('sloppy'), 'module not available test');
 ok($test->module_available('strict'), 'module available test w/cache');
-ok($test->module_available('English'), 'module available test');
+ok($test->module_available('POSIX'), 'module available test');
 
 is(test_warn(sub { $test->test('argh'); }),
    'xPL::Test->test: called with an argument, but test is readonly',
