@@ -103,13 +103,15 @@ sub hbeat_response {
   return unless ($msg->class =~ /^(?:config|hbeat)$/);
   $clients{$msg->class}->{$msg->source} = $msg;
   if ($target eq $msg->source) {
-    $xpl->remove_xpl_callback('wait_for_response');
-    $xpl->remove_timer('timeout');
     report();
   }
 }
 
 sub report {
+  $xpl->remove_timer('timeout') if ($xpl->exists_timer('timeout'));
+  $xpl->remove_xpl_callback('wait_for_response')
+    if ($xpl->exists_xpl_callback('wait_for_response'));
+
   if (exists $clients{'hbeat'}) {
     print "Configured:\n";
     foreach my $source (sort keys %{$clients{'hbeat'}}) {
