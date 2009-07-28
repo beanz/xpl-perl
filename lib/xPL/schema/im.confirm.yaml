@@ -1,0 +1,13 @@
+---
+default_message_type: xpl-trig
+types:
+  xpl-trig:
+    fields:
+      - name: status
+        required: 1
+      - name: error
+    summary:
+      - name: status
+      - name: error
+        prefix: ":"
+        optional: 1
