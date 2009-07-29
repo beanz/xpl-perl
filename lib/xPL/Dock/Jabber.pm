@@ -154,8 +154,13 @@ sub jabber_message {
     #                                filter => $message);
     return 1;
   } else {
-    # TODO: write simple im.basic schema
-    #$self->{_xpl}->send
+    $self->{_xpl}->send(message_type => 'xpl-trig',
+                        class => 'im.basic',
+                        body =>
+                        {
+                         body => $body,
+                         from => $from,
+                        });
   }
 
   return 1;

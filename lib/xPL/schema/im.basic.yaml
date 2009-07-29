@@ -11,3 +11,13 @@ types:
       - name: to
       - name: body
         prefix: ":"
+  xpl-trig:
+    fields:
+      - name: body
+        required: 1
+      - name: from
+        required: 1
+    summary:
+      - name: from
+      - name: body
+        prefix: ":"
