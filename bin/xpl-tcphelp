@@ -1,0 +1,52 @@
+#!/usr/bin/perl -w
+
+use xPL::Dock qw/-run/;
+
+=head1 NAME
+
+xpl-tcphelp - Perl script for an xPL TCP Helper
+
+=head1 SYNOPSIS
+
+  xpl-tcphelper [flags] [options]
+  where valid flags are:
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --tcphelp-verbose - verbose mode (for the TCP Helper layer)
+  and valid options are (default shown in brackets):
+    --interface if0                - the interface for xPL messages (first
+                                       non-loopback or loopback)
+    --tcphelp-address ip-address   - the address to listen on (0.0.0.0)
+    --tcphelp-port tcp-port        - the TCP port to listen on (38650)
+    --tcphelp-secret shared-secret - the share secret used by connecting
+                                       clients
+
+  # start the notify client on first ethernet interface in verbose mode
+  xpl-tcphelp --verbose --tcphelp-secret "this is a rubbish secret"
+
+=head1 DESCRIPTION
+
+This script is an xPL client that listens on a TCP port and allows
+remote clients to inject messages over (untrusted) networks.  It uses a
+trivial HMAC shared secret mechanism with a timestamp field to prevent
+reply attacks.
+
+=head1 SEE ALSO
+
+xPL::Dock(3), xPL::Dock::TCPHelp(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
