@@ -72,21 +72,41 @@ sub init {
 
   $self->SUPER::init($xpl, @_);
 
-  my $xmpp = $self->{_xmpp} = Net::XMPP::Client->new();
-  $xmpp->Connect(hostname => $self->{_host}, port => $self->{_port})
+  my $xmpp = $self->{_xmpp} = Net::XMPP::Client->new( debuglevelxx => 100 );
+  my %con_args =
+    (
+     hostname => $self->{_host},
+     port => $self->{_port},
+     connectiontype => 'tcpip',
+     tls => 1,
+    );
+  if ($self->{_host} =~ /google\.com$/) {
+    print STDERR "Setting componentname and tls\n";
+    $con_args{componentname} = 'gmail.com';
+    $con_args{tls} = 1;
+    $xmpp->{SERVER}->{componentname} = 'gmail.com';
+  }
+  $xmpp->Connect(%con_args)
     or $self->argh("Failed to connect to ".
-                   $self->{_server}.':'.$self->{_port}.": $!\n");
+                   $self->{_host}.':'.$self->{_port}.": $!\n");
   $self->info("Connected to jabber server\n");
   $xmpp->SetCallBacks(presence => sub { $self->jabber_presence(@_); },
                       message => sub { $self->jabber_message(@_); },
                      );
+
+  my $stream = $xmpp->{STREAM};
+  $self->info("STREAM: $stream\n");
+  my $sid = $xmpp->{SESSION}->{id},"\n";
+  $self->info("SID: $sid\n");
+
+  if ($self->{_host} =~ /google\.com$/) {
+    $xmpp->{STREAM}->{SIDS}->{$sid}->{hostname} = 'gmail.com';
+  }
+
   my ($type, $message) =
     $xmpp->AuthSend(username => $self->{_user},
                     password => $self->{_pass},
                     resource => $self->{_resource});
-
-  my %fm = map { $_ => 1 } split /,/, join ",", @{$self->{_friends}};
-  $self->{_friend_map} = \%fm;
 
   unless ($type eq 'ok') {
     $self->argh("Failed to authenticate - $type: $message\n");
@@ -100,12 +120,14 @@ sub init {
   $self->info("Presence sent\n");
 
   # try to ensure the connection is set up
-  my $result = $xmpp->Process(0.04);
+  my $result = $xmpp->Process(1.04);
 
-  my $stream = $xmpp->{STREAM};
-  $self->info("STREAM: $stream\n");
-  my $sid = (keys %{$stream->{SIDS}})[0];
+  $sid = $xmpp->{SESSION}->{id},"\n";
   $self->info("SID: $sid\n");
+
+  foreach (keys %{$stream->{SIDS}}) {
+    print "SIDS: ", $_, "\n";
+  }
   my $jsock = $self->{_jsock} = $stream->{SIDS}->{$sid}->{sock};
   $self->argh("Jabber connection failed\n") unless ($jsock);
   undef $self->{_select};
@@ -120,6 +142,9 @@ sub init {
                                              class => 'im',
                                              class_type => 'basic',
                                             });
+
+  my %fm = map { $_ => 1 } split /,/, join ",", @{$self->{_friends}};
+  $self->{_friend_map} = \%fm;
 
   return $self;
 }
