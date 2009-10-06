@@ -61,12 +61,14 @@ sub getopts {
   $self->{_verbose} = 0;
   $self->{_address} = '0.0.0.0';
   $self->{_port} = 38650;
+  $self->{_wait} = 10;
   return
     (
      'tcphelp-verbose+' => \$self->{_verbose},
      'tcphelp-port=i' => \$self->{_port},
      'tcphelp-address=s' => \$self->{_address},
      'tcphelp-secret=s' => \$self->{_secret},
+     'tcphelp-wait=i' => \$self->{_wait},
     );
 }
 
@@ -122,19 +124,17 @@ sub read_client {
   my $handle = $_[0];
   my ($self, $xpl) = @{$_[1]};
   my $rec = $self->{_client}->{$handle} or do {
-    $self->remove_input($handle);
-    return $self->ouch($handle." not registered\n");
+    $self->ouch($handle." not registered\n");
+    return $self->close_handle($handle);
   };
   my $bytes = $handle->sysread($rec->{buf}, 2048, length $rec->{buf});
   unless ($bytes) {
     $self->info($handle.": closed\n");
-    $xpl->remove_input($handle);
-    $handle->close;
-    return 1;
+    return $self->close_handle($handle);
   }
   $xpl->info($handle.": read $bytes bytes\n");
   if ($rec->{buf} =~
-      /^(\w+)\r?\n # SHA1HMAC
+      s/^(\w+)\r?\n # SHA1HMAC
         (
          (\d+\.\d+)\r?\n # Version
          (\d+)\r?\n # Time in seconds
@@ -146,9 +146,9 @@ sub read_client {
          ((?:[-_a-z0-9]+=.*?\r?\n)*)
          }\r?\n
         )
-      /ix) {
+       //ix) {
     my ($hmac, $body, $version, $time, $method, $lines,
-        $message_type, $class_type, $body_content) =
+        $message_type, $class, $body_content) =
           ($1, $2, $3, $4, $5, $6, $7, $8, $9);
     $xpl->info($handle.": message received\n");
     my $digest = Digest::HMAC->new($self->{_secret}, 'Digest::SHA');
@@ -157,31 +157,73 @@ sub read_client {
     $xpl->info($handle.": HMAC: $hmac\nHMAC? $expect\n");
     unless ($expect eq $hmac) {
       $xpl->ouch($handle.": HMAC invalid\n");
-      $xpl->remove_input($handle);
-      $handle->close;
-      return 1;
+      return $self->close_handle($handle);
     }
     $xpl->info($handle.": HMAC valid\n");
     my $now = time;
     unless ($time > $now-120 && $time < $now+120) {
       $xpl->ouch($handle.": invalid time ($time !~ $now)\n");
-      $xpl->remove_input($handle);
-      $handle->close;
-      return 1;
+      return $self->close_handle($handle);
     }
     $xpl->info($handle.": valid time $time ~= $now\n");
     $body_content =~ s/\r//g;
     eval {
       $xpl->send(message_type => $message_type,
-                 class => $class_type,
+                 class => $class,
                  body_content => $body_content);
     };
     if ($@) {
       $xpl->ouch($handle.": xPL message invalid $@\n");
       return 1;
     }
+    unless ($method eq 'POST') {
+      return 1;
+    }
+    my $c = $class;
+    $c =~ s/\..*$//;
+    $xpl->add_xpl_callback(id => $handle.'!wait',
+                           filter =>
+                           {
+                            class => $c,
+                           },
+                           callback => \&xpl_response,
+                           arguments => [ $self, $xpl, $handle ]);
+    $xpl->add_timer(id => $handle.'!timeout', timeout => $self->{_wait},
+                    callback => \&give_up,
+                    arguments => [ $self, $xpl, $handle ]);
+
   }
   return 1;
+}
+
+sub close_handle {
+  my ($self, $handle) = @_;
+  my $xpl = $self->{_xpl};
+  $xpl->remove_input($handle);
+  $xpl->remove_xpl_callback($handle.'!wait') if
+    ($xpl->exists_xpl_callback($handle.'!wait'));
+  $xpl->remove_timer($handle.'!timeout') if
+    ($xpl->exists_timer($handle.'!timeout'));
+  $handle->close;
+  return 1;
+}
+
+sub xpl_response {
+  my %p = @_;
+  my $msg = $p{message};
+  my ($self, $xpl, $handle) = @{$p{arguments}};
+  my $string = $msg->string;
+  $xpl->info($handle.": sending ".$msg->summary."\n");
+  $handle->print($string);
+  return 1;
+}
+
+sub give_up {
+  my %p = @_;
+  my ($self, $xpl, $handle) = @{$p{arguments}};
+  $xpl->remove_xpl_callback($handle.'!wait') if
+    ($xpl->exists_xpl_callback($handle.'!wait'));
+  return;
 }
 
 1;
