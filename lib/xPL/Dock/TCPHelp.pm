@@ -18,6 +18,8 @@ on TCP port 36850 and waits for messages of the form:
   SHA1HMAC
   VersionString
   TimeInSeconds
+  Method
+  Lines
   xpl-....
   class.type
   {
@@ -132,20 +134,22 @@ sub read_client {
   }
   $xpl->info($handle.": read $bytes bytes\n");
   if ($rec->{buf} =~
-      /^(\w+)\r?\n
+      /^(\w+)\r?\n # SHA1HMAC
         (
-         (\d+\.\d+)\r?\n
-         (\d+)\r?\n
-         (xpl-(?:cmnd|trig|stat))\r?\n
-         ([-_a-z0-9]+\.[-_a-z0-9]+)\r?\n
-         {\r?\n
+         (\d+\.\d+)\r?\n # Version
+         (\d+)\r?\n # Time in seconds
+         (\w+)\r?\n # Method
+         (\d+)\r?\n # Lines
+         (xpl-(?:cmnd|trig|stat))\r?\n # Message Type
+         ([-_a-z0-9]+\.[-_a-z0-9]+)\r?\n # Class
+         {\r?\n # Standard xPL Message Body
          ((?:[-_a-z0-9]+=.*?\r?\n)*)
          }\r?\n
         )
       /ix) {
-    my ($hmac, $body, $version, $time,
+    my ($hmac, $body, $version, $time, $method, $lines,
         $message_type, $class_type, $body_content) =
-          ($1, $2, $3, $4, $5, $6, $7);
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9);
     $xpl->info($handle.": message received\n");
     my $digest = Digest::HMAC->new($self->{_secret}, 'Digest::SHA');
     $digest->add($body);
