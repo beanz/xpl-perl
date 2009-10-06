@@ -21,13 +21,17 @@ on TCP port 36850 and waits for messages of the form:
   Method
   Lines
   xpl-....
+  {
+  hop=1
+  source=bnz-acme.host
+  target=*
+  }
   class.type
   {
   ...
   }
 
 where C<SHA1HMAC> is the Digest::SHA for the remainder of the message.
-The message header is omitted since it is supplied by the xPL client.
 
 =head1 METHODS
 
@@ -141,6 +145,9 @@ sub read_client {
          (\w+)\r?\n # Method
          (\d+)\r?\n # Lines
          (xpl-(?:cmnd|trig|stat))\r?\n # Message Type
+         {\r?\n # Standard xPL Message Body
+         ((?:[-_a-z0-9]+=.*?\r?\n)*)
+         }\r?\n
          ([-_a-z0-9]+\.[-_a-z0-9]+)\r?\n # Class
          {\r?\n # Standard xPL Message Body
          ((?:[-_a-z0-9]+=.*?\r?\n)*)
@@ -148,8 +155,8 @@ sub read_client {
         )
        //ix) {
     my ($hmac, $body, $version, $time, $method, $lines,
-        $message_type, $class, $body_content) =
-          ($1, $2, $3, $4, $5, $6, $7, $8, $9);
+        $message_type, $head_content, $class, $body_content) =
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
     $xpl->info($handle.": message received\n");
     my $digest = Digest::HMAC->new($self->{_secret}, 'Digest::SHA');
     $digest->add($body);
@@ -166,26 +173,33 @@ sub read_client {
       return $self->close_handle($handle);
     }
     $xpl->info($handle.": valid time $time ~= $now\n");
+    $head_content =~ s/\r//g;
     $body_content =~ s/\r//g;
+    my $message;
     eval {
-      $xpl->send(message_type => $message_type,
-                 class => $class,
-                 body_content => $body_content);
+      $message = xPL::Message->new(message_type => $message_type,
+                                   head_content => $head_content,
+                                   class => $class,
+                                   body_content => $body_content);
     };
     if ($@) {
       $xpl->ouch($handle.": xPL message invalid $@\n");
       return 1;
     }
+    $xpl->send($message);
+    $self->info($handle.": sent ".$message->summary);
     unless ($method eq 'POST') {
       return 1;
     }
-    my $c = $class;
-    $c =~ s/\..*$//;
+    my %filter =
+      (
+       class => $message->class,
+      );
+
+    $filter{to} = $message->from if ($class eq 'im');
+
     $xpl->add_xpl_callback(id => $handle.'!wait',
-                           filter =>
-                           {
-                            class => $c,
-                           },
+                           filter => \%filter,
                            callback => \&xpl_response,
                            arguments => [ $self, $xpl, $handle ]);
     $xpl->add_timer(id => $handle.'!timeout', timeout => $self->{_wait},
@@ -213,7 +227,7 @@ sub xpl_response {
   my $msg = $p{message};
   my ($self, $xpl, $handle) = @{$p{arguments}};
   my $string = $msg->string;
-  $xpl->info($handle.": sending ".$msg->summary."\n");
+  $xpl->info($handle.": resp ".$msg->summary."\n");
   $handle->print($string);
   return 1;
 }
