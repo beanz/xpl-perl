@@ -96,7 +96,7 @@ sub init {
 
   my $stream = $xmpp->{STREAM};
   $self->info("STREAM: $stream\n");
-  my $sid = $xmpp->{SESSION}->{id},"\n";
+  my $sid = $xmpp->{SESSION}->{id};
   $self->info("SID: $sid\n");
 
   if ($self->{_host} =~ /google\.com$/) {
