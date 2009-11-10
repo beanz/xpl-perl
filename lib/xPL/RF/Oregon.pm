@@ -48,6 +48,10 @@ my %types =
    {
     part => 'WTGR800', checksum => \&checksum4, method => 'wtgr800_anemometer',
    },
+   type_length_key(0x1a89, 88) =>
+   {
+    part => 'WGR800', checksum => \&checksum4, method => 'wtgr800_anemometer',
+   },
    type_length_key(0x2a19, 92) => { part => 'RCR800', },
    type_length_key(0xda78, 72) => { part => 'UVN800', },
    type_length_key(0xea7c, 120) =>
