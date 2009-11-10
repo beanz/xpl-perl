@@ -122,7 +122,7 @@ sub init {
   # try to ensure the connection is set up
   my $result = $xmpp->Process(1.04);
 
-  $sid = $xmpp->{SESSION}->{id},"\n";
+  $sid = $xmpp->{SESSION}->{id};
   $self->info("SID: $sid\n");
 
   foreach (keys %{$stream->{SIDS}}) {
