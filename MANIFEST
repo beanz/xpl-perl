@@ -5,6 +5,7 @@ bin/xpl-clock
 bin/xpl-config
 bin/xpl-ctx35
 bin/xpl-currentcost
+bin/xpl-datetime
 bin/xpl-dawndusk
 bin/xpl-dg834
 bin/xpl-dmx
@@ -59,6 +60,7 @@ lib/xPL/Config.pm
 lib/xPL/Dock/APCUPS.pm
 lib/xPL/Dock/Bluetooth.pm
 lib/xPL/Dock/CurrentCost.pm
+lib/xPL/Dock/DateTime.pm
 lib/xPL/Dock/DawnDusk.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm

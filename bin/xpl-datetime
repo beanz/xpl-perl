@@ -1,0 +1,47 @@
+#!/usr/bin/perl -w
+
+use xPL::Dock qw/-run/;
+
+=head1 NAME
+
+xpl-datetime - Perl script for an xPL datetime
+
+=head1 SYNOPSIS
+
+  xpl-datetime [flags] [options]
+  where valid flags are:
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --xosd-verbose - verbose mode (for the X OSD layer)
+  and valid options are (default shown in brackets):
+    --interface if0        - the interface for xPL messages (first
+                             non-loopback or loopback)
+    --datetime-interval nn - number of seconds between xpl-trig message (60)
+                             0 to disable
+
+  # start the datetime on first ethernet interface in verbose mode
+  xpl-datetime --verbose --datetime-verbose
+
+=head1 DESCRIPTION
+
+This script is an xPL client that implements the C<datetime> schema.
+
+=head1 SEE ALSO
+
+xPL::Dock(3), xPL::Dock::DateTime(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
