@@ -111,12 +111,12 @@ sub read {
   }
   if ($self->{_buf} =~ m!<div \s+ class="content"> \s*
                          <h2>Encoder \s+ status</h2> \s*
-                         (Encoder.*?)</div>!mxs) {
+                         (Encoder.*?)</div>!imxs) {
     my $c = $1;
     my $count = 0;
     my $used = 0;
-    foreach my $s ($c =~ /(Encoder \d+ is \w+ on \S+ and is \w+)/mg) {
-      my ($num, $state) = ($s =~ /Encoder (\d+) is \w+ on \S+ and is (\w+)/);
+    foreach my $s ($c =~ /(Encoder \d+ is \w+ on \S+ and is \w+)/img) {
+      my ($num, $state) = ($s =~ /Encoder (\d+) is \w+ on \S+ and is (\w+)/i);
       #print STDERR $num, " ", $state, "\n";
       $count++;
       $used++ if ($state ne "not");
