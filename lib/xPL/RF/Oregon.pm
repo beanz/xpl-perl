@@ -53,7 +53,10 @@ my %types =
     part => 'WGR800', checksum => \&checksum4, method => 'wtgr800_anemometer',
    },
    type_length_key(0x2a19, 92) => { part => 'RCR800', },
-   type_length_key(0xda78, 72) => { part => 'UVN800', },
+   type_length_key(0xda78, 72) =>
+   {
+    part => 'UVN800', checksun => \&checksum7, method => 'uvn800',
+   },
    type_length_key(0xea7c, 120) =>
    {
     part => 'UV138', checksum => \&checksum1, method => 'uv138',
@@ -188,6 +191,29 @@ sub uv138 {
   my @res = ();
   uv($parent, $bytes, $dev_str, \@res);
   simple_battery($parent, $bytes, $dev_str, \@res);
+  return \@res;
+}
+
+=head2 C<uvn800( $parent, $message, $bytes, $bits )>
+
+This method is called if the device type bytes indicate that the bytes
+might contain a message from a UVN800 sensor.
+
+=cut
+
+sub uvn800 {
+  my $self = shift;
+  my $type = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  my $device = sprintf "%02x", $bytes->[3];
+  my $dev_str = $type.$DOT.$device;
+  my @res = ();
+  uv2($parent, $bytes, $dev_str, \@res);
+  percentage_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
 }
 
@@ -595,6 +621,18 @@ sub checksum6 {
     ((nibble_sum(8,$_[0]) - 0xa) & 0xff);
 }
 
+=head2 C<checksum7( $bytes )>
+
+This method is a byte checksum of all nibbles of the first 7 bytes,
+minus 10 which should equal the byte
+consisting of the 8th byte
+
+=cut
+
+sub checksum7 {
+  $_[0]->[7] == ((nibble_sum(7,$_[0]) - 0xa) & 0xff);
+}
+
 my @uv_str =
   (
    qw/low low low/, # 0 - 2
@@ -627,6 +665,34 @@ to the result array.
 sub uv {
   my ($parent, $bytes, $dev, $res) = @_;
   my $uv =  lo_nibble($bytes->[5])*10 + hi_nibble($bytes->[4]);
+  my $risk = uv_string($uv);
+  #printf STDERR "%s uv=%d risk=%s\n", $dev, $uv, $risk;
+  push @$res,
+    xPL::Message->new(
+                      strict => 0,
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev,
+                               type => 'uv',
+                               current => $uv,
+                               risk => $risk,
+                              }
+                     );
+  1;
+}
+
+=head2 C<uv2( $parent, $bytes, $device, \@result)>
+
+This method processes a UV Index reading for UVN800 sensor type.  It
+appends an xPL message to the result array.
+
+=cut
+
+sub uv2 {
+  my ($parent, $bytes, $dev, $res) = @_;
+  my $uv =  hi_nibble($bytes->[4]);
   my $risk = uv_string($uv);
   #printf STDERR "%s uv=%d risk=%s\n", $dev, $uv, $risk;
   push @$res,
