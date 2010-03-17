@@ -1,0 +1,62 @@
+#!/usr/bin/perl -w
+
+use xPL::Dock qw/-run/;
+
+=head1 NAME
+
+xpl-wol - Perl script for a wake-on-lan sender application
+
+=head1 SYNOPSIS
+
+  xpl-wol [flags] [options]
+  where valid flags are:
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --wol-verbose - verbose mode (for the WOL layer)
+  and valid options are (default shown in brackets):
+    --interface if0       - the interface for xPL messages (first
+                            non-loopback or loopback)
+
+  # start the wol on first ethernet interface in verbose mode
+  xpl-wol --verbose --wol-verbose
+
+=head1 DESCRIPTION
+
+This script is an xPL client that sends WOL messages using the command
+C<sudo etherwake &lt;macaddress&gt;>.  This script requires:
+
+=over 4
+
+=item the etherwake command
+
+Most Linux distributions will probably provide a package for this.
+
+=item the sudo command
+
+Most Linux distributions will probably provide a package for this.  It
+must be configured to allow the user running the client to execute
+the C<etherwake> command.  Typically, something like:
+
+  xplperl ALL=(ALL) NOPASSWD: /usr/sbin/etherwake
+
+=back
+
+=head1 SEE ALSO
+
+xPL::Dock(3), xPL::Dock::WOL(3), etherwake(8)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2010 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

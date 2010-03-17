@@ -1,0 +1,17 @@
+---
+default_message_type: xpl-trig
+types:
+  xpl-trig:
+    fields:
+      - name: device
+        required: 1
+      - name: type
+        required: 1
+        validation: 
+          type: Set
+          set:
+            - awake
+    summary:
+      - name: device
+      - name: type
+        prefix: =
