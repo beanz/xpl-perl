@@ -40,6 +40,7 @@ bin/xpl-tty-tcp
 bin/xpl-udin
 bin/xpl-viom
 bin/xpl-w800
+bin/xpl-wol
 bin/xpl-xosd
 bin/xpl-xvkbd
 Changes
