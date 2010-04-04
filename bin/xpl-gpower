@@ -1,0 +1,4 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use xPL::Dock qw/-run/;

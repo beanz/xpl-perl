@@ -11,6 +11,7 @@ bin/xpl-dg834
 bin/xpl-dmx
 bin/xpl-easydaq
 bin/xpl-fdnotify
+bin/xpl-gpower
 bin/xpl-hddtemp
 bin/xpl-heyu
 bin/xpl-heyu-helper
@@ -66,6 +67,7 @@ lib/xPL/Dock/DawnDusk.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
 lib/xPL/Dock/FDNotify.pm
+lib/xPL/Dock/GPower.pm
 lib/xPL/Dock/HDDTemp.pm
 lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/Jabber.pm
