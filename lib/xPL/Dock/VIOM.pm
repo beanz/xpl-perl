@@ -24,7 +24,6 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
-use Pod::Usage;
 use xPL::IOHandler;
 use xPL::Dock::Plug;
 
