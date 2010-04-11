@@ -25,6 +25,27 @@ use warnings;
 use English qw/-no_match_vars/;
 use xPL::Dock::Plug;
 use Net::XMPP;
+{
+  # http://blogs.perl.org/users/marco_fontani/2010/03/google-talk-with-perl.html
+  # monkey-patch XML::Stream to support the google-added JID
+  package XML::Stream;
+  no warnings 'redefine';
+  sub SASLAuth {
+    my $self = shift;
+    my $sid  = shift;
+    my $first_step =
+      $self->{SIDS}->{$sid}->{sasl}->{client}->client_start();
+    my $first_step64 = MIME::Base64::encode_base64($first_step,"");
+    $self->Send( $sid,
+                 "<auth xmlns='" . &ConstXMLNS('xmpp-sasl') .
+                 "' mechanism='" .
+                 $self->{SIDS}->{$sid}->{sasl}->{client}->mechanism() .
+                 "' " .  q{xmlns:ga='http://www.google.com/talk/protocol/auth'
+            ga:client-uses-full-bind-result='true'} . # JID
+                 ">".$first_step64."</auth>");
+  }
+}
+
 use POSIX qw/strftime/;
 
 our @ISA = qw(xPL::Dock::Plug);
@@ -99,10 +120,6 @@ sub init {
   my $sid = $xmpp->{SESSION}->{id};
   $self->info("SID: $sid\n");
 
-  if ($self->{_host} =~ /google\.com$/) {
-    $xmpp->{STREAM}->{SIDS}->{$sid}->{hostname} = 'gmail.com';
-  }
-
   my ($type, $message) =
     $xmpp->AuthSend(username => $self->{_user},
                     password => $self->{_pass},
@@ -167,7 +184,7 @@ sub jabber_message {
     $self->info("Replying to help request\n");
     $self->{_xmpp}->Send($obj->Reply(body => "Usage:\n"));
   } elsif ($command eq 'xpl') {
-    $self->{_xpl}->send_from_string($message);
+    eval { $self->{_xpl}->send_from_string($message); };
     return 1;
   } elsif ($command eq 'log') {
     $self->info("Replying to log request\n");
