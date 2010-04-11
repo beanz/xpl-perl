@@ -2,7 +2,7 @@ package xPL::Dock::FDNotify;
 
 =head1 NAME
 
-xPL::Dock::FDNotify - xPL::Dock plugin for a virtual keyboard application
+xPL::Dock::FDNotify - xPL::Dock plugin for a desktop notification application
 
 =head1 SYNOPSIS
 
