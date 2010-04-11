@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'configure' || exit 0
+
+if test -e /etc/service/xpl-xvkbd; then
+  echo 'Restarting xpl-xvkbd service...'
+  svc -t /etc/service/xpl-xvkbd || :
+else
+  update-service --add /etc/sv/xpl-xvkbd
+fi
+
+test -z "$2" || exit 0
+
+chown xplperllog:adm /var/log/xpl-perl/xpl-xvkbd

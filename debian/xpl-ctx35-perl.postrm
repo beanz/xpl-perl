@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-ctx35 || :
+rm -rf /etc/sv/xpl-ctx35
+rm -rf /var/lib/supervise/xpl-ctx35 /var/lib/supervise/xpl-ctx35.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-ctx35/$i
+done
+rmdir /var/log/xpl-perl/xpl-ctx35 || :

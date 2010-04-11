@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-hddtemp || :
+rm -rf /etc/sv/xpl-hddtemp
+rm -rf /var/lib/supervise/xpl-hddtemp /var/lib/supervise/xpl-hddtemp.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-hddtemp/$i
+done
+rmdir /var/log/xpl-perl/xpl-hddtemp || :

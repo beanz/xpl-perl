@@ -1,0 +1,7 @@
+#!/bin/sh
+exec 2>&1
+exec envdir /etc/xpl-perl/env envdir ./env sh -c '
+  exec envuidgid xplperl softlimit -o "$FILELIMIT" -d "$DATALIMIT" \
+    /usr/bin/PROGNAME --define "ip=$IP" --define "broadcast=$IPSEND" \
+                      $COMMON_ARGUMENTS
+'

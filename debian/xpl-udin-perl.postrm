@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-udin || :
+rm -rf /etc/sv/xpl-udin
+rm -rf /var/lib/supervise/xpl-udin /var/lib/supervise/xpl-udin.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-udin/$i
+done
+rmdir /var/log/xpl-perl/xpl-udin || :

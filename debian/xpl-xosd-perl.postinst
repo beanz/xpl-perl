@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'configure' || exit 0
+
+if test -e /etc/service/xpl-xosd; then
+  echo 'Restarting xpl-xosd service...'
+  svc -t /etc/service/xpl-xosd || :
+else
+  update-service --add /etc/sv/xpl-xosd
+fi
+
+test -z "$2" || exit 0
+
+chown xplperllog:adm /var/log/xpl-perl/xpl-xosd

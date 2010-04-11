@@ -1,0 +1,5 @@
+/etc/sv/xpl-bluetooth/run
+/etc/sv/xpl-bluetooth/log/run
+/etc/sv/xpl-bluetooth/log/status
+/etc/sv/xpl-bluetooth/env/DATALIMIT
+/etc/sv/xpl-bluetooth/env/FILELIMIT

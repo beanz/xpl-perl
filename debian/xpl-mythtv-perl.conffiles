@@ -1,0 +1,5 @@
+/etc/sv/xpl-mythtv/run
+/etc/sv/xpl-mythtv/log/run
+/etc/sv/xpl-mythtv/log/status
+/etc/sv/xpl-mythtv/env/DATALIMIT
+/etc/sv/xpl-mythtv/env/FILELIMIT

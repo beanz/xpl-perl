@@ -1,0 +1,5 @@
+/etc/sv/xpl-hub/run
+/etc/sv/xpl-hub/log/run
+/etc/sv/xpl-hub/log/status
+/etc/sv/xpl-hub/env/DATALIMIT
+/etc/sv/xpl-hub/env/FILELIMIT

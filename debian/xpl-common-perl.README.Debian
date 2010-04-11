@@ -1,0 +1,22 @@
+xpl-common-perl
+---------------
+
+This package provides common configuration files for all xPL Perl clients.
+It provides:
+
+  /etc/xpl-perl/env/IP
+
+which is the IP address for xPL clients to listen on (default
+is 127.0.0.1),
+
+  /etc/xpl-perl/env/IPSEND
+
+which is the IP address for xPL clients to send (broadcast) on (default
+is 127.0.0.1), and
+
+  /etc/xpl-perl/env/COMMON_ARGUMENTS
+
+which can be any additional arguments to pass to all xPL clients (default
+is "--verbose" since that tends to be useful for debugging).
+
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Sun, 24 Jan 2010 20:11:27 +0000

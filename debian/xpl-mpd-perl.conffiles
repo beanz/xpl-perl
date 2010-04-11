@@ -1,0 +1,5 @@
+/etc/sv/xpl-mpd/run
+/etc/sv/xpl-mpd/log/run
+/etc/sv/xpl-mpd/log/status
+/etc/sv/xpl-mpd/env/DATALIMIT
+/etc/sv/xpl-mpd/env/FILELIMIT

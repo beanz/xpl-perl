@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-apcups || :
+rm -rf /etc/sv/xpl-apcups
+rm -rf /var/lib/supervise/xpl-apcups /var/lib/supervise/xpl-apcups.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-apcups/$i
+done
+rmdir /var/log/xpl-perl/xpl-apcups || :

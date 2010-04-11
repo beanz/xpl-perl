@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-hub || :
+rm -rf /etc/sv/xpl-hub
+rm -rf /var/lib/supervise/xpl-hub /var/lib/supervise/xpl-hub.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-hub/$i
+done
+rmdir /var/log/xpl-perl/xpl-hub || :

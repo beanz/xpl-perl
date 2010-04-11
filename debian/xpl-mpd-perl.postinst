@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'configure' || exit 0
+
+if test -e /etc/service/xpl-mpd; then
+  echo 'Restarting xpl-mpd service...'
+  svc -t /etc/service/xpl-mpd || :
+else
+  update-service --add /etc/sv/xpl-mpd
+fi
+
+test -z "$2" || exit 0
+
+chown xplperllog:adm /var/log/xpl-perl/xpl-mpd

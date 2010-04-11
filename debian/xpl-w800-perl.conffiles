@@ -1,0 +1,5 @@
+/etc/sv/xpl-w800/run
+/etc/sv/xpl-w800/log/run
+/etc/sv/xpl-w800/log/status
+/etc/sv/xpl-w800/env/DATALIMIT
+/etc/sv/xpl-w800/env/FILELIMIT

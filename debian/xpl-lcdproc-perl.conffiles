@@ -1,0 +1,5 @@
+/etc/sv/xpl-lcdproc/run
+/etc/sv/xpl-lcdproc/log/run
+/etc/sv/xpl-lcdproc/log/status
+/etc/sv/xpl-lcdproc/env/DATALIMIT
+/etc/sv/xpl-lcdproc/env/FILELIMIT

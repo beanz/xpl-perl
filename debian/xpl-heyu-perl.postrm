@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-heyu || :
+rm -rf /etc/sv/xpl-heyu
+rm -rf /var/lib/supervise/xpl-heyu /var/lib/supervise/xpl-heyu.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-heyu/$i
+done
+rmdir /var/log/xpl-perl/xpl-heyu || :

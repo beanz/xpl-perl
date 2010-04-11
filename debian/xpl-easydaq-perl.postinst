@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'configure' || exit 0
+
+if test -e /etc/service/xpl-easydaq; then
+  echo 'Restarting xpl-easydaq service...'
+  svc -t /etc/service/xpl-easydaq || :
+else
+  update-service --add /etc/sv/xpl-easydaq
+fi
+
+test -z "$2" || exit 0
+
+chown xplperllog:adm /var/log/xpl-perl/xpl-easydaq

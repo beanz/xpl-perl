@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-dmx || :
+rm -rf /etc/sv/xpl-dmx
+rm -rf /var/lib/supervise/xpl-dmx /var/lib/supervise/xpl-dmx.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-dmx/$i
+done
+rmdir /var/log/xpl-perl/xpl-dmx || :

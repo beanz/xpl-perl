@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'configure' || exit 0
+
+if test -e /etc/service/xpl-bluetooth; then
+  echo 'Restarting xpl-bluetooth service...'
+  svc -t /etc/service/xpl-bluetooth || :
+else
+  update-service --add /etc/sv/xpl-bluetooth
+fi
+
+test -z "$2" || exit 0
+
+chown xplperllog:adm /var/log/xpl-perl/xpl-bluetooth

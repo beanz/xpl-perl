@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-w800 || :
+rm -rf /etc/sv/xpl-w800
+rm -rf /var/lib/supervise/xpl-w800 /var/lib/supervise/xpl-w800.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-w800/$i
+done
+rmdir /var/log/xpl-perl/xpl-w800 || :

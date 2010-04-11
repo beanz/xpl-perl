@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'configure' || exit 0
+
+if test -e /etc/service/xpl-sms-send; then
+  echo 'Restarting xpl-sms-send service...'
+  svc -t /etc/service/xpl-sms-send || :
+else
+  update-service --add /etc/sv/xpl-sms-send
+fi
+
+test -z "$2" || exit 0
+
+chown xplperllog:adm /var/log/xpl-perl/xpl-sms-send

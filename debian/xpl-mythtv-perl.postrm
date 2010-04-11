@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-mythtv || :
+rm -rf /etc/sv/xpl-mythtv
+rm -rf /var/lib/supervise/xpl-mythtv /var/lib/supervise/xpl-mythtv.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-mythtv/$i
+done
+rmdir /var/log/xpl-perl/xpl-mythtv || :

@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'purge' || exit 0
+
+svc -x /etc/sv/xpl-rfxcom || :
+rm -rf /etc/sv/xpl-rfxcom
+rm -rf /var/lib/supervise/xpl-rfxcom /var/lib/supervise/xpl-rfxcom.log
+for i in '@*' current config lock state; do
+  rm -f /var/log/xpl-perl/xpl-rfxcom/$i
+done
+rmdir /var/log/xpl-perl/xpl-rfxcom || :

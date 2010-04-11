@@ -1,0 +1,5 @@
+/etc/sv/xpl-xosd/run
+/etc/sv/xpl-xosd/log/run
+/etc/sv/xpl-xosd/log/status
+/etc/sv/xpl-xosd/env/DATALIMIT
+/etc/sv/xpl-xosd/env/FILELIMIT

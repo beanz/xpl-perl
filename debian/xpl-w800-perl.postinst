@@ -1,0 +1,15 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'configure' || exit 0
+
+if test -e /etc/service/xpl-w800; then
+  echo 'Restarting xpl-w800 service...'
+  svc -t /etc/service/xpl-w800 || :
+else
+  update-service --add /etc/sv/xpl-w800
+fi
+
+test -z "$2" || exit 0
+
+chown xplperllog:adm /var/log/xpl-perl/xpl-w800

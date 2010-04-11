@@ -1,0 +1,2 @@
+#!/bin/sh
+exec setuidgid xplperllog multilog t s1000000 n1000 ./main

@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+test "$1" = 'install' || exit 0
+test -z "$2" || exit 0
+
+# not upgrading
+for i in xplperl xplperllog; do
+  getent passwd $i >/dev/null ||
+    adduser --quiet --system --force-badname --shell /bin/false --group \
+      --home /nonexistent --no-create-home $i || exit 1;
+done
