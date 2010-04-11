@@ -11,13 +11,16 @@
 # always return the default without waiting for user input.
 export PERL_MM_USE_DEFAULT=1
 
-PACKAGE=$(shell dh_listpackages)
+PACKAGE=$(shell dh_listpackages|head -1)
 
 ifndef PERL
 PERL = /usr/bin/perl
 endif
 
 TMP     =$(CURDIR)/debian/$(PACKAGE)
+DEBDIR  =$(CURDIR)/debian
+XPLPKGS = $(shell dh_listpackages | tail -n +2)
+XPLDIRS = $(patsubst %,$(CURDIR)/debian/%,$(XPLPKGS))
 
 build: build-stamp
 build-stamp:
@@ -38,20 +41,20 @@ clean:
 
 	dh_clean build-stamp install-stamp
 
-install: build install-stamp
+install: build install-stamp install-xpl-pkgs
 install-stamp:
 	dh_testdir
 	dh_testroot
 	dh_clean -k
 
 	# Add commands to install the package into debian/$PACKAGE_NAME here
-	$(MAKE) test
+	#$(MAKE) test
 	$(MAKE) install DESTDIR=$(TMP) PREFIX=/usr
 
 	# As this is a architecture independent package, we are not
 	# supposed to install stuff to /usr/lib. MakeMaker creates
 	# the dirs, we delete them from the deb:
-	rmdir --ignore-fail-on-non-empty --parents $(TMP)/usr/lib/perl5
+	-rmdir --ignore-fail-on-non-empty --parents $(TMP)/usr/lib/perl5
 
 	touch install-stamp
 
@@ -81,3 +84,28 @@ source diff:
 
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary
+
+install-xpl-pkgs: $(XPLDIRS)
+
+$(CURDIR)/debian/xpl-common-perl:
+	install -d -m2755 $@/etc/xpl-perl/env
+	echo 127.0.0.1 > $@/etc/xpl-perl/env/IP
+	echo 127.0.0.1 > $@/etc/xpl-perl/env/IPSEND
+	echo --verbose > $@/etc/xpl-perl/env/COMMON_ARGUMENTS
+	chmod 0644 $@/etc/xpl-perl/env/{IP,IPSEND,COMMON_ARGUMENTS}
+
+$(CURDIR)/debian/%-perl:
+	install -d -m3755 $@/etc/sv/$(*F)
+	install -d -m2755 $@/etc/sv/$(*F)/env
+	install -d -m2755 $@/etc/sv/$(*F)/log
+	sed -e's/PROGNAME/'$(*F)'/g' \
+		<$(CURDIR)/debian/sv/run >$@/etc/sv/$(*F)/run
+	chmod 0755 $@/etc/sv/$(*F)/run
+	install -m0644 $(CURDIR)/debian/sv/env/* $@/etc/sv/$(*F)/env/
+	install -m0755 $(CURDIR)/debian/sv/log/run $@/etc/sv/$(*F)/log/run
+	touch $@/etc/sv/$(*F)/log/status
+	chmod 0644 $@/etc/sv/$(*F)/log/status
+	install -d -m0755 $@/var/log/xpl-perl/$(*F)
+	ln -s /var/log/xpl-perl/$(*F) $@/etc/sv/$(*F)/log/main
+	install -d -m0755 $@/var/lib/supervise/$(*F)
+	install -d -m0755 $@/var/lib/supervise/$(*F).log
