@@ -50,11 +50,11 @@ plugin.
 
 sub getopts {
   my $self = shift;
-  $self->{_config} = '/etc/xplperl/gpower.conf';
+  $self->{_config_file} = '/etc/xplperl/gpower.conf';
   return
     (
      'gpower-verbose+' => \$self->{_verbose},
-     'gpower-config=s' => \$self->{_config},
+     'gpower-config=s' => \$self->{_config_file},
     );
 }
 
@@ -69,7 +69,7 @@ sub init {
 
   $self->SUPER::init($xpl, @_);
 
-  $self->{_cfg} = LoadFile($self->{_config});
+  $self->{_cfg} = LoadFile($self->{_config_file});
   $self->{_ua} = LWP::UserAgent->new();
   $self->argh('Must defined user_id in configuration file')
     unless (defined $self->{_cfg}->{user_id});
@@ -85,6 +85,14 @@ sub init {
                           class_type => 'basic',
                          },
                          callback => sub { $self->xpl_handler(@_) });
+
+  # init batch struct
+  $self->{_entries} = {
+                       text => '',
+                       batch_id => 0,
+                       next_time => time, # send immediately first time
+                      };
+
   return $self;
 }
 
@@ -120,7 +128,7 @@ sub xpl_handler {
   my $duration = $end_time - $start_time;
   my $kwh = ($watts / ( 3600 / $duration ) ) / 1000;
   $self->info($msg->device, ": ", $kwh, "kwh\n");
-  $self->submit($rec, $start_time, $end_time, $kwh);
+  $self->queue_batch_entry($rec, $start_time, $end_time, $kwh);
   return 1;
 }
 
@@ -149,13 +157,69 @@ sub submit {
                 $response->status_line(), "\n",
                 $response->content);
   }
-
 }
 
 sub ts {
   strftime '%Y-%m-%dT%H:%M:%S.000Z', gmtime $_[0]
 }
 
+sub queue_batch_entry {
+  my ($self, $rec, $start, $end, $kwh) = @_;
+  my $auth_token = $self->{_cfg}->{auth_token};
+  my $user_id = $self->{_cfg}->{user_id};
+  my $variable_id = $self->{_cfg}->{device}.'.'.$rec->{id};
+  my $entry = q{
+<entry>
+  <category scheme="http://schemas.google.com/g/2005#kind"
+            term="http://schemas.google.com/meter/2008#durMeasurement"/>
+  <meter:subject>
+    https://www.google.com/powermeter/feeds/user/}.$user_id.'/'.$user_id.'/variable/'.$variable_id.q{
+  </meter:subject>
+  <batch:id>}.$self->{_entries}->{batch_id}++.q{</batch:id>
+  <meter:startTime meter:uncertainty="1.0">}.ts($start).q{</meter:startTime>
+  <meter:endTime meter:uncertainty="1.0">}.ts($end).q{</meter:endTime>
+  <meter:quantity meter:uncertainty="0.001"
+                  meter:unit="kW h">}.$kwh.q{</meter:quantity>
+</entry>};
+
+  $self->{_entries}->{text} .= $entry;
+  if (time > $self->{_entries}->{next_time}) {
+    $self->send_batch();
+  }
+}
+
+sub send_batch {
+  my ($self) = @_;
+  my $batch = $self->{_entries}->{text} || return;
+  my $count = $self->{_entries}->{batch_id};
+  $self->{_entries} = {
+                       text => '',
+                       batch_id => 0,
+                       next_time => time + 630, # 10m plus a bit
+                      };
+
+  my $url = 'https://www.google.com/powermeter/feeds/event';
+  my $req = HTTP::Request->new(POST => $url);
+  $req->header('Authorization' =>
+                 'AuthSub token="'.$self->{_cfg}->{auth_token}.'"');
+  $req->content_type('application/atom+xml');
+  my $content = q{  <?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"
+      xmlns:meter="http://schemas.google.com/meter/2008"
+      xmlns:batch="http://schemas.google.com/gdata/batch">
+}.$batch.q{
+</feed>
+};
+
+  $req->content($content);
+  my $response = $self->{_ua}->request($req);
+  if ($response->is_success) {
+    $self->info('Sent batch of '.$count." entries\n");
+  } else {
+    $self->argh("Batch update failed:\n", $response->status_line(), "\n",
+                $response->content);
+  }
+}
 
 sub ensure_variable_exists {
   my ($self, $rec) = @_;
