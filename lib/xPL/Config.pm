@@ -8,7 +8,7 @@ xPL::Config - Perl extension for xPL Config base class
 
   use xPL::Config;
 
-  my $config = xPL::Config->new($key) or die ";
+  my $config = xPL::Config->new($key) or die;
 
 =head1 DESCRIPTION
 
