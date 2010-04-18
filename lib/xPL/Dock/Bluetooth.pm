@@ -85,12 +85,12 @@ for visible devices.
 
 sub poll_bluetooth {
   my $self = shift;
-  my $devices = get_remote_devices();
   my $state = $self->{_state};
   my $xpl = $self->xpl;
   foreach my $addr (@{$self->{_watch}}) {
     my $old = $state->{$addr}->{v} || 'low';
-    my $new = $state->{$addr}->{v} = exists $devices->{$addr} ? 'high' : 'low';
+    my @sdp_array = sdp_search($addr, '0', '');
+    my $new = $state->{$addr}->{v} = $sdp_array[0] ? 'high' : 'low';
     my $msg =
       xPL::Message->new(head => { source => $xpl->id },
                         message_type => $old eq $new ? 'xpl-stat' : 'xpl-trig',
