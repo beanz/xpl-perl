@@ -131,6 +131,8 @@ sub new {
   $self->{_max_fast_hbeat_count} =
     int $self->hub_response_timeout / $self->fast_hbeat_interval;
 
+  $self->init_event_callbacks();
+
   my $needs_config = $self->init_config(\%p);
   my $class = $needs_config ? 'config' : 'hbeat';
   $self->{_hbeat_class} = $class;
@@ -212,8 +214,6 @@ sub new {
                            class_type => 'request',
                           },
                           callback => sub { $self->ping_request(@_) });
-
-  $self->init_event_callbacks();
 
   return $self;
 }
