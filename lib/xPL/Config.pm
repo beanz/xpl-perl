@@ -71,121 +71,9 @@ sub new {
   bless $self, $pkg;
   my $key = $self->{_key} = $p{key};
   my $instance = $self->{_instance} = $p{instance};
-  $self->read_spec($key) or return;
-  $self->load_config($key.'.'.$instance);
+  $self->_read_spec($key) or return;
+  $self->_load_config($key.'.'.$instance);
   return $self;
-}
-
-=head2 C<read_spec($key)>
-
-This method reads the specification for the given key.  It looks for
-the file, C<'xPL/config/<key>.yaml'> on the C<@INC> include path.  The
-C<YAML> configuration should be a hash reference with an entry for the
-key C<items> with an array reference of configurable items.  Each
-configurable item is a hash reference containing the following keys:
-
-=over 4
-
-=item name
-
-  This is the name of the configuration item.  This is a mandatory
-  element.
-
-=item type
-
-  The type of the configuration item.  This must be one of:
-
-=over 4
-
-=item config
-
-  This type is for items that are mandatory for the device to function
-  and that cannot be changed once a device is running.
-
-=item reconf
-
-  This type is for items which are mandatory for the device to
-  operate, but who's value can be changed at any time while the device
-  is operating.
-
-=item option
-
-  This type is for items that are not required for device operation -
-  typically items for which the client has a suitable default.
-
-=back
-
-  This key is optional and defaults to 'option'.
-
-=item number
-
-  The number of values this element may have.  This key is optional and
-  defaults to '1'.
-
-=back
-
-This method returns true if a valid configuration specification is
-found.  It croaks if an invalid configuration specifications is found.
-It returns undef if no configuration specification is found.
-
-=cut
-
-sub read_spec {
-  my ($self, $key) = @_;
-  my $file = 'xPL/config/'.$key.'.yaml';
-  my $found;
-  foreach (@INC) {
-    my $path = $_.'/'.$file;
-    if (-f $path) {
-      $found = $path;
-      last;
-    }
-  }
-  return unless ($found);
-  my $spec;
-  eval { $spec = LoadFile($found); };
-  if ($@) {
-    croak("Failed to read config spec from $found\n", $@, "\n");
-  }
-  unless (ref $spec && ref $spec eq 'HASH' &&
-          ref $spec->{items} && ref $spec->{items} eq 'ARRAY') {
-    croak("Config spec in, $found,\n",
-          "must contain a hash ref with items array ref\n");
-  }
-  my $cf = $self->{_config_spec} = {};
-  my $newconf;
-  foreach my $item (@{$spec->{items}}) {
-    my $name = $item->{name};
-    $newconf++ if ($name eq 'newconf');
-    $cf->{items}->{$name} = $item;
-    push @{$cf->{order}}, $name;
-  }
-  # always allow for instance_id configuration ('newconf' for some reason)
-  unless ($newconf) {
-    unshift @{$cf->{order}}, 'newconf';
-    $cf->{items}->{'newconf'} = { name => 'newconf' };
-  }
-
-  return 1;
-}
-
-=head2 C<load_config($instance_key)>
-
-This method loads the configuration for a specific instance.  It returns
-true if successful or croaks otherwise.
-
-=cut
-
-sub load_config {
-  my ($self, $instance_key) = @_;
-  my $config_path = $ENV{XPL_CONFIG_PATH} || '/var/cache/xplperl';
-  my $file = $config_path.'/'.$instance_key.'.db';
-  my %h;
-  my $res = tie %h, 'DB_File', $file, O_CREAT|O_RDWR, 0666, $DB_HASH;
-  unless ($res) {
-    croak("Failed to create configuration DB_File, $file: $!\n");
-  }
-  $self->{_config} = \%h;
 }
 
 =head2 C<items()>
@@ -206,7 +94,7 @@ This method returns the number of configuration items.
 =cut
 
 sub number_of_items {
-  return scalar @{$_[0]->{_config_spec}->{order}};
+  return scalar $_[0]->items
 }
 
 =head2 C<is_item($name)>
@@ -264,7 +152,7 @@ sub get_item {
     (defined $v ? [ split /\0/, $v ] : undef) : $v;
 }
 
-=head2 C<set_item($name)>
+=head2 C<set_item($name, $value)>
 
 This method sets the value of the named item.  For multi-valued items
 it should be an array reference.
@@ -393,6 +281,120 @@ sub config_current {
     $body{$name} = defined $val ? $val : '';
   }
   return \%body;
+}
+
+=head1 INTERNAL METHODS
+
+=head2 C<_read_spec($key)>
+
+This method reads the specification for the given key.  It looks for
+the file, C<'xPL/config/<key>.yaml'> on the C<@INC> include path.  The
+C<YAML> configuration should be a hash reference with an entry for the
+key C<items> with an array reference of configurable items.  Each
+configurable item is a hash reference containing the following keys:
+
+=over 4
+
+=item name
+
+  This is the name of the configuration item.  This is a mandatory
+  element.
+
+=item type
+
+  The type of the configuration item.  This must be one of:
+
+=over 4
+
+=item config
+
+  This type is for items that are mandatory for the device to function
+  and that cannot be changed once a device is running.
+
+=item reconf
+
+  This type is for items which are mandatory for the device to
+  operate, but who's value can be changed at any time while the device
+  is operating.
+
+=item option
+
+  This type is for items that are not required for device operation -
+  typically items for which the client has a suitable default.
+
+=back
+
+  This key is optional and defaults to 'option'.
+
+=item number
+
+  The number of values this element may have.  This key is optional and
+  defaults to '1'.
+
+=back
+
+This method returns true if a valid configuration specification is
+found.  It croaks if an invalid configuration specifications is found.
+It returns undef if no configuration specification is found.
+
+=cut
+
+sub _read_spec {
+  my ($self, $key) = @_;
+  my $file = 'xPL/config/'.$key.'.yaml';
+  my $found;
+  foreach (@INC) {
+    my $path = $_.'/'.$file;
+    if (-f $path) {
+      $found = $path;
+      last;
+    }
+  }
+  return unless ($found);
+  my $spec;
+  eval { $spec = LoadFile($found); };
+  if ($@) {
+    croak("Failed to read config spec from $found\n", $@, "\n");
+  }
+  unless (ref $spec && ref $spec eq 'HASH' &&
+          ref $spec->{items} && ref $spec->{items} eq 'ARRAY') {
+    croak("Config spec in, $found,\n",
+          "must contain a hash ref with items array ref\n");
+  }
+  my $cf = $self->{_config_spec} = {};
+  my $newconf;
+  foreach my $item (@{$spec->{items}}) {
+    my $name = $item->{name};
+    $newconf++ if ($name eq 'newconf');
+    $cf->{items}->{$name} = $item;
+    push @{$cf->{order}}, $name;
+  }
+  # always allow for instance_id configuration ('newconf' for some reason)
+  unless ($newconf) {
+    unshift @{$cf->{order}}, 'newconf';
+    $cf->{items}->{'newconf'} = { name => 'newconf' };
+  }
+
+  return 1;
+}
+
+=head2 C<_load_config($instance_key)>
+
+This method loads the configuration for a specific instance.  It returns
+true if successful or croaks otherwise.
+
+=cut
+
+sub _load_config {
+  my ($self, $instance_key) = @_;
+  my $config_path = $ENV{XPL_CONFIG_PATH} || '/var/cache/xplperl';
+  my $file = $config_path.'/'.$instance_key.'.db';
+  my %h;
+  my $res = tie %h, 'DB_File', $file, O_CREAT|O_RDWR, 0666, $DB_HASH;
+  unless ($res) {
+    croak("Failed to create configuration DB_File, $file: $!\n");
+  }
+  $self->{_config} = \%h;
 }
 
 1;
