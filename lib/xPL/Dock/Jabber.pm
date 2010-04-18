@@ -92,24 +92,61 @@ sub init {
   my %p = @_;
 
   $self->SUPER::init($xpl, @_);
+  $xpl->add_event_callback(id => $self.'_config_changed',
+                           event => 'config_changed',
+                           callback => sub {
+                             $self->config_changed(@_);
+                           });
+  unless ($self->config->items_requiring_config) {
+    $self->connect();
+  }
+  return $self;
+}
 
+sub config_changed {
+  my $self = shift;
+  my $config = $self->config;
+  return 1 if ($config->items_requiring_config);
+  if ($self->{_xmpp}) {
+    my %p = @_;
+    # TOFIX support reconfiguration
+    print STDERR "Reconfigure\n";
+    my @changes = @{$p{changes}};
+    foreach my $change (@{$p{changes}}) {
+      if ($change->{'name'} eq 'friend') {
+        my %fm = map { $_ => 1 } split /,/, join ",",
+          @{$self->{_friends}}, @{$config->get_item('friend')||[]};
+        $self->{_friend_map} = \%fm;
+      }
+    }
+    return 1;
+  }
+  $self->connect();
+}
+
+sub connect {
+  my $self = shift;
+  print STDERR "Configured!\n";
+  my $xpl = $self->{_xpl};
+  my $config = $self->config;
+  my $host = $config->get_item('host') || $self->{_host};
+  my $port = $config->get_item('port') || $self->{_port};
   my $xmpp = $self->{_xmpp} = Net::XMPP::Client->new( debuglevelxx => 100 );
   my %con_args =
     (
-     hostname => $self->{_host},
-     port => $self->{_port},
+     hostname => $host,
+     port => $port,
      connectiontype => 'tcpip',
      tls => 1,
     );
-  if ($self->{_host} =~ /google\.com$/) {
+  if ($host =~ /google\.com$/) {
     print STDERR "Setting componentname and tls\n";
     $con_args{componentname} = 'gmail.com';
     $con_args{tls} = 1;
     $xmpp->{SERVER}->{componentname} = 'gmail.com';
   }
   $xmpp->Connect(%con_args)
-    or $self->argh("Failed to connect to ".
-                   $self->{_host}.':'.$self->{_port}.": $!\n");
+    or $self->argh("Failed to connect to ".$host.':'.$port.": $!\n");
   $self->info("Connected to jabber server\n");
   $xmpp->SetCallBacks(presence => sub { $self->jabber_presence(@_); },
                       message => sub { $self->jabber_message(@_); },
@@ -121,9 +158,10 @@ sub init {
   $self->info("SID: $sid\n");
 
   my ($type, $message) =
-    $xmpp->AuthSend(username => $self->{_user},
-                    password => $self->{_pass},
-                    resource => $self->{_resource});
+    $xmpp->AuthSend(username => $config->get_item('username')||$self->{_user},
+                    password => $config->get_item('password')||$self->{_pass},
+                    resource =>
+                      $config->get_item('resource')||$self->{_resource});
 
   unless ($type eq 'ok') {
     $self->argh("Failed to authenticate - $type: $message\n");
@@ -160,11 +198,11 @@ sub init {
                                              class_type => 'basic',
                                             });
 
-  my %fm = map { $_ => 1 } split /,/, join ",", @{$self->{_friends}};
+  my %fm = map { $_ => 1 } split /,/, join ",",
+    @{$self->{_friends}}, @{$config->get_item('friend')||[]};
   $self->{_friend_map} = \%fm;
-
-  return $self;
 }
+
 
 sub jabber_message {
   my $self = shift;
@@ -178,7 +216,10 @@ sub jabber_message {
   return unless ($type eq 'chat');
   return unless ($body);
   $from =~ s!/[^/]+!!;
-  return unless (exists $self->{_friend_map}->{$from});
+  unless (exists $self->{_friend_map}->{$from}) {
+    print STDERR "Non-friend '$from' said '$body'\n";
+    return;
+  }
   my ($command, $message) = split /\s+/, $body, 2;
   if ($command eq 'help') {
     $self->info("Replying to help request\n");

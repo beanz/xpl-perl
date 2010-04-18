@@ -30,6 +30,8 @@ use FileHandle;
 use Getopt::Long;
 use Pod::Usage;
 use xPL::Client;
+use xPL::Config;
+use xPL::ConfigUnion;
 
 require Exporter;
 our @ISA = qw(xPL::Client);
@@ -139,13 +141,9 @@ sub new {
   $args{'verbose'} = $verbose if ($verbose);
 
   # Create an xPL Client object (dies on error)
-  my $self = $pkg->SUPER::new(%args, %opt);
+  my $self = $pkg->SUPER::new(%args, %opt,
+                              _dock_plugins => \@plugin_instances);
 
-  $self->{_plugins} = \@plugin_instances;
-
-  foreach my $plug (@plugin_instances) {
-    $plug->init($self, %p);
-  }
   return $self;
 }
 
@@ -188,6 +186,29 @@ sub guess_plugin {
     }
   }
   return;
+}
+
+=head2 C<init_config( $params )>
+
+This method creates a new L<xPL::ConfigUnion> object for the client based
+on the union of the configuration of any plugins.
+
+=cut
+
+sub init_config {
+  my ($self, $params) = @_;
+  $self->{_plugins} = $params->{_dock_plugins};
+
+  my @configs;
+  foreach my $plug ($self->plugins) {
+    $plug->init($self, %$params);
+    my $conf = $plug->config;
+    push @configs, $conf if (defined $conf);
+  }
+  print STDERR "CFGS: @configs\n";
+  return unless (@configs);
+  $self->{_config} = xPL::ConfigUnion->new(@configs);
+  return $self->needs_config();
 }
 
 1;

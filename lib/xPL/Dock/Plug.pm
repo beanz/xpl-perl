@@ -69,6 +69,38 @@ sub init {
   return 1;
 }
 
+=head2 C<vendor_id()>
+
+Defines a vendor identifier for the dock plugin.  This should probably
+be overriden for third party dock plugins.  Particularly if the plugins
+have configuration specifications.
+
+=cut
+
+sub vendor_id {
+  'bnz'
+}
+
+=head2 C<name()>
+
+=cut
+
+sub name {
+  my $n = ref $_[0] || $_[0];
+  $n =~ s/^xPL::Dock:://;
+  lc $n;
+}
+
+sub config {
+  my ($self) = @_;
+  unless (defined $self->{_config}) {
+    $self->{_config} =
+      xPL::Config->new(key => $self->vendor_id.'-'.$self->name,
+                       instance => $self->{_xpl}->instance_id);
+  }
+  $self->{_config}
+}
+
 =head2 C<required_field( $name, $message, $use_argv )>
 
 This method handles the checking of a require parameter for a plugin.

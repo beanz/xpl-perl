@@ -16,6 +16,7 @@ bin/xpl-hddtemp
 bin/xpl-heyu
 bin/xpl-heyu-helper
 bin/xpl-hub
+bin/xpl-jabber
 bin/xpl-lcdproc
 bin/xpl-linux
 bin/xpl-linux-cpu
@@ -59,6 +60,7 @@ lib/xPL/Base.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
 lib/xPL/Config.pm
+lib/xPL/ConfigUnion.pm
 lib/xPL/Dock/APCUPS.pm
 lib/xPL/Dock/Bluetooth.pm
 lib/xPL/Dock/CurrentCost.pm
