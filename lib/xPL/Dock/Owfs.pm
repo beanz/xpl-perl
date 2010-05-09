@@ -154,6 +154,8 @@ sub owfs_reader {
   foreach my $dev (@$devices) {
     foreach my $rec ([ "temperature", "temp" ],
                      [ 'humidity', 'humidity' ],
+                     [ 'HIH4000/humidity', 'humidity', 1 ],
+                     [ 'HTM1735/humidity', 'humidity', 2 ],
                      [ 'counters.A', 'count', 0 ],
                      [ 'counters.B', 'count', 1 ],
                      [ 'current', 'current' ]) {
