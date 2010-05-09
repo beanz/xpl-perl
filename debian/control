@@ -110,6 +110,12 @@ Depends: runit | daemontools-run, libxpl-perl, xpl-common-perl
 Description: xPL X10 application using heyu
    This package sets up an xPL X10 application using heyu to run automatically.
 
+Package: xpl-jabber-perl
+Architecture: all
+Depends: runit | daemontools-run, libxpl-perl, xpl-common-perl, libnet-xmpp-perl
+Description: xPL Jabber Instant Message client
+   This package sets up an xPL Jabber Instant Message application.
+
 Package: xpl-lcdproc-perl
 Architecture: all
 Depends: runit | daemontools-run, libxpl-perl, xpl-common-perl
