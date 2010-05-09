@@ -1,0 +1,33 @@
+48da7814560010073480
+
+10 bytes
+
+2 messages
+
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=uvn800.56
+type=uv
+current=0
+risk=low
+}
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=uvn800.56
+type=battery
+current=100
+units=%
+}
+
