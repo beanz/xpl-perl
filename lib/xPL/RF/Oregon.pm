@@ -118,6 +118,11 @@ my %types =
     part => 'THGR328N', checksum => \&checksum2, method => 'common_temphydro',
    },
 
+   type_length_key(0xca2c, 120) =>
+   {
+    part => 'THGR328N', checksum => \&checksum2, method => 'common_temphydro',
+   },
+
    # masked
    type_length_key(0x0acc, 80) =>
    {
