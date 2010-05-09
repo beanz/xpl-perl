@@ -1,0 +1,5 @@
+/etc/sv/xpl-jabber/run
+/etc/sv/xpl-jabber/log/run
+/etc/sv/xpl-jabber/log/status
+/etc/sv/xpl-jabber/env/DATALIMIT
+/etc/sv/xpl-jabber/env/FILELIMIT

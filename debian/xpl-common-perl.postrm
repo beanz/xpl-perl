@@ -7,3 +7,4 @@ for i in xplperl xplperllog; do
   ! getent passwd $i >/dev/null ||
     userdel $i || :
 done
+rmdir /var/cache/xpl-perl

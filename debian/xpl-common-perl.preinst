@@ -10,3 +10,4 @@ for i in xplperl xplperllog; do
     adduser --quiet --system --force-badname --shell /bin/false --group \
       --home /nonexistent --no-create-home $i || exit 1;
 done
+install -m 0755 -o xplperl -g xplperl -d /var/cache/xpl-perl
