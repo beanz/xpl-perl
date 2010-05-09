@@ -1,3 +1,9 @@
+libxpl-perl (0.11-1) unstable; urgency=low
+
+  * Created xpl-*-perl Debian packages.
+
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Sun, 24 Jan 2010 20:11:27 +0000
+
 libxpl-perl (0.10-1) unstable; urgency=low
 
   * Lots of refactoring:
