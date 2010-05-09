@@ -387,7 +387,7 @@ true if successful or croaks otherwise.
 
 sub _load_config {
   my ($self, $instance_key) = @_;
-  my $config_path = $ENV{XPL_CONFIG_PATH} || '/var/cache/xplperl';
+  my $config_path = $ENV{XPL_CONFIG_PATH} || '/var/cache/xpl-perl';
   my $file = $config_path.'/'.$instance_key.'.db';
   my %h;
   my $res = tie %h, 'DB_File', $file, O_CREAT|O_RDWR, 0666, $DB_HASH;
