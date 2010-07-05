@@ -90,6 +90,13 @@ sub xpl_in {
   if ($command =~ /^volume\s?([-+]?\d+)/) {
     $mpd->volume($1);
   } elsif ($command eq 'play') {
+    my $track = $msg->extra_field('track');
+    if (defined $track) {
+      $mpd->stop;
+      my $pl = $mpd->playlist;
+      $pl->clear;
+      $pl->add($track);
+    }
     my $status = $mpd->status;
     my $state = $status->state;
     if ($state eq "play") {
