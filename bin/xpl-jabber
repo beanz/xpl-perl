@@ -1,0 +1,55 @@
+#!/usr/bin/perl -w
+
+use xPL::Dock qw/-run/;
+
+=head1 NAME
+
+xpl-jabber - Perl script for an xPL Jabber Instant Message client
+
+=head1 SYNOPSIS
+
+  xpl-jabber [flags] [options]
+  where valid flags are:
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --jabber-verbose - verbose mode (for the Jabber layer)
+  and valid options are (default shown in brackets):
+    --interface if0        - the interface for xPL messages (first
+                             non-loopback or loopback)
+    --jabber-host nnn      - the host name of the jabber server (jabber.org)
+    --jabber-port nnn      - the port number of the jabber server (5222)
+    --jabber-username user - the user name to login as (no default)
+    --jabber-password pass - the password to login with (no default)
+    --jabber-resource res  - the resource name to use ('House')
+    --jabber-friend u@dom  - the name of a trusted user that may chat to us
+                             (no default, may be given multiple times)
+
+  # start the notify client on first ethernet interface in verbose mode
+  xpl-jabber --verbose --jabber-verbose \
+             --jabber-username test --jabber-password pass \
+             --jabber-friend friend@jabber.org
+
+=head1 DESCRIPTION
+
+This script is an xPL client that logs in to jabber and allows other
+specified jabber users to interact with it.
+
+=head1 SEE ALSO
+
+xPL::Dock(3), xPL::Dock::Jabber(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2010 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
