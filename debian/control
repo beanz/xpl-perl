@@ -112,7 +112,7 @@ Description: xPL X10 application using heyu
 
 Package: xpl-jabber-perl
 Architecture: all
-Depends: runit | daemontools-run, libxpl-perl, xpl-common-perl, libnet-xmpp-perl
+Depends: runit | daemontools-run, libxpl-perl, xpl-common-perl, libnet-xmpp-perl (>= 1.23)
 Description: xPL Jabber Instant Message client
    This package sets up an xPL Jabber Instant Message application.
 
