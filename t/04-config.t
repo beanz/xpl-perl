@@ -137,6 +137,4 @@ like(test_error(sub { xPL::Config->new(key => 'invalid', instance => '1') }),
 
 delete $ENV{XPL_CONFIG_PATH};
 like(test_error(sub { xPL::Config->new(key => 'test', instance => '1') }),
-     qr!^Failed to create configuration DB_File, /var/cache/xplperl/test.1.db:!,
-     'no config dir');
-
+     qr!^Failed to create configuration DB_File!, 'no config dir');
