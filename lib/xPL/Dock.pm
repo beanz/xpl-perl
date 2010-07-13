@@ -205,7 +205,6 @@ sub init_config {
     my $conf = $plug->config;
     push @configs, $conf if (defined $conf);
   }
-  print STDERR "CFGS: @configs\n";
   return unless (@configs);
   $self->{_config} = xPL::ConfigUnion->new(@configs);
   return $self->needs_config();
