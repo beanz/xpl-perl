@@ -24,8 +24,8 @@ my %devices = map { uc $_ => 1 } qw/00:1A:75:DE:DE:DE 00:1A:75:ED:ED:ED/;
 {
   no warnings;
   no strict;
-  *xPL::Dock::Bluetooth::get_remote_devices =
-    sub { return \%devices };
+  *xPL::Dock::Bluetooth::sdp_search =
+    sub { exists $devices{$_[0]} };
 }
 
 my @msg;
