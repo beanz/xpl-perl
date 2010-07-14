@@ -59,6 +59,7 @@ lib/SMS/Send/SMSDiscount.pm
 lib/xPL/Base.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
+lib/xPL/config/bnz-jabber.yaml
 lib/xPL/Config.pm
 lib/xPL/ConfigUnion.pm
 lib/xPL/Dock/APCUPS.pm
@@ -86,6 +87,7 @@ lib/xPL/Dock/TCPHelp.pm
 lib/xPL/Dock/UDIN.pm
 lib/xPL/Dock/VIOM.pm
 lib/xPL/Dock/W800.pm
+lib/xPL/Dock/WOL.pm
 lib/xPL/Dock/XOSD.pm
 lib/xPL/Dock/Xvkbd.pm
 lib/xPL/Gtk2Client.pm
