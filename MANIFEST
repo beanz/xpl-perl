@@ -245,7 +245,7 @@ t/14-dock-xvkbd.t
 t/bin/heyu
 t/bin/stty
 t/bin/xvkbd
-./t/config/xPL/config/acme-config.yaml
+t/config/xPL/config/acme-config.yaml
 t/config/xPL/config/invalid.yaml
 t/config/xPL/config/test2.yaml
 t/config/xPL/config/test3.yaml
@@ -352,7 +352,7 @@ t/rf/oregon-thr128-01-temp.txt
 t/rf/oregon-uv138-01.txt
 t/rf/oregon-uv138-02-invalid-checksum.txt
 t/rf/oregon-uv138-03-dangerous.txt
-./t/rf/oregon-uvn800-01.txt
+t/rf/oregon-uvn800-01.txt
 t/rf/oregon-wgr918-01-wind.txt
 t/rf/oregon-wtgr800-01-wind.txt
 t/rf/oregon-wtgr800-02-temphydro.txt
