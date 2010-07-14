@@ -30,7 +30,7 @@ my $xpl;
 {
   local $0 = 'dingus';
   local @ARGV = ('-v', '--interface', 'lo',
-                 '--rfxcom-tx-verbose',
+                 '--rfxcom-tx-verbose', '--no-x10',
                  '--define', 'hubless=1',
                  '--rfxcom-tx-tty', '127.0.0.1:'.$port);
   $xpl = xPL::Dock->new(port => 0);
