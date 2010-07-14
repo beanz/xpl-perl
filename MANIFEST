@@ -118,7 +118,10 @@ lib/xPL/schema/audio.basic.yaml
 lib/xPL/schema/audio.request.yaml
 lib/xPL/schema/cid.basic.yaml
 lib/xPL/schema/clock.update.yaml
+lib/xPL/schema/config.app.yaml
+lib/xPL/schema/config.basic.yaml
 lib/xPL/schema/config.current.yaml
+lib/xPL/schema/config.end.yaml
 lib/xPL/schema/config.list.yaml
 lib/xPL/schema/config.response.yaml
 lib/xPL/schema/control.basic.yaml
@@ -148,6 +151,8 @@ lib/xPL/schema/sensor.basic.yaml
 lib/xPL/schema/sensor.network.yaml
 lib/xPL/schema/tts.basic.yaml
 lib/xPL/schema/ups.basic.yaml
+lib/xPL/schema/wol.basic.yaml
+lib/xPL/schema/wol.confirm.yaml
 lib/xPL/schema/x10.basic.yaml
 lib/xPL/schema/x10.confirm.yaml
 lib/xPL/schema/x10.security.yaml
