@@ -100,8 +100,12 @@ $(CURDIR)/debian/%-perl:
 	install -d -m3755 $@/etc/sv/$(*F)
 	install -d -m2755 $@/etc/sv/$(*F)/env
 	install -d -m2755 $@/etc/sv/$(*F)/log
-	sed -e's/PROGNAME/'$(*F)'/g' \
-		<$(CURDIR)/debian/sv/run >$@/etc/sv/$(*F)/run
+	if [ -f $(CURDIR)/debian/sv/run-$(*F) ]; then \
+	    cat $(CURDIR)/debian/sv/run-$(*F) >$@/etc/sv/$(*F)/run; \
+	else \
+	    sed -e's/PROGNAME/'$(*F)'/g' \
+		<$(CURDIR)/debian/sv/run >$@/etc/sv/$(*F)/run ; \
+	fi
 	chmod 0755 $@/etc/sv/$(*F)/run
 	install -m0644 $(CURDIR)/debian/sv/env/* $@/etc/sv/$(*F)/env/
 	install -m0755 $(CURDIR)/debian/sv/log/run $@/etc/sv/$(*F)/log/run
