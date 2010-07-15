@@ -92,7 +92,9 @@ $(CURDIR)/debian/xpl-common-perl:
 	echo 127.0.0.1 > $@/etc/xpl-perl/env/IP
 	echo 127.0.0.1 > $@/etc/xpl-perl/env/IPSEND
 	echo --verbose > $@/etc/xpl-perl/env/COMMON_ARGUMENTS
-	chmod 0644 $@/etc/xpl-perl/env/{IP,IPSEND,COMMON_ARGUMENTS}
+	chmod 0644 $@/etc/xpl-perl/env/IP
+	chmod 0644 $@/etc/xpl-perl/env/IPSEND
+	chmod 0644 $@/etc/xpl-perl/env/COMMON_ARGUMENTS
 
 $(CURDIR)/debian/%-perl:
 	install -d -m3755 $@/etc/sv/$(*F)
