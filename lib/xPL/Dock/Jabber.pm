@@ -282,6 +282,10 @@ sub jabber_presence {
 sub jabber_read {
   my $self = shift;
   my $result = $self->{_xmpp}->Process(0.01);
+  foreach my $sid (keys %$result) {
+    $result->{$sid} or
+      $self->argh("XML::Stream error: ".$self->{_xmpp}->GetErrorCode($sid));
+  }
   return 1;
 }
 
