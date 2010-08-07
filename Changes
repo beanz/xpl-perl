@@ -2,9 +2,42 @@ Revision history for Perl extension xPL.
 
 0.11 XXX
 
+        - xpl-bluetooth use service discovery to poll devices.  Thanks
+          to Nicolas Goubaux.
+        - xpl-owfs improve humidity DAC support.  Thanks to Marc
+          Merlin.
+        - xpl-rfxcom-rx support for the occasional long messages from
+          THGR328N.  Thanks to Thomas Chiroux.
+        - xpl-rfxcom-rx support for WGR800.  Thanks to Jason Heiss and
+          Eric Riemers.
+        - xpl-rfxcom-rx support for UVN800 support.  Thanks to Thomas
+          Chiroux.
+        - xpl-mpd support playing specific track using custom 'track'
+          field.
+        - Add sensor.basic type=pressure support.  Thanks to Thomas
+          Chiroux.
+        - Add event callbacks so clients can get callbacks for events
+          like 'hub_found', etc.
+        - xpl-sender support for multivalued fields.
+        - xpl-mythtv support for MythTV version 0.22 or later
+        - Some config.{basic,app} support.
+        - xPL::Dock improvements so less boilerplate code is required
+          in clients.
         - Renamed xpl-osd to xpl-xosd
-        - New client: xpl-fdnotify display osd.basic messages using standard
-            (Linux) desktop notifications.
+        - New client: xpl-wol to send wake-on-lan packets (uses
+          non-standard schema).
+        - New client: xpl-fdnotify display osd.basic messages using
+          standard (Linux) desktop notifications.
+        - New client: xpl-config to query/set client configuration.
+        - New client: xpl-datetime to replace non-standard xpl-clock
+        - Experimental: xpl-jabber client (for google talk, etc)
+        - Experimental: xpl-gpower client for Google powermeter API.
+        - Experimental: Debian packages that actually set up some
+          clients.
+        - Experimental: xPL::Client stealth mode; so you can run
+          (for example) xpl-fdnotify on a laptop and not worry
+          about it transmitting lots of hbeat messags (requires
+          all clients to be using hubless mode).
 
 0.10 Tue,  9 Jun 2009 22:42:11 +0100
 
