@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2005, 2007 by Mark Hindess
+# Copyright (C) 2005, 2009 by Mark Hindess
 
 use strict;
 use Socket;

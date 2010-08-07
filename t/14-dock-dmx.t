@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2009 by Mark Hindess
+# Copyright (C) 2009, 2010 by Mark Hindess
 
 use strict;
 use IO::Socket::INET;
