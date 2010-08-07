@@ -48,7 +48,7 @@ our $VERSION = qw/$Revision$/[1];
 my @attributes =
   qw/hbeat_mode vendor_id device_id
      hbeat_interval fast_hbeat_interval hopeful_hbeat_interval
-     hub_response_timeout hbeat_count/;
+     hub_response_timeout hbeat_count stealth/;
 foreach my $a (@attributes) {
   __PACKAGE__->make_readonly_accessor($a);
 }
@@ -97,6 +97,7 @@ sub new {
   if (ref $pkg) { $pkg = ref $pkg }
 
   my %p = @_;
+  push @_, hubless => 1 if (exists $p{stealth});
   my $self = $pkg->SUPER::new(@_);
   $self->{_hbeat_count} = 0;
 
@@ -124,7 +125,8 @@ sub new {
 
   foreach (qw/vendor_id device_id instance_id
               hbeat_interval fast_hbeat_interval
-              hopeful_hbeat_interval hub_response_timeout/) {
+              hopeful_hbeat_interval hub_response_timeout
+              stealth/) {
     $self->{'_'.$_} = $p{$_};
   }
 
@@ -136,6 +138,12 @@ sub new {
   my $needs_config = $self->init_config(\%p);
   my $class = $needs_config ? 'config' : 'hbeat';
   $self->{_hbeat_class} = $class;
+
+  if ($self->stealth) {
+    $self->argh("Can't use stealth mode until config is complete\n")
+      if ($class eq 'config');
+    return $self;
+  }
 
   my %xpl_message_args =
     (
