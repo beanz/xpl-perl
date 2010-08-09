@@ -52,7 +52,6 @@ my %types =
    {
     part => 'WGR800', checksum => \&checksum4, method => 'wtgr800_anemometer',
    },
-   type_length_key(0x2a19, 92) => { part => 'RCR800', },
    type_length_key(0xda78, 72) =>
    {
     part => 'UVN800', checksun => \&checksum7, method => 'uvn800',
@@ -127,6 +126,13 @@ my %types =
    type_length_key(0x0acc, 80) =>
    {
     part => 'RTGR328N', checksum => \&checksum2, method => 'common_temphydro',
+   },
+
+   type_length_key(0x2a19, 92) =>
+   {
+    part => 'PCR800',
+    checksum => \&checksum8,
+    method => 'pcr800_rain',
    },
 
    # for testing
@@ -489,8 +495,7 @@ sub common_temphydrobaro {
 
 =head2 C<common_rain( $type, $parent, $message, $bytes, $bits )>
 
-This method is a generic device method for devices that report
-temperature, humidity and barometric pressure in a particular manner.
+This method handles the rain measurements from an RGR918 rain gauge.
 
 =cut
 
@@ -547,6 +552,61 @@ sub common_rain {
                                type => 'count',
                                current => $flip,
                                units => 'flips',
+                              }
+                     );
+  simple_battery($parent, $bytes, $dev_str, \@res);
+  return \@res;
+}
+
+=head2 C<pcr800_rain( $type, $parent, $message, $bytes, $bits )>
+
+This method handles the rain measurements from a PCR800 rain gauge.
+
+=cut
+
+sub pcr800_rain {
+  my $self = shift;
+  my $type = shift;
+  my $parent = shift;
+  my $message = shift;
+  my $bytes = shift;
+  my $bits = shift;
+
+  my $device = sprintf "%02x", $bytes->[3];
+  my $dev_str = $type.$DOT.$device;
+  my @res = ();
+  my $rain = sprintf("%02x%02x",$bytes->[5], $bytes->[4])/100;
+  $rain *= 25.4; # convert from inch/hr to mm/hr
+
+  my $train = lo_nibble($bytes->[9])*100 +
+    sprintf("%02x", $bytes->[8]) + sprintf("%02x", $bytes->[7])/100 +
+      hi_nibble($bytes->[6])/1000;
+  $train *= 25.4; # convert from inch/hr to mm/hr
+  #print STDERR "$dev_str rain = $rain, total = $train\n";
+  push @res,
+    xPL::Message->new(
+                      strict => 0,
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'speed',
+                               current => (sprintf "%.2f", $rain),
+                               units => 'mm/h',
+                              }
+                     );
+  push @res,
+    xPL::Message->new(
+                      strict => 0,
+                      message_type => 'xpl-trig',
+                      class => 'sensor.basic',
+                      head => { source => $parent->source, },
+                      body => {
+                               device => $dev_str,
+                               type => 'distance',
+                               current => (sprintf "%.2f", $train),
+                               units => 'mm',
                               }
                      );
   simple_battery($parent, $bytes, $dev_str, \@res);
@@ -636,6 +696,65 @@ consisting of the 8th byte
 
 sub checksum7 {
   $_[0]->[7] == ((nibble_sum(7,$_[0]) - 0xa) & 0xff);
+}
+
+=head2 C<checksum8( $bytes )>
+
+This method is a byte checksum of all nibbles of the first 7 bytes,
+minus 10 which should equal the byte consisting of the 8th byte
+
+=cut
+
+sub checksum8 {
+  my $c = hi_nibble($_[0]->[9]) + (lo_nibble($_[0]->[10])<<4);
+  my $s = ( ( nibble_sum(9, $_[0]) - 0xa) & 0xff);
+  $s == $c;
+}
+
+=head2 C<checksum_tester( $bytes )>
+
+This method is a dummy checksum method that tries to guess the checksum
+that is required.
+
+=cut
+
+sub checksum_tester {
+  my $found;
+  foreach my $sum (qw/checksum1 checksum2 checksum3 checksum4 checksum5
+                      checksum6 checksum7 checksum8/) {
+    no strict qw/refs/;
+    if ($sum->(@_)) {
+      print "Possible use of checksum, $sum\n";
+      $found++;
+    }
+    use strict;
+  }
+  exit if ($found);
+  for my $i (4..(scalar @{$_[0]})-2) {
+    my $c = hi_nibble($_[0]->[$i]) + (lo_nibble($_[0]->[$i+1])<<4);
+    my $s = ( ( nibble_sum($i, $_[0]) - 0xa) & 0xff);
+    print $i, " c=",$c, " s=", $s, "\n";
+    if ($s == $c) {
+      print q{
+    my $c = hi_nibble($_[0]->[}.$i.q{]) + (lo_nibble($_[0]->[}.($i+1).q{])<<4);
+    my $s = ( ( nibble_sum(}.$i.q{, $_[0]) - 0xa) & 0xff);
+    $s == $c;
+};
+      $found++;
+    }
+    $c = $_[0]->[$i+1];
+    $s = ( ( nibble_sum($i+.5, $_[0]) - 0xa) & 0xff);
+    if ($s == $c) {
+      print q{
+    my $c = $_[0]->[}.($i+1).q{];
+    my $s = ( ( nibble_sum(}.($i+.5).q{, $_[0]) - 0xa) & 0xff);
+    $s == $c;
+};
+      $found++;
+    }
+  }
+  exit if ($found);
+  die "Could not determine checksum\n";
 }
 
 my @uv_str =
