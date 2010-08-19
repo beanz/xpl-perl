@@ -32,10 +32,26 @@ my $path = '';
 my $span;
 my $var;
 my $append = '';
-if ($ENV{QUERY_STRING} && $ENV{QUERY_STRING} =~ /^span=(\w+)$/) {
-  $span = $1;
-  $append = '?'.$ENV{QUERY_STRING};
+
+my $q = $ENV{QUERY_STRING} || '';
+if ($q =~ /\.\./ && $q =~ /[^-A-Za-z0-9\.=_]/) {
+  error("Invalid query");
 }
+my %q;
+foreach my $p (split /\&/, $q) {
+  my ($k, $v) = split /=/, $p, 2;
+  if (exists $q{$k}) {
+    push @{$q{$k}}, $v;
+  } else {
+    $q{$k} = [ $v ];
+  }
+}
+
+if (exists $q{span}) {
+  $span = $q{span}->[0];
+  $append = '?span='.$span;
+}
+
 if ($ENV{PATH_INFO}) {
   $path = $ENV{PATH_INFO};
 
@@ -49,74 +65,79 @@ if ($ENV{PATH_INFO}) {
     $var = $1;
   }
 }
-
-my $time = time;
-my $full_path = $data_dir.($path ? '/'.$path : '');
-my $cgi_path = $ENV{SCRIPT_NAME}.($path ? '/'.$path : '');
-if (-f $full_path && $path =~ /\.rrd$/) {
-  my $rrd = $full_path;
-  $span = '6h' unless ($span);
-  unless ($var) {
-    my $sources = rrd_data_sources($full_path);
-    error("Couldn't guess ds from $path\n") unless ($sources);
-    $var = $sources->[0];
-  }
-  my ($fh, $tmpfile) = tempfile();
-  my $start = '-'.$span;
-  my $end = 'now';
-  RRDs::graph($tmpfile,
-              "--title" => "Graph $path ($var) for ".span_name($span),
-              "--start" => $start, "--end"   => $end,
-              "--width" => 600,  "--height" => 200,
-              "--imgformat" => "PNG", "--interlaced",
-              "DEF:avg=$rrd:$var:AVERAGE", "DEF:min=$rrd:$var:MIN",
-              "DEF:max=$rrd:$var:MAX",
-              "LINE1:min#0EEFD2:C Min",
-              "LINE1:avg#EFD80E:C Avg",
-              "LINE1:max#EF500E:C Max",
-              "GPRINT:min:MIN:Min %7.2lf",
-              "VDEF:gavg=avg,AVERAGE", "GPRINT:gavg:Avg %7.2lf",
-              "GPRINT:max:MAX:Max %7.2lf\\l",
-              "COMMENT:".strftime('%Y-%m-%d %H\:%m\r',
-                                  localtime(time)),
-             );
-  my $err = RRDs::error;
-  if ($err) {
+my $content_type;
+foreach my $path ($q{path} ? @{$q{path}} : $path) {
+  my $time = time;
+  my $full_path = $data_dir.($path ? '/'.$path : '');
+  my $cgi_path = $ENV{SCRIPT_NAME}.($path ? '/'.$path : '');
+  if (-f $full_path && $path =~ /\.rrd$/) {
+    my $rrd = $full_path;
+    $span = '6h' unless ($span);
+    unless ($var) {
+      my $sources = rrd_data_sources($full_path);
+      error("Couldn't guess ds from $path\n") unless ($sources);
+      $var = $sources->[0];
+    }
+    my ($fh, $tmpfile) = tempfile();
+    my $start = '-'.$span;
+    my $end = 'now';
+    RRDs::graph($tmpfile,
+                "--title" => "Graph $path ($var) for ".span_name($span),
+                "--start" => $start, "--end"   => $end,
+                "--width" => 600,  "--height" => 200,
+                "--imgformat" => "PNG", "--interlaced",
+                "DEF:avg=$rrd:$var:AVERAGE", "DEF:min=$rrd:$var:MIN",
+                "DEF:max=$rrd:$var:MAX",
+                "LINE1:min#0EEFD2:C Min",
+                "LINE1:avg#EFD80E:C Avg",
+                "LINE1:max#EF500E:C Max",
+                "GPRINT:min:MIN:Min %7.2lf",
+                "VDEF:gavg=avg,AVERAGE", "GPRINT:gavg:Avg %7.2lf",
+                "GPRINT:max:MAX:Max %7.2lf\\l",
+                "COMMENT:".strftime('%Y-%m-%d %H\:%m\r',
+                                    localtime(time)),
+               );
+    my $err = RRDs::error;
+    if ($err) {
+      close $fh;
+      unlink $tmpfile;
+      error("ERROR creating image for $rrd [: $err\n");
+    }
+    print "Content-Type: image/png\n\n";
+    {
+      local $/ = \4096;
+      while (<$fh>) {
+        print;
+      }
+    }
     close $fh;
     unlink $tmpfile;
-    error("ERROR creating image for $rrd [: $err\n");
-  }
-  print "Content-Type: image/png\n\n";
-  {
-    local $/ = \4096;
-    while (<$fh>) {
-      print;
+  } elsif (-d $full_path) {
+    unless ($content_type) {
+      print "Content-Type: text/html\n\n";
+      $content_type = 'text/html';
     }
-  }
-  close $fh;
-  unlink $tmpfile;
-} elsif (-d $full_path) {
-  print "Content-Type: text/html\n\n";
-  opendir my $dh, $data_dir.'/'.$path or error("Failed to open $path: $!");
-  foreach my $f (sort grep !/^\./, readdir $dh) {
-    my $fp = $full_path.'/'.$f;
-    if (-d $fp) {
-      print "<p>$f\n";
-      foreach my $s ($span ? $span : @spans) {
-        print
-          "  [<a href=\"$cgi_path/$f?span=$s\">".span_name($s)."</a>]&nbsp;\n";
-      }
-      print "</p>\n";
-    } elsif (-f $fp && $f =~ /\.rrd$/) {
-      my $sources = rrd_data_sources($fp);
-      foreach my $var (@$sources) {
-        print "<img src=\"$cgi_path/$f/$var$append\" />\n";
+    opendir my $dh, $data_dir.'/'.$path or error("Failed to open $path: $!");
+    foreach my $f (sort grep !/^\./, readdir $dh) {
+      my $fp = $full_path.'/'.$f;
+      if (-d $fp) {
+        print "<p>$f\n";
+        foreach my $s ($span ? $span : @spans) {
+          print
+            "  [<a href=\"$cgi_path/$f?span=$s\">".span_name($s)."</a>]&nbsp;\n";
+        }
+        print "</p>\n";
+      } elsif (-f $fp && $f =~ /\.rrd$/) {
+        my $sources = rrd_data_sources($fp);
+        foreach my $var (@$sources) {
+          print "<img src=\"$cgi_path/$f/$var$append\" />\n";
+        }
       }
     }
+    closedir $dh;
+  } else {
+    error("Invalid path: $path <!-- 2 -->\n");
   }
-  closedir $dh;
-} else {
-  error("Invalid path: $path <!-- 2 -->\n");
 }
 
 sub error {
