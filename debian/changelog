@@ -40,7 +40,7 @@ libxpl-perl (0.11-1) unstable; urgency=low
     all clients to be using hubless mode).
   * Created xpl-*-perl Debian packages.
 
- -- Mark Hindess <soft-debian@temporalanomaly.com>  Sat,  7 Aug 2010 22:05:27 +0100
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Thu, 19 Aug 2010 16:40:03 +0100
 
 libxpl-perl (0.10-1) unstable; urgency=low
 
