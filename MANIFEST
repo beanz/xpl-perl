@@ -482,6 +482,7 @@ t/rf/oregon-bwr102-04-invalid.txt
 t/rf/oregon-device-test-01.txt
 t/rf/oregon-gr101-01.txt
 t/rf/oregon-gr101-02-invalid.txt
+t/rf/oregon-pcr800-01.txt
 t/rf/oregon-rgr918-01.txt
 t/rf/oregon-rtgr328n-01-temphydro.txt
 t/rf/oregon-rtgr328n-02-datetime.txt
