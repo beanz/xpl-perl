@@ -575,7 +575,9 @@ sub pcr800_rain {
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  my $rain = sprintf("%02x%02x",$bytes->[5], $bytes->[4])/100;
+  my $rain = lo_nibble($bytes->[6])*10 +
+      hi_nibble($bytes->[5]) + lo_nibble($bytes->[5])/10 +
+      hi_nibble($bytes->[4])/100;
   $rain *= 25.4; # convert from inch/hr to mm/hr
 
   my $train = lo_nibble($bytes->[9])*100 +

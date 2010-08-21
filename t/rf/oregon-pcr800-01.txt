@@ -14,7 +14,7 @@ sensor.basic
 {
 device=pcr800.3f
 type=speed
-current=7.62
+current=0.76
 units=mm/h
 }
 xpl-trig
