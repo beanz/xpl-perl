@@ -32,13 +32,12 @@ libxpl-perl (0.11-1) unstable; urgency=low
   * New client: xpl-datetime to replace non-standard xpl-clock
   * Experimental: xpl-jabber client (for google talk, etc)
   * Experimental: xpl-gpower client for Google powermeter API.
-  * Experimental: Debian packages that actually set up some
+  * Experimental: Debian xpl-*-perl packages that actually set up some
     clients.
   * Experimental: xPL::Client stealth mode; so you can run
     (for example) xpl-fdnotify on a laptop and not worry
     about it transmitting lots of hbeat messags (requires
     all clients to be using hubless mode).
-  * Created xpl-*-perl Debian packages.
 
  -- Mark Hindess <soft-debian@temporalanomaly.com>  Thu, 19 Aug 2010 16:40:03 +0100
 
