@@ -11,9 +11,9 @@ Revision history for Perl extension xPL.
         - xpl-rfxcom-rx support for WGR800.  Thanks to Jason Heiss and
           Eric Riemers.
         - xpl-rfxcom-rx support for UVN800.  Thanks to Thomas Chiroux.
-        - xpl-rfxcom-rx support for PCR800.  Thanks to test data from
-          http://board.homeseer.com/showthread.php?t=124951&page=2
-          and inspired by Willi Herzig.
+        - xpl-rfxcom-rx support for PCR800.  Thanks to Willi Herzig.
+        - xpl-rfxcom-rx improved support for WGTR800.  Thanks to Willi
+          Herzig.
         - xpl-mpd support playing specific track using custom 'track'
           field.
         - Add sensor.basic type=pressure support.  Thanks to Thomas
