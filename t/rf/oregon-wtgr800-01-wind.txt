@@ -16,6 +16,7 @@ device=wtgr800.2f
 type=speed
 current=1.2
 units=mps
+average=1
 }
 xpl-trig
 {

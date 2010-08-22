@@ -297,6 +297,7 @@ sub wtgr800_anemometer {
   my $dev_str = $type.$DOT.$device;
   my $dir = hi_nibble($bytes->[4]) * 22.5;
   my $speed = lo_nibble($bytes->[7]) * 10 + sprintf("%02x",$bytes->[6])/10;
+  my $avspeed = sprintf("%02x",$bytes->[8]) + hi_nibble($bytes->[7]) / 10;
   #print "WTGR800: $device $dir $speed\n";
   my @res = ();
   push @res,
@@ -308,6 +309,7 @@ sub wtgr800_anemometer {
                                device => $dev_str,
                                type => 'speed',
                                current => $speed,
+                               average => $avspeed,
                                units => 'mps',
                               }
                      ),
