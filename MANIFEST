@@ -352,6 +352,7 @@ t/07-client-config.t
 t/07-client-gtk.t
 t/07-client-hubless.t
 t/07-client-ping.t
+t/07-client-stealth.t
 t/07-client.t
 t/08-bridge-client.t
 t/08-bridge.t
@@ -389,6 +390,7 @@ t/14-dock-xosd.t
 t/14-dock-xvkbd.t
 t/bin/heyu
 t/bin/stty
+t/bin/sudo
 t/bin/xvkbd
 t/config/xPL/config/acme-config.yaml
 t/config/xPL/config/invalid.yaml
@@ -405,6 +407,8 @@ t/interfaces/ifconfig.linux/ifconfig
 t/interfaces/ifconfig.loopback.only/ifconfig
 t/interfaces/ifconfig.macosx/ifconfig
 t/interfaces/ip.addr.show.linux/ip
+t/lib/Net/DBus.pm
+t/lib/X/Osd.pm
 t/lib/xPL/Dock/Test.pm
 t/linux/1/sys/class/power_supply/AC/online
 t/linux/1/sys/class/power_supply/BAT0/energy_full
