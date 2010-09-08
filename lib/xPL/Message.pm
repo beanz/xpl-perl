@@ -144,6 +144,12 @@ sub new {
 
   if ($p{body_content}) {
     $self->{_body_content} = $p{body_content};
+  } elsif (exists $p{body} && ref $p{body} eq 'HASH') {
+    $pkg->ouch('Providing "body" hash reference is deprecated. '.
+               'Use an array reference so that order is preserved. '.
+               'For example: [ device => "device", command => "on" ]');
+    $self->{_body} = $p{body};
+    $self->{_body_order} = $p{body_order} || [sort keys %{$self->{_body}}];
   } else {
     $self->{_body_array} = $p{body} || [];
   }
