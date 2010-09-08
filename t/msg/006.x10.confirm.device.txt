@@ -35,9 +35,7 @@ source=acme-x10heyu.node0
 
 target=*
 
-class=x10
-
-class_type=confirm
+class=x10.confirm
 
 summary=xpl-trig/x10.confirm: acme-x10heyu.node0 -> * on/a2
 

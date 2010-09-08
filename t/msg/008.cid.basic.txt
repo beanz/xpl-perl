@@ -35,9 +35,7 @@ source=acme-usr.modem1
 
 target=*
 
-class=cid
-
-class_type=basic
+class=cid.basic
 
 summary=xpl-trig/cid.basic: acme-usr.modem1 -> * inbound/012345678910
 

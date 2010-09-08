@@ -267,7 +267,7 @@ sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class eq 'hbeat') {
+         $msg->[0]->class =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

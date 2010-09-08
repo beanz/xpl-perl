@@ -89,8 +89,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'dawndusk',
-                          class_type => 'request',
+                          class => 'dawndusk.request',
                          },
                          callback => sub { $self->query_handler(@_) });
   return $self;

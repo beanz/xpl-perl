@@ -28,8 +28,6 @@ source=acme-lamp.livingroom
 
 target=*
 
-class=hbeat
-
-class_type=basic
+class=hbeat.basic
 
 interval=5

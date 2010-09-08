@@ -35,9 +35,7 @@ source=acme-ups.node0
 
 target=*
 
-class=ups
-
-class_type=basic
+class=ups.basic
 
 summary=xpl-trig/ups.basic: acme-ups.node0 -> * battery/onbattery
 

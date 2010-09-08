@@ -106,8 +106,7 @@ my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 $xpl->add_xpl_callback(id => 'xpl', callback => \&xpl,
                        filter => {
                                   message_type => 'xpl-cmnd',
-                                  class => 'sendmsg',
-                                  class_type => 'basic',
+                                  class => 'sendmsg.basic',
                                  });
 
 # Run the main loop

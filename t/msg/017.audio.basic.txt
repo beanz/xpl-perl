@@ -33,9 +33,7 @@ source=acme-boombox.kitchen
 
 target=*
 
-class=audio
-
-class_type=basic
+class=audio.basic
 
 command=play
 

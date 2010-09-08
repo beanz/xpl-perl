@@ -85,8 +85,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'dmx',
-                          class_type => 'basic',
+                          class => 'dmx.basic',
                           type => 'set',
                          });
   $self->read_rgb_txt();

@@ -100,8 +100,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'x10',
-                          class_type => 'basic',
+                          class => 'x10.basic',
                          });
 
   $xpl->add_xpl_callback(id => 'xpl-homeeasy', callback => \&xpl_homeeasy,
@@ -109,8 +108,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'homeeasy',
-                          class_type => 'basic',
+                          class => 'homeeasy.basic',
                          });
 
   $self->{_rf} = xPL::RF->new(source => $xpl->id);

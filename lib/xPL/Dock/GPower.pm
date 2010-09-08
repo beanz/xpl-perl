@@ -81,8 +81,7 @@ sub init {
   $xpl->add_xpl_callback(id => 'xpl_handler',
                          filter =>
                          {
-                          class => 'sensor',
-                          class_type => 'basic',
+                          class => 'sensor.basic',
                          },
                          callback => sub { $self->xpl_handler(@_) });
 

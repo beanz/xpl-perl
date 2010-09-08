@@ -37,9 +37,7 @@ source=acme-viom.node0
 
 target=*
 
-class=control
-
-class_type=basic
+class=control.basic
 
 summary=xpl-cmnd/control.basic: acme-viom.node0 -> * 1/output/pulse
 

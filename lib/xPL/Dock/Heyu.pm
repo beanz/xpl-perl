@@ -69,8 +69,7 @@ sub init {
   $xpl->add_xpl_callback(id => 'x10', callback => sub { $self->xpl_in(@_) },
                          filter => {
                                     message_type => 'xpl-cmnd',
-                                    class => 'x10',
-                                    class_type => 'basic',
+                                    class => 'x10.basic',
                                    });
 
   my $fh = $self->{_monitor_fh} =

@@ -30,9 +30,7 @@ source=acme-hammer.shed
 
 target=*
 
-class=xpl
-
-class_type=test
+class=xpl.test
 
 extra=test of extra field
 

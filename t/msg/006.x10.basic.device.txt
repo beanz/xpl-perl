@@ -35,9 +35,7 @@ source=acme-doorbell.porch
 
 target=*
 
-class=x10
-
-class_type=basic
+class=x10.basic
 
 summary=xpl-cmnd/x10.basic: acme-doorbell.porch -> * on/a10,a13
 

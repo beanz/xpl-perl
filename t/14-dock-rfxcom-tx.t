@@ -77,8 +77,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\n",
    'read response - f03ff03f');
 
-my $msg = xPL::Message->new(strict => 0,
-                            message_type => 'xpl-cmnd',
+my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             class => 'x10.basic',
                             head => { source => 'acme-x10.test' },
                             body =>
@@ -105,8 +104,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 #$msg_str =~ s/basic/confirm/;
 #check_sent_msg($msg_str);
 
-$msg = xPL::Message->new(strict => 0,
-                         message_type => 'xpl-cmnd',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          class => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
@@ -196,8 +194,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\n", 'read response - p/all_lights_off');
 
 
-$msg = xPL::Message->new(strict => 0,
-                         message_type => 'xpl-cmnd',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          class => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
@@ -293,8 +290,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\n", 'read response - homeeasy');
 
 
-$msg = xPL::Message->new(strict => 0,
-                         message_type => 'xpl-cmnd',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          class => 'homeeasy.basic',
                          head => { source => 'acme-he.test' },
                          body => []);
@@ -303,8 +299,7 @@ is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    "  xpl-cmnd/homeeasy.basic: acme-he.test -> * \n"),
    'invalid homeeasy.basic message');
 
-$msg = xPL::Message->new(strict => 0,
-                         message_type => 'xpl-cmnd',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          class => 'homeeasy.basic',
                          head => { source => 'acme-he.test' },
                          body =>

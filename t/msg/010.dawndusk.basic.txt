@@ -35,9 +35,7 @@ source=acme-sensor.garden
 
 target=*
 
-class=dawndusk
-
-class_type=basic
+class=dawndusk.basic
 
 summary=xpl-trig/dawndusk.basic: acme-sensor.garden -> * dawndusk/dawn
 

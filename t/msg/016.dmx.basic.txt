@@ -37,9 +37,7 @@ source=acme-dmx.node0
 
 target=*
 
-class=dmx
-
-class_type=basic
+class=dmx.basic
 
 summary=xpl-cmnd/dmx.basic: acme-dmx.node0 -> * 1/set/10
 

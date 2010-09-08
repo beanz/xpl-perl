@@ -230,7 +230,7 @@ or the value can be given as a command line argument
 sub check_sent_msg {
   my ($string) = @_;
   my $msg = shift @msg;
-  while ($msg->[0] && $msg->[0]->class eq 'hbeat') {
+  while ($msg->[0] && $msg->[0]->class =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $string) {

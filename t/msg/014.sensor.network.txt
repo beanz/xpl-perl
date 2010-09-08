@@ -37,9 +37,7 @@ source=acme-1wire.node0
 
 target=*
 
-class=sensor
-
-class_type=network
+class=sensor.network
 
 summary=xpl-trig/sensor.network: acme-1wire.node0 -> * router1/packets/1234
 

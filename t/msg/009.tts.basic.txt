@@ -35,9 +35,7 @@ source=acme-despotic.orator
 
 target=*
 
-class=tts
-
-class_type=basic
+class=tts.basic
 
 summary=xpl-cmnd/tts.basic: acme-despotic.orator -> * Empty the dishwasher!/100
 

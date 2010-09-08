@@ -8,7 +8,7 @@ use Time::HiRes;
 use IO::Select;
 use IO::Socket;
 use POSIX qw/strftime/;
-use Test::More tests => 48;
+use Test::More tests => 47;
 use t::Helpers qw/test_error test_warn/;
 
 $|=1;
@@ -61,8 +61,7 @@ ok($cs->sysread($buf, 1500), "received first message");
 my $msg_str = xPL::Bridge::unpack_message($buf);
 my $msg = xPL::Message->new_from_payload($msg_str);
 ok($msg, "first message object");
-is($msg->class, 'clock', "first message class");
-is($msg->class_type, 'update', "first message class_type");
+is($msg->class, 'clock.update', "first message class");
 is($msg->source, 'acme-clock.cuckoo', "first message source");
 
 $msg = xPL::Message->new(message_type => 'xpl-stat',

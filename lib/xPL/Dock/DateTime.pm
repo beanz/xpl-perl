@@ -73,8 +73,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'datetime',
-                          class_type => 'request',
+                          class => 'datetime.request',
                          },
                          callback => sub { $self->query_handler(@_) });
   return $self;

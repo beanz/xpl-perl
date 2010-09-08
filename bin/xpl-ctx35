@@ -62,8 +62,7 @@ my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 $xpl->add_xpl_callback(id => 'read', callback => \&xpl_in,
                        filter => {
                                   message_type => 'xpl-cmnd',
-                                  class => 'x10',
-                                  class_type => 'basic',
+                                  class => 'x10.basic',
                                  });
 
 my $buf = q{};

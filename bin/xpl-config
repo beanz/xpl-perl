@@ -102,8 +102,8 @@ sub hbeat_response {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  return unless ($msg->class =~ /^(?:config|hbeat)$/);
-  $clients{$msg->class}->{$msg->source} = $msg;
+  return unless ($msg->class =~ /^(config|hbeat)\./);
+  $clients{$1}->{$msg->source} = $msg;
   if ($target eq $msg->source) {
     report();
   }
@@ -135,7 +135,7 @@ sub report {
              body => [ command => 'request' ]);
   $xpl->add_xpl_callback(id => 'wait_for_response',
                          callback => \&config_list,
-                         filter => { class => 'config', class_type => 'list' },
+                         filter => { class => 'config.list' },
                          );
   $request = 'config.list';
   $xpl->add_timer(id => 'timeout', timeout => $wait, callback => \&give_up);
@@ -186,7 +186,7 @@ sub config_list {
   $xpl->add_xpl_callback(id => 'wait_for_response',
                          callback => \&config_current,
                          filter =>
-                         { class => 'config', class_type => 'current' },
+                         { class => 'config.current' },
                         );
   $request = 'config.current';
   $xpl->add_timer(id => 'timeout', timeout => $wait, callback => \&give_up);

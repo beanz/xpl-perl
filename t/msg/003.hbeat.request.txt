@@ -30,9 +30,7 @@ source=acme-lamp.livingroom
 
 target=*
 
-class=hbeat
-
-class_type=request
+class=hbeat.request
 
 command=request
 

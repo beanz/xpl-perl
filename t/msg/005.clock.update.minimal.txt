@@ -31,9 +31,7 @@ source=acme-clock.livingroom
 
 target=*
 
-class=clock
-
-class_type=update
+class=clock.update
 
 time=20051113182650
 

@@ -158,8 +158,7 @@ sub new {
                             self_skip => 0,
                             filter =>
                             {
-                             class => $self->{_hbeat_class},
-                             class_type => 'basic',
+                             class => $self->{_hbeat_class}.'.basic',
                              source => $self->id,
                             },
                             callback => sub {
@@ -182,8 +181,7 @@ sub new {
                           filter =>
                           {
                            message_type => 'xpl-cmnd',
-                           class => 'hbeat',
-                           class_type => 'request',
+                           class => 'hbeat.request',
                           },
                           callback => sub { $self->hbeat_request(@_) });
 
@@ -192,24 +190,21 @@ sub new {
                             filter =>
                             {
                              message_type => 'xpl-cmnd',
-                             class => 'config',
-                             class_type => 'list',
+                             class => 'config.list',
                             },
                             callback => sub { $self->config_list(@_) });
     $self->add_xpl_callback(id => '!config-current',
                             filter =>
                             {
                              message_type => 'xpl-cmnd',
-                             class => 'config',
-                             class_type => 'current',
+                             class => 'config.current',
                             },
                             callback => sub { $self->config_current(@_) });
     $self->add_xpl_callback(id => '!config-response',
                             filter =>
                             {
                              message_type => 'xpl-cmnd',
-                             class => 'config',
-                             class_type => 'response',
+                             class => 'config.response',
                             },
                             callback => sub { $self->config_response(@_) });
   }
@@ -219,8 +214,7 @@ sub new {
                           filter =>
                           {
                            message_type => 'xpl-cmnd',
-                           class => 'ping',
-                           class_type => 'request',
+                           class => 'ping.request',
                           },
                           callback => sub { $self->ping_request(@_) });
 
@@ -449,8 +443,7 @@ sub fast_hbeat_mode {
                           self_skip => 0,
                           filter =>
                           {
-                           class => $self->{_hbeat_class},
-                           class_type => 'app',
+                           class => $self->{_hbeat_class}.'.app',
                            source => $self->id,
                           },
                           callback => sub { $self->hub_response(@_) });
@@ -717,8 +710,7 @@ sub send_hbeat_end {
   return unless (defined $self->{_hbeat_mode});
   undef $self->{_hbeat_mode};
   $self->send(message_type => 'xpl-stat',
-              class => $self->{_hbeat_class},
-              class_type => 'end',
+              class => $self->{_hbeat_class}.'.end',
               body =>
               [
                interval => $self->hbeat_interval,

@@ -35,9 +35,7 @@ source=acme-sensor.garden
 
 target=*
 
-class=dawndusk
-
-class_type=request
+class=dawndusk.request
 
 summary=xpl-cmnd/dawndusk.request: acme-sensor.garden -> * status/daynight
 

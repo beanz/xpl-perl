@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2005, 2008 by Mark Hindess
+# Copyright (C) 2005, 2010 by Mark Hindess
 
 use strict;
-use Test::More tests => 18;
+use Test::More tests => 15;
 use t::Helpers qw/test_warn test_error/;
 
 use_ok("xPL::Message");
@@ -20,22 +20,6 @@ is(test_error(sub { $msg = xPL::Message->new(class => "remote.basic") }),
 is(test_error(sub { $msg = xPL::Message->new(class => "unknown.basic") }),
    "xPL::Message->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
-
-is(test_error(sub { $msg = xPL::Message->new(class => 'fred') }),
-   "xPL::Message->new: requires 'class_type' parameter",
-   "xPL::Message missing class type test");
-
-is(test_error(sub { $msg = xPL::Message->new(class => 'thisistoolong',
-                                             class_type => 'test') }),
-   "xPL::Message->new: 'class' parameter is invalid.
-It must be 8 characters from A-Z, a-z and 0-9.",
-   "xPL::Message invalid class test");
-
-is(test_error(sub { $msg = xPL::Message->new(class => 'fred',
-                                             class_type => 'thisistoolong') }),
-   "xPL::Message->new: 'class_type' parameter is invalid.
-It must be 8 characters from A-Z, a-z and 0-9.",
-   "xPL::Message invalid class type test");
 
 is(test_error(sub { $msg = xPL::Message->new(class => "fred.schema",
                                              message_type => 'testing') }),
@@ -137,5 +121,5 @@ my $class;
 is(test_error(sub { $class = $invalid->class; }),
   q{},
   'check no error when head is parsed - can check class');
-is($class, 'invalid',
+is($class, 'invalid.header',
   'check no error when head is parsed - can check class - content');

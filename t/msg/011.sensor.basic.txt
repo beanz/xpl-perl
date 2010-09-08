@@ -37,9 +37,7 @@ source=acme-1wire.node0
 
 target=*
 
-class=sensor
-
-class_type=basic
+class=sensor.basic
 
 summary=xpl-trig/sensor.basic: acme-1wire.node0 -> * bed1/temp/21.05
 

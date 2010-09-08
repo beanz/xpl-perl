@@ -74,7 +74,7 @@ our $OPEN_SQUARE_BRACKET = q{[};
 our $CLOSE_SQUARE_BRACKET = q{]};
 our %MESSAGE_TYPES = map { $_ => 1 } qw/xpl-cmnd xpl-stat xpl-trig/;
 
-__PACKAGE__->make_readonly_accessor(qw/class class_type/);
+__PACKAGE__->make_readonly_accessor(qw/class/);
 
 =head2 C<new(%parameter_hash)>
 
@@ -92,17 +92,8 @@ are:
 
 =item class
 
-  The class or schema of the message.  This can either by just the
-  first part of the class, such as 'hbeat', (in which case the
-  'class_type' parameter must also be present) or it can be the
-  full schema name, such as 'hbeat.basic'.  This field is used
-  to determine the type of xPL Message object that will actually
-  be instantiated and returned to the caller.
-
-=item class_type
-
-  The type of the schema.  For the schema, 'hbeat.basic' the class
-  type is 'basic'.
+  The class or schema of the message.  It should be the
+  full schema name, such as 'hbeat.basic'.
 
 =back
 
@@ -114,59 +105,30 @@ sub new {
   my $pkg = shift;
 
   my %p = @_;
+  my $self = { _verbose => $p{verbose}||0, };
+  bless $self, $pkg;
 
-  my $class;
-  my $class_type;
   defined $p{class} or $pkg->argh(q{requires 'class' parameter});
-  if ($p{class} =~ /^([A-Z0-9]{1,8})\.([A-Z0-9]{1,8})$/i) {
-    $class = $1;
-    $class_type = $2;
-  } elsif (!defined $p{class_type}) {
-    $pkg->argh(q{requires 'class_type' parameter});
-  } elsif ($p{class} =~ /^[A-Z0-9]{1,8}$/i) {
-    if ($p{class_type} =~ /^[A-Z0-9]{1,8}$/i) {
-      $class = $p{class};
-      $class_type = $p{class_type};
-    } else {
-      $pkg->argh("'class_type' parameter is invalid.\n".
-                  'It must be 8 characters from A-Z, a-z and 0-9.');
-    }
-  } else {
-    $pkg->argh("'class' parameter is invalid.\n".
-                'It must be 8 characters from A-Z, a-z and 0-9.');
-  }
-  delete $p{class};
-  delete $p{class_type};
+  $self->{_class} = $p{class};
 
-  # process message_type
   exists $p{message_type} or $pkg->argh(q{requires 'message_type' parameter});
   my $message_type = $p{message_type};
-  delete $p{message_type};
   exists $MESSAGE_TYPES{$message_type} or
     $pkg->argh("message type identifier, $message_type, is invalid.\n".
                'It should be one of xpl-cmnd, xpl-stat or xpl-trig.');
 
-  my $self = {};
-  bless $self, $pkg;
-
-  $self->{_verbose} = $p{verbose}||0;
-
-  $self->{_class} = $class;
-  $self->{_class_type} = $class_type;
   $self->{_message_type} = $message_type;
 
   if ($p{head_content}) {
     $self->{_head_content} = $p{head_content};
   } else {
-    exists $p{head} or $p{head} = {};
-    $self->parse_head_parameters($p{head}, $p{head_order});
+    $self->parse_head_parameters($p{head}||{}, $p{head_order});
   }
 
   if ($p{body_content}) {
     $self->{_body_content} = $p{body_content};
   } else {
-    exists $p{body} or $p{body} = [];
-    $self->parse_body_parameters($p{body}, $p{body_order});
+    $self->parse_body_parameters($p{body}||[], $p{body_order});
   }
   return $self;
 }
@@ -204,7 +166,7 @@ sub new_from_payload {
     xPL::Message->argh("Invalid body: $body\n");
   }
   $r{body_content} = $2;
-  @r{qw/class class_type/} = split /\./, $1, 2;
+  $r{class} = $1;
   return $_[0]->new(%r);
 }
 
@@ -307,10 +269,9 @@ sub summary {
   my $self = shift;
   $self->_parse_head() if ($self->{_head_content});
   sprintf
-    '%s/%s.%s: %s -> %s %s',
+    '%s/%s: %s -> %s %s',
       $self->{_message_type},
-        $self->{_class}, $self->{_class_type},
-          $self->{_source}, $self->{_target},
+        $self->{_class}, $self->{_source}, $self->{_target},
             $self->body_summary();
 }
 
@@ -370,8 +331,7 @@ message.
 =cut
 
 sub body_string {
-  $_[0]->{_class}.$DOT.$_[0]->{_class_type}."$LF\{$LF".
-    $_[0]->body_content."}$LF";
+  $_[0]->{_class}."$LF\{$LF".$_[0]->body_content."}$LF";
 }
 
 =head2 C<body_content()>
@@ -404,10 +364,7 @@ identifier with the new value before it returns.
 =cut
 
 sub message_type {
-  return $_[0]->{_message_type} unless (@_ > 1);
-  confess "Deprecated message_type setter\n";
-  my $value = $_[1];
-  $_[0]->{_message_type} = $value;
+  $_[0]->{_message_type}
 }
 
 =head2 C<hop( [ $new_hop ] )>
@@ -419,10 +376,7 @@ This method returns the hop count.
 sub hop {
   my $self = shift;
   $self->_parse_head() if ($self->{_head_content});
-  if (@_) {
-    confess "Deprecated hop setter\n";
-  }
-  return $self->{_hop};
+  $self->{_hop};
 }
 
 sub increment_hop {
@@ -446,10 +400,7 @@ before it returns.
 sub source {
   my $self = shift;
   $self->_parse_head() if ($self->{_head_content});
-  if (@_) {
-    confess "Deprecated source setter\n";
-  }
-  return $self->{_source};
+  $self->{_source};
 }
 
 =head2 C<target( [ $new_target ] )>
@@ -463,44 +414,12 @@ before it returns.
 sub target {
   my $self = shift;
   $self->_parse_head() if ($self->{_head_content});
-  if (@_) {
-    confess "Deprecated target setter\n";
-  }
-  return $self->{_target};
+  $self->{_target};
 }
 
 =head2 C<class()>
 
 This method returns the class.
-
-=head2 C<class_type()>
-
-This method returns the class type.
-
-=head2 C<valid_id( $identifier )>
-
-This is a helper function (not a method) that return the string
-'valid' if the given identifier is valid.  Otherwise it returns a
-string with details of why the identifier is invalid.
-
-=cut
-
-sub valid_id {
-  unless ($_[0] =~ m!^(.*)-(.*)\.(.*)$!) {
-    return q{Invalid format - should be 'vendor-device.instance'.};
-  }
-  my ($vendor, $device, $instance) = ($1, $2, $3);
-  unless ($vendor =~ /^[A-Z0-9]{1,8}$/i) {
-    return 'Invalid vendor id - maximum of 8 chars from A-Z, a-z, and 0-9.';
-  }
-  unless ($device =~ /^[A-Z0-9]{1,8}$/i) {
-    return 'Invalid device id - maximum of 8 chars from A-Z, a-z, and 0-9.';
-  }
-  unless ($instance =~ /^[A-Z0-9]{1,16}$/i) {
-    return 'Invalid instance id - maximum of 16 chars from A-Z, a-z, and 0-9.';
-  }
-  return 'valid';
-}
 
 =head2 C<field( $field )>
 

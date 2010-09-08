@@ -74,8 +74,7 @@ sub init {
   $xpl->add_xpl_callback(id => 'owfs', callback => sub { $self->xpl_in(@_) },
                          filter => {
                                     message_type => 'xpl-cmnd',
-                                    class => 'control',
-                                    class_type => 'basic',
+                                    class => 'control.basic',
                                     type => 'output',
                                    });
 

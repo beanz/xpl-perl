@@ -35,9 +35,7 @@ source=acme-dawndusk.porch
 
 target=*
 
-class=x10
-
-class_type=basic
+class=x10.basic
 
 summary=xpl-cmnd/x10.basic: acme-dawndusk.porch -> * all_lights_on/jkl
 

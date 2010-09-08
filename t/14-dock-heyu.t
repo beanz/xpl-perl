@@ -66,8 +66,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10',
-                                     class_type => 'basic',
+                                     class=> 'x10.basic',
                                      body =>
                                      [
                                       'command' => 'on',
@@ -151,8 +150,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10',
-                                     class_type => 'basic',
+                                     class=> 'x10.basic',
                                      body =>
                                      [
                                       'command' => 'dim',
@@ -178,8 +176,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10',
-                                     class_type => 'basic',
+                                     class=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'extended',
@@ -223,8 +220,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10',
-                                     class_type => 'basic',
+                                     class=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'extended',
@@ -240,8 +236,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10',
-                                     class_type => 'basic',
+                                     class=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'extended',
@@ -252,14 +247,12 @@ is(test_output(sub {
    'x10.basic command=extended missing data2');
 is(test_output(sub {
                  $xpl->dispatch_xpl_message(
-                   xPL::Message->new(strict => 0,
-                                     message_type => 'xpl-cmnd',
+                   xPL::Message->new(message_type => 'xpl-cmnd',
                                      head =>
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10',
-                                     class_type => 'basic',
+                                     class=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'invalid',
@@ -270,14 +263,12 @@ is(test_output(sub {
 
 is(test_output(sub {
                  $xpl->dispatch_xpl_message(
-                   xPL::Message->new(strict => 0,
-                                     message_type => 'xpl-cmnd',
+                   xPL::Message->new(message_type => 'xpl-cmnd',
                                      head =>
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10',
-                                     class_type => 'basic',
+                                     class=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'bright',

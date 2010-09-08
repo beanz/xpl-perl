@@ -39,9 +39,7 @@ source=acme-lamp.livingroom
 
 target=*
 
-class=hbeat
-
-class_type=app
+class=hbeat.app
 
 interval=10
 

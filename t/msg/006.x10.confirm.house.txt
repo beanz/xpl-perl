@@ -35,9 +35,7 @@ source=acme-dawndusk.porch
 
 target=*
 
-class=x10
-
-class_type=confirm
+class=x10.confirm
 
 summary=xpl-trig/x10.confirm: acme-dawndusk.porch -> * all_lights_on/jkl
 

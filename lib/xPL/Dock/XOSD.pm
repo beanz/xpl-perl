@@ -71,8 +71,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'osd',
-                          class_type => 'basic',
+                          class => 'osd.basic',
                          },
                          callback => sub { $self->xpl_handler(@_) });
   return $self;

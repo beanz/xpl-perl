@@ -103,15 +103,13 @@ sub log {
   my $t = time;
   $d{src}->{$source} = {} unless (exists $d{src}->{$source});
   my $r = $d{src}->{$source};
-  if ($msg->class eq 'hbeat') {
-    if ($msg->class_type eq 'end') {
-      delete $d{src}->{$source};
-      undef $r;
-    } else {
+  if ($msg->class eq 'hbeat.end') {
+    delete $d{src}->{$source};
+    undef $r;
+  } elsif ($msg->class =~ /^hbeat\./) {
       $r->{last_hbeat} = $msg;
       $r->{last_hbeat_time} = $t;
       $r->{last_hbeat_time_str} = strftime($timefmt, localtime($t));
-    }
   } else {
     unshift @{$r->{hist}}, [$msg, $t];
     if (scalar @{$r->{hist}} > $history_size) {

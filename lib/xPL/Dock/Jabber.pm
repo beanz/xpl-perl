@@ -194,8 +194,7 @@ sub connect {
                                   },
                                   filter => {
                                              message_type => 'xpl-cmnd',
-                                             class => 'im',
-                                             class_type => 'basic',
+                                             class => 'im.basic',
                                             });
 
   my %fm = map { $_ => 1 } split /,/, join ",",

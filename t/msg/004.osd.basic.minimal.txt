@@ -31,9 +31,7 @@ source=acme-phone.livingroom
 
 target=*
 
-class=osd
-
-class_type=basic
+class=osd.basic
 
 command=clear
 

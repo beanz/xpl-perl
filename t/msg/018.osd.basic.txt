@@ -42,9 +42,7 @@ source=acme-phone.livingroom
 
 target=acme-tv.livingroom
 
-class=osd
-
-class_type=basic
+class=osd.basic
 
 command=clear
 

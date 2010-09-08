@@ -118,11 +118,12 @@ sub hub {
 
   my $msg = $p{message};
   my $remote_ip = $msg->field('remote_ip');
-  if ($msg->class =~ /^(?:hbeat|config)$/ &&
-      ($msg->class_type eq 'app' or $msg->class_type eq 'end') &&
+  my ($class, $class_type) = split /\./, $msg->class, 2;
+  if ($class =~ /^(?:hbeat|config)$/ &&
+      ($class_type eq 'app' or $class_type eq 'end') &&
       $self->is_local_address($remote_ip)) {
     my $client = $remote_ip.':'.$msg->field('port');
-    if ($msg->class_type eq 'app') {
+    if ($class_type eq 'app') {
       $self->update_client($client, $msg);
     } else {
       $self->remove_client($client);

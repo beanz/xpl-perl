@@ -450,8 +450,7 @@ the hash are:
 
     {
      message_type => 'xpl-trig',
-     class => 'x10',
-     class_type => 'basic',
+     class => 'x10.basic',
     }
 
   It is also possible, though not advisable in normal Perl code, to
@@ -478,11 +477,10 @@ sub add_xpl_callback {
     }
     unless (ref($filter)) {
       my %f = simple_tokenizer($filter);
-      if (exists $f{class} && $f{class} =~ /^(\w+)\.(\w+)$/) {
-        $f{class} = $1;
-        $f{class_type} = $2;
-      }
       $p{filter} = $filter = \%f;
+      if (exists $f{class} && $f{class} =~ /^(\w+)$/) {
+        $f{class} .= '\\.\w+';
+      }
     }
   }
   return $self->add_callback_item('xpl_callback', $p{id}, \%p);
