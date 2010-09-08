@@ -43,7 +43,7 @@ $slist->signal_connect(button_press_event => \&button_press);
 $slist->set_rules_hint(1);
 $vbox->add($slist);
 foreach (['Send Request' => sub { $xpl->send(message_type => 'xpl-cmnd',
-                                             class => 'hbeat.request') }],
+                                             schema => 'hbeat.request') }],
          ['Quit' => sub { Gtk2->main_quit }]) {
   my $button = Gtk2::Button->new($_->[0]);
   $button->signal_connect(clicked => $_->[1]);
@@ -103,10 +103,10 @@ sub log {
   my $t = time;
   $d{src}->{$source} = {} unless (exists $d{src}->{$source});
   my $r = $d{src}->{$source};
-  if ($msg->class eq 'hbeat.end') {
+  if ($msg->schema eq 'hbeat.end') {
     delete $d{src}->{$source};
     undef $r;
-  } elsif ($msg->class =~ /^hbeat\./) {
+  } elsif ($msg->schema =~ /^hbeat\./) {
       $r->{last_hbeat} = $msg;
       $r->{last_hbeat_time} = $t;
       $r->{last_hbeat_time_str} = strftime($timefmt, localtime($t));
@@ -171,7 +171,7 @@ sub history_callback {
 
 sub ping_callback {
   $xpl->send(message_type => 'xpl-cmnd',
-             head => { target => $d{selected} }, class => 'hbeat.request');
+             head => { target => $d{selected} }, schema => 'hbeat.request');
   return 1;
 }
 

@@ -67,7 +67,7 @@ my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 $xpl->add_xpl_callback(id => 'mpd', callback => \&xpl_in,
                        filter => {
                         message_type => 'xpl-cmnd',
-                        class => 'audio.basic',
+                        schema => 'audio.basic',
                        });
 $xpl->main_loop();
 
@@ -125,7 +125,7 @@ sub setup_timer_to_check_song_details {
                     callback => sub {
                       my $current = $mpd->current() or return;
                       $xpl->send(message_type => 'xpl-cmnd',
-                                 class => 'osd.basic',
+                                 schema => 'osd.basic',
                                  body =>
                                  [
                                   command => 'clear',
@@ -133,7 +133,7 @@ sub setup_timer_to_check_song_details {
                                   text => $current->title,
                                  ]);
                       $xpl->send(message_type => 'xpl-cmnd',
-                                 class => 'osd.basic',
+                                 schema => 'osd.basic',
                                  body =>
                                  [
                                   command => 'write',

@@ -6,7 +6,7 @@ xpl-sender - Perl script for an xPL message sender application
 
 =head1 SYNOPSIS
 
-  xpl-sender [flags] [options] -m <msg.type> -c <class.type> [param=value ... ]
+  xpl-sender [flags] [options] -m <msg.type> -c <schema> [param=value ... ]
 
   where valid flags are:
     -h - show this help text
@@ -59,7 +59,7 @@ my $interface;
 my $help;
 my $man;
 my $message_type;
-my $class;
+my $schema;
 my $source;
 my $target;
 my $wait;
@@ -69,7 +69,7 @@ GetOptions('verbose+' => \$verbose,
            'help|?|h' => \$help,
            'man' => \$man,
            'message_type|m=s' => \$message_type,
-           'class=s' => \$class,
+           'class=s' => \$schema,
            'source=s' => \$source,
            'target=s' => \$target,
            'wait=i' => \$wait,
@@ -80,10 +80,10 @@ $args{'interface'} = $interface if ($interface);
 $args{'verbose'} = $verbose if ($verbose);
 
 my %msg_args = ();
-defined $class or pod2usage(-message => q{Requires '-c' class type parameter},
+defined $schema or pod2usage(-message => q{Requires '-c' schema parameter},
                             -exitstatus => 1);
 $msg_args{'-m'} = $message_type if (defined $message_type);
-$msg_args{'-c'} = $class if (defined $class);
+$msg_args{'-c'} = $schema if (defined $schema);
 $msg_args{'-s'} = $source if (defined $source);
 $msg_args{'-t'} = $target if (defined $target);
 
@@ -112,14 +112,14 @@ sub xpl_hub_response {
 }
 
 sub xpl_send {
-  my $c = $class;
+  my $c = $schema;
   $c =~ s/\..*$//;
   $xpl->send_from_arg_list(%msg_args, @ARGV);
   $start_time = Time::HiRes::time;
   $xpl->add_xpl_callback(id => 'wait_for_response',
                          filter =>
                          {
-                          class => $c,
+                          schema => $c,
                          },
                          callback => \&xpl_response);
   $xpl->add_timer(id => 'timeout', timeout => $wait, callback => \&give_up);
@@ -135,7 +135,7 @@ sub xpl_response {
   if ($verbose) {
     print $msg->string;
   } else {
-    if ($msg->class ne 'ping') {
+    if ($msg->schema ne 'ping') {
       print $msg->summary, "\n";
     } else {
       my $rtt = (Time::HiRes::time-$start_time) - $msg->delay;
