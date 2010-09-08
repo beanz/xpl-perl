@@ -128,7 +128,8 @@ is(scalar @calls, 0, 'no calls for empty write');
 sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
-  while ((ref $msg->[0]) =~ /^xPL::Message::hbeat/) {
+  while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
+         $msg->[0]->class =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

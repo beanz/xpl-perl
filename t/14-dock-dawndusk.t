@@ -110,7 +110,8 @@ is($plugin->iteration, 1, 'check iteration');
 sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
-  while ((ref $msg->[0]) =~ /^xPL::Message::hbeat/) {
+  while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
+         $msg->[0]->class =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {
