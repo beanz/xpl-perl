@@ -367,6 +367,7 @@ t/13-iorecords.t
 t/14-dock-apcups.t
 t/14-dock-bluetooth.t
 t/14-dock-currentcost.t
+t/14-dock-datetime.t
 t/14-dock-dawndusk.t
 t/14-dock-dmx.t
 t/14-dock-easydaq.t
@@ -383,6 +384,7 @@ t/14-dock-rfxcom-tx.t
 t/14-dock-udin.t
 t/14-dock-viom.t
 t/14-dock-w800.t
+t/14-dock-wol.t
 t/14-dock-xosd.t
 t/14-dock-xvkbd.t
 t/bin/heyu

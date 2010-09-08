@@ -79,7 +79,7 @@ sub init {
   return $self;
 }
 
-=head2 C<send_datetime( $status )>
+=head2 C<send_datetime( )>
 
 This helper method sends a C<datetime.basic> C<xpl-trig> message with
 the given status.
@@ -87,8 +87,8 @@ the given status.
 =cut
 
 sub send_datetime {
-  my ($self, $time) = @_;
-  $time = time unless (defined $time);
+  my ($self) = @_;
+  my $time = time;
   my $datetime = strftime "%Y%m%d%H%M%S", localtime $time;
   return $self->xpl->send(message_type => 'xpl-trig',
                           class => 'datetime.basic',
