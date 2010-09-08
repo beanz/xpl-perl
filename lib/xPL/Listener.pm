@@ -440,6 +440,8 @@ sub send_from_list {
       $args{head}->{source} = $v;
     } elsif ($k eq '-t') {
       $args{head}->{target} = $v;
+    } elsif ($k eq 'validate') {
+      $args{$k} = $v;
     } else {
       push @body, $k => $v;
     }

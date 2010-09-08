@@ -3,33 +3,39 @@
 # Copyright (C) 2005, 2010 by Mark Hindess
 
 use strict;
-use Test::More tests => 15;
+use Test::More tests => 16;
 use t::Helpers qw/test_warn test_error/;
 
 use_ok("xPL::Message");
-
+my $valid_msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                                  head => { source => 'acme-test.test' },
+                                  class => 'test.schema');
+ok($valid_msg, 'sample message to get message type');
+my $ref = ref $valid_msg;
 my $msg;
 is(test_error(sub { $msg = xPL::Message->new(); }),
-   "xPL::Message->new: requires 'class' parameter",
+   $ref."->new: requires 'class' parameter",
    "xPL::Message missing class test");
 
 is(test_error(sub { $msg = xPL::Message->new(class => "remote.basic") }),
-   "xPL::Message->new: requires 'message_type' parameter",
+   $ref."->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 
 is(test_error(sub { $msg = xPL::Message->new(class => "unknown.basic") }),
-   "xPL::Message->new: requires 'message_type' parameter",
+   $ref."->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 
 is(test_error(sub { $msg = xPL::Message->new(class => "fred.schema",
                                              message_type => 'testing') }),
-   "xPL::Message->new: message type identifier, testing, is invalid.
+   ($ref eq 'xPL::Message'
+    ? 'xPL::Message->new' : 'xPL::SlowMessage->message_type').
+   ": message type identifier, testing, is invalid.
 It should be one of xpl-cmnd, xpl-stat or xpl-trig.",
    "xPL::Message invalid message type test");
 
 is(test_error(sub { $msg = xPL::Message->new(message_type => "xpl-stat",
                                              class => "fred.schema"); }),
-   "xPL::Message->parse_head_parameters: requires 'source' parameter",
+   $ref."->parse_head_parameters: requires 'source' parameter",
    "xPL::Message missing source test");
 
 my $payload =

@@ -17,12 +17,12 @@ xPL::Message - Perl extension for xPL message base class
                               },
                               class => 'hbeat.app',
                               body =>
-                              {
+                              [
                                interval => 10,
                                port => 12345,
                                remote_ip => '127.0.0.1',
                                extra => 'value in my extra field',
-                              },
+                              ],
                              );
 
   # let's leave out some fields and let them use the defaults
@@ -32,10 +32,10 @@ xPL::Message - Perl extension for xPL message base class
                            },
                            class => 'hbeat.app',
                            body =>
-                           {
+                           [
                             remote_ip => '127.0.0.1',
                             extra => 'value in my extra field',
-                           },
+                           ],
                           );
 
 =head1 DESCRIPTION
@@ -105,6 +105,11 @@ sub new {
   my $pkg = shift;
 
   my %p = @_;
+  if ($p{validate} || $ENV{XPL_MESSAGE_VALIDATE}) {
+    require xPL::SlowMessage;
+    import xPL::SlowMessage;
+    return xPL::SlowMessage->new(@_);
+  }
   my $self = { _verbose => $p{verbose}||0, };
   bless $self, $pkg;
 

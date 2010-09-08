@@ -12,7 +12,7 @@ my $payload =
 'xpl-stat
 {
 hop=1
-source=vendor-device-instance
+source=vendor-device.instance
 target=*
 }
 fred.schema
@@ -30,7 +30,7 @@ my $payload_pre =
 'xpl-stat
 {
 hop=1
-source=vendor-device-instance
+source=vendor-device.instance
 target=*
 }
 fred.schema
@@ -62,7 +62,7 @@ a=value-a
 ';
 $payload = $payload_pre.$payload_body;
 is($msg->summary,
-   ('xpl-stat/fred.schema: vendor-device-instance -> * '.
+   ('xpl-stat/fred.schema: vendor-device.instance -> * '.
     'value-b/value-b2/value-b3/value-c/value-a'),
    'new_from_payload decoding');
 is($msg->string, $payload,
@@ -72,7 +72,7 @@ $payload =
 'xpl-stat
 {
 hop=1
-source=vendor-device-instance
+source=vendor-device.instance
 target=*
 }
 fred.schema

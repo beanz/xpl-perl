@@ -73,12 +73,12 @@ check_sent_msg({
                 message_type => 'xpl-stat',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-myth',
-                 current => '66.66',
                  type => 'generic',
+                 current => '66.66',
                  units => 'percent',
-                },
+                ],
                }, 'checking xPL message - 66.66 usage');
 
 $client->close;
@@ -107,12 +107,12 @@ check_sent_msg({
                 message_type => 'xpl-stat',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-myth',
-                 current => '0',
                  type => 'generic',
+                 current => '0',
                  units => 'percent',
-                },
+                ],
                }, 'checking xPL message - 0 usage');
 
 $client->close;

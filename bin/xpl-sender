@@ -47,6 +47,11 @@ use Time::HiRes;
 use xPL::Client;
 $|=1; # autoflush helps debugging
 
+BEGIN {
+  # get some help with defaults and helpful error messages
+  $ENV{XPL_MESSAGE_VALIDATE} = 1;
+}
+
 my %args = ( vendor_id => 'bnz', device_id => 'sender', );
 my %opt = ();
 my $verbose;

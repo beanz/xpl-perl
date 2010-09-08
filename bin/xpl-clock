@@ -82,7 +82,7 @@ sub tick {
   my %p = @_;
   my $xpl = $p{arguments}->[0];
   $xpl->send(message_type => 'xpl-stat', class => 'clock.update',
-             body => { 'time' => strftime($time_format, (localtime time)) });
+             body => [ 'time' => strftime($time_format, (localtime time)) ]);
   return 1;
 };
 

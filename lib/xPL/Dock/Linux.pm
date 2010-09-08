@@ -105,7 +105,7 @@ sub poll {
 #     }
 #     $self->xpl->send(message_type => $type, class => 'sensor.basic',
 #                      body =>
-#                      { device => $device, type => 'temp', current => $temp });
+#                      [ device => $device, type => 'temp', current => $temp ]);
 #   }
 
   my $p = '/sys/class/power_supply';
@@ -130,12 +130,12 @@ sub poll {
         $type = 'xpl-stat';
       }
       $self->xpl->send(message_type => $type, class => 'sensor.basic',
-                       body => {
+                       body => [
                                 device => $device,
                                 type => 'battery',
                                 current => $bat,
                                 units => '%',
-                               }
+                               ]
                       );
     } elsif (is_file($f = $p.'/'.$dev.'/online')) {
       my $online = read_line($f);
@@ -150,10 +150,10 @@ sub poll {
         if (defined $old) {
           $self->xpl->send(message_type => 'xpl-trig',
                            class => 'ups.basic',
-                           body => {
+                           body => [
                                     status => $state,
                                     event => 'on'.$state,
-                                   }
+                                   ]
                           );
         }
       }

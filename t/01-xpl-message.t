@@ -15,7 +15,7 @@ ok($msg = xPL::Message->new(message_type => "xpl-stat",
                             class => "fred.schema",
                             head =>
                             {
-                             source => 'source',
+                             source => 'bnz-acme.source',
                             },
                             body =>
                             [

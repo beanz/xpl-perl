@@ -180,11 +180,11 @@ sub xpl_send {
   my $class = $type eq "count" ? 'sensor.basic' : 'sensor.network';
   return $xpl->send(message_type => 'xpl-stat', class => $class,
                     body =>
-                    {
+                    [
                      device => $dev.'-'.$var,
                      type => $type,
                      current => $val
-                    });
+                    ]);
 }
 
 # send a "hbeat.end" message on exit

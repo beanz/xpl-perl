@@ -128,10 +128,10 @@ sub read {
     $sock->close;
 
     $self->xpl->send(message_type => 'xpl-stat', class => 'sensor.basic',
-                     body => { device => $self->xpl->instance_id.'-myth',
+                     body => [ device => $self->xpl->instance_id.'-myth',
                                type => 'generic',
                                current => $usage,
-                               units => 'percent' });
+                               units => 'percent' ]);
   }
   return 1;
 }

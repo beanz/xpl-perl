@@ -62,12 +62,12 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-bat0',
                  type => 'battery',
                  current => '98.13',
                  units => '%',
-                },
+                ],
                }, 'checking xPL message - bat0 trig');
 
 no warnings;
@@ -81,12 +81,12 @@ check_sent_msg({
                 message_type => 'xpl-stat',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-bat0',
                  type => 'battery',
                  current => '98.13',
                  units => '%',
-                },
+                ],
                }, 'checking xPL message - bat0 stat');
 
 no warnings;
@@ -100,21 +100,21 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'ups.basic',
                 body =>
-                {
+                [
                  status => 'battery',
                  event => 'onbattery',
-                },
+                ],
                }, 'checking xPL message - ac trig');
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-bat0',
                  type => 'battery',
                  current => '8.33',
                  units => '%',
-                },
+                ],
                }, 'checking xPL message - bat0 trig');
 
 is_deeply(xPL::Dock::Linux::dir_entries('/non-existent'), [],

@@ -106,11 +106,11 @@ sub poll_linux_cpu {
       $type = 'xpl-stat';
     }
     $xpl->send(message_type => $type, class => 'sensor.basic',
-               body => {
+               body => [
                         device => $device,
                         type => 'count',
                         current => $val,
-                       });
+                       ]);
   }
   return 1;
 }

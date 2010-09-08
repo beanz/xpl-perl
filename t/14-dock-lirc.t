@@ -55,10 +55,10 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'remote.basic',
                 body =>
-                {
+                [
                  device => 'vcr0081',
                  keys => 'stop',
-                },
+                ],
                }, 'checking xPL message');
 
 $client->print("END\n");

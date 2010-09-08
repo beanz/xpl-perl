@@ -86,7 +86,7 @@ sub lirc_reader {
       (
        message_type => 'xpl-trig',
        class => 'remote.basic',
-       body => { device => $device, 'keys' => $key },
+       body => [ device => $device, 'keys' => $key ],
       );
     $self->info("Sending $device $key\n");
     return $self->xpl->send(%args);
