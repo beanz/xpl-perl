@@ -276,10 +276,12 @@ is($xpl->input_callback_count($xpl->{_listen_sock}), 1,
    "input callback count");
 
 ok($xpl->add_input(handle => \*STDIN, arguments => []), "adding input");
-ok($xpl->{_select}->exists(\*STDIN), "input added to select");
+ok(($event_loop eq 'anyevent' or $xpl->{_select}->exists(\*STDIN)),
+   "input added to select");
 
 ok($xpl->remove_input(\*STDIN), "removing input");
-ok(!$xpl->{_select}->exists(\*STDIN), "input removed from select");
+ok(($event_loop eq 'anyevent' or !$xpl->{_select}->exists(\*STDIN)),
+   "input removed from select");
 
 use_ok("xPL::Message");
 my $msg = xPL::Message->new(message_type => 'xpl-stat',
