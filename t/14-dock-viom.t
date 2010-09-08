@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 54;
+use Test::More tests => 57;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -214,6 +214,30 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 Inactive\n",
    'read response - o01/toggle(off)');
 
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
+                         head => { source => 'acme-viom.test' },
+                         body =>
+                         [
+                          type => 'output',
+                          device => 'output01',
+                          current => 'toggle',
+                         ]);
+$xpl->dispatch_xpl_message($msg);
+ok(!$client_sel->can_read(0.5), 'device receive no message - output1/toggle');
+
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
+                         head => { source => 'acme-viom.test' },
+                         body =>
+                         [
+                          type => 'output',
+                          device => 'o01',
+                          current => 'fire',
+                         ]);
+is(test_warn(sub { $xpl->dispatch_xpl_message($msg) }),
+   "Unsupported setting: fire\n", 'invalid setting');
+ok(!$client_sel->can_read(0.5), 'device receive no message - o01/fire');
 
 # The begin block is global of course but this is where it is really used.
 BEGIN{
