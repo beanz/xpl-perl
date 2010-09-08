@@ -7,7 +7,7 @@ use IO::Socket::INET;
 use IO::Select;
 use Socket;
 use Test::More tests => 27;
-use t::Helpers qw/test_warn test_error test_output/;
+use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 
 $|=1;
 
@@ -50,7 +50,10 @@ print $client q{
 <msg><date><dsb>00001</dsb><hr>12</hr><min>17</min><sec>02</sec></date><src><name>CC02</name><id>02371</id><type>1</type><sver>1.06</sver></src><ch1><watts>02131</watts></ch1><ch2><watts>00000</watts></ch2><ch3><watts>00000</watts></ch3><tmpr>20.7</tmpr></msg>
 };
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    q{xpl-trig/sensor.basic: bnz-dingus.mytestid -> * curcost.02371.1/current/8.87916666666667
 xpl-trig/sensor.basic: bnz-dingus.mytestid -> * curcost.02371.2/current/0
 xpl-trig/sensor.basic: bnz-dingus.mytestid -> * curcost.02371.3/current/0

@@ -5,12 +5,15 @@
 use strict;
 use Socket;
 use Test::More tests => 51;
+use t::Helpers qw/wait_for_callback/;
+use Carp qw/cluck/;
 $|=1;
 
 use_ok("xPL::Client");
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
 my $errors;
+my $send_called = 0;
 {
   # This is to override errors from using way too short intervals
   # for all timings
@@ -29,6 +32,12 @@ my $errors;
     my ($file, $line) = (caller(1))[1,2];
     $errors .= (ref($self)||$self)."->$name: @_\n";
     return 1;
+  }
+  sub send_hbeat {
+    my $self = shift;
+    my $l = 0;
+    $send_called++;
+    $self->SUPER::send_hbeat(@_);
   }
 }
 
@@ -77,9 +86,10 @@ is($xpl->hbeat_mode, 'fast', "hbeat mode is fast");
 
 $xpl->{_send_sin} = sockaddr_in($fake_hub_port, $fake_hub_addr);
 
-wait_for_tick($xpl, "!fast-hbeat");
+wait_for_send($xpl);
 
 is($xpl->hbeat_count, 1, "correct hbeat count");
+
 my $buf;
 my $r = recv($hs, $buf, 1024, 0);
 ok(defined $r, "received first hbeat");
@@ -101,7 +111,7 @@ is($buf, $hb, "first hbeat content");
 
 is($xpl->hbeat_mode, 'hopeful', "hbeat mode is hopeful");
 is($xpl->timer_timeout("!fast-hbeat"), 0.2, "hopeful hbeat timer");
-wait_for_tick($xpl, "!fast-hbeat");
+wait_for_send($xpl);
 
 undef $buf;
 $r = recv($hs, $buf, 1024, 0);
@@ -173,9 +183,9 @@ $xpl->main_loop(1);
 ok(!$xpl->exists_timer("!fast-hbeat"), "fast hbeat timer gone");
 
 ok($xpl->exists_timer("!hbeat"), "hbeat timer exists");
-wait_for_tick($xpl, "!hbeat");
+wait_for_callback($xpl, timer => '!hbeat');
 is($xpl->hbeat_count, 3, "hbeat count");
-wait_for_tick($xpl, "!hbeat");
+wait_for_callback($xpl, timer => '!hbeat');
 is($xpl->hbeat_count, 4, "hbeat count");
 
 is($errors, undef, "no unexpected errors");
@@ -188,7 +198,7 @@ fake_hub_response($xpl,
                  );
 $xpl->reset_timer('!hbeat', time+20);
 my $next_hbeat = $xpl->timer_next('!hbeat');
-$xpl->main_loop(1);
+wait_for_callback($xpl, xpl_callback => '!hbeat-request');
 is($xpl->xpl_callback_callback_count('!hbeat-request'), 1,
    'hbeat.request - response received');
 is($xpl->hbeat_count, 4, "hbeat.request - hbeat count");
@@ -218,16 +228,11 @@ is($xpl->xpl_callback_callback_count('!hbeat-request'), 2,
 ok($xpl->exists_timer("!hbeat-response"),
    'hbeat.request - response timer exists');
 my $count = $xpl->timer_callback_count('!hbeat');
-$xpl->main_loop(1);
-if (0) { #TOFIX
+wait_for_callback($xpl, timer => '!hbeat');
 is($count+1,$xpl->timer_callback_count('!hbeat'),
    'hbeat.request - normal hbeat sent as response');
 ok(!$xpl->exists_timer("!hbeat-response"),
    'hbeat.request - response timer removed');
-} else {
-  ok(1, 'tofix');
-  ok(1, 'tofix');
-}
 
 # test the case when the !hbeat timer doesn't exist - normally when the fast
 # timer or hopeful timer would but here we just remove it for simplicity
@@ -239,7 +244,8 @@ fake_hub_response($xpl,
                   body => [ command => 'request', ],
                  );
 $xpl->remove_timer('!hbeat');
-$xpl->main_loop(1);
+wait_for_callback($xpl, xpl_callback => '!hbeat-request');
+
 is($xpl->xpl_callback_callback_count('!hbeat-request'), 3,
    'hbeat.request - response received');
 is($xpl->hbeat_count, $count, "hbeat.request - hbeat count");
@@ -260,14 +266,6 @@ $xpl = xPL::Client->new(ip => "127.0.0.1", broadcast => "127.255.255.255",
 ok($xpl, 'client w/o uname');
 ok($xpl->id, 'acme-dingus.default');
 
-sub wait_for_tick {
-  my $xpl = shift;
-  my $callback = shift;
-
-  my $tn = $xpl->timer_next($callback);
-  do { $xpl->main_loop(1); } until (Time::HiRes::time > $tn);
-}
-
 sub fake_hub_response {
   my $xpl = shift;
   my $save_sin = $xpl->{_send_sin};
@@ -275,4 +273,10 @@ sub fake_hub_response {
   $xpl->{_send_sin} = sockaddr_in($xpl->listen_port, inet_aton($xpl->ip));
   $xpl->send(@_);
   $xpl->{_send_sin} = $save_sin;
+}
+
+sub wait_for_send {
+  my ($xpl) = @_;
+  my $count = $send_called;
+  $xpl->main_loop(1) until ($send_called != $count);
 }

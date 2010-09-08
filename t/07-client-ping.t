@@ -6,7 +6,7 @@ use strict;
 use Socket;
 use Test::More tests => 10;
 use Time::HiRes;
-use t::Helpers qw/test_warn test_error/;
+use t::Helpers qw/test_error test_warn test_output wait_for_callback/;
 $|=1;
 
 use_ok('xPL::Client');
@@ -43,29 +43,21 @@ $xpl->add_timer(id => '!tick', timeout => 0.001);
 
 fake_hub_response($xpl, message_type => 'xpl-cmnd',
                   class => "ping.request");
-$xpl->main_loop(1);
+wait_for_callback($xpl, xpl_callback => '!ping-request');
 ok($xpl->exists_timer('!ping-response'), 'ping response timer created');
 fake_hub_response($xpl, message_type => 'xpl-cmnd',
                   class => "ping.request");
-$xpl->main_loop(1);
+wait_for_callback($xpl, xpl_callback => '!ping-request');
 ok($xpl->exists_timer('!ping-response'), 'ping response timer still exists');
 # TODO: should check that the timeout isn't reset
 $xpl->reset_timer('!ping-response', time-6);
-wait_for_tick($xpl, '!ping-response');
+wait_for_callback($xpl, timer => '!tick');
 my $r = recv($hs, $buf, 1024, 0);
 ok(defined $r, "received ping response");
 my $msg = xPL::Message->new_from_payload($buf);
 like($msg->summary,
    qr!^xpl-stat/ping\.response: acme-ping\.test -> \* \d+(?:\.\d+)?/ok/\d+(?:\.\d+)?!,
    "ping response content");
-
-sub wait_for_tick {
-  my $xpl = shift;
-  my $callback = shift;
-
-  my $tn = $xpl->timer_next($callback);
-  do { $xpl->main_loop(1); } until (Time::HiRes::time > $tn);
-}
 
 sub fake_hub_response {
   my $xpl = shift;

@@ -233,6 +233,8 @@ is(test_warn(sub { $xpl->main_loop(1) }),
    "LCDproc daemon protocol 0.2 not 0.3 as expected.\n",
    'protocol warning');
 
+$xpl->cleanup;
+
 {
   local $0 = 'dingus';
   local @ARGV = ('-v',
@@ -259,6 +261,8 @@ check_line($client_sel, $client, $buf, "hello");
 print $client "connect LCDproc 0.5dev ".
   "proto 0.1 lcd cellwid 5 cellhgt 8\n";
 
+print STDERR "H\n";
+print STDERR "F: ", $_, "_", $_->fileno, "\n" for ($xpl->inputs);
 is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
    q{Connected to LCD (?x?)
 queued: screen_add xplosd
@@ -267,7 +271,7 @@ queued: screen_set xplosd -priority hidden
 sending: screen_add xplosd
 },
    'connected message - no dimensions');
-
+print STDERR "H\n";
 
 $device->close;
 {

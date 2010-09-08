@@ -691,7 +691,6 @@ sub send_hbeat {
   my $self = shift;
   $self->{_hbeat_count}++;
   $self->send($self->{_hbeat_message});
-
   # if we are due to respond to a request but we've sent a message anyway
   # make sure we don't send another one
   $self->remove_timer('!hbeat-response')

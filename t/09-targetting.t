@@ -5,16 +5,26 @@
 use strict;
 use POSIX qw/uname/;
 use Socket;
-use Test::More tests => 9;
 use t::Helpers qw/test_error test_warn/;
 $|=1;
+
+BEGIN {
+  require Test::More;
+  require xPL::Client; import xPL::Client;
+
+  if ($xPL::Listener::EVENT_LOOP eq 'anyevent') {
+    import Test::More
+      skip_all => q{AnyEvent's singleton main_loop confuses this test};
+    exit;
+  }
+
+  import Test::More tests => 8;
+}
 
 use_ok("xPL::Hub");
 
 my $hub = xPL::Hub->new(interface => 'lo', port => 0, verbose => 1);
 is(scalar $hub->clients, 0, "no clients");
-
-use_ok("xPL::Client");
 
 my $dingus = xPL::Client->new(vendor_id => 'acme',
                               device_id => 'dingus',

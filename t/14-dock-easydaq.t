@@ -7,7 +7,7 @@ use IO::Socket::INET;
 use IO::Select;
 use Socket;
 use Test::More tests => 29;
-use t::Helpers qw/test_warn test_error test_output/;
+use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 $|=1;
 
 use_ok('xPL::Dock','EasyDAQ');
@@ -158,7 +158,10 @@ is((sysread $client, $buf, 64), 2, 'read is correct size - debug/high');
 $m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, '4100', 'content is correct - debug/high');
 print $client chr(0);
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 00\n", 'read response - debug/high');
 
 # The begin block is global of course but this is where it is really used.

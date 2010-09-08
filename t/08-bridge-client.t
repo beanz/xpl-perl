@@ -9,7 +9,7 @@ use IO::Select;
 use IO::Socket;
 use POSIX qw/strftime/;
 use Test::More tests => 12;
-use t::Helpers qw/test_error test_warn/;
+use t::Helpers qw/test_error test_warn wait_for_callback/;
 
 $|=1;
 
@@ -52,7 +52,7 @@ ok($msg, "prepared message to send from remote");
 my $msg_str = $msg->string;
 ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)), "client sent message");
 
-$bridge->main_loop(1);
+wait_for_callback($bridge, input => $bridge->peers);
 
 my $md5 = xPL::Bridge::msg_hash($msg_str);
 

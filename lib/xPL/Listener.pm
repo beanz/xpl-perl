@@ -180,12 +180,30 @@ sub new {
   $self->init_inputs();
   $self->init_xpl_callbacks();
 
+  $self->{_is_initialized} = 1;
+
   undef $self->{_select};
 
   my $listen = $self->create_listen_socket();
   my $send = $self->create_send_socket();
 
   return $self;
+}
+
+sub DESTROY {
+  $_[0]->cleanup;
+}
+
+sub cleanup {
+  my $self = shift;
+  return unless ($self->{_is_initialized});
+  foreach my $t ($self->timers) {
+    $self->remove_timer($t);
+  }
+  foreach my $i ($self->inputs) {
+    next unless (defined $i);
+    $self->remove_input($i);
+  }
 }
 
 =head1 ATTRIBUTE METHODS

@@ -9,24 +9,36 @@ use IO::Select;
 use IO::Socket;
 use POSIX qw/strftime/;
 use Test::More tests => 47;
-use t::Helpers qw/test_error test_warn/;
+use t::Helpers qw/test_error test_warn wait_for_callback/;
 
 $|=1;
 
 use_ok("xPL::Bridge");
 use_ok("xPL::Message");
 
+my $call;
+{
+  package My::Bridge;
+  use base qw/xPL::Bridge/;
+  sub sock_accept {
+    my $self = shift;
+    $call = \@_;
+    $self->SUPER::sock_accept(@_);
+  }
+  1;
+}
+
 $ENV{XPL_HOSTNAME} = 'mytestid';
 
 my $warn;
 $SIG{__WARN__} = sub { $warn .= $_[0]; };
 
-my $bridge = xPL::Bridge->new(ip => "127.0.0.1",
-                              broadcast => "127.0.0.1",
-                              vendor_id => 'acme',
-                              device_id => 'bridge',
-                              bridge_port => 19_999,
-                              verbose => 1);
+my $bridge = My::Bridge->new(ip => "127.0.0.1",
+                             broadcast => "127.0.0.1",
+                             vendor_id => 'acme',
+                             device_id => 'bridge',
+                             bridge_port => 19_999,
+                             verbose => 1);
 is($bridge->timeout, 120, 'default timeout');
 is($bridge->bridge_mode, 'server', 'bridge mode');
 is($bridge->local_ip, '0.0.0.0', 'check default local ip address');
@@ -41,7 +53,8 @@ my $cstr = $cs->sockhost.':'.$cport;
 my $sel = IO::Select->new($cs);
 
 # run main loop for client to be accepted
-$bridge->main_loop(1);
+wait_for_call($bridge);
+undef $call;
 
 is(scalar $bridge->peers, 1, "fake client accepted");
 
@@ -52,7 +65,7 @@ fake_hub_message($bridge,
                  body => [ time => strftime("%Y%m%d%H%M%S", localtime(time)) ]);
 
 # run main loop for message to be received and re-transmitted to clients
-$bridge->main_loop(1);
+wait_for_callback($bridge, xpl_callback => '!bridge');
 
 ok($sel->can_read(0.5), "client has first message to read");
 
@@ -77,8 +90,7 @@ ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)),
    "client sent message again");
 $cs->flush();
 
-$bridge->main_loop(1);
-$bridge->main_loop(1);
+wait_for_callback($bridge, input => ($bridge->peers)[0]);
 
 my $md5 = xPL::Bridge::msg_hash($msg_str);
 
@@ -127,7 +139,7 @@ ok($cs->syswrite(xPL::Bridge::pack_message("xpl-cmnd\n{}")),
 $w = test_warn(sub { $bridge->main_loop(1); });
 $w=~s/\d+\.\d+\.\d+\.\d+/127.0.0.1/;
 is($w,
-   'xPL::Bridge->sock_read: Invalid message from 127.0.0.1:'.$cport.
+   'My::Bridge->sock_read: Invalid message from 127.0.0.1:'.$cport.
      ': xPL::Message->new_from_payload: '.
      'Message badly formed: failed to split head and body',
    'invalid message warning');
@@ -150,7 +162,8 @@ $cstr = $cs->sockhost.':'.$cs->sockport;
 $sel = IO::Select->new($cs);
 
 # run main loop for client to be accepted
-$bridge->main_loop(1);
+wait_for_call($bridge);
+undef $call;
 
 is(scalar $bridge->peers, 1, "fake client accepted");
 
@@ -209,4 +222,9 @@ sub fake_hub_message {
   $xpl->{_send_sin} = sockaddr_in($xpl->listen_port, inet_aton($xpl->ip));
   $xpl->send(@_);
   $xpl->{_send_sin} = $save_sin;
+}
+
+sub wait_for_call {
+  my $xpl = shift;
+  $xpl->main_loop(1) until (defined $call);
 }

@@ -7,7 +7,7 @@ use IO::Socket::INET;
 use IO::Select;
 use Socket;
 use Test::More tests => 72;
-use t::Helpers qw/test_warn test_error test_output/;
+use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 $|=1;
 
 use_ok('xPL::Dock','DMX');
@@ -65,7 +65,10 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
 
   print $client chr(0).(substr $buf, -1);
 
-  is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+  is(test_output(sub {
+                   wait_for_callback($xpl,
+                                     input => $plugin->{_io}->input_handle)
+                 }, \*STDOUT),
      "received: 00".(substr $m, -2)."\n", 'read response - '.$color);
   check_sent_msg({
                   message_type => 'xpl-trig',

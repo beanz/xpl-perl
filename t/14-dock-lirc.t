@@ -9,7 +9,7 @@ use Socket;
 use Test::More tests => 15;
 use Time::HiRes;
 use Cwd;
-use t::Helpers qw/test_warn test_error test_output/;
+use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 $|=1;
 
 use_ok('xPL::Dock','LIRC');
@@ -49,7 +49,7 @@ is(ref $plugin, 'xPL::Dock::LIRC', 'plugin has correct type');
 
 $client->print("ffff423000000000 00 STOP vcr0081\n");
 
-$xpl->main_loop(1);
+wait_for_callback($xpl, input => $plugin->{_io}->input_handle);
 
 check_sent_msg({
                 message_type => 'xpl-trig',

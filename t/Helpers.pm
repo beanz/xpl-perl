@@ -39,6 +39,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
                                    test_error
 	                           test_warn
                                    test_output
+                                   wait_for_callback
 ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
@@ -103,6 +104,16 @@ sub test_output {
   unlink $tmpfile;
   $tmpfh->close;
   return $c;
+}
+
+sub wait_for_callback {
+  my ($xpl, $type, $id, $count) = @_;
+  my $method = $type.'_callback_count';
+  $count = $xpl->$method($id)+1 unless (defined $count);
+  while ($xpl->$method($id) < $count) {
+    #print STDERR "Waiting for $type => $id to reach $count\n";
+    $xpl->main_loop(1);
+  }
 }
 
 # Autoload methods go after =cut, and are processed by the autosplit program.
