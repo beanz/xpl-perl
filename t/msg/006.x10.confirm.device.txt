@@ -8,10 +8,10 @@ $args =
    },
    class => "x10.confirm",
    body =>
-   {
+   [
     command => "on",
     device => "a2",
-   },
+   ],
   };
 
 xpl-trig

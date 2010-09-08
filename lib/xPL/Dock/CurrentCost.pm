@@ -129,11 +129,11 @@ sub device_reader {
                           head => { source => $xpl->id, },
                           class => 'sensor.basic',
                           body =>
-                          {
+                          [
                            device => $dev,
                            type => 'current',
                            current => $v,
-                          });
+                          ]);
       print $xplmsg->summary,"\n";
       $xpl->send($xplmsg);
     }
@@ -142,11 +142,11 @@ sub device_reader {
                         head => { source => $xpl->id, },
                         class => 'sensor.basic',
                         body =>
-                        {
+                        [
                          device => $device,
                          type => 'temp',
                          current => $data{tmpr},
-                        });
+                        ]);
     print $xplmsg->summary,"\n";
     $xpl->send($xplmsg);
   } else {

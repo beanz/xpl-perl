@@ -69,10 +69,10 @@ is(test_output(sub {
                                      class=> 'x10',
                                      class_type => 'basic',
                                      body =>
-                                     {
+                                     [
                                       'command' => 'on',
                                       'device' => 'a3',
-                                     })); }, \*STDOUT),
+                                     ])); }, \*STDOUT),
    ("queued: 00000000 on a3\n".
     "sending: 00000000 on a3\n"),
    'x10.basic command=extended output');
@@ -88,60 +88,60 @@ is($out, "Acknowledged 00000000 on a3\n", 'helper ack 0');
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'x10.basic',
-                body => {
+                body => [
+                         'command' => 'on',
                          'device' => 'a0',
-                         'command' => 'on'
-                        },
+                        ],
                }, 'monitor: a0 on');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'x10.basic',
-                body => {
-                         device => 'a2',
+                body => [
                          command => 'bright',
+                         device => 'a2',
                          level => 36,
-                        },
+                        ],
                }, 'monitor: a2 bright');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'x10.confirm',
-                body => {
-                         device => 'a3,a10',
+                body => [
                          command => 'on',
-                        },
+                         device => 'a3,a10',
+                        ],
                }, 'monitor: a3 on');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'x10.basic',
-                body => {
-                         device => 'l6',
+                body => [
                          command => 'extended',
+                         device => 'l6',
                          data1 => 49,
                          data2 => 63,
-                        },
+                        ],
                }, 'monitor: l6 xfunc 49 63');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'x10.basic',
-                body => {
-                         device => 'a4,a5,a6,a10',
+                body => [
                          command => 'on',
-                        },
+                         device => 'a4,a5,a6,a10',
+                        ],
                }, 'monitor: a4,a5,a6,a10');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'x10.basic',
-                body => {
-                         device => 'l6',
+                body => [
                          command => 'extended',
+                         device => 'l6',
                          data1 => 49,
                          data2 => 63,
-                        },
+                        ],
                }, 'monitor: l6 xfunc 49 63');
 
 is(test_output(sub {
@@ -154,11 +154,11 @@ is(test_output(sub {
                                      class=> 'x10',
                                      class_type => 'basic',
                                      body =>
-                                     {
+                                     [
                                       'command' => 'dim',
                                       'level' => 10,
                                       'house' => 'a',
-                                     })); }, \*STDOUT),
+                                     ])); }, \*STDOUT),
    ("queued: 00000001 dim a1 2\n".
     "sending: 00000001 dim a1 2\n"),
    'x10.basic command=extended output');
@@ -181,12 +181,12 @@ is(test_output(sub {
                                      class=> 'x10',
                                      class_type => 'basic',
                                      body =>
-                                     {
+                                     [
                                       command => 'extended',
                                       device => 'a10,a12',
                                       data1 => 49,
                                       data2 => 63,
-                                     })); }, \*STDOUT),
+                                     ])); }, \*STDOUT),
    ("queued: 00000002 xfunc 31 a10,12 3f\n".
     "sending: 00000002 xfunc 31 a10,12 3f\n"),
    'x10.basic command=extended output');
@@ -226,11 +226,11 @@ is(test_output(sub {
                                      class=> 'x10',
                                      class_type => 'basic',
                                      body =>
-                                     {
+                                     [
                                       command => 'extended',
                                       device => 'a10,a12',
                                       data2 => 63,
-                                     })); }, \*STDOUT),
+                                     ])); }, \*STDOUT),
    '',
    'x10.basic command=extended missing data1');
 is(test_output(sub {
@@ -243,11 +243,11 @@ is(test_output(sub {
                                      class=> 'x10',
                                      class_type => 'basic',
                                      body =>
-                                     {
+                                     [
                                       command => 'extended',
                                       device => 'a10,a12',
                                       data1 => 49,
-                                     })); }, \*STDOUT),
+                                     ])); }, \*STDOUT),
    '',
    'x10.basic command=extended missing data2');
 is(test_output(sub {
@@ -261,10 +261,10 @@ is(test_output(sub {
                                      class=> 'x10',
                                      class_type => 'basic',
                                      body =>
-                                     {
+                                     [
                                       command => 'invalid',
                                       device => 'a10',
-                                     })); }, \*STDOUT),
+                                     ])); }, \*STDOUT),
    '',
    'x10.basic command=invalid');
 
@@ -279,10 +279,10 @@ is(test_output(sub {
                                      class=> 'x10',
                                      class_type => 'basic',
                                      body =>
-                                     {
+                                     [
                                       command => 'bright',
                                       device => 'a10',
-                                     })); }, \*STDOUT),
+                                     ])); }, \*STDOUT),
    "queued: 00000003 bright a10\nsending: 00000003 bright a10\n",
    'x10.basic command=bright no level');
 

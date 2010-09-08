@@ -148,7 +148,7 @@ sub new {
   my %xpl_message_args =
     (
      head => { source => $self->id },
-     body => { interval => $self->hbeat_interval, },
+     body => [ interval => $self->hbeat_interval ],
     );
   if ($self->hubless) {
     $self->standard_hbeat_mode(1);
@@ -170,8 +170,8 @@ sub new {
   } else {
     $self->fast_hbeat_mode();
     $xpl_message_args{class} = $class.'.app';
-    $xpl_message_args{body}->{port} = $self->listen_port;
-    $xpl_message_args{body}->{remote_ip} = $self->ip;
+    push @{$xpl_message_args{body}}, port => $self->listen_port;
+    push @{$xpl_message_args{body}}, remote_ip => $self->ip;
   }
 
   $self->{_hbeat_message} = xPL::Message->new(%xpl_message_args);
@@ -658,14 +658,14 @@ running to terminate it and send a C<ping.response> with state
 sub send_ping_response {
   my $self = shift;
   my $delay = shift;
-  my %body =
+  my @body =
     (
      delay => $delay,
      state => $self->{ping}->{state} || 'timeout',
     );
-  $body{checktime} = $self->{ping}->{time} if (exists $self->{ping}->{time});
-  $self->send(class => 'ping.response',
-              body => \%body);
+  push @body, checktime => $self->{ping}->{time}
+    if (exists $self->{ping}->{time});
+  $self->send(class => 'ping.response', body => \@body);
   return 1;
 }
 
@@ -717,11 +717,11 @@ sub send_hbeat_end {
   $self->send(class => $self->{_hbeat_class},
               class_type => 'end',
               body =>
-              {
+              [
                interval => $self->hbeat_interval,
                port => $self->listen_port,
                remote_ip => $self->ip,
-              },
+              ],
              );
   return 1;
 }

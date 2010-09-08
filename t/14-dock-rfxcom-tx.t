@@ -81,10 +81,10 @@ my $msg = xPL::Message->new(strict => 0,
                             class => 'x10.basic',
                             head => { source => 'acme-x10.test' },
                             body =>
-                            {
+                            [
                              command => 'on',
                              device => 'a1,xxx',
-                            });
+                            ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - a1/on');
@@ -133,10 +133,10 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 $msg = xPL::Message->new(class => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
-                         {
+                         [
                           command => 'all_lights_off',
                           house => 'p',
-                         });
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - p/all_lights_off');
@@ -181,9 +181,9 @@ $msg = xPL::Message->new(strict => 0,
                          class => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
-                         {
+                         [
                           command => 'on',
-                         });
+                         ]);
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    ("Invalid x10.basic message:\n".
     "  xpl-cmnd/x10.basic: acme-x10.test -> * - on\n"),
@@ -193,11 +193,11 @@ is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
 $msg = xPL::Message->new(class => 'homeeasy.basic',
                          head => { source => 'acme-homeeasy.test' },
                          body =>
-                         {
+                         [
                           command => 'off',
                           address => '0x31f8177',
                           unit => '10',
-                         });
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - homeeasy');
@@ -242,12 +242,12 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 $msg = xPL::Message->new(class => 'homeeasy.basic',
                          head => { source => 'acme-homeeasy.test' },
                          body =>
-                         {
+                         [
                           command => 'preset',
                           address => '0x31f8177',
                           unit => '10',
                           level => 10,
-                         });
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - homeeasy');
@@ -265,9 +265,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 $msg = xPL::Message->new(strict => 0,
                          class => 'homeeasy.basic',
                          head => { source => 'acme-he.test' },
-                         body =>
-                         {
-                         });
+                         body => []);
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    ("Invalid homeeasy.basic message:\n".
    "  xpl-cmnd/homeeasy.basic: acme-he.test -> * - \n"),
@@ -277,11 +275,11 @@ $msg = xPL::Message->new(strict => 0,
                          class => 'homeeasy.basic',
                          head => { source => 'acme-he.test' },
                          body =>
-                         {
+                         [
                           command => 'preset',
                           address => '0x31f8177',
                           unit => '10',
-                         });
+                         ]);
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    ("homeeasy.basic 'preset' message is missing 'level':\n".
     "  xpl-cmnd/homeeasy.basic: acme-he.test -> * - preset/0x31f8177 10\n"),

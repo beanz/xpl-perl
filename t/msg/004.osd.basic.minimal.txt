@@ -6,9 +6,9 @@ $args =
    },
    class => "osd.basic",
    body =>
-   {
+   [
     command => "clear",
-   },
+   ],
   };
 
 xpl-cmnd

@@ -107,7 +107,7 @@ sub send_dawndusk {
   my ($self, $status) = @_;
   return $self->xpl->send(message_type => 'xpl-trig',
                           class => 'dawndusk.basic',
-                          body => { type => 'dawndusk', status => $status },
+                          body => [ type => 'dawndusk', status => $status ],
                          );
 }
 
@@ -155,10 +155,10 @@ sub query_handler {
 
   return $self->xpl->send(message_type => 'xpl-stat',
                           class => 'dawndusk.basic',
-                          body => {
+                          body => [
                                    type => 'daynight',
                                    status => $self->{_state},
-                                  },
+                                  ],
                          );
 }
 

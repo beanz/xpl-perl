@@ -180,11 +180,11 @@ $xpl->send(head =>
             },
             class => "hbeat.app",
             body =>
-            {
+            [
              interval => 5,
              port => $xpl->listen_port,
              remote_ip => $xpl->ip,
-            },
+            ],
            );
 
 undef $cb;
@@ -292,9 +292,9 @@ my $msg = xPL::Message->new(head =>
                             },
                             class => "clock.update",
                             body =>
-                            {
+                            [
                              time => '20051113182650',
-                            },
+                            ],
                            );
 undef $cb2;
 $xpl->send($msg);
@@ -325,9 +325,9 @@ $xpl->send(head =>
            },
            class => "clock.update",
            body =>
-           {
+           [
             time => '20051113182651',
-           });
+           ]);
 $xpl->main_loop(1);
 is($xpl->xpl_callback_callback_count('hbeat'), 1, "callback counter");
 is($xpl->xpl_callback_callback_count('hbeat2'), 4, "callback counter");
@@ -346,11 +346,11 @@ $xpl->send(head =>
             },
             class => "hbeat.end",
             body =>
-            {
+            [
              interval => 5,
              port => $xpl->listen_port,
              remote_ip => $xpl->ip,
-            },
+            ],
            );
 $xpl->main_loop(1);
 
@@ -382,11 +382,11 @@ $xpl->send(head =>
             },
             class => "hbeat.end",
             body =>
-            {
+            [
              interval => 5,
              port => $xpl->listen_port,
              remote_ip => $xpl->ip,
-            },
+            ],
            );
 $xpl->main_loop(1);
 

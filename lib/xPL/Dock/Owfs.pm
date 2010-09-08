@@ -225,11 +225,11 @@ sub send_xpl {
      message_type => $message_type,
      class => 'sensor.basic',
      body =>
-     {
+     [
       device => (defined $index ? $device.'.'.$index : $device),
       type => $type,
       current => $current,
-     },
+     ],
     );
   $self->debug("Sending $device\[$type]=$current\n");
   return $self->xpl->send(%args);

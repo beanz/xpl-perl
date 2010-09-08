@@ -300,11 +300,11 @@ sub send_xpl_confirm {
   $xpl->send(message_type => 'xpl-trig',
              class => 'dmx.confirm',
              body =>
-             {
-              type => $msg->type,
+             [
               base => $msg->base,
+              type => $msg->type,
               value => $msg->value,
-             });
+             ]);
 }
 
 =head2 C<read_rgb_txt( $file )>

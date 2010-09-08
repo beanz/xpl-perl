@@ -48,9 +48,9 @@ is(test_output(sub {
                                      class=> 'remote',
                                      class_type => 'basic',
                                      body =>
-                                     {
+                                     [
                                       'keys' => 'helloworld',
-                                     })) }, \*STDOUT),
+                                     ])) }, \*STDOUT),
    ("Executing 'xvkbd -text helloworld'\n".
     "executed: t/bin/xvkbd -text helloworld\n"),
    'testing execution');

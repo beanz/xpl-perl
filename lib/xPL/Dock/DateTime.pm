@@ -94,12 +94,12 @@ sub send_datetime {
   return $self->xpl->send(message_type => 'xpl-trig',
                           class => 'datetime.basic',
                           body =>
-                          {
+                          [
                            datetime => $datetime,
                            date => (substr $datetime, 0, 8, ''),
                            time => $datetime,
                            epoch => $time,
-                          },
+                          ],
                          );
 }
 
@@ -134,10 +134,10 @@ sub query_handler {
   return $self->xpl->send(message_type => 'xpl-stat',
                           class => 'datetime.basic',
                           body =>
-                          {
+                          [
                            status => $datetime,
                            epoch => $time,
-                          },
+                          ],
                          );
 }
 

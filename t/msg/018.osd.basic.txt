@@ -9,13 +9,13 @@ $args =
    },
    class => "osd.basic",
    body =>
-   {
+   [
     command => "clear",
     text => ["Ring, Ring", "Ring, Ring" ],
     row => 1,
     column => 2,
     delay => 5,
-   },
+   ],
   };
 
 xpl-cmnd

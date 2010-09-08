@@ -81,16 +81,16 @@ sub x10_xpl_message {
   my $parent = shift;
   my $command = shift;
   my $device = shift;
-  my %body = ( device => $device, command => $command );
+  my $body = [ device => $device, command => $command ];
   if ($command eq 'bright' or $command eq 'dim') {
-    $body{level} = $parent->{_default_x10_level};
+    push @$body, level => $parent->{_default_x10_level};
   }
   my %args =
     (
      message_type => 'xpl-trig',
      class => 'x10.basic',
      head => { source => $parent->{_source}, },
-     body => \%body,
+     body => $body,
     );
   return xPL::Message->new(%args);
 }

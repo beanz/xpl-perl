@@ -61,11 +61,11 @@ check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
                                  message_type => 'xpl-trig',
                                  class => 'sensor.basic',
                                  body =>
-                                 {
+                                 [
                                   device => 'bt.00:1A:75:DE:DE:DE',
                                   type => 'input',
                                   current => 'high',
-                                 }),
+                                 ]),
                'is found message');
 
 $output = test_output(sub { $xpl->dispatch_timer('poll-bluetooth') },
@@ -78,11 +78,11 @@ check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
                                  message_type => 'xpl-stat',
                                  class => 'sensor.basic',
                                  body =>
-                                 {
+                                 [
                                   device => 'bt.00:1A:75:DE:DE:DE',
                                   type => 'input',
                                   current => 'high',
-                                 }),
+                                 ]),
                'is still found message');
 
 delete $devices{'00:1A:75:DE:DE:DE'};
@@ -95,11 +95,11 @@ check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
                                  message_type => 'xpl-trig',
                                  class => 'sensor.basic',
                                  body =>
-                                 {
+                                 [
                                   device => 'bt.00:1A:75:DE:DE:DE',
                                   type => 'input',
                                   current => 'low',
-                                 }),
+                                 ]),
                'not found message');
 
 sub check_sent_msg {

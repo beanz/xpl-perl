@@ -9,11 +9,11 @@ $args =
    },
    class => 'sensor.network',
    body =>
-   {
+   [
     device => 'router1',
     type => 'packets',
     current => '1234',
-   },
+   ],
   };
 
 xpl-trig

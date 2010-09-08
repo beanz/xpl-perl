@@ -9,10 +9,10 @@ $args =
    },
    class => "hbeat.basic",
    body =>
-   {
+   [
     interval => 10,
     extra => "test of extra field",
-   },
+   ],
    verbose => 1,
   };
 

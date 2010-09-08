@@ -8,11 +8,11 @@ $args =
    },
    class => 'dmx.basic',
    body =>
-   {
+   [
     base => '1',
     type => 'set',
     value => 10,
-   },
+   ],
   };
 
 xpl-cmnd

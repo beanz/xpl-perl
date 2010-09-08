@@ -9,9 +9,9 @@ $args =
    },
    class => 'remote.basic',
    body =>
-   {
+   [
     keys => 'snooze',
-   },
+   ],
   };
 
 xpl-trig

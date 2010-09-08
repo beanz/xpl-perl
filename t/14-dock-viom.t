@@ -108,7 +108,7 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                { device => 'i01', type => 'input', current => 'low' },
+                [ device => 'i01', type => 'input', current => 'low' ],
                }, 'i01 low');
 
 print $client "1000000000000000\r\n";
@@ -119,18 +119,18 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                { device => 'i01', type => 'input', current => 'high' },
+                [ device => 'i01', type => 'input', current => 'high' ],
                }, 'i01 low');
 $plugin->{_verbose} = 2;
 
 my $msg = xPL::Message->new(class => 'control.basic',
                             head => { source => 'acme-viom.test' },
                             body =>
-                            {
+                            [
                              type => 'output',
                              device => 'o01',
                              current => 'high',
-                            });
+                            ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - o01/high');
 $buf = '';

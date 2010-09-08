@@ -9,10 +9,10 @@ $args =
    },
    class => 'dawndusk.request',
    body =>
-   {
+   [
     command => 'status',
     query => 'daynight',
-   },
+   ],
   };
 
 xpl-cmnd

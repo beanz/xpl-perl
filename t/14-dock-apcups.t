@@ -71,23 +71,23 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-linev',
                  type => 'voltage',
                  current => '239.0',
-                },
+                ],
                }, 'checking xPL message - linev');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-timeleft',
                  type => 'generic',
                  current => '1860',
                  units => 's',
-                },
+                ],
                }, 'checking xPL message - timeleft');
 
 $client->print(pack 'n/a*', 'LINEV    : 239.0 Volts');
@@ -101,23 +101,23 @@ check_sent_msg({
                 message_type => 'xpl-stat',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-linev',
                  type => 'voltage',
                  current => '239.0',
-                },
+                ],
                }, 'checking xPL message - linev');
 
 check_sent_msg({
                 message_type => 'xpl-stat',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-timeleft',
                  type => 'generic',
                  current => '1860',
                  units => 's',
-                },
+                ],
                }, 'checking xPL message - timeleft');
 
 $client->print(pack 'n/a*', 'CABLE    : USB Cable'); # silently ignored
@@ -135,33 +135,33 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-linev',
                  type => 'voltage',
                  current => '240.0',
-                },
+                ],
                }, 'checking xPL message - linev');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'ups.basic',
                 body =>
-                {
+                [
                  status => 'battery',
                  event => 'onbattery',
-                },
+                ],
                }, 'checking xPL message - ups');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-timeleft',
                  type => 'generic',
                  current => '1200',
                  units => 's',
-                },
+                ],
                }, 'checking xPL message - timeleft');
 
 my $str = pack 'n/a* n/a*', '', 'LINEV    : 241.0 Volts';
@@ -182,11 +182,11 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-linev',
                  type => 'voltage',
                  current => '241.0',
-                },
+                ],
                }, 'checking xPL message - linev');
 
 $client->print(pack "C C/a*", 0x1, 'test');

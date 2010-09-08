@@ -36,7 +36,7 @@ my $msg =
   xPL::Message->new(message_type => 'xpl-cmnd',
                     head => { source => 'acme-config.tester' },
                     class => 'config.list',
-                    body => { command => 'request' });
+                    body => [ command => 'request' ]);
 $xpl->dispatch_xpl_message($msg);
 
 is(xPL::Message->new(@{$msg[0]},
@@ -64,12 +64,12 @@ $msg =
                     head => { source => 'acme-config.tester' },
                     class => 'config.response',
                     body =>
-                    {
-                    newconf => 'foo',
+                    [
+                     newconf => 'foo',
                      username => 'user',
                      password => 'pass',
                      bar => 'baz', # should be ignored
-                    });
+                    ]);
 
 my @args = ();
 $xpl->add_event_callback(id => 'config_changed_cb', event => 'config_changed',
@@ -125,7 +125,7 @@ $msg =
   xPL::Message->new(message_type => 'xpl-cmnd',
                     head => { source => 'acme-config.tester' },
                     class => 'config.current',
-                    body => { command => 'request' });
+                    body => [ command => 'request' ]);
 @msg = ();
 $xpl->dispatch_xpl_message($msg);
 

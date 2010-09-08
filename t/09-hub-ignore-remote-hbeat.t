@@ -26,13 +26,13 @@ $dingus->{_send_sin} =
   sockaddr_in($hub->listen_port, inet_aton($hub->broadcast));
 
 $dingus->send(class => 'hbeat.app',
-              body => { remote_ip => '127.0.0.2', port => 12345 });
+              body => [ remote_ip => '127.0.0.2', port => 12345 ]);
 $hub->main_loop(1);    # hub receives it
 my @clients = $hub->clients;
 is(scalar @clients, 0, "no clients");
 
 $dingus->send(class => 'hbeat.end',
-              body => { remote_ip => '127.0.0.2', port => 12345 });
+              body => [ remote_ip => '127.0.0.2', port => 12345 ]);
 $hub->main_loop(1);    # hub receives it
 @clients = $hub->clients;
 is(scalar @clients, 0, "no clients");

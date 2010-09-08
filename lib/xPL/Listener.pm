@@ -395,38 +395,25 @@ L<send_from_arg_list()>.
 
 sub send_from_list {
   my $self = shift;
-  my %body;
-  while (@_) {
-    my $k = shift @_;
-    my $v = shift @_;
-    if ($body{$k}) {
-      if (ref $body{$k}) {
-        push @{$body{$k}}, $v;
-      } else {
-        $body{$k} = [$body{$k}, $v];
-      }
+  my @body;
+  my %args;
+  my $i = 0;
+  while ($i <= $#_) {
+    my $k = $_[$i++];
+    my $v = $_[$i++];
+    if ($k eq '-m') {
+      $args{message_type} = $v;
+    } elsif ($k eq '-c') {
+      $args{class} = $v;
+    } elsif ($k eq '-s') {
+      $args{head}->{source} = $v;
+    } elsif ($k eq '-t') {
+      $args{head}->{target} = $v;
     } else {
-      $body{$k} = $v;
+      push @body, $k => $v;
     }
   }
-  my %args = ();
-  if (exists $body{'-m'}) {
-    $args{message_type} = $body{'-m'};
-    delete $body{'-m'};
-  }
-  if (exists $body{'-c'}) {
-    $args{class} = $body{'-c'};
-    delete $body{'-c'};
-  }
-  if (exists $body{'-s'}) {
-    $args{head}->{source} = $body{'-s'};
-    delete $body{'-s'};
-  }
-  if (exists $body{'-t'}) {
-    $args{head}->{target} = $body{'-t'};
-    delete $body{'-t'};
-  }
-  return $self->send(%args, body => \%body);
+  return $self->send(%args, body => \@body);
 }
 
 =head1 MESSAGE CALLBACK METHODS

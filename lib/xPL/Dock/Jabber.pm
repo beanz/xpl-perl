@@ -240,10 +240,10 @@ sub jabber_message {
     $self->{_xpl}->send(message_type => 'xpl-trig',
                         class => 'im.basic',
                         body =>
-                        {
+                        [
                          body => $body,
                          from => $from,
-                        });
+                        ]);
   }
 
   return 1;

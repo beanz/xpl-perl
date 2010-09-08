@@ -6,10 +6,10 @@ $args =
    },
    class => 'cid.basic',
    body =>
-   {
+   [
     calltype => 'outbound',
     phone => '012345678910',
-   },
+   ],
   };
 
 xpl-trig

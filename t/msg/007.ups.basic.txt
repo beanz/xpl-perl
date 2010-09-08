@@ -9,10 +9,10 @@ $args =
    },
    class => 'ups.basic',
    body =>
-   {
+   [
     status => 'battery',
     event => 'onbattery',
-   },
+   ],
   };
 
 xpl-trig

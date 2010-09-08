@@ -208,7 +208,7 @@ sub send_xpl {
     (
      message_type => 'xpl-trig',
      class => 'sensor.basic',
-     body => { device => $device, type => 'input', current => $level },
+     body => [ device => $device, type => 'input', current => $level ],
     );
   $self->info('Sending ', $device, ' ', $level, "\n");
   return $xpl->send(%args);

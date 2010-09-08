@@ -18,10 +18,10 @@ ok($msg = xPL::Message->new(message_type => "xpl-stat",
                              source => 'source',
                             },
                             body =>
-                            {
+                            [
                              field1 => 'value1',
                              field2 => 'value2',
-                            },
+                            ],
                             strict => 0,
                            ), 'new message');
 is($msg->strict, 0, 'testing setter - strict');
@@ -41,11 +41,11 @@ is($msg->extra_field_string(),
 my %args = (message_type => 'xpl-cmnd',
             class => 'x10.basic',
             head => { source => 'bnz-acme.test' },
-            body => {
+            body => [
                      command => 'on',
                      device => 'a1',
                      extra => 'test',
-                    }
+                    ]
            );
 my $before = Data::Dumper->Dump([\%args], [qw/args/]);
 ok(xPL::Message->new(%args), 'creating message to check corruption');

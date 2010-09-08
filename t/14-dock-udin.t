@@ -55,11 +55,11 @@ wait_for_tick($xpl, $count);
 my $msg = xPL::Message->new(class => 'control.basic',
                             head => { source => 'acme-udin.test' },
                             body =>
-                            {
+                            [
                              type => 'output',
                              device => 'udin-r1',
                              current => 'high',
-                            });
+                            ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - udin-r1/high');
 $buf = '';

@@ -69,11 +69,11 @@ sub parse {
                         message_type => 'xpl-trig',
                         class => 'sensor.basic',
                         head => { source => $parent->source, },
-                        body => {
+                        body => [
                                  device => 'electrisave.'.$dev,
                                  type => 'current',
                                  current => $ct[$index],
-                                }
+                                ]
                        );
   }
   return \@msgs;

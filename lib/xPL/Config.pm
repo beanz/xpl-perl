@@ -259,28 +259,28 @@ sub config_types {
     push @{$type{$self->item_type($name)}}, $txt;
   }
 
-  my %body = ();
+  my @body = ();
   foreach (qw/config reconf option/) {
-    $body{$_} = $type{$_} if (exists $type{$_});
+    push @body, $_ => $type{$_} if (exists $type{$_});
   }
-  return \%body;
+  return \@body;
 }
 
 =head2 C<config_current()>
 
-This method returns a hash reference contain keys for each element
-where the values are values of the items.
+This method returns a array reference contain pairs of keys and values
+of the items.
 
 =cut
 
 sub config_current {
   my $self = shift;
-  my %body = ();
+  my @body = ();
   foreach my $name ($self->items) {
     my $val = $self->get_item($name);
-    $body{$name} = defined $val ? $val : '';
+    push @body, $name => defined $val ? $val : '';
   }
-  return \%body;
+  return \@body;
 }
 
 =head1 INTERNAL METHODS

@@ -74,7 +74,7 @@ my $mock = $plugin->{_dbus_object} = MyDBUSObject->new();
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-fdnotify.test' },
                             class => 'osd.basic',
-                            body => { command => 'write', text => 'test' });
+                            body => [ command => 'write', text => 'test' ]);
 $xpl->dispatch_xpl_message($msg);
 my @calls = $mock->calls;
 is(scalar @calls, 1, 'correct number of calls - 1');
@@ -93,8 +93,8 @@ is($calls[0], q!MyDBUSObject::Notify $args = [
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-fdnotify.test' },
                          class => 'osd.basic',
-                         body => { command => 'write', text => 'test',
-                                   delay => 90 });
+                         body => [ command => 'write', text => 'test',
+                                   delay => 90 ]);
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 1, 'correct number of calls - delay given');
@@ -113,7 +113,7 @@ is($calls[0], q!MyDBUSObject::Notify $args = [
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-fdnotify.test' },
                          class => 'osd.basic',
-                         body => { command => 'write', });
+                         body => [ command => 'write', ]);
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 0, 'no calls for empty write');

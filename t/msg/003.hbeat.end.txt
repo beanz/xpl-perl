@@ -9,11 +9,11 @@ $args =
    },
    class => "hbeat.end",
    body =>
-   {
+   [
     interval => 10,
     port => 12345,
     remote_ip => "127.0.0.1",
-   },
+   ],
   };
 
 xpl-stat

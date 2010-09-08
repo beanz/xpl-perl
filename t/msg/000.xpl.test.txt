@@ -7,9 +7,9 @@ $args =
    },
    class => "xpl.test",
    body =>
-   {
+   [
     extra => "test of extra field",
-   },
+   ],
    verbose => 1,
   };
 

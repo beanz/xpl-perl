@@ -91,11 +91,11 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              class=> 'osd',
                                              class_type => 'basic',
                                              body =>
-                                             {
+                                             [
                                               row => 2,
                                               'command' => 'clear',
                                               'text' => 'test',
-                                             }));
+                                             ]));
 
 foreach my $r (['widget_add xplosd row2 string' =>
                 'sending: widget_set xplosd row2 1 2 "test"'],
@@ -122,13 +122,13 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              class=> 'osd',
                                              class_type => 'basic',
                                              body =>
-                                             {
+                                             [
                                               # row intentionally out of range
                                               row => 20,
                                               'command' => 'clear',
                                               'text' =>
                                                 'this is a long string',
-                                             }));
+                                             ]));
 
 foreach my $r (['screen_set xplosd -priority hidden' =>
                 'sending: widget_del xplosd row2'],
@@ -157,13 +157,13 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              class=> 'osd',
                                              class_type => 'basic',
                                              body =>
-                                             {
+                                             [
                                               # row intentionally out of range
                                               row => -1,
                                               'command' => 'write',
                                               'text' => 'short string',
                                               delay => 60,
-                                             }));
+                                             ]));
 
 ok($xpl->timer_next('row1') <= (Time::HiRes::time + $plugin->delay),
    'max delay used');
@@ -190,12 +190,12 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              class=> 'osd',
                                              class_type => 'basic',
                                              body =>
-                                             {
+                                             [
                                               'command' => 'write',
                                               'text' =>
                                                 'another short one',
                                               delay => 0.1,
-                                             }));
+                                             ]));
 
 foreach my $r (['widget_set xplosd row1 1 1 "another short one"' => '']) {
   my ($input, $output) = @$r;
@@ -221,9 +221,9 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              class=> 'osd',
                                              class_type => 'basic',
                                              body =>
-                                             {
+                                             [
                                               'command' => 'clear',
-                                             }));
+                                             ]));
 
 foreach my $r (['screen_set xplosd -priority hidden' => '']) {
   my ($input, $output) = @$r;
@@ -298,11 +298,10 @@ is(test_output(
                                              class=> 'osd',
                                              class_type => 'basic',
                                              body =>
-                                             {
+                                             [
                                               'command' => 'write',
-                                              'text' =>
-                                                'a string',
-                                             }));
+                                              'text' => 'a string',
+                                             ]));
      }, \*STDOUT),
    (qq{queued: widget_add xplosd row1 string\n}.
     qq{queued: widget_set xplosd row1 1 1 "a string"\n}.
@@ -318,12 +317,11 @@ is(test_output(
                                              class=> 'osd',
                                              class_type => 'basic',
                                              body =>
-                                             {
+                                             [
                                               row => 2,
                                               'command' => 'clear',
-                                              'text' =>
-                                                'another string',
-                                             }));
+                                              'text' => 'another string',
+                                             ]));
      }, \*STDOUT),
    (qq{queued: screen_set xplosd -priority hidden\n}.
     qq{queued: widget_del xplosd row1\n}.

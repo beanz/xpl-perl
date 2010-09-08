@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 86;
+use Test::More tests => 72;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -46,11 +46,11 @@ is(ref $plugin, 'xPL::Dock::DMX', 'plugin has correct type');
 my $msg = xPL::Message->new(class => 'dmx.basic',
                             head => { source => 'acme-dmx.test' },
                             body =>
-                            {
-                             type => 'set',
+                            [
                              base => 1,
+                             type => 'set',
                              value => 'dummy',
-                            });
+                            ]);
 foreach my $color ('ff0000', '00ff00', '0000ff') {
   my $val = $color eq 'ff0000' ? 'red' : '0x'.$color;
   $msg->value($val);
@@ -67,7 +67,15 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
 
   is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
      "received: 00".(substr $m, -2)."\n", 'read response - '.$color);
-  check_sent_msg('dmx.confirm', $val, '1');
+  check_sent_msg({
+                  message_type => 'xpl-trig',
+                  class => 'dmx.confirm',
+                  body => [
+                           base => 1,
+                           type => 'set',
+                           value => $val,
+                          ],
+                 }, 'dmx.confirm for '.$val);
 }
 
 $msg->base('1x2');
@@ -85,7 +93,15 @@ print $client chr(0).(substr $buf, -1);
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 00".(substr $m, -2)."\n", 'read response - base=1x2');
 
-check_sent_msg('dmx.confirm', '0x0000ff', '1x2');
+check_sent_msg({
+                message_type => 'xpl-trig',
+                class => 'dmx.confirm',
+                body => [
+                         base => '1x2',
+                         type => 'set',
+                         value => '0x0000ff',
+                        ],
+               }, 'dmx.confirm for 1x2=0x0000ff');
 
 $msg->value('invalid');
 $xpl->dispatch_xpl_message($msg);
@@ -116,7 +132,15 @@ print $client chr(0).(substr $buf, -1);
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 00".(substr $m, -2)."\n", 'read response - base=hex');
 
-check_sent_msg('dmx.confirm', '010001ff', 'hex');
+check_sent_msg({
+                message_type => 'xpl-trig',
+                class => 'dmx.confirm',
+                body => [
+                         base => 'hex',
+                         type => 'set',
+                         value => '010001ff',
+                        ],
+               }, 'dmx.confirm for hex=010001ff');
 
 $plugin->{_min_visible_diff} = 64; # limit length of fade
 $msg->base('1');
@@ -124,14 +148,30 @@ $msg->value('0xff0000');
 $msg->extra_field('fade', .1);
 $xpl->dispatch_xpl_message($msg);
 
-check_sent_msg('dmx.confirm', '0xff0000', '1');
+check_sent_msg({
+                message_type => 'xpl-trig',
+                class => 'dmx.confirm',
+                body => [
+                         base => 1,
+                         type => 'set',
+                         value => '0xff0000',
+                        ],
+               }, 'dmx.confirm for 1=0xff0000');
 
 $msg->base('4');
 $msg->value('128,128');
 $msg->extra_field('fade', .3);
 $xpl->dispatch_xpl_message($msg);
 
-check_sent_msg('dmx.confirm', '128,128', '4');
+check_sent_msg({
+                message_type => 'xpl-trig',
+                class => 'dmx.confirm',
+                body => [
+                         base => 4,
+                         type => 'set',
+                         value => '128,128',
+                        ],
+               }, 'dmx.confirm for 4=128,128');
 
 my @expected = qw/0140 03bf 0180 037f 01c0 033f 01ff 0300 044040 048080/;
 my $num = @expected;
@@ -179,15 +219,13 @@ or the value can be given as a command line argument
 }
 
 sub check_sent_msg {
-  my ($class, $color, $base) = @_;
+  my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while (ref $msg->[0]) {
     $msg = shift @msg; # skip hbeat.* message
   }
   my %m = @{$msg};
-  is($m{class}, 'dmx.confirm', 'dmx.confirm message sent - '.$color);
-  is($m{body}->{value}, $color, 'dmx.confirm has correct value - '.$color);
-  is($m{body}->{base}, $base, 'dmx.confirm has correct base - '.$color);
+  is_deeply(\%m, $expected, 'message as expected - '.$desc);
 }
 
 {

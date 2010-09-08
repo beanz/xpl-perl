@@ -72,9 +72,9 @@ $dingus->send(message_type => "xpl-stat", class => "test.test",
                target => 'acme-dingus.default',
               },
               body =>
-              {
+              [
                test => 'test 1',
-              },
+              ],
              );
 $hub->main_loop(1);    # receive and resend message
 $dingus->main_loop(1); # receive message

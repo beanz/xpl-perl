@@ -51,20 +51,20 @@ CRC16 error rate   0.00
    'output 1');
 
 check_sent_msg({
-                'body' => {
-                           'current' => '20.1',
+                'body' => [
+                           'device' => '28.FEFEFE000000',
                            'type' => 'temp',
-                           'device' => '28.FEFEFE000000'
-                          },
+                           'current' => '20.1',
+                          ],
                 'message_type' => 'xpl-trig',
                 'class' => 'sensor.basic'
                }, 'temp reported');
 check_sent_msg({
-                'body' => {
-                           'current' => '101',
+                'body' => [
+                           'device' => '28.FEFEFE000000.0',
                            'type' => 'count',
-                           'device' => '28.FEFEFE000000.0'
-                          },
+                           'current' => '101',
+                          ],
                 'message_type' => 'xpl-trig',
                 'class' => 'sensor.basic'
                }, 'count.1 reported');
@@ -79,20 +79,20 @@ SKIP: {
        qr!^Failed to read ow file, t/ow/1/28\.FEFEFE000000/counters\.B: !,
        'read failure');
   check_sent_msg({
-                  'body' => {
-                             'current' => '20.1',
+                  'body' => [
+                             'device' => '28.FEFEFE000000',
                              'type' => 'temp',
-                             'device' => '28.FEFEFE000000'
-                          },
+                             'current' => '20.1',
+                          ],
                   'message_type' => 'xpl-stat',
                   'class' => 'sensor.basic'
                  }, 'temp reported');
   check_sent_msg({
-                  'body' => {
-                             'current' => '102',
+                  'body' => [
+                             'device' => '28.FEFEFE000000.0',
                              'type' => 'count',
-                             'device' => '28.FEFEFE000000.0'
-                            },
+                             'current' => '102',
+                            ],
                   'message_type' => 'xpl-trig',
                   'class' => 'sensor.basic'
                  }, 'count.1 reported');
@@ -128,20 +128,20 @@ CRC16 error rate   0.00
    'output 2');
 
 check_sent_msg({
-                'body' => {
-                           'current' => '25.8438',
+                'body' => [
+                           'device' => '26.ABABAB000000',
                            'type' => 'temp',
-                           'device' => '26.ABABAB000000'
-                          },
+                           'current' => '25.8438',
+                          ],
                 'message_type' => 'xpl-trig',
                 'class' => 'sensor.basic'
                }, 'temp reported');
 check_sent_msg({
-                'body' => {
-                           'current' => '24.6653',
+                'body' => [
+                           'device' => '26.ABABAB000000',
                            'type' => 'humidity',
-                           'device' => '26.ABABAB000000'
-                          },
+                           'current' => '24.6653',
+                          ],
                 'message_type' => 'xpl-trig',
                 'class' => 'sensor.basic'
                }, 'humidity reported');
@@ -152,11 +152,11 @@ $xpl->dispatch_xpl_message(
   xPL::Message->new(class => 'control.basic',
                     head => { source => 'acme-owfs.test' },
                     body =>
-                    {
-                     type => 'output',
+                    [
                      device => '05.CFCFCF000000',
+                     type => 'output',
                      current => 'low',
-                    }));
+                    ]));
 is(read_file($file), '0', 'output set low');
 unlink $file;
 
@@ -164,11 +164,11 @@ $xpl->dispatch_xpl_message(
   xPL::Message->new(class => 'control.basic',
                     head => { source => 'acme-owfs.test' },
                     body =>
-                    {
-                     type => 'output',
+                    [
                      device => '05.CFCFCF000000',
+                     type => 'output',
                      current => 'high',
-                    }));
+                    ]));
 is(read_file($file), '1', 'output set high');
 unlink $file;
 
@@ -177,11 +177,11 @@ is(test_output(sub {
     xPL::Message->new(class => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
-                      {
-                       type => 'output',
+                      [
                        device => '05.CFCFCF000000',
+                       type => 'output',
                        current => 'pulse',
-                      })); }, \*STDERR),
+                      ])); }, \*STDERR),
    'Writing 1 to 05.CFCFCF000000/PIO
 Writing 0 to 05.CFCFCF000000/PIO
 ',
@@ -194,11 +194,11 @@ is(test_warn(sub {
     xPL::Message->new(class => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
-                      {
-                       type => 'output',
+                      [
                        device => '05.DFDFDF000000',
+                       type => 'output',
                        current => 'high',
-                      })); }),
+                      ])); }),
    "Failed to write ow file, 05.DFDFDF000000/PIO: No such file or directory\n",
    'file write warning');
 
@@ -207,11 +207,11 @@ is(test_warn(sub {
     xPL::Message->new(class => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
-                      {
-                       type => 'output',
+                      [
                        device => '05.CFCFCF000000',
+                       type => 'output',
                        current => 'toggle',
-                      })); }),
+                      ])); }),
    "Unsupported setting: toggle\n", 'output set toggle - unsupported');
 
 is(test_output(sub {
@@ -219,11 +219,11 @@ is(test_output(sub {
     xPL::Message->new(class => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
-                      {
-                       type => 'output',
+                      [
                        device => 'o01',
+                       type => 'output',
                        current => 'high',
-                      })); }, \*STDERR),
+                      ])); }, \*STDERR),
    '', 'no debug output - unknown device');
 
 {

@@ -9,10 +9,10 @@ $args =
    },
    class => "x10.basic",
    body =>
-   {
+   [
     command => "on",
     device => "a10,a13",
-   },
+   ],
   };
 
 xpl-cmnd

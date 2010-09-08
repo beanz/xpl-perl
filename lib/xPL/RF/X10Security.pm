@@ -100,12 +100,12 @@ sub parse {
              message_type => 'xpl-trig',
              class => 'security.basic',
              head => { source => $parent->source, },
-             body => {
+             body => [
                       command => $command,
-                      user => $device,
-                     }
+                     ]
             );
-    $args{'body'}->{'delay'} = $min_delay if (defined $min_delay);
+    push @{$args{'body'}}, 'delay' => $min_delay if (defined $min_delay);
+    push @{$args{'body'}}, 'user' => $device;
     push @res, xPL::Message->new(%args);
 
   } elsif (exists $not_supported_yet{$data}) {
@@ -124,15 +124,15 @@ sub parse {
        message_type => 'xpl-trig',
        class => 'security.zone',
        head => { source => $parent->source, },
-       body => {
+       body => [
                 event => 'alert',
                 zone  => $device,
                 state => $alert ? 'true' : 'false',
-               }
+               ]
       );
-    $args{'body'}->{'tamper'} = 'true' if ($tamper);
-    $args{'body'}->{'low-battery'} = 'true' if ($low_battery);
-    $args{'body'}->{'delay'} = $min_delay;
+    push @{$args{'body'}}, 'delay' => $min_delay;
+    push @{$args{'body'}}, 'low-battery' => 'true' if ($low_battery);
+    push @{$args{'body'}}, 'tamper' => 'true' if ($tamper);
     push @res, xPL::Message->new(%args);
   }
 
@@ -141,14 +141,14 @@ sub parse {
      message_type => 'xpl-trig',
      class => 'x10.security',
      head => { source => $parent->source, },
-     body => {
+     body => [
               command => $command,
               device  => $short_device,
-             }
+             ]
     );
-  $args{'body'}->{'tamper'} = 'true' if ($tamper);
-  $args{'body'}->{'low-battery'} = 'true' if ($low_battery);
-  $args{'body'}->{'delay'} = $min_delay if (defined $min_delay);
+  push @{$args{'body'}}, 'tamper' => 'true' if ($tamper);
+  push @{$args{'body'}}, 'low-battery' => 'true' if ($low_battery);
+  push @{$args{'body'}}, 'delay' => $min_delay if (defined $min_delay);
   push @res, xPL::Message->new(%args);
   return \@res;
 }

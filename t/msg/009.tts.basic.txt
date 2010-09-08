@@ -8,10 +8,10 @@ $args =
    },
    class => 'tts.basic',
    body =>
-   {
+   [
     speech => 'Empty the dishwasher!',
     volume => '100',
-   },
+   ],
   };
 
 xpl-cmnd

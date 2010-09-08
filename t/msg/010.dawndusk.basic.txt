@@ -9,10 +9,10 @@ $args =
    },
    class => 'dawndusk.basic',
    body =>
-   {
+   [
     type => 'dawndusk',
     status => 'dawn',
-   },
+   ],
   };
 
 xpl-trig

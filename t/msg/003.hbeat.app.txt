@@ -9,12 +9,12 @@ $args =
    },
    class => "hbeat.app",
    body =>
-   {
+   [
     interval => 10,
     port => 12345,
     remote_ip => "127.0.0.1",
     extra => "test of extra field",
-   },
+   ],
   };
 
 xpl-stat

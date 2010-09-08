@@ -108,11 +108,11 @@ is($last2, $last+1, "last time incremented");
 
 $xpl->send(message_type => "xpl-stat", class => "hbeat.blah",
            body =>
-           {
+           [
             interval => $xpl->hbeat_interval,
             port => $xpl->listen_port,
             remote_ip => $xpl->ip,
-           },
+           ],
           );
 $hub->main_loop(1);
 $last2 = $hub->client_attrib($client, 'last');
@@ -131,10 +131,10 @@ my $fake = '127.0.0.1:9999';
 my $msg = xPL::Message->new(class => 'hbeat.app',
                             head => { source => $id },
                             body =>
-                            {
+                            [
                              remote_ip => '127.0.0.1',
                              port => '9999',
-                            },
+                            ],
                             );
 $hub->add_client($fake, $msg);
 $hub->client_last($fake, time - 3*5*60); # make it old

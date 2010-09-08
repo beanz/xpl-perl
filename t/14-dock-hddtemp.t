@@ -60,21 +60,21 @@ check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-sda',
                  type => 'temp',
                  current => '40',
-                },
+                ],
                }, 'checking xPL message - sda trig');
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-sdb',
                  type => 'temp',
                  current => '39',
-                },
+                ],
                }, 'checking xPL message - sdb trig');
 
 $client->close;
@@ -94,21 +94,21 @@ check_sent_msg({
                 message_type => 'xpl-stat',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-sda',
                  type => 'temp',
                  current => '40',
-                },
+                ],
                }, 'checking xPL message - sda stat');
 check_sent_msg({
                 message_type => 'xpl-trig',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-sdb',
                  type => 'temp',
                  current => '40',
-                },
+                ],
                }, 'checking xPL message - sdb trig 2');
 
 $client->close;
@@ -128,11 +128,11 @@ check_sent_msg({
                 message_type => 'xpl-stat',
                 class => 'sensor.basic',
                 body =>
-                {
+                [
                  device => 'mytestid-sda',
                  type => 'temp',
                  current => '40',
-                },
+                ],
                }, 'checking xPL message - sda stat 2');
 check_sent_msg({}, 'checking xPL message - sdb SPL');
 

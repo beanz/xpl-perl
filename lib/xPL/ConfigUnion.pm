@@ -220,14 +220,14 @@ multi-valued items where 'NN' is the maximum number of values.
 
 sub config_types {
   my ($self) = @_;
-  my %body;
+  my @body;
   foreach my $config (@$self) {
     my $b = $config->config_types();
     foreach (qw/config reconf option/) {
-      push @{$body{$_}}, @{$b->{$_}} if (exists $b->{$_});
+      push @body, $_ => scalar @{$b->{$_}} if (exists $b->{$_});
     }
   }
-  return \%body;
+  return \@body;
 }
 
 =head2 C<config_current()>
@@ -239,14 +239,14 @@ where the values are values of the items.
 
 sub config_current {
   my ($self) = @_;
-  my %body;
+  my @body;
   foreach my $config (@$self) {
     my $b = $config->config_current();
     foreach my $k (keys %$b) {
-      $body{$k} = $b->{$k};
+      push @body, $k => $b->{$k};
     }
   }
-  return \%body;
+  return \@body;
 }
 
 1;

@@ -102,11 +102,11 @@ sub parse {
                             message_type => 'xpl-trig',
                             class => 'sensor.basic',
                             head => { source => $parent->source, },
-                            body => {
+                            body => [
                                      device => 'rfxmeter.'.$device,
                                      type => 'energy',
                                      current => $kwh,
-                                    }
+                                    ]
                            )];
 }
 

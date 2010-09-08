@@ -56,10 +56,10 @@ my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
 $xpl->dispatch_xpl_message($msg);
 check_sent_msg({ message_type => 'xpl-stat',
                  class => 'dawndusk.basic',
-                 body => {
-                          status => $state,
+                 body => [
                           type => 'daynight',
-                         }
+                          status => $state,
+                         ]
                }, 'response - 1');
 
 my $timers =
@@ -69,10 +69,10 @@ foreach my $timer (@$timers) {
      (ucfirst $timer)."\n");
   check_sent_msg({ message_type => 'xpl-trig',
                    class => 'dawndusk.basic',
-                   body => {
-                            status => $timer,
+                   body => [
                             type => 'dawndusk',
-                           }
+                            status => $timer,
+                           ]
                  }, 'response - verbose '.$timer);
 }
 $plugin->{_verbose} = 0;
@@ -80,10 +80,10 @@ foreach my $timer (@$timers) {
   is(test_output(sub { $xpl->dispatch_timer($timer) } , \*STDOUT), '');
   check_sent_msg({ message_type => 'xpl-trig',
                    class => 'dawndusk.basic',
-                   body => {
-                            status => $timer,
+                   body => [
                             type => 'dawndusk',
-                           }
+                            status => $timer,
+                           ]
                  }, 'response - verbose '.$timer);
 }
 

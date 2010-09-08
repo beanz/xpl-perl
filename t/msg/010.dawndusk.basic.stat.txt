@@ -9,10 +9,10 @@ $args =
    },
    class => 'dawndusk.basic',
    body =>
-   {
+   [
     type => 'daynight',
     status => 'day',
-   },
+   ],
   };
 
 xpl-stat

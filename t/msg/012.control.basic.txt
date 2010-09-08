@@ -8,11 +8,11 @@ $args =
    },
    class => 'control.basic',
    body =>
-   {
+   [
     device => '1',
     type => 'output',
     current => 'pulse',
-   },
+   ],
   };
 
 xpl-cmnd

@@ -72,7 +72,7 @@ my $mock = $plugin->{_xosd} = MyXOsd->new();
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-xosd.test' },
                             class => 'osd.basic',
-                            body => { command => 'write', text => 'test' });
+                            body => [ command => 'write', text => 'test' ]);
 $xpl->dispatch_xpl_message($msg);
 my @calls = $mock->calls;
 is(scalar @calls, 2, 'correct number of calls - 2');
@@ -82,8 +82,8 @@ is($calls[1], "MyXOsd::string 0 test", "'string 0 test' called");
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
                          class => 'osd.basic',
-                         body => { command => 'clear', text => 'test',
-                                   row => 2, delay => 4 });
+                         body => [ command => 'clear', text => 'test',
+                                   row => 2, delay => 4 ]);
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 7, 'correct number of calls - 7');
@@ -98,8 +98,8 @@ is($calls[6], "MyXOsd::string 1 test", "'string 1 test' called");
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
                          class => 'osd.basic',
-                         body => { command => 'write', text => 'test',
-                                   row => 5, delay => 90 });
+                         body => [ command => 'write', text => 'test',
+                                   row => 5, delay => 90 ]);
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 2, 'correct number of calls - row out of range');
@@ -109,8 +109,8 @@ is($calls[1], "MyXOsd::string 0 test", "'string 0 test' called");
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
                          class => 'osd.basic',
-                         body => { command => 'write', text => 'test',
-                                   row => -1 });
+                         body => [ command => 'write', text => 'test',
+                                   row => -1 ]);
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 2, 'correct number of calls - row out of range');
@@ -120,7 +120,7 @@ is($calls[1], "MyXOsd::string 0 test", "'string 0 test' called");
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
                          class => 'osd.basic',
-                         body => { command => 'write', });
+                         body => [ command => 'write', ]);
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 0, 'no calls for empty write');

@@ -8,9 +8,9 @@ $args =
    },
    class => 'audio.basic',
    body =>
-   {
+   [
     command => 'play',
-   },
+   ],
   };
 
 xpl-cmnd

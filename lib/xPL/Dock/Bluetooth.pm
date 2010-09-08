@@ -96,11 +96,11 @@ sub poll_bluetooth {
                         message_type => $old eq $new ? 'xpl-stat' : 'xpl-trig',
                         class => 'sensor.basic',
                         body =>
-                        {
+                        [
                          device => 'bt.'.$addr,
                          type => 'input',
                          current => $new,
-                        });
+                        ]);
     $xpl->send($msg);
     $self->info('sending ', $msg->summary, "\n");
   }

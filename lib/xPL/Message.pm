@@ -58,6 +58,8 @@ if ($@) {
 }
 use xPL::Validation;
 
+use Carp qw/cluck/;
+
 use xPL::Base;
 #use AutoLoader qw(AUTOLOAD);
 
@@ -220,7 +222,7 @@ sub new {
   if ($p{body_content}) {
     $self->{_body_content} = $p{body_content};
   } else {
-    exists $p{body} or $p{body} = {};
+    exists $p{body} or $p{body} = [];
     $self->parse_body_parameters($p{body}, $p{body_order});
   }
   return $self;
@@ -276,23 +278,14 @@ sub _parse_head {
 }
 
 sub _parse_body {
-  my %r;
+  my @body;
   foreach (split /\n/, $_[0]->{_body_content}) {
     my ($k, $v) = split /=/, $_, 2;
     $k =~ s/-/_/g;
-    if (exists $r{body}->{$k}) {
-      if (ref $r{body}->{$k}) {
-        push @{$r{body}->{$k}}, $v;
-      } else {
-        $r{body}->{$k} = [$r{body}->{$k}, $v];
-      }
-      next;
-    }
-    $r{body}->{$k} = $v;
-    push @{$r{body_order}}, $k;
+    push @body, $k, $v;
   }
   delete $_[0]->{_body_content};
-  $_[0]->parse_body_parameters($r{body}, $r{body_order});
+  $_[0]->parse_body_parameters(\@body);
 }
 
 =head2 C<field_spec()>
@@ -359,15 +352,56 @@ message type.
 
 sub parse_body_parameters {
   my ($self, $body, $body_order) = @_;
-  my $spec = $self->field_spec();
-  my %processed = ();
-  foreach my $field_rec (@$spec) {
-    $self->process_field_record($body, $field_rec, \%processed);
-  }
-  $self->{_extra_order} = [];
-  foreach ($body_order ? @{$body_order} : sort keys %{$body}) {
-    next if (exists $processed{$_});
-    $self->extra_field($_, $body->{$_});
+  if (ref $body eq 'ARRAY') {
+    my @body = @$body; # TOFIX: use index
+    while (@body) {
+      my ($k, $v) = splice @body, 0, 2;
+      if (exists $self->{_body}->{$k}) {
+        if (ref $self->{_body}->{$k}) {
+          push @{$self->{_body}->{$k}}, $v;
+        } else {
+          $self->{_body}->{$k} = [$self->{_body}->{$k}, $v];
+        }
+        next;
+      }
+      $self->{_body}->{$k} = $v;
+      push @{$self->{_body_order}}, $k;
+      unless ($self->is_body_field($k)) {
+        push @{$self->{_extra_order}}, $k;
+      }
+    }
+    my $spec = $self->field_spec();
+    foreach my $rec (@$spec) {
+      my $name = $rec->{name};
+      if (exists $self->{_body}->{$name}) {
+        if ($self->{_strict}) {
+          $self->$name($self->{_body}->{$name});
+        }
+      } elsif (exists $rec->{required}) {
+        if (exists $rec->{default}) {
+          $self->{_body}->{$name} = $rec->{default};
+          push @{$self->{_body_order}}, $name;
+        }
+        if ($self->{_strict}) {
+          $self->argh("requires '$name' parameter in body");
+        } else {
+          $self->ouch("requires '$name' parameter in body");
+        }
+      }
+    }
+  } else {
+    cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATE_WARNING});
+    my %processed = ();
+    my $spec = $self->field_spec();
+    foreach my $field_rec (@$spec) {
+      $self->process_field_record($body, $field_rec, \%processed);
+    }
+    foreach ($body_order ? @{$body_order} : sort keys %{$body}) {
+      next if (exists $processed{$_});
+      $self->{_body}->{$_} = $body->{$_};
+      push @{$self->{_body_order}}, $_;
+      push @{$self->{_extra_order}}, $_;
+    }
   }
   return 1;
 }
@@ -509,8 +543,8 @@ sub body_string {
         $b .= "$n=".$_."$LF";
       }
     }
-    $b .= $_[0]->extra_field_string();
   }
+  $b .= $_[0]->extra_field_string() unless (ref $_[0] eq 'xPL::Message');
   $b .= "}$LF";
   return $b;
 }
@@ -662,12 +696,27 @@ updates the extra field with the new value before it returns.
 sub extra_field {
   my $self = shift;
   my $key = shift;
+  cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATE_WARNING});
   $self->_parse_body() if ($self->{_body_content});
   if (@_) {
-    push @{$self->{_extra_order}}, $key unless (exists $self->{_extra}->{$key});
-    $self->{_extra}->{$key} = $_[0];
+    push @{$self->{_body_order}}, $key unless (exists $self->{_body}->{$key});
+    $self->{_body}->{$key} = $_[0];
   }
-  return $self->{_extra}->{$key};
+  return $self->{_body}->{$key};
+}
+
+=head2 C<field( $field )>
+
+This method returns the value of the field from the message
+body.
+
+=cut
+
+sub field {
+  my $self = shift;
+  my $key = shift;
+  $self->_parse_body() if ($self->{_body_content});
+  $self->{_body}->{$key};
 }
 
 =head2 C<extra_fields()>
@@ -679,7 +728,7 @@ message.
 
 sub extra_fields {
   $_[0]->_parse_body() if ($_[0]->{_body_content});
-  return @{$_[0]->{_extra_order}};
+  return @{$_[0]->{_body_order}};
 }
 
 =head2 C<extra_field_string()>
@@ -693,7 +742,7 @@ sub extra_field_string {
   $_[0]->_parse_body() if ($_[0]->{_body_content});
   my $b = $EMPTY;
   foreach my $k (@{$_[0]->{_extra_order}}) {
-    my $v = $_[0]->{_extra}->{$k};
+    my $v = $_[0]->{_body}->{$k};
     foreach ((ref $v) ? @{$v} : ($v)) {
       $b .= $k.$EQUALS.$_.$LF;
     }
@@ -708,7 +757,8 @@ This method returns the fields that are in the body of this message.
 =cut
 
 sub body_fields {
-  return;
+  $_[0]->_parse_body() if ($_[0]->{_body_content});
+  return @{$_[0]->{_body_order}||[]};
 }
 
 =head2 C<make_class($class, $class_type)>
@@ -718,8 +768,7 @@ sub body_fields {
 sub make_class {
   my ($class, $class_type) = @_;
   my $spec = $specs{$class.$DOT.$class_type};
-  my $parent =
-    __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
+  my $parent = __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
   $modules{$parent} = $parent;
   my $isa = $parent.'::ISA';
   no strict qw/refs/;
@@ -781,7 +830,21 @@ sub make_body_fields {
       @f;
     };
   use strict qw/refs/;
+  $new = $_[0].'::is_body_field';
+  return if (defined &{$new});
+  #  print STDERR "  $new => make_body_fields, @f\n";
+  my %m = map { $_ => 1 } @f;
+  no strict qw/refs/;
+  *{$new} =
+    sub {
+      exists $m{$_[1]};
+    };
+  use strict qw/refs/;
   return 1;
+}
+
+sub is_body_field {
+  return undef
 }
 
 =head2 C<make_body_field( $record )>
@@ -826,6 +889,7 @@ sub make_body_field {
   no strict qw/refs/;
   *{$new} =
     sub {
+      cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATE_WARNING});
       $_[0]->_parse_body() if ($_[0]->{_body_content});
       if (@_ > 1) {
         if ($_[0]->{_strict} && !$validation->valid($_[1])) {

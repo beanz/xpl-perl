@@ -255,24 +255,24 @@ sub wgr918_anemometer {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev_str,
                                type => 'speed',
                                current => $speed,
                                average => $avspeed,
                                units => 'mps',
-                              }
+                              ]
                      ),
     xPL::Message->new(
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev_str,
                                type => 'direction',
                                current => $dir,
                                units => 'degrees',
-                              }
+                              ]
                      );
   percentage_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
@@ -305,23 +305,23 @@ sub wtgr800_anemometer {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev_str,
                                type => 'speed',
                                current => $speed,
                                average => $avspeed,
                                units => 'mps',
-                              }
+                              ]
                      ),
     xPL::Message->new(
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev_str,
                                type => 'direction',
                                current => $dir,
-                              }
+                              ]
                      );
   percentage_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
@@ -413,13 +413,13 @@ sub rtgr328n_datetime {
                             message_type => 'xpl-trig',
                             class => 'datetime.basic',
                             head => { source => $parent->source, },
-                            body => {
+                            body => [
                                      datetime => $date.$time,
                                      'date' => $date,
                                      'time' => $time,
                                      day => $day.'day',
                                      device => $dev_str,
-                                    }
+                                    ]
                            )];
 }
 
@@ -523,12 +523,12 @@ sub common_rain {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev_str,
                                type => 'speed',
                                current => $rain,
                                units => 'mm/h',
-                              }
+                              ]
                      );
   push @res,
     xPL::Message->new(
@@ -536,12 +536,12 @@ sub common_rain {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev_str,
                                type => 'distance',
                                current => $train,
                                units => 'mm',
-                              }
+                              ]
                      );
   push @res,
     xPL::Message->new(
@@ -549,12 +549,12 @@ sub common_rain {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev_str,
                                type => 'count',
                                current => $flip,
                                units => 'flips',
-                              }
+                              ]
                      );
   simple_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
@@ -593,12 +593,12 @@ sub pcr800_rain {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev_str,
                                type => 'speed',
                                current => (sprintf "%.2f", $rain),
                                units => 'mm/h',
-                              }
+                              ]
                      );
   push @res,
     xPL::Message->new(
@@ -606,12 +606,12 @@ sub pcr800_rain {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev_str,
                                type => 'distance',
                                current => (sprintf "%.2f", $train),
                                units => 'mm',
-                              }
+                              ]
                      );
   simple_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
@@ -801,12 +801,12 @@ sub uv {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev,
                                type => 'uv',
                                current => $uv,
                                risk => $risk,
-                              }
+                              ]
                      );
   1;
 }
@@ -829,12 +829,12 @@ sub uv2 {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev,
                                type => 'uv',
                                current => $uv,
                                risk => $risk,
-                              }
+                              ]
                      );
   1;
 }
@@ -858,11 +858,11 @@ sub temperature {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev,
                                type => 'temp',
                                current => $temp,
-                              }
+                              ]
                      );
   1;
 }
@@ -884,12 +884,12 @@ sub humidity {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev,
                                type => 'humidity',
                                current => $hum,
                                string => $hum_str,
-                              }
+                              ]
                      );
   1;
 }
@@ -917,13 +917,13 @@ sub pressure {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev,
                                type => 'pressure',
                                current => $hpa,
                                units => 'hPa',
                                forecast => $forecast,
-                              }
+                              ]
                      );
   1;
 }
@@ -944,12 +944,12 @@ sub simple_battery {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev,
                                type => 'battery',
                                current => $bat,
                                units => '%',
-                              }
+                              ]
                      );
   $battery_low;
 }
@@ -969,12 +969,12 @@ sub percentage_battery {
                       message_type => 'xpl-trig',
                       class => 'sensor.basic',
                       head => { source => $parent->source, },
-                      body => {
+                      body => [
                                device => $dev,
                                type => 'battery',
                                current => $bat,
                                units => '%',
-                              }
+                              ]
                      );
   $bat < 20;
 }

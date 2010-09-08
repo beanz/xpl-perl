@@ -9,9 +9,9 @@ $args =
    },
    class => "clock.update",
    body =>
-   {
+   [
     time => "20051113182650",
-   },
+   ],
   };
 
 xpl-stat

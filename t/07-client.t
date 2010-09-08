@@ -157,11 +157,11 @@ ok($xpl->exists_timer("!fast-hbeat"), "fast hbeat timer even now");
 fake_hub_response($xpl,
                   class => "hbeat.app",
                   body =>
-                  {
+                  [
                    interval => $xpl->hbeat_interval,
                    port => $xpl->listen_port,
                    remote_ip => $xpl->ip,
-                  },
+                  ],
                  );
 is($xpl->hbeat_count, 2, "hbeat count");
 
@@ -180,7 +180,7 @@ is($errors, undef, "no unexpected errors");
 fake_hub_response($xpl,
                   class => 'hbeat.request',
                   head => { source => "acme-dingus.req" },
-                  body => { command => 'request', },
+                  body => [ command => 'request', ],
                  );
 $xpl->reset_timer('!hbeat', time+20);
 my $next_hbeat = $xpl->timer_next('!hbeat');
@@ -205,7 +205,7 @@ $xpl->reset_timer('!hbeat-response', time-1);
 fake_hub_response($xpl,
                   class => 'hbeat.request',
                   head => { source => "acme-dingus.req" },
-                  body => { command => 'request', },
+                  body => [ command => 'request', ],
                  );
 $xpl->main_loop(1);
 is($xpl->xpl_callback_callback_count('!hbeat-request'), 2,
@@ -230,7 +230,7 @@ $count = $xpl->hbeat_count();
 fake_hub_response($xpl,
                   class => 'hbeat.request',
                   head => { source => "acme-dingus.req" },
-                  body => { command => 'request', },
+                  body => [ command => 'request', ],
                  );
 $xpl->remove_timer('!hbeat');
 $xpl->main_loop(1);

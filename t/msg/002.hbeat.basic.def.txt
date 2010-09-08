@@ -5,6 +5,7 @@ $args =
     source => "acme-lamp.livingroom",
    },
    class => "hbeat.basic",
+   body => [ interval => 5 ],
   };
 
 xpl-stat

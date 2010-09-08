@@ -63,11 +63,11 @@ wait_for_tick($xpl, $count);
 my $msg = xPL::Message->new(class => 'control.basic',
                             head => { source => 'acme-easydaq.test' },
                             body =>
-                            {
-                             type => 'output',
+                            [
                              device => 'easydaq-r1',
+                             type => 'output',
                              current => 'high',
-                            });
+                            ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r1/high');
 $buf = '';

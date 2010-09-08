@@ -143,15 +143,15 @@ sub read {
       } else {
         $msgtype = 'xpl-stat';
       }
-      my %body =
+      my @body =
         (
          device => $device,
          type => $type,
          current => $value,
         );
-      $body{'units'} = $units if (defined $units);
+      push @body, units => $units if (defined $units);
       $self->xpl->send(message_type => $msgtype, class => 'sensor.basic',
-                       body => \%body);
+                       body => \@body);
     } elsif ($field eq 'STATUS') {
       my $state = $value =~ /ONLINE/ ? 'mains' : 'battery';
       $value =~ s/\s+$//;
@@ -164,10 +164,10 @@ sub read {
         if (defined $old) {
           $self->xpl->send(message_type => 'xpl-trig',
                            class => 'ups.basic',
-                           body => {
+                           body => [
                                     status => $state,
                                     event => 'on'.$state,
-                                   }
+                                   ]
                           );
         }
       }

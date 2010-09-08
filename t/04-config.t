@@ -34,13 +34,13 @@ is($config->get_item('username','user'), 'user', 'get_item(\'username\')');
 is_deeply([$config->items_requiring_config()],
           [qw/password/], 'items_requiring_config()');
 is_deeply($config->config_types,
-          {
+          [
            reconf => [qw/username password/],
            option => [qw/newconf resource host port friend[32]/],
-          },
+          ],
           'config_types()');
 is_deeply($config->config_current,
-          {
+          [
            newconf => '',
            username => 'user',
            password => '',
@@ -48,7 +48,7 @@ is_deeply($config->config_current,
            host => '',
            port => '',
            friend => '',
-          },
+          ],
           'config_current()');
 ok(!$config->update_item('username','user'),
    'update_item(\'username\',\'user\')');
@@ -103,10 +103,10 @@ is_deeply([$config->items],
           'items list');
 
 is_deeply($config->config_types,
-          {
+          [
            reconf => [qw/username password/],
            option => [qw/newconf resource host port friend[32]/],
-          },
+          ],
           'config_types()');
 
 ok(!xPL::Config->new(key => 'noconfig'), 'key => \'noconfig\'');

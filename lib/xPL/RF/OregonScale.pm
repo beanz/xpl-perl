@@ -65,12 +65,12 @@ sub parse {
                             message_type => 'xpl-trig',
                             class => 'sensor.basic',
                             head => { source => $parent->source, },
-                            body => {
+                            body => [
                                      device => $dev_str,
                                      type => 'weight',
                                      current => $weight,
                                      unknown => $unknown,
-                                    }
+                                    ]
                            )];
 }
 
@@ -97,11 +97,11 @@ sub parse_gr101 {
                             message_type => 'xpl-trig',
                             class => 'sensor.basic',
                             head => { source => $parent->source, },
-                            body => {
+                            body => [
                                      device => $dev_str,
                                      type => 'weight',
                                      current => $weight,
-                                    }
+                                    ]
                            )];
 }
 

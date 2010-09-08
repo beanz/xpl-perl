@@ -144,9 +144,9 @@ sub xpl_in {
       my %args = (
                   message_type => 'xpl-trig',
                   class => 'x10.confirm',
-                  body => { command => $msg->command,
+                  body => [ command => $msg->command,
                             device => device_heyu_to_xpl($device),
-                            data1 => $msg->data1, data2 => $msg->data2 },
+                            data1 => $msg->data1, data2 => $msg->data2 ],
                  );
       $self->xpl->send(%args);
     }
@@ -246,17 +246,17 @@ sub send_xpl {
     (
      message_type => 'xpl-trig',
      class => $class,
-     body => {
+     body => [
               command => $xpl_command,
               device => device_heyu_to_xpl($device),
-             },
+             ],
     );
   if (ref $level) {
-    $args{body}->{data1} = $level->[0];
-    $args{body}->{data2} = $level->[1];
+    push @{$args{body}}, data1 => $level->[0];
+    push @{$args{body}}, data2 => $level->[1];
     $level = sprintf "data1=%d data2=%d", @$level;
   } elsif ($level) {
-    $args{body}->{level} = level_heyu_to_xpl($level);
+    push @{$args{body}}, level => level_heyu_to_xpl($level);
   }
   $self->debug("Sending $class $device $command",
                ($level ? " ".$level : ""), "\n");

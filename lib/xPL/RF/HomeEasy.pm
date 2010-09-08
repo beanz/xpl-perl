@@ -64,19 +64,19 @@ sub parse {
 
 #  printf "homeeasy c=%s u=%d a=%x\n",
 #    $res->{command}, $res->{unit}, $res->{address};
-  my %body = (
+  my $body = [
               command => $res->{command},
               unit => $res->{unit},
               address => (sprintf "0x%x",$res->{address}),
-             );
+             ];
 
-  $body{level} = $res->{level} if ($res->{command} eq 'preset');
+  push @$body, level => $res->{level} if ($res->{command} eq 'preset');
 
   return [xPL::Message->new(
                             message_type => 'xpl-trig',
                             class => 'homeeasy.basic',
                             head => { source => $parent->source, },
-                            body => \%body,
+                            body => $body,
                            )];
 }
 

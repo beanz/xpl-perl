@@ -9,10 +9,10 @@ $args =
    },
    class => "x10.basic",
    body =>
-   {
+   [
     command => "all_lights_on",
     house => "jkl",
-   },
+   ],
   };
 
 xpl-cmnd
