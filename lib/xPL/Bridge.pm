@@ -199,13 +199,13 @@ sub bridge {
 
   $self->info('Local msg: ', $msg->summary, "\n");
 
-  my $hop = $msg->increment_hop;
-  if ($hop >= 9) {
+  my $msg_str = $msg->string();
+  $msg_str =~ s!^hop=\K(\d+)$!$1+1!me;
+  if ($1 >= 9) {
     warn 'Dropping local msg: ', $msg->summary, "\n";
     return 1;
   }
 
-  my $msg_str = $msg->string();
   return 1 if ($self->seen_local($msg_str));
 
   foreach my $peer ($self->peers) {
@@ -267,24 +267,26 @@ sub sock_read {
     return 1;
   }
   while (my $msg_str = unpack_message($buffer)) {
+
+    $self->mark_seen($msg_str);
+
     my $msg;
     eval {
       $msg = xPL::Message->new_from_payload($msg_str);
     };
     if ($EVAL_ERROR) {
-      $self->ouch('Invalid message from ',
-                  $self->peer_name($peer), $COLON, $SPACE, $EVAL_ERROR);
+      $self->ouch('Invalid message from '.
+                  $self->peer_name($peer).': '.$EVAL_ERROR);
       return 1;
     }
-    $self->mark_seen($msg->string);
-    my $hop = $msg->increment_hop;
-    if ($hop >= 9) {
-      warn 'Dropping msg from ', $self->peer_name($peer), ': ',
-        $msg->summary, "\n";
-      next;
+
+    $msg_str =~ s!^hop=\K(\d+)$!$1+1!me;
+    if ($1 >= 9) {
+      warn 'Dropping msg from ', $self->peer_name($peer), ': ', $msg_str;
+      return 1;
     }
 
-    $self->send($msg);
+    $self->send($msg_str);
   }
   $self->peer_buffer($peer, $buffer);
   return 1;
@@ -366,7 +368,7 @@ messages when they are received back from the local hub.
 
 sub msg_hash {
   my $string = shift;
-  $string =~ s/\nhop=\d+\n/\nhop=9\n/; # chksum must ignore hop count
+  $string =~ s/\nhop=\K\d+\n/9\n/; # chksum must ignore hop count
   return md5_hex($string);
 }
 

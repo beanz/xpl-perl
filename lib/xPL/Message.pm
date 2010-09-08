@@ -380,16 +380,6 @@ sub hop {
   $self->{_hop};
 }
 
-sub increment_hop {
-  my $self = shift;
-  if ($self->{_head_content}) {
-    $self->{_head_content} =~ s!^hop=(\d+)$!$1+1!me;
-    return $1+1;
-  } else {
-    $self->{_hop}++;
-  }
-}
-
 =head2 C<source( [ $new_source ] )>
 
 This method returns the source id.  If the optional new value argument
@@ -452,7 +442,7 @@ sub body_fields {
   } elsif (!exists $_[0]->{_body}) {
     $_[0]->parse_body_parameters();
   }
-  return @{$_[0]->{_body_order}||[]};
+  return @{$_[0]->{_body_order}};
 }
 
 1;

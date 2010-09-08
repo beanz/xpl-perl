@@ -25,7 +25,8 @@ my $bridge = xPL::Bridge->new(ip => "127.0.0.1",
                               broadcast => "127.0.0.1",
                               vendor_id => 'acme',
                               device_id => 'bridge',
-                              bridge_port => 19_999);
+                              bridge_port => 19_999,
+                              verbose => 1);
 is($bridge->timeout, 120, 'default timeout');
 is($bridge->bridge_mode, 'server', 'bridge mode');
 is($bridge->local_ip, '0.0.0.0', 'check default local ip address');
@@ -109,8 +110,15 @@ ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)),
 my $w = test_warn(sub { $bridge->main_loop(1); });
 $w=~s/\d+\.\d+\.\d+\.\d+/127.0.0.1/;
 is($w,
-   "Dropping msg from 127.0.0.1:$cport: xpl-stat/hbeat.basic: ".
-     "acme-clock.clepsydra -> * \n",
+   "Dropping msg from 127.0.0.1:$cport: xpl-stat
+{
+hop=10
+source=acme-clock.clepsydra
+target=*
+}
+hbeat.basic
+{
+}\n",
    'dropping message warning - remote');
 
 ok($cs->syswrite(xPL::Bridge::pack_message("xpl-cmnd\n{}")),
@@ -119,8 +127,8 @@ ok($cs->syswrite(xPL::Bridge::pack_message("xpl-cmnd\n{}")),
 $w = test_warn(sub { $bridge->main_loop(1); });
 $w=~s/\d+\.\d+\.\d+\.\d+/127.0.0.1/;
 is($w,
-   'xPL::Bridge->sock_read: Invalid message from  127.0.0.1:'.$cport.
-     ' :   xPL::Message->new_from_payload: '.
+   'xPL::Bridge->sock_read: Invalid message from 127.0.0.1:'.$cport.
+     ': xPL::Message->new_from_payload: '.
      'Message badly formed: failed to split head and body',
    'invalid message warning');
 
