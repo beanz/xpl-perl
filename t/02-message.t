@@ -43,6 +43,8 @@ BEGIN {
 
 use_ok('xPL::Message');
 
+my %methods =
+  map { $_ => 1 } qw/message_type source target hop class summary verbose/;
 foreach my $m (sort keys %msg) {
   my $rec = $msg{$m};
   my $args;
@@ -76,16 +78,13 @@ foreach my $m (sort keys %msg) {
     my @args;
     if ($method =~s/\[(.*)\]//) {
       @args = split $COMMA, $LAST_PAREN_MATCH;
-      die @args;
     }
     my $result;
     my $error;
     eval {
       local $SIG{__WARN__} = sub { $error = shift; return 1; };
-      $result = $msg->field($method);
-      if (!defined $result && $expected_result ne 'undef') {
-        $result = $msg->$method();
-      }
+      $result =
+        $methods{$method} ? $msg->$method(@args) : $msg->field($method, @args);
     };
     unless (defined $result) {
       $result = 'undef';

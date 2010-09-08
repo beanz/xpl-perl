@@ -140,6 +140,12 @@ sub new {
   my %p = @_;
   exists $p{strict} or $p{strict} = 1;
 
+  if (exists $p{class_type}) {
+    $pkg->ouch('"class_type" is deprecated. '.
+               'Set "class" to "class.type" instead');
+    $p{class} .= '.'.$p{class_type};
+  }
+
   my $class;
   my $class_type;
   defined $p{class} or $pkg->argh(q{requires 'class' parameter});
@@ -197,6 +203,13 @@ sub new {
 
   if ($p{body_content}) {
     $self->{_body_content} = $p{body_content};
+  } elsif (exists $p{body} && ref $p{body} eq 'HASH') {
+    $pkg->ouch('Providing "body" hash reference is deprecated. '.
+               'Use an array reference so that order is preserved. '.
+               'For example: [ device => "device", command => "on" ]');
+    $self->{_body} = $p{body};
+    $self->{_body_order} = $p{body_order};
+    $self->validate_body_parameters();
   } else {
     $self->{_body_array} = $p{body} || [];
     $self->parse_body_parameters();
@@ -261,30 +274,42 @@ sub parse_head_parameters {
 =head2 C<parse_body_parameters( )>
 
 This method is called by the constructor to process the fields of the
-body of the message according to the field specification for the
-message type.
+body of the message.
 
 =cut
 
 sub parse_body_parameters {
   my ($self) = @_;
   $self->SUPER::parse_body_parameters();
-  my $body = $self->{_body};
-  my $body_order = $self->{_body_order};
+  $self->validate_body_parameters();
+}
+
+=head2 C<validate_body_parameters( )>
+
+This method validates the fields of the body according to the field
+specification for the message type.
+
+=cut
+
+sub validate_body_parameters {
+  my ($self) = @_;
   my $spec = $self->field_spec();
+  my $orig_order = $self->{_body_order};
+  $self->{_body_order} = [];
   my %processed = ();
   foreach my $field_rec (@$spec) {
-    $self->process_field_record($body, $field_rec, \%processed);
+    $self->process_field_record($field_rec, \%processed);
   }
   $self->{_extra_order} = [];
-  foreach ($body_order ? @{$body_order} : sort keys %{$body}) {
+  foreach ($orig_order ?  @$orig_order : sort keys %{$self->{_body}}) {
     next if (exists $processed{$_});
-    $self->extra_field($_, $body->{$_});
+    $self->extra_field($_, $self->{_body}->{$_});
+    push @{$self->{_body_order}}, $_;
   }
   return 1;
 }
 
-=head2 C<process_field_record( $body_hash_ref, $field_record_hash_ref )>
+=head2 C<process_field_record( $field_record_hash_ref, $processed_hash_ref )>
 
 This method is called by the constructor to process a single field
 in body of the message according to the field specification for the
@@ -294,13 +319,12 @@ message type.
 
 sub process_field_record {
   my $self = shift;
-  my $body = shift;
   my $rec = shift;
   my $processed = shift;
   my $name = $rec->{name};
-  unless (exists $body->{$name}) {
+  unless (exists $self->{_body}->{$name}) {
     if (exists $rec->{default}) {
-      $body->{$name} = $rec->{default};
+      $self->{_body}->{$name} = $rec->{default};
     } elsif (exists $rec->{required}) {
       if ($self->{_strict}) {
         $self->argh("requires '$name' parameter in body");
@@ -312,10 +336,9 @@ sub process_field_record {
     }
   }
   if ($self->{_strict}) {
-    $self->$name($body->{$name});
-  } else {
-    $self->{_body}->{$name} = $body->{$name};
+    $self->$name($self->{_body}->{$name});
   }
+  push @{$self->{_body_order}}, $name;
   $processed->{$name}++;
   return 1;
 }
@@ -494,11 +517,17 @@ sub target {
 
 =head2 C<class()>
 
-This method returns the class.
+This method returns the schema class (e.g. "hbeat.basic").
 
 =head2 C<class_type()>
 
 This method returns the class type.
+
+=cut
+
+sub class_type {
+  (split /\./, $_[0]->{_class}, 2)[1]
+}
 
 =head2 C<valid_id( $identifier )>
 
@@ -534,9 +563,7 @@ Returns the value of a field.
 sub field {
   my ($self, $field) = @_;
   $self->_parse_body() if ($self->{_body_content});
-  exists $self->{_body}->{$field}
-    ? $self->{_body}->{$field}
-      : $self->{_extra}->{$field}
+  $self->{_body}->{$field}
 }
 
 =head2 C<extra_field( $field, [ $value ] )>
