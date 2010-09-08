@@ -1165,7 +1165,7 @@ sub _default_time_now {
 }
 
 sub _anyevent_time_now {
-  AnyEvent->now;
+  AnyEvent->time;
 }
 
 1;
