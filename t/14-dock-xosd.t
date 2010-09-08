@@ -3,31 +3,12 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use IO::Socket::INET;
-use IO::Select;
-use Socket;
+use Test::More tests => 25;
 use t::Helpers qw/test_warn test_error test_output/;
+use lib 't/lib';
 $|=1;
 
-BEGIN {
-  require Test::More;
-
-  unless (exists $ENV{DISPLAY}) {
-    import Test::More skip_all => 'No X11 DISPLAY defined';
-    exit;
-  }
-
-  eval {
-    require X::Osd; import X::Osd;
-  };
-  if ($@) {
-    import Test::More skip_all => 'No X::Osd perl module';
-  }
-
-  import Test::More tests => 23;
-}
-
-use_ok('xPL::Dock','XOSD');
+use_ok('xPL::Dock', 'XOSD');
 
 my @msg;
 sub xPL::Dock::send_aux {
@@ -54,30 +35,22 @@ ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::XOSD', 'plugin has correct type');
 
 is(ref $plugin->{_xosd}, 'X::Osd', 'X::Osd created');
-
-{
-  package MyXOsd;
-  sub new { bless { calls => [] }, 'MyXOsd' }
-  sub calls { splice @{$_[0]->{calls}} }
-  sub AUTOLOAD {
-    my $self = shift;
-    our $AUTOLOAD;
-    push @{$self->{calls}}, "$AUTOLOAD @_";
-  }
-  sub DESTROY {}
-  1;
-}
-my $mock = $plugin->{_xosd} = MyXOsd->new();
+my $mock = $plugin->{_xosd};
+my @calls = $mock->calls;
+is(scalar @calls, 1, 'correct number of calls - 1');
+is($calls[0],
+   'X::Osd::set_font -adobe-courier-bold-r-normal--72-0-0-0-p-0-iso8859-1',
+   "'set_font ...' called");
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-xosd.test' },
                             class => 'osd.basic',
                             body => [ command => 'write', text => 'test' ]);
 $xpl->dispatch_xpl_message($msg);
-my @calls = $mock->calls;
+@calls = $mock->calls;
 is(scalar @calls, 2, 'correct number of calls - 2');
-is($calls[0], "MyXOsd::set_timeout 10", "'set_timeout 10' called");
-is($calls[1], "MyXOsd::string 0 test", "'string 0 test' called");
+is($calls[0], "X::Osd::set_timeout 10", "'set_timeout 10' called");
+is($calls[1], "X::Osd::string 0 test", "'string 0 test' called");
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
@@ -87,13 +60,13 @@ $msg = xPL::Message->new(message_type => 'xpl-cmnd',
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 7, 'correct number of calls - 7');
-is($calls[0], "MyXOsd::set_timeout 0", "'set_timeout 0' called");
-is($calls[1], "MyXOsd::string 0 ", "'string 0 ' called");
-is($calls[2], "MyXOsd::string 1 ", "'string 1 ' called");
-is($calls[3], "MyXOsd::string 2 ", "'string 2 ' called");
-is($calls[4], "MyXOsd::string 3 ", "'string 3 ' called");
-is($calls[5], "MyXOsd::set_timeout 4", "'set_timeout 4' called");
-is($calls[6], "MyXOsd::string 1 test", "'string 1 test' called");
+is($calls[0], "X::Osd::set_timeout 0", "'set_timeout 0' called");
+is($calls[1], "X::Osd::string 0 ", "'string 0 ' called");
+is($calls[2], "X::Osd::string 1 ", "'string 1 ' called");
+is($calls[3], "X::Osd::string 2 ", "'string 2 ' called");
+is($calls[4], "X::Osd::string 3 ", "'string 3 ' called");
+is($calls[5], "X::Osd::set_timeout 4", "'set_timeout 4' called");
+is($calls[6], "X::Osd::string 1 test", "'string 1 test' called");
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
@@ -103,8 +76,8 @@ $msg = xPL::Message->new(message_type => 'xpl-cmnd',
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 2, 'correct number of calls - row out of range');
-is($calls[0], "MyXOsd::set_timeout 10", "'set_timeout 10' called");
-is($calls[1], "MyXOsd::string 0 test", "'string 0 test' called");
+is($calls[0], "X::Osd::set_timeout 10", "'set_timeout 10' called");
+is($calls[1], "X::Osd::string 0 test", "'string 0 test' called");
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
@@ -114,8 +87,8 @@ $msg = xPL::Message->new(message_type => 'xpl-cmnd',
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 2, 'correct number of calls - row out of range');
-is($calls[0], "MyXOsd::set_timeout 10", "'set_timeout 10' called");
-is($calls[1], "MyXOsd::string 0 test", "'string 0 test' called");
+is($calls[0], "X::Osd::set_timeout 10", "'set_timeout 10' called");
+is($calls[1], "X::Osd::string 0 test", "'string 0 test' called");
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
