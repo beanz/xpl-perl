@@ -128,7 +128,7 @@ sub new {
   if ($p{body_content}) {
     $self->{_body_content} = $p{body_content};
   } else {
-    $self->parse_body_parameters($p{body}||[], $p{body_order});
+    $self->{_body_array} = $p{body} || [];
   }
   return $self;
 }
@@ -190,7 +190,8 @@ sub _parse_body {
     push @body, $k, $v;
   }
   delete $_[0]->{_body_content};
-  $_[0]->parse_body_parameters(\@body);
+  $_[0]->{_body_array} = \@body;
+  $_[0]->parse_body_parameters();
 }
 
 =head2 C<parse_head_parameters( $head_hash_ref, $head_order )>
@@ -225,34 +226,34 @@ sub parse_head_parameters {
   return 1;
 }
 
-=head2 C<parse_body_parameters( $body_hash_ref )>
+=head2 C<parse_body_parameters( )>
 
-This method is called by the constructor to process the fields of the
-body of the message according to the field specification for the
-message type.
+This method is called lazily to convert the body array in to a hash to
+make extracting field values more efficient.
 
 =cut
 
 sub parse_body_parameters {
-  my ($self, $body, $body_order) = @_;
-  if (ref $body eq 'ARRAY') {
-    my @body = @$body; # TOFIX: use index
-    while (@body) {
-      my ($k, $v) = splice @body, 0, 2;
-      if (exists $self->{_body}->{$k}) {
-        if (ref $self->{_body}->{$k}) {
-          push @{$self->{_body}->{$k}}, $v;
-        } else {
-          $self->{_body}->{$k} = [$self->{_body}->{$k}, $v];
-        }
-        next;
+  my ($self) = @_;
+  my $body = $self->{_body_array};
+  my $b = $self->{_body} = {};
+  my $bo = $self->{_body_order} = [];
+  my $i = 0;
+  while ($i < scalar @$body) {
+    my $k = $body->[$i++];
+    my $v = $body->[$i++];
+    if (exists $b->{$k}) {
+      if (ref $b->{$k}) {
+        push @{$b->{$k}}, $v;
+      } else {
+        $b->{$k} = [$b->{$k}, $v];
       }
-      $self->{_body}->{$k} = $v;
-      push @{$self->{_body_order}}, $k;
+    } else {
+      $b->{$k} = $v;
+      push @{$bo}, $k;
     }
-  } else {
-    confess "Deprecated\n";
   }
+  delete $self->{_body_array};
   return 1;
 }
 
@@ -431,7 +432,11 @@ body.
 sub field {
   my $self = shift;
   my $key = shift;
-  $self->_parse_body() if ($self->{_body_content});
+  if (exists $self->{_body_content}) {
+    $self->_parse_body();
+  } elsif (!exists $self->{_body}) {
+    $self->parse_body_parameters();
+  }
   $self->{_body}->{$key};
 }
 
@@ -442,7 +447,11 @@ This method returns the fields that are in the body of this message.
 =cut
 
 sub body_fields {
-  $_[0]->_parse_body() if ($_[0]->{_body_content});
+  if (exists $_[0]->{_body_content}) {
+    $_[0]->_parse_body();
+  } elsif (!exists $_[0]->{_body}) {
+    $_[0]->parse_body_parameters();
+  }
   return @{$_[0]->{_body_order}||[]};
 }
 
