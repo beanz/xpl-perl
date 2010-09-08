@@ -33,9 +33,10 @@ ok($xpl, 'created dock client');
 my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::XOSD', 'plugin has correct type');
-
-is(ref $plugin->{_xosd}, 'X::Osd', 'X::Osd created');
 my $mock = $plugin->{_xosd};
+
+is(ref $mock, 'X::Osd', 'X::Osd created');
+
 my @calls = $mock->calls;
 is(scalar @calls, 1, 'correct number of calls - 1');
 is($calls[0],
