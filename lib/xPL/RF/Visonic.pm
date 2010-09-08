@@ -100,9 +100,7 @@ sub codesecure {
 
   my %args =
     (
-     message_type => 'xpl-trig',
      class => 'x10.security',
-     head => { source => $parent->source, },
      body => [
               command => $event,
               device  => $device,
@@ -111,7 +109,7 @@ sub codesecure {
     );
   push @{$args{'body'}}, 'low-battery' => 'true' if ($low_bat);
   push @{$args{'body'}}, 'repeat' => 'true' if ($repeat);
-  return [ xPL::Message->new(%args) ];
+  return [ \%args ];
 }
 
 =head2 C<powercode( $parent, $message, $bytes, $bits )>
@@ -153,21 +151,19 @@ sub powercode {
   # heartbeat
 
   my @res;
-  my %args =
-    (
-     message_type => 'xpl-trig',
+  my $args =
+    {
      class => 'security.zone',
-     head => { source => $parent->source, },
      body => [
               event => 'alert',
               zone  => 'powercode.'.$device,
               state => $alert ? 'true' : 'false',
              ]
-    );
-  push @{$args{'body'}}, 'low-battery' => 'true' if ($low_bat);
-  push @{$args{'body'}}, 'restore' => 'true' if ($restore);
-  push @{$args{'body'}}, 'tamper' => 'true' if ($tamper);
-  push @res, xPL::Message->new(%args);
+    };
+  push @{$args->{'body'}}, 'low-battery' => 'true' if ($low_bat);
+  push @{$args->{'body'}}, 'restore' => 'true' if ($restore);
+  push @{$args->{'body'}}, 'tamper' => 'true' if ($tamper);
+  push @res, $args;
 #x10.security
 #{
 #command=alert|normal|motion|light|dark|arm-home|arm-away|disarm|panic|lights-on
@@ -178,22 +174,20 @@ sub powercode {
 #[low-battery=true|false]
 #[delay=min|max]
 #}
-  %args =
-    (
-     message_type => 'xpl-trig',
+  $args =
+    {
      class => 'x10.security',
-     head => { source => $parent->source, },
      body => [
               command => $alert ? 'alert' : 'normal',
               device  => $device,
               type => 'powercode',
              ]
-    );
-  push @{$args{'body'}}, 'tamper' => 'true' if ($tamper);
-  push @{$args{'body'}}, 'low-battery' => 'true' if ($low_bat);
-  push @{$args{'body'}}, 'event' => ($event ? 'event' : 'alive');
-  push @{$args{'body'}}, 'restore' => 'true' if ($restore);
-  push @res, xPL::Message->new(%args);
+    };
+  push @{$args->{'body'}}, 'tamper' => 'true' if ($tamper);
+  push @{$args->{'body'}}, 'low-battery' => 'true' if ($low_bat);
+  push @{$args->{'body'}}, 'event' => ($event ? 'event' : 'alive');
+  push @{$args->{'body'}}, 'restore' => 'true' if ($restore);
+  push @res, $args;
   return \@res;
 }
 

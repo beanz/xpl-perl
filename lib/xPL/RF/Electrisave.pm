@@ -65,16 +65,14 @@ sub parse {
     #my $kwh = ($ct[$index]*240)/1000;
     #printf "electrisave d=%s kwh=%.2f\n", $dev, $kwh;
     push @msgs,
-      xPL::Message->new(
-                        message_type => 'xpl-trig',
-                        class => 'sensor.basic',
-                        head => { source => $parent->source, },
-                        body => [
-                                 device => 'electrisave.'.$dev,
-                                 type => 'current',
-                                 current => $ct[$index],
-                                ]
-                       );
+      {
+       class => 'sensor.basic',
+       body => [
+                device => 'electrisave.'.$dev,
+                type => 'current',
+                current => $ct[$index],
+               ]
+      };
   }
   return \@msgs;
 }

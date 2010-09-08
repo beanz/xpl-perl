@@ -104,8 +104,10 @@ sub device_reader {
   $self->info("Processing: ", $msg, "\n");
   my $res = $self->{_rf}->process_32bit($m);
   return 1 unless (@$res);
-  foreach my $xplmsg (@$res) {
-    print $xplmsg->summary,"\n";
+  foreach (@$res) {
+    my $xplmsg = xPL::Message->new(head => { source => $xpl->id },
+                                   message_type => 'xpl-trig', %$_);
+    print $xplmsg->summary, "\n";
     $xpl->send($xplmsg);
   }
   return 1;

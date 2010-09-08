@@ -107,32 +107,28 @@ sub parse {
         $temp = -1*(256-$temp);
       }
       $cache->{$base}->{temp} = $temp;
-      return [xPL::Message->new(
-                                message_type => 'xpl-trig',
-                                class => 'sensor.basic',
-                                head => { source => $parent->source, },
-                                body => [
-                                         device => $device,
-                                         type => 'temp',
-                                         current => $temp,
-                                         base_device => $base,
-                                        ]
-                               )];
+      return [{
+               class => 'sensor.basic',
+               body => [
+                        device => $device,
+                        type => 'temp',
+                        current => $temp,
+                        base_device => $base,
+                       ],
+              }];
     } elsif ($type == 1) {
       my $v = ( ($bytes->[2]<<3) + ($bytes->[3]>>5) ) / 100;
       my @res = ();
       push @res,
-        xPL::Message->new(
-                          message_type => 'xpl-trig',
-                          class => 'sensor.basic',
-                          head => { source => $parent->source, },
-                          body => [
-                                   device => $device,
-                                   type => 'voltage',
-                                   current => $v,
-                                   base_device => $base,
-                                  ]
-                         );
+        {
+         class => 'sensor.basic',
+         body => [
+                  device => $device,
+                  type => 'voltage',
+                  current => $v,
+                  base_device => $base,
+                 ],
+        };
       unless (defined $supply_voltage) {
         warn "Don't have supply voltage for $device/$base yet\n";
         return \@res;
@@ -148,32 +144,28 @@ sub parse {
         warn "Don't have temperature for $device/$base yet - assuming 25'C\n";
       }
       push @res,
-                xPL::Message->new(
-                          message_type => 'xpl-trig',
-                          class => 'sensor.basic',
-                          head => { source => $parent->source, },
-                          body => [
-                                   device => $device,
-                                   type => 'humidity',
-                                   current => $hum,
-                                   base_device => $base,
-                                  ]
-                         );
+        {
+         class => 'sensor.basic',
+         body => [
+                  device => $device,
+                  type => 'humidity',
+                  current => $hum,
+                  base_device => $base,
+                 ],
+        };
       return \@res;
     } elsif ($type == 2) {
       my $v = ( ($bytes->[2]<<3) + ($bytes->[3]>>5) ) / 100;
       $cache->{$base}->{supply} = $v;
-      return [xPL::Message->new(
-                                message_type => 'xpl-trig',
-                                class => 'sensor.basic',
-                                head => { source => $parent->source, },
-                                body => [
-                                         device => $device,
-                                         type => 'voltage',
-                                         current => $v,
-                                         base_device => $base,
-                                        ]
-                               )];
+      return [{
+               class => 'sensor.basic',
+               body => [
+                        device => $device,
+                        type => 'voltage',
+                        current => $v,
+                        base_device => $base,
+                       ],
+              }];
     } else {
       warn "Unsupported RFXSensor: type=$type\n";
       # not implemented yet

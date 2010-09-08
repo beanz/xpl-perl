@@ -98,16 +98,14 @@ sub parse {
   }
   my $kwh = ( ($bytes->[4]<<16) + ($bytes->[2]<<8) + ($bytes->[3]) ) / 100;
   #print "rfxmeter: ", $kwh, "kwh\n";
-  return [xPL::Message->new(
-                            message_type => 'xpl-trig',
-                            class => 'sensor.basic',
-                            head => { source => $parent->source, },
-                            body => [
-                                     device => 'rfxmeter.'.$device,
-                                     type => 'energy',
-                                     current => $kwh,
-                                    ]
-                           )];
+  return [{
+           class => 'sensor.basic',
+           body => [
+                    device => 'rfxmeter.'.$device,
+                    type => 'energy',
+                    current => $kwh,
+                   ],
+          }];
 }
 
 1;

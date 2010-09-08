@@ -86,7 +86,7 @@ sub parse {
   my $low_battery;
 
   my @res;
-  my %args;
+  my $args;
   if (exists $x10_security{$data}) {
     my $rec = $x10_security{$data};
     my $min_delay;
@@ -96,17 +96,15 @@ sub parse {
       $command = $rec;
     }
 
-    %args = (
-             message_type => 'xpl-trig',
+    $args = {
              class => 'security.basic',
-             head => { source => $parent->source, },
              body => [
                       command => $command,
                      ]
-            );
-    push @{$args{'body'}}, 'delay' => $min_delay if (defined $min_delay);
-    push @{$args{'body'}}, 'user' => $device;
-    push @res, xPL::Message->new(%args);
+            };
+    push @{$args->{'body'}}, 'delay' => $min_delay if (defined $min_delay);
+    push @{$args->{'body'}}, 'user' => $device;
+    push @res, $args;
 
   } elsif (exists $not_supported_yet{$data}) {
     warn sprintf "Not supported: %02x %s\n", $data, $not_supported_yet{$data};
@@ -119,37 +117,33 @@ sub parse {
     $min_delay = $data&0x20 ? 'min' : 'max';
     $low_battery = $data&0x80;
 
-    %args =
-      (
-       message_type => 'xpl-trig',
+    $args =
+      {
        class => 'security.zone',
-       head => { source => $parent->source, },
        body => [
                 event => 'alert',
                 zone  => $device,
                 state => $alert ? 'true' : 'false',
                ]
-      );
-    push @{$args{'body'}}, 'delay' => $min_delay;
-    push @{$args{'body'}}, 'low-battery' => 'true' if ($low_battery);
-    push @{$args{'body'}}, 'tamper' => 'true' if ($tamper);
-    push @res, xPL::Message->new(%args);
+      };
+    push @{$args->{'body'}}, 'delay' => $min_delay;
+    push @{$args->{'body'}}, 'low-battery' => 'true' if ($low_battery);
+    push @{$args->{'body'}}, 'tamper' => 'true' if ($tamper);
+    push @res, $args;
   }
 
-  %args =
-    (
-     message_type => 'xpl-trig',
+  $args =
+    {
      class => 'x10.security',
-     head => { source => $parent->source, },
      body => [
               command => $command,
               device  => $short_device,
              ]
-    );
-  push @{$args{'body'}}, 'tamper' => 'true' if ($tamper);
-  push @{$args{'body'}}, 'low-battery' => 'true' if ($low_battery);
-  push @{$args{'body'}}, 'delay' => $min_delay if (defined $min_delay);
-  push @res, xPL::Message->new(%args);
+    };
+  push @{$args->{'body'}}, 'tamper' => 'true' if ($tamper);
+  push @{$args->{'body'}}, 'low-battery' => 'true' if ($low_battery);
+  push @{$args->{'body'}}, 'delay' => $min_delay if (defined $min_delay);
+  push @res, $args;
   return \@res;
 }
 

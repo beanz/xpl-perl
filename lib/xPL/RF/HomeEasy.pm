@@ -72,12 +72,7 @@ sub parse {
 
   push @$body, level => $res->{level} if ($res->{command} eq 'preset');
 
-  return [xPL::Message->new(
-                            message_type => 'xpl-trig',
-                            class => 'homeeasy.basic',
-                            head => { source => $parent->source, },
-                            body => $body,
-                           )];
+  return [{ class => 'homeeasy.basic', body => $body }];
 }
 
 1;

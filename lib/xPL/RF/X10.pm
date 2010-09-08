@@ -87,12 +87,10 @@ sub x10_xpl_message {
   }
   my %args =
     (
-     message_type => 'xpl-trig',
      class => 'x10.basic',
-     head => { source => $parent->{_source}, },
      body => $body,
     );
-  return xPL::Message->new(%args);
+  return \%args;
 }
 
 1;

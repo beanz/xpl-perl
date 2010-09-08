@@ -42,7 +42,11 @@ is($res->{length}, 0, 'recognizes insufficient data');
 
 $res = $rf->process_32bit(pack 'H*','649b28d7');
 ok($res, 'recognizes valid message');
-is($res->[0]->summary,
+my %args = %{$res->[0]};
+my $msg = xPL::Message->new(head => {source => 'bnz-rfxcom.localhost'},
+                            message_type => 'xpl-trig', %args);
+
+is($msg->summary,
    q{xpl-trig/x10.basic: bnz-rfxcom.localhost -> * off/a11},
    'returns correct messages - 1');
 

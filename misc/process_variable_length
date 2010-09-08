@@ -18,7 +18,9 @@ foreach (@ARGV) {
     if ($r->{messages} && @{$r->{messages}}) {
       print scalar @{$r->{messages}}, " messages\n\n";
       foreach my $m (@{$r->{messages}}) {
-        print $m->string();
+        my $msg = xPL::Message->new(head => {source => 'bnz-rftest.default'},
+                                    message_type => 'xpl-trig', %$m);
+        print $msg->string();
       }
       print "\n";
     } else {

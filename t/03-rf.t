@@ -78,7 +78,9 @@ foreach my $m (sort keys %msg) {
     if (@{$res->{messages}||[]}) {
       $string = $EMPTY;
       foreach (@{$res->{messages}}) {
-        $string .= $_->string;
+        my $msg = xPL::Message->new(head => {source => 'bnz-rftest.default'},
+                                    message_type => 'xpl-trig', %$_);
+        $string .= $msg->string;
       }
     }
   } else {
