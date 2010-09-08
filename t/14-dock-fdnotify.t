@@ -3,29 +3,12 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use IO::Socket::INET;
-use IO::Select;
 use Socket;
 use t::Helpers qw/test_warn test_error test_output/;
+use lib 't/lib';
 $|=1;
 
-BEGIN {
-  require Test::More;
-
-  unless (exists $ENV{DISPLAY}) {
-    import Test::More skip_all => 'No X11 DISPLAY defined';
-    exit;
-  }
-
-  eval {
-    require Net::DBus; import Net::DBus;
-  };
-  if ($@) {
-    import Test::More skip_all => 'No Net::DBus perl module';
-  }
-
-  import Test::More tests => 10;
-}
+use Test::More tests => 10;
 
 use_ok('xPL::Dock','FDNotify');
 
@@ -52,24 +35,9 @@ ok($xpl, 'created dock client');
 my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::FDNotify', 'plugin has correct type');
+my $mock = $plugin->{_dbus_object};
 
-is(ref $plugin->{_dbus_object}, 'Net::DBus::RemoteObject',
-   'DBUS object created');
-
-{
-  package MyDBUSObject;
-  use Data::Dumper;
-  sub new { bless { calls => [] }, 'MyDBUSObject' }
-  sub calls { splice @{$_[0]->{calls}} }
-  sub AUTOLOAD {
-    my $self = shift;
-    our $AUTOLOAD;
-    push @{$self->{calls}}, "$AUTOLOAD ".Data::Dumper->Dump([\@_],[qw/args/]);
-  }
-  sub DESTROY {}
-  1;
-}
-my $mock = $plugin->{_dbus_object} = MyDBUSObject->new();
+is(ref $mock, 'Net::DBus::RemoteObject', 'DBUS object created');
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-fdnotify.test' },
@@ -78,7 +46,7 @@ my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
 $xpl->dispatch_xpl_message($msg);
 my @calls = $mock->calls;
 is(scalar @calls, 1, 'correct number of calls - 1');
-is($calls[0], q!MyDBUSObject::Notify $args = [
+is($calls[0], q!Net::DBus::RemoteObject::Notify $args = [
           'dingus',
           0,
           '',
@@ -98,7 +66,7 @@ $msg = xPL::Message->new(message_type => 'xpl-cmnd',
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
 is(scalar @calls, 1, 'correct number of calls - delay given');
-is($calls[0], q!MyDBUSObject::Notify $args = [
+is($calls[0], q!Net::DBus::RemoteObject::Notify $args = [
           'dingus',
           0,
           '',
