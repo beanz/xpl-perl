@@ -79,7 +79,8 @@ sub parse {
   }
   $bits == 32 or return;
   (($bytes->[0]^0xf0) == $bytes->[1]) or return;
-  ((nibble_sum(3.5, $bytes)&0xf)^0xf) == lo_nibble($bytes->[3]) or return;
+  my @nib = map { hex $_ } split //, unpack "H*", $message;
+  ((new_nibble_sum(7, \@nib)&0xf)^0xf) == $nib[7] or return;
   my $device = sprintf("rfxsensor%02x%02x", $bytes->[0], $bytes->[1]);
   my $base = sprintf("%02x%02x", $bytes->[0]&0xfc, $bytes->[1]&0xfc);
   my $cache = $parent->unstash('rfxsensor_cache');

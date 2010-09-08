@@ -617,7 +617,7 @@ sub checksum8 {
   $s == $c;
 }
 
-=head2 C<checksum_tester( $bytes )>
+=head2 C<checksum_tester( $bytes, $nibbles )>
 
 This method is a dummy checksum method that tries to guess the checksum
 that is required.
