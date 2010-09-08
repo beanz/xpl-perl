@@ -62,7 +62,7 @@ my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 $xpl->add_xpl_callback(id => 'read', callback => \&xpl_in,
                        filter => {
                                   message_type => 'xpl-cmnd',
-                                  class => 'x10.basic',
+                                  schema => 'x10.basic',
                                  });
 
 my $buf = q{};
@@ -144,14 +144,14 @@ sub xpl_in {
       $unit =~ s/^0//;
       my %args = (
                   message_type => 'xpl-trig',
-                  class => 'x10.confirm',
+                  schema => 'x10.confirm',
                   body =>
                   [
                    command => 'extended',
                    device => (lc $house).$unit,
                    data1 => $data1,
                    data2 => $data2,
-                 ],
+                  ],
                  );
       $xpl->send(%args);
     }
@@ -173,11 +173,10 @@ sub xpl_in {
     command_ctx35($string) or next;
     $unit =~ s/^0//;
     send_xpl_confirm((lc $house).$unit,
-                     $msg->field('command'), $msg->field('level');
+                     $msg->field('command'), $msg->field('level'));
   }
   return 1;
-};
-
+}
 
 =head2 C<send_xpl( $device, $command, [ $level ] )>
 
@@ -209,19 +208,19 @@ parameters to send the actual xPL message.
 =cut
 
 sub send_xpl_aux {
-  my $class = shift;
+  my $schema = shift;
   my $device = shift;
   my $command = shift;
   my $level = shift;
   my %args =
     (
      message_type => 'xpl-trig',
-     class => $class,
+     schema => $schema,
      body => [ command => $command, device => $device ],
     );
   if ($verbose) {
     print STDERR
-      "Sending $class $device $command", ($level ? " ".$level : ""), "\n";
+      "Sending $schema $device $command", ($level ? " ".$level : ""), "\n";
   }
 
   $xpl->send(%args);
