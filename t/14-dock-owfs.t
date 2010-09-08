@@ -149,7 +149,8 @@ check_sent_msg({
 my $file = 't/ow/2/05.CFCFCF000000/PIO';
 unlink $file;
 $xpl->dispatch_xpl_message(
-  xPL::Message->new(class => 'control.basic',
+  xPL::Message->new(message_type => 'xpl-cmnd',
+                    class => 'control.basic',
                     head => { source => 'acme-owfs.test' },
                     body =>
                     [
@@ -161,7 +162,8 @@ is(read_file($file), '0', 'output set low');
 unlink $file;
 
 $xpl->dispatch_xpl_message(
-  xPL::Message->new(class => 'control.basic',
+  xPL::Message->new(message_type => 'xpl-cmnd',
+                    class => 'control.basic',
                     head => { source => 'acme-owfs.test' },
                     body =>
                     [
@@ -174,7 +176,8 @@ unlink $file;
 
 is(test_output(sub {
   $xpl->dispatch_xpl_message(
-    xPL::Message->new(class => 'control.basic',
+    xPL::Message->new(message_type => 'xpl-cmnd',
+                      class => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
                       [
@@ -191,7 +194,8 @@ unlink $file;
 
 is(test_warn(sub {
   $xpl->dispatch_xpl_message(
-    xPL::Message->new(class => 'control.basic',
+    xPL::Message->new(message_type => 'xpl-cmnd',
+                      class => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
                       [
@@ -204,7 +208,8 @@ is(test_warn(sub {
 
 is(test_warn(sub {
   $xpl->dispatch_xpl_message(
-    xPL::Message->new(class => 'control.basic',
+    xPL::Message->new(message_type => 'xpl-cmnd',
+                      class => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
                       [
@@ -216,7 +221,8 @@ is(test_warn(sub {
 
 is(test_output(sub {
   $xpl->dispatch_xpl_message(
-    xPL::Message->new(class => 'control.basic',
+    xPL::Message->new(message_type => 'xpl-cmnd',
+                      class => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
                       [

@@ -42,7 +42,8 @@ is(scalar $bridge->peers, 1, "remote bridges connected");
 ok($sel->can_read(0.5), "remote bridge has connection to accept");
 my $cs = $ss->accept();
 
-my $msg = xPL::Message->new(head => { source => 'acme-clock.clepsydra' },
+my $msg = xPL::Message->new(message_type => 'xpl-stat',
+                            head => { source => 'acme-clock.clepsydra' },
                             class => "clock.update",
                             body => [ time => strftime("%Y%m%d%H%M%S",
                                                        localtime(time)) ],

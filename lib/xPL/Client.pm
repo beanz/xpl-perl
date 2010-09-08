@@ -147,6 +147,7 @@ sub new {
 
   my %xpl_message_args =
     (
+     message_type => 'xpl-stat',
      head => { source => $self->id },
      body => [ interval => $self->hbeat_interval ],
     );
@@ -665,7 +666,8 @@ sub send_ping_response {
     );
   push @body, checktime => $self->{ping}->{time}
     if (exists $self->{ping}->{time});
-  $self->send(class => 'ping.response', body => \@body);
+  $self->send(message_type => 'xpl-stat',
+              class => 'ping.response', body => \@body);
   return 1;
 }
 
@@ -714,7 +716,8 @@ sub send_hbeat_end {
   my $self = shift;
   return unless (defined $self->{_hbeat_mode});
   undef $self->{_hbeat_mode};
-  $self->send(class => $self->{_hbeat_class},
+  $self->send(message_type => 'xpl-stat',
+              class => $self->{_hbeat_class},
               class_type => 'end',
               body =>
               [

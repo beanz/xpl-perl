@@ -1,5 +1,6 @@
 $args =
   {
+   message_type => 'xpl-stat',
    head =>
    {
     source => "acme-clock.livingroom",

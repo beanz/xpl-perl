@@ -78,6 +78,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    'read response - f03ff03f');
 
 my $msg = xPL::Message->new(strict => 0,
+                            message_type => 'xpl-cmnd',
                             class => 'x10.basic',
                             head => { source => 'acme-x10.test' },
                             body =>
@@ -105,6 +106,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 #check_sent_msg($msg_str);
 
 $msg = xPL::Message->new(strict => 0,
+                         message_type => 'xpl-cmnd',
                          class => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
@@ -138,7 +140,8 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\n", 'read response - a1/on');
 
 
-$msg = xPL::Message->new(class => 'x10.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
                          [
@@ -158,7 +161,8 @@ print $client pack 'H*', '37';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\n", 'read response - p/all_lights_off');
 
-$msg = xPL::Message->new(class => 'x10.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
                          [
@@ -193,6 +197,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 
 $msg = xPL::Message->new(strict => 0,
+                         message_type => 'xpl-cmnd',
                          class => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
@@ -205,7 +210,8 @@ is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    'invalid x10.basic message');
 
 
-$msg = xPL::Message->new(class => 'homeeasy.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'homeeasy.basic',
                          head => { source => 'acme-homeeasy.test' },
                          body =>
                          [
@@ -226,7 +232,8 @@ print $client pack 'H*', '37';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\n", 'read response - homeeasy');
 
-$msg = xPL::Message->new(class => 'homeeasy.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'homeeasy.basic',
                          head => { source => 'acme-homeeasy.test' },
                          body =>
                          [
@@ -262,7 +269,8 @@ print $client pack 'H*', '37';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\n", 'read response - homeeasy');
 
-$msg = xPL::Message->new(class => 'homeeasy.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'homeeasy.basic',
                          head => { source => 'acme-homeeasy.test' },
                          body =>
                          [
@@ -286,6 +294,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 
 $msg = xPL::Message->new(strict => 0,
+                         message_type => 'xpl-cmnd',
                          class => 'homeeasy.basic',
                          head => { source => 'acme-he.test' },
                          body => []);
@@ -295,6 +304,7 @@ is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    'invalid homeeasy.basic message');
 
 $msg = xPL::Message->new(strict => 0,
+                         message_type => 'xpl-cmnd',
                          class => 'homeeasy.basic',
                          head => { source => 'acme-he.test' },
                          body =>

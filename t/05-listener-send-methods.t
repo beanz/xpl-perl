@@ -28,7 +28,7 @@ text=This is a test
 }
 ';
 
-ok($xpl->send_from_string('-c osd.basic -s bnz-tester.default '.
+ok($xpl->send_from_string('-m xpl-cmnd -c osd.basic -s bnz-tester.default '.
                           'command=write text="This is a test"'),
    'send_from_string');
 
@@ -81,7 +81,7 @@ option=c
    'send_from_arg_list w/multi-value field - content');
 
 is(test_error(sub {
-     $xpl->send_from_string('-c osd.basic command=write text="This is a test"')
+     $xpl->send_from_string('-m xpl-cmnd -c osd.basic command=write text="This is a test"')
    }),
    'xPL::Listener->send_aux: message error: xPL::Message::osd::basic::xplcmnd'.
      "->parse_head_parameters: requires 'source' parameter",

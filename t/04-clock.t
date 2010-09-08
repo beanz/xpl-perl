@@ -8,7 +8,8 @@ use POSIX qw/strftime/;
 
 use_ok("xPL::Message");
 my $t=strftime("%Y%m%d%H%M%S", localtime(time));
-my $msg = xPL::Message->new(class => "clock.update",
+my $msg = xPL::Message->new(message_type => 'xpl-stat',
+                            class => "clock.update",
                             head => { source => "acme-clock.hall", },
                             body => [ time => $t ]);
 ok($msg, "created clock update message");

@@ -1,5 +1,6 @@
 $args =
   {
+   message_type => 'xpl-trig',
    head =>
    {
     hop => 1,

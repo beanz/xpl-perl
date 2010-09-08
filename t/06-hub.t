@@ -128,7 +128,8 @@ ok(!$hub->exists_client($client), "the client doesn't exists");
 use_ok('xPL::Message');
 my $id = 'bnz-client.test';
 my $fake = '127.0.0.1:9999';
-my $msg = xPL::Message->new(class => 'hbeat.app',
+my $msg = xPL::Message->new(message_type => 'xpl-stat',
+                            class => 'hbeat.app',
                             head => { source => $id },
                             body =>
                             [

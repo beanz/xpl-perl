@@ -174,18 +174,19 @@ is(test_error(sub { $xpl->add_timer(id => 'null') }),
 # hacking the send socket to send to ourselves
 $xpl->{_send_sin} = sockaddr_in($xpl->listen_port, inet_aton($xpl->ip));
 
-$xpl->send(head =>
-            {
-             source => "acme-clock.dingus",
-            },
-            class => "hbeat.app",
-            body =>
-            [
-             interval => 5,
-             port => $xpl->listen_port,
-             remote_ip => $xpl->ip,
-            ],
-           );
+$xpl->send(message_type => 'xpl-stat',
+           head =>
+           {
+            source => "acme-clock.dingus",
+           },
+           class => "hbeat.app",
+           body =>
+           [
+            interval => 5,
+            port => $xpl->listen_port,
+            remote_ip => $xpl->ip,
+           ],
+          );
 
 undef $cb;
 $xpl->add_xpl_callback(id => 'hbeat',
@@ -286,7 +287,8 @@ ok($xpl->remove_input(\*STDIN), "removing input");
 ok(!$xpl->{_select}->exists(\*STDIN), "input removed from select");
 
 use_ok("xPL::Message");
-my $msg = xPL::Message->new(head =>
+my $msg = xPL::Message->new(message_type => 'xpl-stat',
+                            head =>
                             {
                              source => "acme-clock.livingroom",
                             },
@@ -319,7 +321,8 @@ is(ref($cb2->{message}), "xPL::Message::clock::update::xplstat",
    "correct message type");
 
 undef $cb2;
-$xpl->send(head =>
+$xpl->send(message_type => 'xpl-stat',
+           head =>
            {
             source => "acme-clock.livingroom",
            },
@@ -340,7 +343,8 @@ is(ref($cb2->{message}), "xPL::Message::clock::update::xplstat",
 is($cb2->{message}->field('time'), '20051113182651', "correct value");
 
 undef $cb2;
-$xpl->send(head =>
+$xpl->send(message_type => 'xpl-stat',
+           head =>
             {
              source => "acme-clock.dingus",
             },
@@ -376,7 +380,8 @@ ok($xpl->add_input(handle => $handle), "add input with null callback");
 ok(!defined $xpl->input_callback_time_average($handle),
    "input callback time average - undef");
 
-$xpl->send(head =>
+$xpl->send(message_type => 'xpl-stat',
+           head =>
             {
              source => "acme-clock.dingus",
             },

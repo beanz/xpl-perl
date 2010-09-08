@@ -1,5 +1,6 @@
 $args =
   {
+   message_type => 'xpl-trig',
    head =>
    {
     source => 'acme-ups.node0',

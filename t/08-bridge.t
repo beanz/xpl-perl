@@ -45,6 +45,7 @@ $bridge->main_loop(1);
 is(scalar $bridge->peers, 1, "fake client accepted");
 
 fake_hub_message($bridge,
+                 message_type => 'xpl-stat',
                  head => { source => 'acme-clock.cuckoo' },
                  class => "clock.update",
                  body => [ time => strftime("%Y%m%d%H%M%S", localtime(time)) ]);
@@ -64,7 +65,8 @@ is($msg->class, 'clock', "first message class");
 is($msg->class_type, 'update', "first message class_type");
 is($msg->source, 'acme-clock.cuckoo', "first message source");
 
-$msg = xPL::Message->new(head => { source => 'acme-clock.clepsydra' },
+$msg = xPL::Message->new(message_type => 'xpl-stat',
+                         head => { source => 'acme-clock.clepsydra' },
                          class => "clock.update",
                          body => [ time => strftime("%Y%m%d%H%M%S",
                                                localtime(time)) ]);
@@ -97,7 +99,8 @@ fake_hub_message($bridge, $msg_str);
 $bridge->main_loop(1);
 ok($sel->can_read(0.2), "client has message to read");
 
-$msg = xPL::Message->new(head => { source => 'acme-clock.clepsydra', hop => 9 },
+$msg = xPL::Message->new(message_type => 'xpl-stat',
+                         head => { source => 'acme-clock.clepsydra', hop => 9 },
                          class => "hbeat.basic");
 ok($msg, "prepared message to send from client");
 $msg_str = $msg->string;
@@ -123,6 +126,7 @@ is($w,
    'invalid message warning');
 
 fake_hub_message($bridge,
+                 message_type => 'xpl-stat',
                  head => { source => 'acme-clock.cuckoo', hop => 9 },
                  class => "hbeat.basic");
 is(test_warn(sub { $bridge->main_loop(1); }),

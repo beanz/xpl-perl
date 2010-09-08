@@ -52,7 +52,8 @@ is($buf, "?\r", 'content is correct - ?');
 
 wait_for_tick($xpl, $count);
 
-my $msg = xPL::Message->new(class => 'control.basic',
+my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                            class => 'control.basic',
                             head => { source => 'acme-udin.test' },
                             body =>
                             [
@@ -68,7 +69,8 @@ is($buf, "n1\r", 'content is correct - udin-r1/high');
 
 wait_for_tick($xpl, $count);
 
-$msg = xPL::Message->new(class => 'control.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
                          head => { source => 'acme-udin.test' },
                          body =>
                          [
@@ -83,7 +85,8 @@ is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r1/low');
 is($buf, "f1\r", 'content is correct - udin-r1/low');
 
 wait_for_tick($xpl, $count);
-$msg = xPL::Message->new(class => 'control.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
                          head => { source => 'acme-udin.test' },
                          body =>
                          [
@@ -103,7 +106,8 @@ is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r3/pulse');
 is($buf, "f3\r", 'content is correct - udin-r3/pulse');
 wait_for_tick($xpl, $count);
 
-$msg = xPL::Message->new(class => 'control.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
                          head => { source => 'acme-udin.test' },
                          body =>
                          [
@@ -118,7 +122,8 @@ is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r3/toggle');
 is($buf, "t3\r", 'content is correct - udin-r3/toggle');
 wait_for_tick($xpl, $count);
 
-$msg = xPL::Message->new(class => 'control.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
                          head => { source => 'acme-udin.test' },
                          body =>
                          [
@@ -131,7 +136,8 @@ is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    'device receive a message - udin-r4/invalid');
 # can read tested below
 
-$msg = xPL::Message->new(class => 'control.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
                          head => { source => 'acme-udin.test' },
                          body =>
                          [
@@ -142,7 +148,8 @@ $msg = xPL::Message->new(class => 'control.basic',
 $xpl->dispatch_xpl_message($msg);
 ok(!$client_sel->can_read(0.1), 'device received no message - invalid/pulse');
 
-$msg = xPL::Message->new(class => 'control.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
                          head => { source => 'acme-udin.test' },
                          body =>
                          [

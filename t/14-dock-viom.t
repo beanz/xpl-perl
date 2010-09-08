@@ -123,7 +123,8 @@ check_sent_msg({
                }, 'i01 low');
 $plugin->{_verbose} = 2;
 
-my $msg = xPL::Message->new(class => 'control.basic',
+my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                            class => 'control.basic',
                             head => { source => 'acme-viom.test' },
                             body =>
                             [
@@ -141,7 +142,8 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 On Period\n",
    'read response - o01/high');
 
-$msg = xPL::Message->new(class => 'control.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
                          head => { source => 'acme-viom.test' },
                          body =>
                          [
@@ -158,7 +160,8 @@ print $client "Output 1 Inactive\r\n";
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 Inactive\n", 'read response - o01/low');
 
-$msg = xPL::Message->new(class => 'control.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
                          head => { source => 'acme-viom.test' },
                          body =>
                          [
@@ -182,7 +185,8 @@ print $client "Output 1 Inactive\r\n";
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 Inactive\n", 'read response - o01/pulse');
 
-$msg = xPL::Message->new(class => 'control.basic',
+$msg = xPL::Message->new(message_type => 'xpl-cmnd',
+                         class => 'control.basic',
                          head => { source => 'acme-viom.test' },
                          body =>
                          [

@@ -113,7 +113,7 @@ is($buf, $hb, "second hbeat content");
 is($xpl->timer_timeout("!fast-hbeat"), 0.2, "hopeful hbeat timer 2");
 is($xpl->hbeat_mode, 'hopeful', "hbeat mode is hopeful");
 
-fake_hub_response($xpl, class => "clock.update");
+fake_hub_response($xpl, message_type => 'xpl-stat', class => "clock.update");
 
 $xpl->main_loop(1);
 ok($xpl->exists_timer("!fast-hbeat"), "fast hbeat timer even now");
@@ -121,7 +121,8 @@ is($xpl->hbeat_count, 2, "hbeat count");
 is($xpl->hbeat_mode, 'hopeful', "hbeat mode is hopeful");
 
 fake_hub_response($xpl,
-                  message_type => "xpl-stat", class => "hbeat.blah",
+                  message_type => "xpl-stat",
+                  class => "hbeat.blah",
                   body =>
                   [
                    interval => $xpl->hbeat_interval,
@@ -135,6 +136,7 @@ ok($xpl->exists_timer("!fast-hbeat"), "fast hbeat timer still");
 is($xpl->hbeat_mode, 'hopeful', "hbeat mode is hopeful");
 
 fake_hub_response($xpl,
+                  message_type => 'xpl-stat',
                   head =>
                   {
                    source => "acme-dingus.notme",
@@ -155,6 +157,7 @@ is($xpl->hbeat_mode, 'hopeful', "hbeat mode is hopeful");
 ok($xpl->exists_timer("!fast-hbeat"), "fast hbeat timer even now");
 
 fake_hub_response($xpl,
+                  message_type => 'xpl-stat',
                   class => "hbeat.app",
                   body =>
                   [
@@ -178,6 +181,7 @@ is($xpl->hbeat_count, 4, "hbeat count");
 is($errors, undef, "no unexpected errors");
 
 fake_hub_response($xpl,
+                  message_type => 'xpl-cmnd',
                   class => 'hbeat.request',
                   head => { source => "acme-dingus.req" },
                   body => [ command => 'request', ],
@@ -203,6 +207,7 @@ ok($xpl->timer_next('!hbeat') < $next_hbeat,
 # the hbeat response timer is removed immediately
 $xpl->reset_timer('!hbeat-response', time-1);
 fake_hub_response($xpl,
+                  message_type => 'xpl-cmnd',
                   class => 'hbeat.request',
                   head => { source => "acme-dingus.req" },
                   body => [ command => 'request', ],
@@ -228,6 +233,7 @@ ok(!$xpl->exists_timer("!hbeat-response"),
 # timer or hopeful timer would but here we just remove it for simplicity
 $count = $xpl->hbeat_count();
 fake_hub_response($xpl,
+                  message_type => 'xpl-cmnd',
                   class => 'hbeat.request',
                   head => { source => "acme-dingus.req" },
                   body => [ command => 'request', ],

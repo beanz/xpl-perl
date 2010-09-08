@@ -176,17 +176,9 @@ sub new {
   if (exists $specs{$class.$DOT.$class_type} && !exists $modules{$module}) {
     make_class($class, $class_type)
   }
-  if (!exists $p{message_type}) {
-    my $default_message_type =
-      $modules{$module} ? $module->default_message_type() :
-        $pkg->default_message_type();
-    $p{message_type} = $default_message_type
-      if (defined $default_message_type);
-  }
 
   # process message_type
-  exists $p{message_type} or
-    $pkg->argh(q{requires 'message_type' parameter});
+  exists $p{message_type} or $pkg->argh(q{requires 'message_type' parameter});
   my $message_type = $p{message_type};
   delete $p{message_type};
 
@@ -360,17 +352,6 @@ sub parse_body_parameters {
     confess "Deprecated\n";
   }
   return 1;
-}
-
-=head2 C<default_message_type()>
-
-This method returns the default message type.  It is undefined for
-the base class, but it can be overriden.
-
-=cut
-
-sub default_message_type {
-  return;
 }
 
 =head2 C<summary()>
@@ -640,13 +621,6 @@ sub make_class {
   my $isa = $parent.'::ISA';
   no strict qw/refs/;
   *{$isa} = [qw/xPL::Message/];
-  if (exists $spec->{default_message_type}) {
-    my $dmt = $parent.'::default_message_type';
-    *{$dmt} =
-      sub {
-        $spec->{default_message_type};
-      };
-  }
   use strict qw/refs/;
   foreach my $message_type (keys %{$spec->{types}}) {
     my $mt = $message_type;
