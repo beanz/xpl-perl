@@ -245,8 +245,8 @@ ok(!defined $xpl->xpl_callback_callback_time_average('hbeat'),
 $xpl->main_loop(1);
 
 ok($cb && exists $cb->{message}, "message returned");
-is(ref($cb->{message}), "xPL::Message::hbeat::app::xplstat",
-   "correct message type");
+is($cb->{message}->class.'.'.$cb->{message}->class_type,
+   'hbeat.app', "correct message type");
 ok($cb && exists $cb->{arguments}, "arguments passed");
 is($cb->{arguments}->[0], "my test", "correct argument passed");
 is($xpl->xpl_callback_callback_count('hbeat'), 1, "callback counter non-zero");
@@ -254,8 +254,8 @@ ok(defined $xpl->xpl_callback_callback_time_average('hbeat'),
    "xpl callback callback time average");
 
 ok($cb2 && exists $cb2->{message}, "message returned");
-is(ref($cb2->{message}), "xPL::Message::hbeat::app::xplstat",
-   "correct message type");
+is($cb2->{message}->class.'.'.$cb2->{message}->class_type,
+   'hbeat.app', "correct message type");
 ok($cb2 && exists $cb2->{arguments}, "arguments passed");
 is($cb2->{arguments}->[0], "my test", "correct argument passed");
 is($xpl->xpl_callback_callback_count('hbeat2'), 1, "callback counter non-zero");
@@ -267,8 +267,8 @@ ok(!$cb4);
 is($xpl->xpl_callback_callback_count('hbeat4'), 0, "callback counter zero");
 
 ok($cb5 && exists $cb5->{message}, "message returned");
-is(ref($cb5->{message}), "xPL::Message::hbeat::app::xplstat",
-   "correct message type");
+is($cb5->{message}->class.'.'.$cb5->{message}->class_type,
+   'hbeat.app', "correct message type");
 ok($cb5 && exists $cb5->{arguments}, "arguments passed");
 is($cb5->{arguments}->[0], "my test", "correct argument passed");
 is($xpl->xpl_callback_callback_count('hbeat5'), 1, "callback counter non-zero");
@@ -306,8 +306,8 @@ is($xpl->xpl_callback_callback_count('hbeat'), 1, "callback counter");
 is($xpl->xpl_callback_callback_count('hbeat2'), 2, "callback counter");
 is($xpl->xpl_callback_callback_count('null'), 1, "callback counter self-skip");
 ok($cb2 && exists $cb2->{message}, "message returned");
-is(ref($cb2->{message}), "xPL::Message::clock::update::xplstat",
-   "correct message type");
+is($cb2->{message}->class.'.'.$cb2->{message}->class_type,
+   'clock.update', "correct message type");
 
 undef $cb2;
 $xpl->send($msg->string);
@@ -317,8 +317,8 @@ is($xpl->xpl_callback_callback_count('hbeat'), 1, "callback counter");
 is($xpl->xpl_callback_callback_count('hbeat2'), 3, "callback counter");
 is($xpl->xpl_callback_callback_count('null'), 2, "callback counter self-skip");
 ok($cb2 && exists $cb2->{message}, "message returned");
-is(ref($cb2->{message}), "xPL::Message::clock::update::xplstat",
-   "correct message type");
+is($cb2->{message}->class.'.'.$cb2->{message}->class_type,
+   'clock.update', "correct message type");
 
 undef $cb2;
 $xpl->send(message_type => 'xpl-stat',
@@ -338,8 +338,8 @@ is($xpl->xpl_callback_callback_count('hbeat3'), 0, "callback counter");
 is($xpl->xpl_callback_callback_count('hbeat4'), 0, "callback counter");
 is($xpl->xpl_callback_callback_count('null'), 3, "callback counter self-skip");
 ok($cb2 && exists $cb2->{message}, "message returned");
-is(ref($cb2->{message}), "xPL::Message::clock::update::xplstat",
-   "correct message type");
+is($cb2->{message}->class.'.'.$cb2->{message}->class_type,
+   'clock.update', "correct message type");
 is($cb2->{message}->field('time'), '20051113182651', "correct value");
 
 undef $cb2;
@@ -364,8 +364,8 @@ is($xpl->xpl_callback_callback_count('hbeat3'), 1, "callback counter");
 is($xpl->xpl_callback_callback_count('hbeat4'), 1, "callback counter");
 is($xpl->xpl_callback_callback_count('null'), 3, "callback counter self-skip");
 ok($cb2 && exists $cb2->{message}, "message returned");
-is(ref($cb2->{message}), "xPL::Message::hbeat::end::xplstat",
-   "correct message type");
+is($cb2->{message}->class.'.'.$cb2->{message}->class_type,
+   'hbeat.end', "correct message type");
 
 ok($xpl->remove_xpl_callback('hbeat'), "remove xpl callback");
 

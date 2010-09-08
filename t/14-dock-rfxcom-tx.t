@@ -206,7 +206,7 @@ $msg = xPL::Message->new(strict => 0,
                          ]);
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    ("Invalid x10.basic message:\n".
-    "  xpl-cmnd/x10.basic: acme-x10.test -> * - on\n"),
+    "  xpl-cmnd/x10.basic: acme-x10.test -> * on\n"),
    'invalid x10.basic message');
 
 
@@ -255,7 +255,7 @@ print $client pack 'H*', '37';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    ("received: 37\n".
     "sending: 21c7e05dca00: ".
-    "xpl-cmnd/homeeasy.basic: acme-homeeasy.test -> * - off/0x31f8177 10\n"),
+    "xpl-cmnd/homeeasy.basic: acme-homeeasy.test -> * off/0x31f8177/10/2\n"),
    'read response - homeeasy');
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - homeeasy');
@@ -300,7 +300,7 @@ $msg = xPL::Message->new(strict => 0,
                          body => []);
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    ("Invalid homeeasy.basic message:\n".
-   "  xpl-cmnd/homeeasy.basic: acme-he.test -> * - \n"),
+   "  xpl-cmnd/homeeasy.basic: acme-he.test -> * \n"),
    'invalid homeeasy.basic message');
 
 $msg = xPL::Message->new(strict => 0,
@@ -315,7 +315,7 @@ $msg = xPL::Message->new(strict => 0,
                          ]);
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    ("homeeasy.basic 'preset' message is missing 'level':\n".
-    "  xpl-cmnd/homeeasy.basic: acme-he.test -> * - preset/0x31f8177 10\n"),
+    "  xpl-cmnd/homeeasy.basic: acme-he.test -> * preset/0x31f8177/10\n"),
    'invalid homeeasy.basic message - preset w/o level');
 
 

@@ -39,4 +39,4 @@ class_type=basic
 
 command=play
 
-summary=xpl-cmnd/audio.basic: acme-boombox.kitchen -> * - play
+summary=xpl-cmnd/audio.basic: acme-boombox.kitchen -> * play

@@ -41,7 +41,7 @@ class=dmx
 
 class_type=basic
 
-summary=xpl-cmnd/dmx.basic: acme-dmx.node0 -> * - set:1=10
+summary=xpl-cmnd/dmx.basic: acme-dmx.node0 -> * 1/set/10
 
 base=1
 

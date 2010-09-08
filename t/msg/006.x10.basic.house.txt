@@ -39,7 +39,7 @@ class=x10
 
 class_type=basic
 
-summary=xpl-cmnd/x10.basic: acme-dawndusk.porch -> * - all_lights_on jkl
+summary=xpl-cmnd/x10.basic: acme-dawndusk.porch -> * all_lights_on/jkl
 
 command=all_lights_on
 

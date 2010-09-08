@@ -43,4 +43,4 @@ class_type=end
 
 interval=10
 
-summary=xpl-stat/hbeat.end: acme-lamp.livingroom -> *
+summary=xpl-stat/hbeat.end: acme-lamp.livingroom -> * 10/12345/127.0.0.1

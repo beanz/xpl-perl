@@ -47,7 +47,7 @@ is(ref $plugin, 'xPL::Dock::W800', 'plugin has correct type');
 
 print $client pack 'H*', '649b08f7';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   "xpl-trig/x10.basic: bnz-dingus.mytestid -> * - on a11\n",
+   "xpl-trig/x10.basic: bnz-dingus.mytestid -> * on/a11\n",
    'read response - a11/on');
 check_sent_msg(q!xpl-trig
 {

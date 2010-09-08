@@ -61,7 +61,9 @@ a=value-a
 }
 ';
 $payload = $payload_pre.$payload_body;
-is($msg->summary, 'xpl-stat/fred.schema: vendor-device-instance -> *',
+is($msg->summary,
+   ('xpl-stat/fred.schema: vendor-device-instance -> * '.
+    'value-b/value-b2/value-b3/value-c/value-a'),
    'new_from_payload decoding');
 is($msg->string, $payload,
    'new_from_payload with duplicate field - content out');

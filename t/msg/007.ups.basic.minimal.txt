@@ -25,4 +25,4 @@ status=battery
 event=onbattery
 }
 
-summary=xpl-trig/ups.basic: acme-ups.node0 -> * - battery onbattery
+summary=xpl-trig/ups.basic: acme-ups.node0 -> * battery/onbattery

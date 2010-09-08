@@ -50,15 +50,7 @@ use 5.006;
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
-use File::Find;
-eval { require YAML::Syck; import YAML::Syck qw/LoadFile/; };
-if ($@) {
-  eval { require YAML; import YAML qw/LoadFile/; };
-  die "Failed to load YAML::Syck or YAML module: $@\n" if ($@);
-}
-use xPL::Validation;
-
-use Carp qw/cluck confess/;
+use Carp qw/confess/;
 
 use xPL::Base;
 #use AutoLoader qw(AUTOLOAD);
@@ -68,9 +60,6 @@ our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
-
-our %specs = ();
-our %modules = ();
 
 our $LF = "\012";
 our $EMPTY = q{};
@@ -86,28 +75,6 @@ our $CLOSE_SQUARE_BRACKET = q{]};
 our %MESSAGE_TYPES = map { $_ => 1 } qw/xpl-cmnd xpl-stat xpl-trig/;
 
 __PACKAGE__->make_readonly_accessor(qw/class class_type/);
-
-my $path = $INC{'xPL/Message.pm'};
-$path =~ s!([/\\])Message\.pm$!${1}schema!;
-my @paths = ($path);
-push @paths, $ENV{XPL_SCHEMA_PATH} if (exists $ENV{XPL_SCHEMA_PATH});
-find({
-      wanted =>
-      sub {
-        return unless ($File::Find::name =~
-                       m![/\\]([^\\/\.]+)\.([^\\/\.]+)\.yaml$!);
-        my $class = $1;
-        my $class_type = $2;
-        # print STDERR "$class.$class_type\n";
-        my $spec;
-        eval { $spec = LoadFile($File::Find::name); };
-        if ($EVAL_ERROR) {
-          die "Failed to read schema from $File::Find::name\n",$EVAL_ERROR,"\n";
-        }
-        $specs{$class.$DOT.$class_type} = $spec;
-      },
-      no_chdir => 1,
-     }, @paths);
 
 =head2 C<new(%parameter_hash)>
 
@@ -147,7 +114,6 @@ sub new {
   my $pkg = shift;
 
   my %p = @_;
-  exists $p{strict} or $p{strict} = 1;
 
   my $class;
   my $class_type;
@@ -172,37 +138,22 @@ sub new {
   delete $p{class};
   delete $p{class_type};
 
-  my $module = $pkg.$DOUBLE_COLON.(lc $class).$DOUBLE_COLON.(lc $class_type);
-  if (exists $specs{$class.$DOT.$class_type} && !exists $modules{$module}) {
-    make_class($class, $class_type)
-  }
-
   # process message_type
   exists $p{message_type} or $pkg->argh(q{requires 'message_type' parameter});
   my $message_type = $p{message_type};
   delete $p{message_type};
-
-  my $mt = lc $message_type;
-  $mt =~ s/-//;
-  $module .= $DOUBLE_COLON.$mt;
-
-  unless (exists $modules{$module}) {
-    $module = $pkg;
-    $pkg->ouch("New message type $class.$class_type\n")
-      if (exists $ENV{XPL_MSG_WARN});
-  } else {
-    $module = $modules{$module};
-  }
+  exists $MESSAGE_TYPES{$message_type} or
+    $pkg->argh("message type identifier, $message_type, is invalid.\n".
+               'It should be one of xpl-cmnd, xpl-stat or xpl-trig.');
 
   my $self = {};
-  bless $self, $module;
+  bless $self, $pkg;
 
   $self->{_verbose} = $p{verbose}||0;
-  $self->{_strict} = $p{strict};
 
   $self->{_class} = $class;
   $self->{_class_type} = $class_type;
-  $self->message_type($message_type);
+  $self->{_message_type} = $message_type;
 
   if ($p{head_content}) {
     $self->{_head_content} = $p{head_content};
@@ -254,7 +205,7 @@ sub new_from_payload {
   }
   $r{body_content} = $2;
   @r{qw/class class_type/} = split /\./, $1, 2;
-  return $_[0]->new(strict => 0, %r);
+  return $_[0]->new(%r);
 }
 
 sub _parse_head {
@@ -278,17 +229,6 @@ sub _parse_body {
   }
   delete $_[0]->{_body_content};
   $_[0]->parse_body_parameters(\@body);
-}
-
-=head2 C<spec()>
-
-This is the default message specification.  It is empty.  Specific
-message classes are intended to override this method.
-
-=cut
-
-sub spec {
-  {}
 }
 
 =head2 C<parse_head_parameters( $head_hash_ref, $head_order )>
@@ -318,7 +258,7 @@ sub parse_head_parameters {
         $self->argh("requires '$param' parameter");
       }
     }
-    $self->$param($value);
+    $self->{'_'.$param} = $value;
   }
   return 1;
 }
@@ -366,29 +306,28 @@ to the common components of the summary.
 sub summary {
   my $self = shift;
   $self->_parse_head() if ($self->{_head_content});
-  my $str =
-    sprintf
-      '%s/%s.%s: %s -> %s',
+  sprintf
+    '%s/%s.%s: %s -> %s %s',
       $self->{_message_type},
-      $self->{_class}, $self->{_class_type},
-      $self->{_source}, $self->{_target};
-  my $spec = $self->spec();
-  $self->_parse_body() if ($self->{_body_content});
-  if ($spec->{summary}) {
-    $str .= $SPACE_DASH_SPACE;
-    foreach my $field (@{$spec->{summary}}) {
-      my $name = $field->{name};
-      next unless (exists $self->{'_body'}->{$name});
-      $str .= $field->{prefix} if ($field->{prefix});
-      my $v = $self->{'_body'}->{$name};
-      if ((ref $v) eq 'ARRAY') {
-        $v = $OPEN_SQUARE_BRACKET.(join $COMMA, @$v).$CLOSE_SQUARE_BRACKET;
-      }
-      $str .= $v;
-      $str .= $field->{suffix} if ($field->{suffix});
-    }
-  }
-  return $str;
+        $self->{_class}, $self->{_class_type},
+          $self->{_source}, $self->{_target},
+            $self->body_summary();
+}
+
+=head2 C<body_summary()>
+
+This method returns a string containing a summary of the fields from
+the body of the xPL message.
+
+=cut
+
+sub body_summary {
+  my $self = shift;
+  my $str = $self->body_content;
+  $str =~ s/^[^=]+=//mg;
+  $str =~ s!$LF$!!;
+  $str =~ s!$LF!/!g;
+  $str;
 }
 
 =head2 C<string()>
@@ -431,38 +370,29 @@ message.
 =cut
 
 sub body_string {
-  my $b = $_[0]->{_class}.$DOT.$_[0]->{_class_type}."$LF\{$LF";
-  if (defined $_[0]->{_body_content}) {
-    $b .= $_[0]->{_body_content}.$LF;
-  } else {
-    foreach ($_[0]->body_fields()) {
-      my $v = $_[0]->{'_body'}->{$_};
-      my $n = $_;
-      $n = 'remote-ip' if ($_ eq 'remote_ip');
-      foreach ((ref $v) ? @{$v} : ($v)) {
-        $b .= "$n=".$_."$LF";
-      }
-    }
-  }
-  $b .= "}$LF";
-  return $b;
+  $_[0]->{_class}.$DOT.$_[0]->{_class_type}."$LF\{$LF".
+    $_[0]->body_content."}$LF";
 }
 
-=head2 C<strict( [ $new_strictness ] )>
+=head2 C<body_content()>
 
-This method returns the strictness setting for this message.  If the
-optional new value argument is present, then this method updates the
-message type identifier with the new value before it returns.
-
-Strictness defines whether or not the message is validated harshly or
-not.  Typically outgoing messages would have strictness turned on and
-incoming messages would not.
+This method returns the string that makes up the fields of the body
+part of the xPL message.
 
 =cut
 
-sub strict {
-  return $_[0]->{_strict} unless (@_ > 1);
-  $_[0]->{_strict} = $_[1];
+sub body_content {
+  return $_[0]->{_body_content}.$LF if (defined $_[0]->{_body_content});
+  my $b = $EMPTY;
+  foreach ($_[0]->body_fields()) {
+    my $v = $_[0]->{'_body'}->{$_};
+    my $n = $_;
+    $n = 'remote-ip' if ($_ eq 'remote_ip');
+    foreach ((ref $v) ? @{$v} : ($v)) {
+      $b .= "$n=".$_."$LF";
+    }
+  }
+  $b;
 }
 
 =head2 C<message_type( [ $new_message_type ] )>
@@ -475,19 +405,14 @@ identifier with the new value before it returns.
 
 sub message_type {
   return $_[0]->{_message_type} unless (@_ > 1);
+  confess "Deprecated message_type setter\n";
   my $value = $_[1];
-  if ($_[0]->{_strict} and !exists $MESSAGE_TYPES{$value}) {
-    $_[0]->argh("message type identifier, $value, is invalid.\n".
-                'It should be one of xpl-cmnd, xpl-stat or xpl-trig.');
-  }
   $_[0]->{_message_type} = $value;
 }
 
 =head2 C<hop( [ $new_hop ] )>
 
-This method returns the hop count.  If the optional new value argument
-is present, then this method updates the hop count to the new value
-before it returns.
+This method returns the hop count.
 
 =cut
 
@@ -495,14 +420,19 @@ sub hop {
   my $self = shift;
   $self->_parse_head() if ($self->{_head_content});
   if (@_) {
-    my $value = $_[0];
-    unless (!$self->{_strict} || $value =~ /^[1-9]$/) {
-      $self->argh("hop count, $value, is invalid.\n".
-                  'It should be a value from 1 to 9');
-    }
-    $self->{_hop} = $value;
+    confess "Deprecated hop setter\n";
   }
   return $self->{_hop};
+}
+
+sub increment_hop {
+  my $self = shift;
+  if ($self->{_head_content}) {
+    $self->{_head_content} =~ s!^hop=(\d+)$!$1+1!me;
+    return $1+1;
+  } else {
+    $self->{_hop}++;
+  }
 }
 
 =head2 C<source( [ $new_source ] )>
@@ -517,12 +447,7 @@ sub source {
   my $self = shift;
   $self->_parse_head() if ($self->{_head_content});
   if (@_) {
-    my $value = $_[0];
-    my $valid = valid_id($value);
-    unless (!$self->{_strict} || $valid eq 'valid') {
-      $self->argh("source, $value, is invalid.\n$valid");
-    }
-    $self->{_source} = $value;
+    confess "Deprecated source setter\n";
   }
   return $self->{_source};
 }
@@ -539,14 +464,7 @@ sub target {
   my $self = shift;
   $self->_parse_head() if ($self->{_head_content});
   if (@_) {
-    my $value = $_[0];
-    if ($value ne $STAR) {
-      my $valid = valid_id($value);
-      unless (!$self->{_strict} || $valid eq 'valid') {
-        $self->argh("target, $value, is invalid.\n$valid");
-      }
-    }
-    $self->{_target} = $value;
+    confess "Deprecated target setter\n";
   }
   return $self->{_target};
 }
@@ -607,37 +525,6 @@ This method returns the fields that are in the body of this message.
 sub body_fields {
   $_[0]->_parse_body() if ($_[0]->{_body_content});
   return @{$_[0]->{_body_order}||[]};
-}
-
-=head2 C<make_class($class, $class_type)>
-
-=cut
-
-sub make_class {
-  my ($class, $class_type) = @_;
-  my $spec = $specs{$class.$DOT.$class_type};
-  my $parent = __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
-  $modules{$parent} = $parent;
-  my $isa = $parent.'::ISA';
-  no strict qw/refs/;
-  *{$isa} = [qw/xPL::Message/];
-  use strict qw/refs/;
-  foreach my $message_type (keys %{$spec->{types}}) {
-    my $mt = $message_type;
-    $mt =~ s/-//;
-    my $module = $parent.$DOUBLE_COLON.$mt;
-    my $isa = $module.'::ISA';
-    no strict qw/refs/;
-    *{$isa} = [$parent];
-    my $s = $module.'::spec';
-    *{$s} =
-      sub {
-        $spec->{types}->{$message_type}
-      };
-    use strict qw/refs/;
-    $modules{$module} = $module;
-  }
-  return 1;
 }
 
 1;

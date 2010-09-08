@@ -39,7 +39,7 @@ class=dawndusk
 
 class_type=basic
 
-summary=xpl-trig/dawndusk.basic: acme-sensor.garden -> * - dawndusk/dawn
+summary=xpl-trig/dawndusk.basic: acme-sensor.garden -> * dawndusk/dawn
 
 type=dawndusk
 

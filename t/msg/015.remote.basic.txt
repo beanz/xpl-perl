@@ -37,6 +37,6 @@ class=remote
 
 class_type=basic
 
-summary=xpl-trig/remote.basic: acme-ir.shed -> * - snooze
+summary=xpl-trig/remote.basic: acme-ir.shed -> * snooze
 
 keys=snooze

@@ -56,7 +56,7 @@ my $r = recv($hs, $buf, 1024, 0);
 ok(defined $r, "received ping response");
 my $msg = xPL::Message->new_from_payload($buf);
 like($msg->summary,
-   qr!^xpl-stat/ping\.response: acme-ping\.test -> \* - ok \d!,
+   qr!^xpl-stat/ping\.response: acme-ping\.test -> \* \d+(?:\.\d+)?/ok/\d+(?:\.\d+)?!,
    "ping response content");
 
 sub wait_for_tick {

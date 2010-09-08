@@ -36,4 +36,4 @@ class_type=request
 
 command=request
 
-summary=xpl-cmnd/hbeat.request: acme-lamp.livingroom -> *
+summary=xpl-cmnd/hbeat.request: acme-lamp.livingroom -> * request

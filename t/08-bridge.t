@@ -111,7 +111,7 @@ my $w = test_warn(sub { $bridge->main_loop(1); });
 $w=~s/\d+\.\d+\.\d+\.\d+/127.0.0.1/;
 is($w,
    "Dropping msg from 127.0.0.1:$cport: xpl-stat/hbeat.basic: ".
-     "acme-clock.clepsydra -> *\n",
+     "acme-clock.clepsydra -> * \n",
    'dropping message warning - remote');
 
 ok($cs->syswrite(xPL::Bridge::pack_message("xpl-cmnd\n{}")),
@@ -130,7 +130,7 @@ fake_hub_message($bridge,
                  head => { source => 'acme-clock.cuckoo', hop => 9 },
                  class => "hbeat.basic");
 is(test_warn(sub { $bridge->main_loop(1); }),
-   "Dropping local msg: xpl-stat/hbeat.basic: acme-clock.cuckoo -> *\n",
+   "Dropping local msg: xpl-stat/hbeat.basic: acme-clock.cuckoo -> * \n",
    'dropping message warning - local');
 
 ok($cs->close, "fake client closed");

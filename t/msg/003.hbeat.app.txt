@@ -47,4 +47,4 @@ interval=10
 
 extra=test of extra field
 
-summary=xpl-stat/hbeat.app: acme-lamp.livingroom -> *
+summary=xpl-stat/hbeat.app: acme-lamp.livingroom -> * 10/12345/127.0.0.1/test of extra field

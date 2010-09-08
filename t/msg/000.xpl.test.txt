@@ -36,4 +36,4 @@ class_type=test
 
 extra=test of extra field
 
-summary=xpl-stat/xpl.test: acme-hammer.shed -> *
+summary=xpl-stat/xpl.test: acme-hammer.shed -> * test of extra field

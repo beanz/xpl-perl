@@ -39,7 +39,7 @@ class=cid
 
 class_type=basic
 
-summary=xpl-trig/cid.basic: acme-usr.modem1 -> * - inbound/012345678910
+summary=xpl-trig/cid.basic: acme-usr.modem1 -> * inbound/012345678910
 
 calltype=inbound
 

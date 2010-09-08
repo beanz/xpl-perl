@@ -41,7 +41,7 @@ class=control
 
 class_type=basic
 
-summary=xpl-cmnd/control.basic: acme-viom.node0 -> * - 1[output]=pulse
+summary=xpl-cmnd/control.basic: acme-viom.node0 -> * 1/output/pulse
 
 device=1
 

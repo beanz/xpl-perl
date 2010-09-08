@@ -39,7 +39,7 @@ class=tts
 
 class_type=basic
 
-summary=xpl-cmnd/tts.basic: acme-despotic.orator -> * - Empty the dishwasher!
+summary=xpl-cmnd/tts.basic: acme-despotic.orator -> * Empty the dishwasher!/100
 
 speech=Empty the dishwasher!
 

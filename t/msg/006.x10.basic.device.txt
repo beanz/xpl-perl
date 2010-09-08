@@ -39,7 +39,7 @@ class=x10
 
 class_type=basic
 
-summary=xpl-cmnd/x10.basic: acme-doorbell.porch -> * - on a10,a13
+summary=xpl-cmnd/x10.basic: acme-doorbell.porch -> * on/a10,a13
 
 command=on
 

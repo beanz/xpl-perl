@@ -39,7 +39,7 @@ class=dawndusk
 
 class_type=request
 
-summary=xpl-cmnd/dawndusk.request: acme-sensor.garden -> * - status/daynight
+summary=xpl-cmnd/dawndusk.request: acme-sensor.garden -> * status/daynight
 
 command=status
 

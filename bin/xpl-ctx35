@@ -124,18 +124,18 @@ sub xpl_in {
   my $peerport = $p{peerport};
 
   my @devices;
-  if ($msg->device) {
+  if ($msg->field('device')) {
     push @devices, map {  /^(.)(\d+)$/ && [ uc $1, sprintf "%02d", $2 ]
-                       } split /,/, $msg->device;
+                       } split /,/, $msg->field('device');
   }
-  if ($msg->house) {
-    push @devices, map { [ uc $_, '00' ] } split //, $msg->house;
+  if ($msg->field('house')) {
+    push @devices, map { [ uc $_, '00' ] } split //, $msg->field('house');
   }
   return 1 unless (scalar @devices);
 
-  if ($msg->command eq 'extended') {
-    my $data1 = $msg->data1;
-    my $data2 = $msg->data2;
+  if ($msg->field('command') eq 'extended') {
+    my $data1 = $msg->field('data1');
+    my $data2 = $msg->field('data2');
     return 1 unless (defined $data1 && defined $data2);
     my $command = sprintf '%02X%02X', $data2, $data1;
     foreach my $device (@devices) {
@@ -146,20 +146,24 @@ sub xpl_in {
       my %args = (
                   message_type => 'xpl-trig',
                   class => 'x10.confirm',
-                  body => { command => $msg->command,
-                            device => (lc $house).$unit,
-                            data1 => $msg->data1, data2 => $msg->data2 },
+                  body =>
+                  [
+                   command => 'extended',
+                   device => (lc $house).$unit,
+                   data1 => $data1,
+                   data2 => $data2,
+                 ],
                  );
       $xpl->send(%args);
     }
     return 1;
   }
 
-  my $command = $xpl_to_ctx{$msg->command};
+  my $command = $xpl_to_ctx{$msg->field('command')};
   return 1 unless ($command);
 
   my $repeat = 2;
-  if ($command =~ /^BGT|DIM$/ && $msg->level) {
+  if ($command =~ /^BGT|DIM$/ && $msg->field('level')) {
     $repeat = 2*int(1+$msg->level/14); # fix scale?
     $repeat = 6 if ($repeat > 6);
   }
@@ -169,7 +173,8 @@ sub xpl_in {
     my $string = (($house.$unit) x 2).' '.(($house.$command) x $repeat);
     command_ctx35($string) or next;
     $unit =~ s/^0//;
-    send_xpl_confirm((lc $house).$unit, $msg->command, $msg->level);
+    send_xpl_confirm((lc $house).$unit,
+                     $msg->field('command'), $msg->field('level');
   }
   return 1;
 };
@@ -213,7 +218,7 @@ sub send_xpl_aux {
     (
      message_type => 'xpl-trig',
      class => $class,
-     body => { command => $command, device => $device },
+     body => [ command => $command, device => $device ],
     );
   if ($verbose) {
     print STDERR

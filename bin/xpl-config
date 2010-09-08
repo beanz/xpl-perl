@@ -84,7 +84,9 @@ sub xpl_hub_response {
   my $peerport = $p{peerport};
 
   print STDERR "Sending hbeat.request\n" if ($verbose);
-  $xpl->send(head => { target => $target, }, class => 'hbeat.request');
+  $xpl->send(message_type => 'xpl-cmnd',
+             head => { target => $target, },
+             class => 'hbeat.request');
   $start_time = Time::HiRes::time;
   $xpl->add_xpl_callback(id => 'wait_for_response',
                          callback => \&hbeat_response,
@@ -130,7 +132,7 @@ sub report {
   $xpl->send(message_type => 'xpl-cmnd',
              head => { target => $target, },
              class => 'config.list',
-             body => { command => 'request' });
+             body => [ command => 'request' ]);
   $xpl->add_xpl_callback(id => 'wait_for_response',
                          callback => \&config_list,
                          filter => { class => 'config', class_type => 'list' },
@@ -149,7 +151,7 @@ sub config_list {
   print "Config list response:\n";
   my %items = ();
   foreach my $type ($msg->body_fields) {
-    my $items = $msg->$type or next;
+    my $items = $msg->field($type) or next;
     foreach my $i (ref $items ? @$items : $items) {
       my %r = ( type => $type );
       print "  $i of type $type\n";
@@ -161,34 +163,26 @@ sub config_list {
   $xpl->remove_timer('timeout');
 
   if (@ARGV) {
-    my %body = ();
+    my @body = ();
     foreach (@ARGV) {
       my ($name, $value) = split /=/, $_, 2;
       unless (exists $items{$name}) {
         warn "$name is not a config item\n";
         next;
       }
-      if ($items{$name}->{multi}) {
-        if (exists $body{$name}) {
-          push @{$body{$name}}, $value;
-        } else {
-          $body{$name} = [$value];
-        }
-      } else {
-        $body{$name} = $value;
-      }
+      push @body, $name => $value;
     }
     print "Sending config.response request\n";
     $xpl->send(message_type => 'xpl-cmnd',
                head => { target => $target, },
                class => 'config.response',
-               body => \%body);
+               body => \@body);
   }
   print "Sending config.current request\n";
   $xpl->send(message_type => 'xpl-cmnd',
              head => { target => $target, },
              class => 'config.current',
-             body => { command => 'request' });
+             body => [ command => 'request' ]);
   $xpl->add_xpl_callback(id => 'wait_for_response',
                          callback => \&config_current,
                          filter =>
@@ -209,8 +203,8 @@ sub config_current {
   my $peerport = $p{peerport};
 
   print "Config current response:\n";
-  foreach my $f ($msg->extra_fields) {
-    my $v = $msg->extra_field($f);
+  foreach my $f ($msg->body_fields) {
+    my $v = $msg->field($f);
     foreach (ref $v ? @$v : $v) {
       print "  $f=$_\n";
     }
@@ -232,7 +226,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2005, 2009 by Mark Hindess
+Copyright (C) 2005, 2010 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,

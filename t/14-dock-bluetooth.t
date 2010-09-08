@@ -54,8 +54,8 @@ is(ref $plugin, 'xPL::Dock::Bluetooth', 'plugin has correct type');
 my $output = test_output(sub { $xpl->dispatch_timer('poll-bluetooth') },
                          \*STDOUT);
 is($output,
-   "sending xpl-trig/sensor.basic: bnz-dingus.mytestid -> * -".
-   " bt.00:1A:75:DE:DE:DE[input]=high\n",
+   "sending xpl-trig/sensor.basic: bnz-dingus.mytestid -> *".
+   " bt.00:1A:75:DE:DE:DE/input/high\n",
    'is found output');
 check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
                                  message_type => 'xpl-trig',
@@ -71,8 +71,8 @@ check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
 $output = test_output(sub { $xpl->dispatch_timer('poll-bluetooth') },
                          \*STDOUT);
 is($output,
-   "sending xpl-stat/sensor.basic: bnz-dingus.mytestid -> * -".
-   " bt.00:1A:75:DE:DE:DE[input]=high\n",
+   "sending xpl-stat/sensor.basic: bnz-dingus.mytestid -> *".
+   " bt.00:1A:75:DE:DE:DE/input/high\n",
    'is still found output');
 check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
                                  message_type => 'xpl-stat',

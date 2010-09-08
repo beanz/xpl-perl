@@ -56,4 +56,4 @@ column=2
 
 delay=5
 
-summary=xpl-cmnd/osd.basic: acme-phone.livingroom -> acme-tv.livingroom - clear:[Ring, Ring,Ring, Ring]
+summary=xpl-cmnd/osd.basic: acme-phone.livingroom -> acme-tv.livingroom clear/Ring, Ring/Ring, Ring/1/2/5

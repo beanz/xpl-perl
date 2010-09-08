@@ -45,4 +45,4 @@ column=undef
 
 delay=undef
 
-summary=xpl-cmnd/osd.basic: acme-phone.livingroom -> * - clear
+summary=xpl-cmnd/osd.basic: acme-phone.livingroom -> * clear

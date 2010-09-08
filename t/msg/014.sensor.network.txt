@@ -41,7 +41,7 @@ class=sensor
 
 class_type=network
 
-summary=xpl-trig/sensor.network: acme-1wire.node0 -> * - router1[packets]=1234
+summary=xpl-trig/sensor.network: acme-1wire.node0 -> * router1/packets/1234
 
 device=router1
 

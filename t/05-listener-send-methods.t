@@ -83,7 +83,7 @@ option=c
 is(test_error(sub {
      $xpl->send_from_string('-m xpl-cmnd -c osd.basic command=write text="This is a test"')
    }),
-   'xPL::Listener->send_aux: message error: xPL::Message::osd::basic::xplcmnd'.
+   'xPL::Listener->send_aux: message error: xPL::Message'.
      "->parse_head_parameters: requires 'source' parameter",
    'missing source');
 

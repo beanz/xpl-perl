@@ -42,7 +42,8 @@ my $slist = Gtk2::SimpleList->new('Id' => 'text',
 $slist->signal_connect(button_press_event => \&button_press);
 $slist->set_rules_hint(1);
 $vbox->add($slist);
-foreach (['Send Request' => sub { $xpl->send(class=>'hbeat.request') }],
+foreach (['Send Request' => sub { $xpl->send(message_type => 'xpl-cmnd',
+                                             class => 'hbeat.request') }],
          ['Quit' => sub { Gtk2->main_quit }]) {
   my $button = Gtk2::Button->new($_->[0]);
   $button->signal_connect(clicked => $_->[1]);
@@ -171,7 +172,8 @@ sub history_callback {
 }
 
 sub ping_callback {
-  $xpl->send(head => { target => $d{selected} }, class=>'hbeat.request');
+  $xpl->send(message_type => 'xpl-cmnd',
+             head => { target => $d{selected} }, class => 'hbeat.request');
   return 1;
 }
 

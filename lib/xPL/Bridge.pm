@@ -197,14 +197,13 @@ sub bridge {
 
   my $msg = $p{message};
 
-  $self->info('Local msg: ', $msg->summary, ' ', $msg->hop, "\n");
+  $self->info('Local msg: ', $msg->summary, "\n");
 
-  my $hop = $msg->hop;
+  my $hop = $msg->increment_hop;
   if ($hop >= 9) {
     warn 'Dropping local msg: ', $msg->summary, "\n";
     return 1;
   }
-  $msg->hop($hop+1);
 
   my $msg_str = $msg->string();
   return 1 if ($self->seen_local($msg_str));
@@ -278,13 +277,12 @@ sub sock_read {
       return 1;
     }
     $self->mark_seen($msg->string);
-    my $hop = $msg->hop;
+    my $hop = $msg->increment_hop;
     if ($hop >= 9) {
       warn 'Dropping msg from ', $self->peer_name($peer), ': ',
         $msg->summary, "\n";
       next;
     }
-    $msg->hop($hop+1);
 
     $self->send($msg);
   }

@@ -43,7 +43,7 @@ is($res->{length}, 0, 'recognizes insufficient data');
 $res = $rf->process_32bit(pack 'H*','649b28d7');
 ok($res, 'recognizes valid message');
 is($res->[0]->summary,
-   q{xpl-trig/x10.basic: bnz-rfxcom.localhost -> * - off a11},
+   q{xpl-trig/x10.basic: bnz-rfxcom.localhost -> * off/a11},
    'returns correct messages - 1');
 
 $res = $rf->process_32bit(pack 'H*','649b28d7');

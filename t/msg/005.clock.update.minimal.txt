@@ -37,4 +37,4 @@ class_type=update
 
 time=20051113182650
 
-summary=xpl-stat/clock.update: acme-clock.livingroom -> * - 20051113182650
+summary=xpl-stat/clock.update: acme-clock.livingroom -> * 20051113182650

@@ -41,7 +41,7 @@ class=sensor
 
 class_type=basic
 
-summary=xpl-trig/sensor.basic: acme-1wire.node0 -> * - bed1[temp]=21.05
+summary=xpl-trig/sensor.basic: acme-1wire.node0 -> * bed1/temp/21.05
 
 device=bed1
 

@@ -51,11 +51,11 @@ print $client q{
 };
 
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   q{xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371.1[current]=8.87916666666667
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371.2[current]=0
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371.3[current]=0
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371[current]=8.87916666666667
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - curcost.02371[temp]=20.7
+   q{xpl-trig/sensor.basic: bnz-dingus.mytestid -> * curcost.02371.1/current/8.87916666666667
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * curcost.02371.2/current/0
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * curcost.02371.3/current/0
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * curcost.02371/current/8.87916666666667
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * curcost.02371/temp/20.7
 },
    'read response - curcost');
 foreach my $rec (['curcost.02371.1', 'current', '8.87916666666667'],
@@ -101,11 +101,11 @@ print $client q{
 };
 
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   q{xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.1[current]=1.4375
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.2[current]=8.9625
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1.3[current]=0
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1[current]=10.4
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * - cc128.01234.1[temp]=18.7
+   q{xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1.1/current/1.4375
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1.2/current/8.9625
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1.3/current/0
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1/current/10.4
+xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1/temp/18.7
 },
    'read response - cc128');
 foreach my $rec (['cc128.01234.1.1', 'current', '1.4375'],
@@ -230,7 +230,7 @@ or the value can be given as a command line argument
 sub check_sent_msg {
   my ($string) = @_;
   my $msg = shift @msg;
-  while ((ref $msg->[0]) =~ /^xPL::Message::hbeat/) {
+  while ($msg->[0] && $msg->[0]->class eq 'hbeat') {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $string) {
