@@ -40,6 +40,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
 	                           test_warn
                                    test_output
                                    wait_for_callback
+                                   wait_for_variable
 ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
@@ -112,6 +113,15 @@ sub wait_for_callback {
   $count = $xpl->$method($id)+1 unless (defined $count);
   while ($xpl->$method($id) < $count) {
     #print STDERR "Waiting for $type => $id to reach $count\n";
+    $xpl->main_loop(1);
+  }
+}
+
+sub wait_for_variable {
+  my ($xpl, $var_ref) = @_;
+  my $count = ($$var_ref || 0)+1;
+  while (($$var_ref || 0) < $count) {
+    #print STDERR "Waiting for read_count to reach $count\n";
     $xpl->main_loop(1);
   }
 }

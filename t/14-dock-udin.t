@@ -7,7 +7,7 @@ use IO::Socket::INET;
 use IO::Select;
 use Socket;
 use Test::More tests => 33;
-use t::Helpers qw/test_warn test_error test_output/;
+use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 $|=1;
 
 use_ok('xPL::Dock','UDIN');
@@ -163,12 +163,18 @@ $buf = '';
 is((sysread $client, $buf, 64), 3, 'read is correct size - debug/high');
 is($buf, "s0\r", 'content is correct - debug/high');
 print $client "\r\n0\r\n"; # blank line should be ignored
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: '0'\n", 'read response - debug/high');
 
 $plugin->{_verbose} = 0;
 print $client "0\r\n";
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    '', 'no response w/o verbose - debug/high');
 
 # The begin block is global of course but this is where it is really used.

@@ -9,11 +9,12 @@ use Socket;
 use Test::More tests => 19;
 use Time::HiRes;
 use Cwd;
-use t::Helpers qw/test_warn test_error test_output/;
+use t::Helpers qw/test_warn test_error test_output wait_for_variable/;
 use lib 't/lib';
 $|=1;
 
-use_ok('xPL::Dock','MyHDDTemp');
+$ENV{XPL_PLUGIN_TO_WRAP} = 'xPL::Dock::HDDTemp';
+use_ok('xPL::Dock','Wrap');
 
 my @msg;
 sub xPL::Dock::send_aux {
@@ -41,7 +42,7 @@ my $xpl;
 ok($xpl, 'created dock hddtemp client');
 my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
-is(ref $plugin, 'xPL::Dock::MyHDDTemp', 'plugin has correct type');
+is(ref $plugin, 'xPL::Dock::Wrap', 'plugin has correct type');
 
 ok(!$sel->can_read(0.2), 'hddtemp device not ready to accept');
 
@@ -54,7 +55,7 @@ my $client_sel = IO::Select->new($client);
 
 $client->print('|/dev/sda|ST3320620AS|40|C||/dev/sdb|ST3320620AS|39|C|');
 
-wait_for_read($xpl, $plugin);
+wait_for_variable($xpl, \$plugin->{_read_count});
 
 check_sent_msg({
                 message_type => 'xpl-trig',
@@ -88,7 +89,7 @@ $client_sel = IO::Select->new($client);
 
 $client->print('|/dev/sda|ST3320620AS|40|C||/dev/sdb|ST3320620AS|40|C|');
 
-wait_for_read($xpl, $plugin);
+wait_for_variable($xpl, \$plugin->{_read_count});
 
 check_sent_msg({
                 message_type => 'xpl-stat',
@@ -122,7 +123,7 @@ $client_sel = IO::Select->new($client);
 
 $client->print('|/dev/sda|ST3320620AS|40|C||/dev/sdb|ST3320620AS|SPL|C|');
 
-wait_for_read($xpl, $plugin);
+wait_for_variable($xpl, \$plugin->{_read_count});
 
 check_sent_msg({
                 message_type => 'xpl-stat',
@@ -153,13 +154,4 @@ sub check_sent_msg {
   }
   my %m = @{$msg};
   is_deeply(\%m, $expected, $desc);
-}
-
-sub wait_for_read {
-  my ($xpl, $plugin) = @_;
-  my $count = ($plugin->{_read_count} || 0)+1;
-  while (($plugin->{_read_count} || 0) < $count) {
-    #print STDERR "Waiting for read_count to reach $count\n";
-    $xpl->main_loop(1);
-  }
 }

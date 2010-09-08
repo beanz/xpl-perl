@@ -7,10 +7,13 @@ use IO::Socket::INET;
 use IO::Select;
 use Socket;
 use Test::More tests => 75;
-use t::Helpers qw/test_warn test_error test_output/;
+use t::Helpers qw/test_warn test_error test_output wait_for_callback
+                  wait_for_variable /;
+use lib 't/lib';
 $|=1;
 
-use_ok('xPL::Dock','RFXComTX');
+$ENV{XPL_PLUGIN_TO_WRAP} = 'xPL::Dock::RFXComTX';
+use_ok('xPL::Dock','Wrap');
 use_ok('xPL::IORecord::Hex');
 
 my @msg;
@@ -43,7 +46,7 @@ my $client_sel = IO::Select->new($client);
 
 my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
-is(ref $plugin, 'xPL::Dock::RFXComTX', 'plugin has correct type');
+is(ref $plugin, 'xPL::Dock::Wrap', 'plugin has correct type');
 
 ok($client_sel->can_read(0.5), 'device receive a message - F030F030');
 my $buf = '';
@@ -51,7 +54,10 @@ is((sysread $client, $buf, 64), 4, 'read is correct size - F030F030');
 my $m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, 'f030f030', 'content is correct - F030F030');
 print $client pack 'H*', '10';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    ("received: 10\n".
     "sending: F037F037: variable length mode w/o receiver connected\n"),
    'read response - F030F030');
@@ -62,7 +68,10 @@ is((sysread $client, $buf, 64), 4, 'read is correct size - F037F037');
 $m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, 'f037f037', 'content is correct - F037F037');
 print $client pack 'H*', '37';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    ("received: 37\n".
     "sending: F03FF03F: disabling x10\n"),
    'read response - F037F037');
@@ -73,7 +82,10 @@ is((sysread $client, $buf, 64), 4, 'read is correct size - f03ff03f');
 $m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, 'f03ff03f', 'content is correct - f03ff03f');
 print $client pack 'H*', '37';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\n",
    'read response - f03ff03f');
 
@@ -96,7 +108,10 @@ is($m, '20609f00ff', 'content is correct - a1/on');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\n", 'read response - a1/on');
 
 # TOFIX: should send confirm messages
@@ -123,7 +138,10 @@ is($m, '20609f00ff', 'content is correct - a1/on');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\nsending: 20609f00ff: a1 on\n", 'read response - a1/on');
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - a1/on');
@@ -134,7 +152,10 @@ is($m, '20609f00ff', 'content is correct - a1/on');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\n", 'read response - a1/on');
 
 
@@ -156,7 +177,10 @@ is($m, '2030cf807f', 'content is correct - p/all_lights_off');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\n", 'read response - p/all_lights_off');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
@@ -178,7 +202,10 @@ is($m, '2030cf807f', 'content is correct - p/all_lights_off');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\nsending: 2030cf807f: p all_lights_off\n",
    'read response - p/all_lights_off');
 
@@ -190,7 +217,10 @@ is($m, '2030cf807f', 'content is correct - p/all_lights_off');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\n", 'read response - p/all_lights_off');
 
 
@@ -226,7 +256,10 @@ is($m, '21c7e05dca00', 'content is correct - homeeasy');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\n", 'read response - homeeasy');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
@@ -249,7 +282,10 @@ is($m, '21c7e05dca00', 'content is correct - homeeasy');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    ("received: 37\n".
     "sending: 21c7e05dca00: ".
     "xpl-cmnd/homeeasy.basic: acme-homeeasy.test -> * off/0x31f8177/10/2\n"),
@@ -263,7 +299,10 @@ is($m, '21c7e05dca00', 'content is correct - homeeasy');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\n", 'read response - homeeasy');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
@@ -286,7 +325,10 @@ is($m, '24c7e05dcaa0', 'content is correct - homeeasy');
 
 print $client pack 'H*', '37';
 
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl,
+                                   input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "received: 37\n", 'read response - homeeasy');
 
 
@@ -323,7 +365,10 @@ $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - no ack');
 $m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, 'f03ff03f', 'content is correct - no ack');
-is(test_output(sub { $xpl->main_loop(1) }, \*STDERR), "No ack!\n", 'no ack');
+is(test_output(sub {
+                 wait_for_variable($xpl, \$plugin->{_reset_device});
+               }, \*STDERR),
+   "No ack!\n", 'no ack');
 ok($client_sel->can_read(0.5), 'serial device ready to read - no ack');
 $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - no ack');

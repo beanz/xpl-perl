@@ -7,7 +7,7 @@ use IO::Socket::INET;
 use IO::Select;
 use Socket;
 use Test::More tests => 14;
-use t::Helpers qw/test_warn test_error test_output/;
+use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 
 $|=1;
 
@@ -46,7 +46,9 @@ ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::W800', 'plugin has correct type');
 
 print $client pack 'H*', '649b08f7';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl, input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "xpl-trig/x10.basic: bnz-dingus.mytestid -> * on/a11\n",
    'read response - a11/on');
 check_sent_msg(q!xpl-trig
@@ -63,12 +65,16 @@ device=a11
 !);
 $plugin->{_verbose} = 1;
 print $client pack 'H*', '649b08';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl, input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    '', 'read response - incomplete');
 check_sent_msg(undef);
 
 print $client pack 'H*', 'f7';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
+is(test_output(sub {
+                 wait_for_callback($xpl, input => $plugin->{_io}->input_handle)
+               }, \*STDOUT),
    "Processing: 649b08f7\n", # duplicate so no xPL message summary
    'read response - a11/on');
 check_sent_msg(undef);

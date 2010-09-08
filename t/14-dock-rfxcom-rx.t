@@ -7,7 +7,7 @@ use IO::Socket::INET;
 use IO::Select;
 use Socket;
 use Test::More tests => 27;
-use t::Helpers qw/test_warn test_error test_output/;
+use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 $|=1;
 
 use_ok('xPL::Dock','RFXComRX');
@@ -56,7 +56,8 @@ foreach my $r (['F020' => '4d26'], ['F02A' => '41'], ['F041' => '41']) {
 
   print $client pack 'H*', $send;
 
-  $xpl->main_loop(1);
+  wait_for_callback($xpl, input => $plugin->{_io}->input_handle);
+
   is((unpack 'H*', $plugin->{_io}->{_buffer}),
      $send, 'read response - '.$send);
   $plugin->{_io}->{_buffer} = '';
