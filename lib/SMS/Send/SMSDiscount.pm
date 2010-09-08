@@ -9,7 +9,7 @@ SMS::Send::SMSDiscount - SMS::Send SMS Discount Driver
   # Create a testing sender
   my $send = SMS::Send->new( 'SMSDiscount',
                              _login => 'smsdiscount username',
-                             _password => 'smsdiscount pin' );
+                             _password => 'smsdiscount password' );
 
   # Send a message
   $send->send_sms(
@@ -32,6 +32,7 @@ use warnings;
 use SMS::Send::Driver;
 use LWP::UserAgent;
 use HTTP::Request::Common qw(POST);
+use URI::Escape;
 
 our @ISA = qw/SMS::Send::Driver/;
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
@@ -40,7 +41,7 @@ our @EXPORT = qw();
 our $VERSION = '0.05';
 our $SVNVERSION = qw/$Revision$/[1];
 
-our $URL = 'https://myaccount.SMSDiscount.com/clx/sendsms.php';
+our $URL = 'https://www.SMSDiscount.com/myaccount/sendsms.php';
 
 =head1 CONSTRUCTOR
 
@@ -64,6 +65,10 @@ sub send_sms {
   $p{to} =~ s/^\+//;
   $p{to} =~ s/[- ]//g;
 
+#  my $u = sprintf $URL.'?username=%s&password=%s&from=%s&to=%s&text=%s',
+#    map { uri_escape $_ } $self->{_login}, $self->{_password},
+#      $self->{_login}, '+'.$p{to}, $p{text};
+
   my $response = $self->{_ua}->post($URL,
                                     {
                                      username => $self->{_login},
@@ -78,8 +83,8 @@ sub send_sms {
   }
   my $s = $response->as_string;
   $s =~ s/\r?\n$//;
-  $s =~ s/^.*\r?\n//s;
-  unless ($s =~ /Message Sent OK/i) {
+  $s =~ s/^.*?\r?\n\r?\n//s;
+  unless ($s =~ m!<resultstring>success</resultstring>!i) {
     warn "Failed: $s\n" if ($self->{_verbose});
     return 0;
   }
@@ -105,7 +110,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2007, 2008 by Mark Hindess
+Copyright (C) 2007, 2010 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,

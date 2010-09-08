@@ -1,6 +1,6 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2007 by Mark Hindess
+# Copyright (C) 2010 by Mark Hindess
 
 use strict;
 use Test::More tests => 13;
@@ -29,7 +29,7 @@ SKIP: {
   unless ($pid) { server($serv); }
   $serv->close;
   $SMS::Send::SMSDiscount::URL = 'http://127.0.0.1:'.$port.'/';
-  ok($sms->send_sms(text => 'text1', to => '+441234654321'),
+  ok(my $ret = $sms->send_sms(text => 'text1', to => '+441234654321'),
      'SMSDiscount successful message');
   ok(!$sms->send_sms(text => 'text2', to => '+441234654321'),
      'SMSDiscount unsuccessful message');
@@ -46,6 +46,7 @@ SKIP: {
      "Failed: Oops\n",
      'SMSDiscount unsuccessful message warning');
   ok(!$res, 'SMSDiscount unsuccessful message w/verbose mode');
+
   like(test_warn(sub {
                    $sms->send_sms(text => 'text5', to => '+441234654321'),
                  }),
@@ -73,8 +74,26 @@ sub server {
   my $count = 1;
 
   foreach my $resp
-    ("HTTP/1.0 200 OK\nContent-Type: text/plain\n\nMessage Sent OK\n",
-     "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nOops\n",
+    (q{HTTP/1.0 200 OK\nContent-Type: text/html\n
+<?phpxml version="1.0" encoding="utf-8"?>
+<SmsResponse>
+        <version>1</version>
+        <result>1</result>
+        <resultstring>success</resultstring>
+        <description></description>
+        <endcause></endcause>
+</SmsResponse>
+},
+     q{HTTP/1.0 200 OK\nContent-Type: text/html\n
+<?phpxml version="1.0" encoding="utf-8"?>
+<SmsResponse>
+        <version>1</version>
+        <result>0</result>
+        <resultstring>failure</resultstring>
+        <description>Sorry, you do not have enough credit to send this sms. Go to your accountpage to buy credit!</description>
+        <endcause>1</endcause>
+</SmsResponse>
+},
      "HTTP/1.0 402 Payment required\nContent-Type: text/plain\n\nOops\n",
      "HTTP/1.0 200 OK\nContent-Type: text/plain\n\nOops\n",
      "HTTP/1.0 402 Payment required\nContent-Type: text/plain\n\nOops\n",
