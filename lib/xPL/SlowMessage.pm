@@ -61,7 +61,7 @@ use xPL::Validation;
 use xPL::Base;
 #use AutoLoader qw(AUTOLOAD);
 
-our @ISA = qw(xPL::Base);
+our @ISA = qw(xPL::Message);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
@@ -192,77 +192,16 @@ sub new {
   if ($p{head_content}) {
     $self->{_head_content} = $p{head_content};
   } else {
-    exists $p{head} or $p{head} = {};
-    $self->parse_head_parameters($p{head}, $p{head_order});
+    $self->parse_head_parameters($p{head}||{}, $p{head_order});
   }
 
   if ($p{body_content}) {
     $self->{_body_content} = $p{body_content};
   } else {
-    exists $p{body} or $p{body} = [];
-    $self->parse_body_parameters($p{body});
+    $self->{_body_array} = $p{body} || [];
+    $self->parse_body_parameters();
   }
   return $self;
-}
-
-=head2 C<new_from_payload( $message )>
-
-This is a constructor that takes the string of an xPL message and
-constructs an xPL::SlowMessage object from it.
-
-=cut
-
-sub new_from_payload {
-  my %r = ();
-  my ($head, $body, $null) = split /\n}\n/, $_[1], 3;
-  unless (defined $head) {
-    xPL::SlowMessage->argh('Message badly formed: empty?');
-  }
-  unless (defined $body) {
-    xPL::SlowMessage->argh('Message badly formed: failed to split head and body');
-  }
-  unless (defined $null) {
-    xPL::SlowMessage->ouch('Message badly terminated: missing final eol char?');
-    $body =~ s/\n}$//;
-  }
-  if ($null) {
-    xPL::SlowMessage->ouch("Trailing trash: $null\n");
-  }
-  unless ($head =~ /^(.*?)\n\{\n(.*)$/s) {
-    xPL::SlowMessage->argh("Invalid header: $head\n");
-  }
-  $r{message_type} = $1;
-  $r{head_content} = $2;
-
-  unless ($body =~ /^(.*?)\n\{\n?(.*)$/s) {
-    xPL::SlowMessage->argh("Invalid body: $body\n");
-  }
-  $r{body_content} = $2;
-  $r{class} = $1;
-  return $_[0]->new(strict => 0, %r);
-}
-
-sub _parse_head {
-  my %r;
-  foreach (split /\n/, $_[0]->{_head_content}) {
-    my ($k, $v) = split /=/, $_, 2;
-    $k =~ s/-/_/g;
-    $r{head}->{$k} = $v;
-    push @{$r{head_order}}, $k;
-  }
-  delete $_[0]->{_head_content};
-  $_[0]->parse_head_parameters($r{head}, $r{head_order});
-}
-
-sub _parse_body {
-  my @body;
-  foreach (split /\n/, $_[0]->{_body_content}) {
-    my ($k, $v) = split /=/, $_, 2;
-    $k =~ s/-/_/g;
-    push @body, $k, $v;
-  }
-  delete $_[0]->{_body_content};
-  $_[0]->parse_body_parameters(\@body);
 }
 
 =head2 C<field_spec()>
@@ -319,7 +258,7 @@ sub parse_head_parameters {
   return 1;
 }
 
-=head2 C<parse_body_parameters( $body_hash_ref )>
+=head2 C<parse_body_parameters( )>
 
 This method is called by the constructor to process the fields of the
 body of the message according to the field specification for the
@@ -328,24 +267,10 @@ message type.
 =cut
 
 sub parse_body_parameters {
-  my ($self, $body_array) = @_;
-  my $body = $self->{_body} = {};
-  my $body_order = $self->{_body_order} = [];
-  my $i = 0;
-  while ($i < scalar @$body_array) {
-    my $k = $body_array->[$i++];
-    my $v = $body_array->[$i++];
-    if (exists $body->{$k}) {
-      if (ref $body->{$k}) {
-        push @{$body->{$k}}, $v;
-      } else {
-        $body->{$k} = [$body->{$k}, $v];
-      }
-    } else {
-      $body->{$k} = $v;
-      push @{$body_order}, $k;
-    }
-  }
+  my ($self) = @_;
+  $self->SUPER::parse_body_parameters();
+  my $body = $self->{_body};
+  my $body_order = $self->{_body_order};
   my $spec = $self->field_spec();
   my %processed = ();
   foreach my $field_rec (@$spec) {
@@ -406,39 +331,6 @@ sub default_message_type {
   return;
 }
 
-=head2 C<summary()>
-
-This method returns a string containing a summary of the xPL message.
-It is intended for use when logging.
-
-=cut
-
-sub summary {
-  my $self = shift;
-  $self->_parse_head() if ($self->{_head_content});
-  sprintf
-    '%s/%s: %s -> %s %s',
-      $self->{_message_type},
-        $self->{_class}, $self->{_source}, $self->{_target},
-            $self->body_summary();
-}
-
-=head2 C<body_summary()>
-
-This method returns a string containing a summary of the fields from
-the body of the xPL message.
-
-=cut
-
-sub body_summary {
-  my $self = shift;
-  my $str = $self->body_content;
-  $str =~ s/^[^=]+=//mg;
-  $str =~ s!$LF$!!;
-  $str =~ s!$LF!/!g;
-  $str;
-}
-
 =head2 C<pretty_print()>
 
 This method returns a string containing a summary of the xPL message.
@@ -474,49 +366,6 @@ sub pretty_print {
     }
   }
   return $str;
-}
-
-=head2 C<string()>
-
-This method returns the xPL message string.  It is made up of the
-L<head_string()> and L<body_string()>.
-
-=cut
-
-sub string {
-  my $self = shift;
-  $self->head_string(@_).$self->body_string(@_);
-}
-
-=head2 C<head_string()>
-
-This method returns the string that makes up the head part of the xPL
-message.
-
-=cut
-
-sub head_string {
-  my $h = $_[0]->{_message_type}."$LF\{$LF";
-  if (defined $_[0]->{_head_content}) {
-    $h .= $_[0]->{_head_content}.$LF;
-  } else {
-    foreach (@{$_[0]->{_head_order}}) {
-      $h .= $_.$EQUALS.$_[0]->{'_'.$_}.$LF;
-    }
-  }
-  $h .= "}$LF";
-  return $h;
-}
-
-=head2 C<body_string()>
-
-This method returns the string that makes up the body part of the xPL
-message.
-
-=cut
-
-sub body_string {
-  $_[0]->{_class}."$LF\{$LF".$_[0]->body_content."}$LF";
 }
 
 =head2 C<body_content()>
@@ -738,17 +587,6 @@ sub extra_field_string {
     }
   }
   return $b;
-}
-
-=head2 C<body_fields()>
-
-This method returns the fields that are in the body of this message.
-
-=cut
-
-sub body_fields {
-  $_[0]->_parse_body() if (exists $_[0]->{_body_content});
-  @{$_[0]->{_body_order}}
 }
 
 =head2 C<make_class($class, $class_type)>

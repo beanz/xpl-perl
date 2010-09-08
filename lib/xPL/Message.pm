@@ -172,7 +172,8 @@ sub new_from_payload {
   }
   $r{body_content} = $2;
   $r{class} = $1;
-  return $_[0]->new(%r);
+  # strict => 0 is only really needed when xPL::SlowMessage's are created
+  return $_[0]->new(strict => 0, %r);
 }
 
 sub _parse_head {
@@ -240,22 +241,22 @@ make extracting field values more efficient.
 
 sub parse_body_parameters {
   my ($self) = @_;
-  my $body = $self->{_body_array};
-  my $b = $self->{_body} = {};
-  my $bo = $self->{_body_order} = [];
+  my $body_array = $self->{_body_array};
+  my $body = $self->{_body} = {};
+  my $body_order = $self->{_body_order} = [];
   my $i = 0;
-  while ($i < scalar @$body) {
-    my $k = $body->[$i++];
-    my $v = $body->[$i++];
-    if (exists $b->{$k}) {
-      if (ref $b->{$k}) {
-        push @{$b->{$k}}, $v;
+  while ($i < scalar @$body_array) {
+    my $k = $body_array->[$i++];
+    my $v = $body_array->[$i++];
+    if (exists $body->{$k}) {
+      if (ref $body->{$k}) {
+        push @{$body->{$k}}, $v;
       } else {
-        $b->{$k} = [$b->{$k}, $v];
+        $body->{$k} = [$body->{$k}, $v];
       }
     } else {
-      $b->{$k} = $v;
-      push @{$bo}, $k;
+      $body->{$k} = $v;
+      push @{$body_order}, $k;
     }
   }
   delete $self->{_body_array};
@@ -351,7 +352,7 @@ sub body_content {
   return $_[0]->{_body_content}.$LF if (defined $_[0]->{_body_content});
   my $b = $EMPTY;
   foreach ($_[0]->body_fields()) {
-    my $v = $_[0]->{'_body'}->{$_};
+    my $v = $_[0]->field($_);
     my $n = $_;
     $n = 'remote-ip' if ($_ eq 'remote_ip');
     foreach ((ref $v) ? @{$v} : ($v)) {
