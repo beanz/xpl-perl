@@ -520,7 +520,7 @@ SKIP: {
 
 SKIP: {
   skip "Loopback doesn't support binding to 127.0.0.2 address", 1
-    if ($^O eq 'darwin');
+    if ($^O eq 'darwin' || $^O eq 'freebsd');
 
   $xpl = $xpl->new(ip => "127.0.0.2",
                    broadcast => "127.0.0.1",
