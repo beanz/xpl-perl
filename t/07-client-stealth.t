@@ -6,7 +6,7 @@ use strict;
 use Socket;
 use Time::HiRes;
 use t::Helpers qw/test_error test_warn test_output/;
-use Test::More tests => 7;
+use Test::More tests => 14;
 $|=1;
 
 use_ok('xPL::Client');
@@ -33,8 +33,20 @@ $xpl->add_xpl_callback(id => 'xpl',
                          $msg = $p{message};
                          return 1;
                        });
-$xpl->add_timer(id => 'timeout', callback => sub { $timeout++ },
+$xpl->add_timer(id => 'timeout', callback => sub { $timeout++; 1 },
                 timeout => 0.1);
 $xpl->main_loop(1); # shouldn't send anything, should timeout
 is($timeout, 1, 'correct timeout count');
 is($xpl->hbeat_count, 0, 'correct hbeat count');
+is($msg, undef, 'no message received');
+
+$xpl->send_hbeat_end();
+$xpl->main_loop(1); # shouldn't send anything, should timeout
+is($timeout, 2, 'correct timeout count');
+is($xpl->hbeat_count, 0, 'correct hbeat count');
+is($msg, undef, 'no message received');
+
+$xpl->main_loop(1); # shouldn't receive anything, should timeout
+is($timeout, 3, 'correct timeout count');
+is($xpl->hbeat_count, 0, 'correct hbeat count');
+is($msg, undef, 'no message received');
