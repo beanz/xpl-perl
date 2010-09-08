@@ -32,6 +32,7 @@ our %EXPORT_TAGS = ( 'all' => [ qw(
                                    lo_nibble
                                    hi_nibble
                                    nibble_sum
+                                   new_nibble_sum
                                   ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
@@ -77,6 +78,21 @@ sub nibble_sum {
     $s += lo_nibble($_[1]->[$_]);
   }
   $s += hi_nibble($_[1]->[$_[0]]) if (int($_[0]) != $_[0]);
+  return $s;
+}
+
+=head2 C<new_nibble_sum($count, \@nibbles)>
+
+This function returns the sum of the nibbles of count nibbles.
+
+=cut
+
+sub new_nibble_sum {
+  my $c = $_[0];
+  my $s = 0;
+  foreach (0..$_[0]-1) {
+    $s += $_[1]->[$_];
+  }
   return $s;
 }
 

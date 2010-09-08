@@ -167,8 +167,9 @@ sub parse {
     return;
   }
 
+  my @nibbles = map { hex $_ } split //, unpack "H*", $message;
   my $checksum = $rec->{checksum};
-  if ($checksum && !$checksum->($bytes)) {
+  if ($checksum && !$checksum->($bytes, \@nibbles)) {
     return;
   }
 
@@ -177,12 +178,12 @@ sub parse {
     warn "Possible message from Oregon part \"", $rec->{part}, "\"\n";
     return;
   }
-  return $self->$method(lc $rec->{part}, $parent, $message, $bytes, $bits);
+  $self->$method(lc $rec->{part}, $parent, $message, $bytes, $bits, \@nibbles);
 }
 
 =head1 DEVICE METHODS
 
-=head2 C<uv138( $parent, $message, $bytes, $bits )>
+=head2 C<uv138( $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is called if the device type bytes indicate that the bytes
 might contain a message from a UV138 sensor.
@@ -190,22 +191,17 @@ might contain a message from a UV138 sensor.
 =cut
 
 sub uv138 {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nibbles) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  uv($parent, $bytes, $dev_str, \@res);
+  uv($parent, $bytes, $nibbles, $dev_str, \@res);
   simple_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
 }
 
-=head2 C<uvn800( $parent, $message, $bytes, $bits )>
+=head2 C<uvn800( $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is called if the device type bytes indicate that the bytes
 might contain a message from a UVN800 sensor.
@@ -213,22 +209,17 @@ might contain a message from a UVN800 sensor.
 =cut
 
 sub uvn800 {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nibbles) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  uv2($parent, $bytes, $dev_str, \@res);
-  percentage_battery($parent, $bytes, $dev_str, \@res);
+  uv2($parent, $bytes, $nibbles, $dev_str, \@res);
+  percentage_battery($parent, $bytes, $nibbles, $dev_str, \@res);
   return \@res;
 }
 
-=head2 C<wgr918_anemometer( $parent, $message, $bytes, $bits )>
+=head2 C<wgr918_anemometer( $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is called if the device type bytes indicate that the bytes
 might contain a wind speed/direction message from a WGR918 sensor.
@@ -236,18 +227,13 @@ might contain a wind speed/direction message from a WGR918 sensor.
 =cut
 
 sub wgr918_anemometer {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nib) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
-  my $dir = sprintf("%02x",$bytes->[5])*10 + hi_nibble($bytes->[4]);
-  my $speed = lo_nibble($bytes->[7]) * 10 + sprintf("%02x",$bytes->[6])/10;
-  my $avspeed = sprintf("%02x",$bytes->[8]) + hi_nibble($bytes->[7]) / 10;
+  my $dir = $nib->[10]*100 + $nib->[11]*10 + $nib->[8];
+  my $speed = $nib->[15]*10 + $nib->[12] + $nib->[13]/10;
+  my $avspeed = $nib->[16]*10 + $nib->[17] + $nib->[14]/10;
   #print "WGR918: $device $dir $speed\n";
   my @res = ();
   push @res,
@@ -274,11 +260,11 @@ sub wgr918_anemometer {
                                units => 'degrees',
                               ]
                      );
-  percentage_battery($parent, $bytes, $dev_str, \@res);
+  percentage_battery($parent, $bytes, $nib, $dev_str, \@res);
   return \@res;
 }
 
-=head2 C<wtgr800_anemometer( $parent, $message, $bytes, $bits )>
+=head2 C<wtgr800_anemometer( $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is called if the device type bytes indicate that the bytes
 might contain a wind speed/direction message from a WTGR800 sensor.
@@ -286,18 +272,13 @@ might contain a wind speed/direction message from a WTGR800 sensor.
 =cut
 
 sub wtgr800_anemometer {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nib) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
-  my $dir = hi_nibble($bytes->[4]) * 22.5;
-  my $speed = lo_nibble($bytes->[7]) * 10 + sprintf("%02x",$bytes->[6])/10;
-  my $avspeed = sprintf("%02x",$bytes->[8]) + hi_nibble($bytes->[7]) / 10;
+  my $dir = $nib->[8] * 22.5;
+  my $speed = $nib->[14]*10 + $nib->[12] + $nib->[13]/10;
+  my $avspeed = $nib->[16]*10 + $nib->[17] + $nib->[14]/10;
   #print "WTGR800: $device $dir $speed\n";
   my @res = ();
   push @res,
@@ -323,11 +304,11 @@ sub wtgr800_anemometer {
                                current => $dir,
                               ]
                      );
-  percentage_battery($parent, $bytes, $dev_str, \@res);
+  percentage_battery($parent, $bytes, $nib, $dev_str, \@res);
   return \@res;
 }
 
-=head2 C<alt_temphydro( $parent, $message, $bytes, $bits )>
+=head2 C<alt_temphydro( $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is called if the device type bytes indicate that the bytes
 might contain a temperature/humidity message from a WTGR800 sensor.
@@ -335,23 +316,18 @@ might contain a temperature/humidity message from a WTGR800 sensor.
 =cut
 
 sub alt_temphydro {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nibbles) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  temperature($parent, $bytes, $dev_str, \@res);
-  humidity($parent, $bytes, $dev_str, \@res);
-  percentage_battery($parent, $bytes, $dev_str, \@res);
+  temperature($parent, $bytes, $nibbles, $dev_str, \@res);
+  humidity($parent, $bytes, $nibbles, $dev_str, \@res);
+  percentage_battery($parent, $bytes, $nibbles, $dev_str, \@res);
   return \@res;
 }
 
-=head2 C<alt_temphydrobaro( $parent, $message, $bytes, $bits )>
+=head2 C<alt_temphydrobaro( $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is called if the device type bytes indicate that the bytes
 might contain a temperature/humidity/baro message from a BTHR918N sensor.
@@ -359,24 +335,19 @@ might contain a temperature/humidity/baro message from a BTHR918N sensor.
 =cut
 
 sub alt_temphydrobaro {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nibbles) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  temperature($parent, $bytes, $dev_str, \@res);
-  humidity($parent, $bytes, $dev_str, \@res);
-  pressure($parent, $bytes, $dev_str, \@res, hi_nibble($bytes->[9]), 856);
-  percentage_battery($parent, $bytes, $dev_str, \@res);
+  temperature($parent, $bytes, $nibbles, $dev_str, \@res);
+  humidity($parent, $bytes, $nibbles, $dev_str, \@res);
+  pressure($parent, $bytes, $dev_str, \@res, $nibbles->[18], 856);
+  percentage_battery($parent, $bytes, $nibbles, $dev_str, \@res);
   return \@res;
 }
 
-=head2 C<rtgr328n_datetime( $parent, $message, $bytes, $bits )>
+=head2 C<rtgr328n_datetime( $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is called if the device type bytes indicate that the bytes
 might contain a date/time message from a RTGR328n sensor.
@@ -384,28 +355,17 @@ might contain a date/time message from a RTGR328n sensor.
 =cut
 
 sub rtgr328n_datetime {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nib) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
-  my $time =
-    (
-     lo_nibble($bytes->[7]).hi_nibble($bytes->[6]).
-     lo_nibble($bytes->[6]).hi_nibble($bytes->[5]).
-     lo_nibble($bytes->[5]).hi_nibble($bytes->[4])
-    );
+  my $time = $nib->[15].$nib->[12].$nib->[13].$nib->[10].$nib->[11].$nib->[8];
   my $day =
     [ 'Mon', 'Tues', 'Wednes',
       'Thur', 'Fri', 'Satur', 'Sun' ]->[($bytes->[9]&0x7)-1];
   my $date =
-    2000+(lo_nibble($bytes->[10]).hi_nibble($bytes->[9])).
-      sprintf("%02d",hi_nibble($bytes->[8])).
-        lo_nibble($bytes->[8]).hi_nibble($bytes->[7]);
+    2000+($nib->[21].$nib->[18]).sprintf("%02d",$nib->[16]).
+      $nib->[17].$nib->[14];
 
   #print STDERR "datetime: $date $time $day\n";
   my @res = ();
@@ -423,7 +383,7 @@ sub rtgr328n_datetime {
                            )];
 }
 
-=head2 C<common_temp( $type, $parent, $message, $bytes, $bits )>
+=head2 C<common_temp( $type, $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is a generic device method for devices that report
 temperature in a particular manner.
@@ -431,22 +391,17 @@ temperature in a particular manner.
 =cut
 
 sub common_temp {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nibbles) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  temperature($parent, $bytes, $dev_str, \@res);
+  temperature($parent, $bytes, $nibbles, $dev_str, \@res);
   simple_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
 }
 
-=head2 C<common_temphydro( $type, $parent, $message, $bytes, $bits )>
+=head2 C<common_temphydro( $type, $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is a generic device method for devices that report
 temperature and humidity in a particular manner.
@@ -454,23 +409,18 @@ temperature and humidity in a particular manner.
 =cut
 
 sub common_temphydro {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nibbles) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  temperature($parent, $bytes, $dev_str, \@res);
-  humidity($parent, $bytes, $dev_str, \@res);
+  temperature($parent, $bytes, $nibbles, $dev_str, \@res);
+  humidity($parent, $bytes, $nibbles, $dev_str, \@res);
   simple_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
 }
 
-=head2 C<common_temphydrobaro( $type, $parent, $message, $bytes, $bits )>
+=head2 C<common_temphydrobaro( $type, $parent, $message, $bytes, $bits, $nibbles )>
 
 This method is a generic device method for devices that report
 temperature, humidity and barometric pressure in a particular manner.
@@ -478,44 +428,33 @@ temperature, humidity and barometric pressure in a particular manner.
 =cut
 
 sub common_temphydrobaro {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nibbles) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  temperature($parent, $bytes, $dev_str, \@res);
-  humidity($parent, $bytes, $dev_str, \@res);
-  pressure($parent, $bytes, $dev_str, \@res, lo_nibble($bytes->[9]));
+  temperature($parent, $bytes, $nibbles, $dev_str, \@res);
+  humidity($parent, $bytes, $nibbles, $dev_str, \@res);
+  pressure($parent, $bytes, $dev_str, \@res, $nibbles->[19]);
   simple_battery($parent, $bytes, $dev_str, \@res);
   return \@res;
 }
 
-=head2 C<common_rain( $type, $parent, $message, $bytes, $bits )>
+=head2 C<common_rain( $type, $parent, $message, $bytes, $bits, $nibbles )>
 
 This method handles the rain measurements from an RGR918 rain gauge.
 
 =cut
 
 sub common_rain {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nib) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  my $rain = sprintf("%02x",$bytes->[5])*10 + hi_nibble($bytes->[4]);
-  my $train = lo_nibble($bytes->[8])*1000 +
-    sprintf("%02x", $bytes->[7])*10 + hi_nibble($bytes->[6]);
-  my $flip = lo_nibble($bytes->[6]);
+  my $rain = $nib->[10]*100 + $nib->[11]*10 + $nib->[8];
+  my $train = $nib->[17]*1000 + $nib->[14]*100 + $nib->[15]*10 + $nib->[12];
+  my $flip = $nib->[13];
   #print STDERR "$dev_str rain = $rain, total = $train, flip = $flip\n";
   push @res,
     xPL::Message->new(
@@ -560,31 +499,23 @@ sub common_rain {
   return \@res;
 }
 
-=head2 C<pcr800_rain( $type, $parent, $message, $bytes, $bits )>
+=head2 C<pcr800_rain( $type, $parent, $message, $bytes, $bits, $nibbles )>
 
 This method handles the rain measurements from a PCR800 rain gauge.
 
 =cut
 
 sub pcr800_rain {
-  my $self = shift;
-  my $type = shift;
-  my $parent = shift;
-  my $message = shift;
-  my $bytes = shift;
-  my $bits = shift;
+  my ($self, $type, $parent, $message, $bytes, $bits, $nib) = @_;
 
   my $device = sprintf "%02x", $bytes->[3];
   my $dev_str = $type.$DOT.$device;
   my @res = ();
-  my $rain = lo_nibble($bytes->[6])*10 +
-      hi_nibble($bytes->[5]) + lo_nibble($bytes->[5])/10 +
-      hi_nibble($bytes->[4])/100;
+  my $rain = $nib->[13]*10 + $nib->[10] + $nib->[11]/10 + $nib->[8]/100;
   $rain *= 25.4; # convert from inch/hr to mm/hr
 
-  my $train = lo_nibble($bytes->[9])*100 +
-    sprintf("%02x", $bytes->[8]) + sprintf("%02x", $bytes->[7])/100 +
-      hi_nibble($bytes->[6])/1000;
+  my $train = $nib->[19]*100 + $nib->[16]*10 + $nib->[17]
+    + $nib->[14]/10 + $nib->[15]/100 + $nib->[12]/1000;
   $train *= 25.4; # convert from inch/hr to mm/hr
   #print STDERR "$dev_str rain = $rain, total = $train\n";
   push @res,
@@ -619,7 +550,7 @@ sub pcr800_rain {
 
 =head1 CHECKSUM METHODS
 
-=head2 C<checksum1( $bytes )>
+=head2 C<checksum1( $bytes, $nibbles )>
 
 This method is a byte checksum of all nibbles of the first 6 bytes,
 the low nibble of the 7th byte, minus 10 which should equal the byte
@@ -629,8 +560,8 @@ plus the high nibble from the 7th byte.
 =cut
 
 sub checksum1 {
-  my $c = hi_nibble($_[0]->[6]) + (lo_nibble($_[0]->[7])<<4);
-  my $s = ( ( nibble_sum(6, $_[0]) + lo_nibble($_[0]->[6]) - 0xa) & 0xff);
+  my $c = $_[1]->[12] + ($_[1]->[15]<<4);
+  my $s = ( ( new_nibble_sum(12, $_[1]) + $_[1]->[13] - 0xa) & 0xff);
   $s == $c;
 }
 
@@ -642,7 +573,7 @@ minus 10, which should equal the 9th byte.
 =cut
 
 sub checksum2 {
-  $_[0]->[8] == ((nibble_sum(8,$_[0]) - 0xa) & 0xff);
+  $_[0]->[8] == ((new_nibble_sum(16,$_[1]) - 0xa) & 0xff);
 }
 
 =head2 C<checksum3( $bytes )>
@@ -653,7 +584,7 @@ minus 10, which should equal the 12th byte.
 =cut
 
 sub checksum3 {
-  $_[0]->[11] == ((nibble_sum(11,$_[0]) - 0xa) & 0xff);
+  $_[0]->[11] == ((new_nibble_sum(22,$_[1]) - 0xa) & 0xff);
 }
 
 =head2 C<checksum4( $bytes )>
@@ -664,7 +595,7 @@ minus 10, which should equal the 10th byte.
 =cut
 
 sub checksum4 {
-  $_[0]->[9] == ((nibble_sum(9,$_[0]) - 0xa) & 0xff);
+  $_[0]->[9] == ((new_nibble_sum(18,$_[1]) - 0xa) & 0xff);
 }
 
 =head2 C<checksum5( $bytes )>
@@ -675,7 +606,7 @@ minus 10, which should equal the 11th byte.
 =cut
 
 sub checksum5 {
-  $_[0]->[10] == ((nibble_sum(10,$_[0]) - 0xa) & 0xff);
+  $_[0]->[10] == ((new_nibble_sum(20,$_[1]) - 0xa) & 0xff);
 }
 
 =head2 C<checksum6( $bytes )>
@@ -686,8 +617,7 @@ minus 10, which should equal the 11th byte.
 =cut
 
 sub checksum6 {
-  hi_nibble($_[0]->[8])+(lo_nibble($_[0]->[9])<<4) ==
-    ((nibble_sum(8,$_[0]) - 0xa) & 0xff);
+  $_[1]->[16]+($_[1]->[19]<<4) == ((new_nibble_sum(16,$_[1]) - 0xa) & 0xff);
 }
 
 =head2 C<checksum7( $bytes )>
@@ -699,7 +629,7 @@ consisting of the 8th byte
 =cut
 
 sub checksum7 {
-  $_[0]->[7] == ((nibble_sum(7,$_[0]) - 0xa) & 0xff);
+  $_[0]->[7] == ((new_nibble_sum(14,$_[1]) - 0xa) & 0xff);
 }
 
 =head2 C<checksum8( $bytes )>
@@ -710,8 +640,8 @@ minus 10 which should equal the byte consisting of the 8th byte
 =cut
 
 sub checksum8 {
-  my $c = hi_nibble($_[0]->[9]) + (lo_nibble($_[0]->[10])<<4);
-  my $s = ( ( nibble_sum(9, $_[0]) - 0xa) & 0xff);
+  my $c = $_[1]->[18] + ($_[1]->[21]<<4);
+  my $s = ( ( new_nibble_sum(18, $_[1]) - 0xa) & 0xff);
   $s == $c;
 }
 
@@ -783,7 +713,7 @@ sub uv_string {
 
 =head1 SENSOR READING METHODS
 
-=head2 C<uv( $parent, $bytes, $device, \@result)>
+=head2 C<uv( $parent, $bytes, $nibbles, $device, \@result)>
 
 This method processes a UV Index reading.  It appends an xPL message
 to the result array.
@@ -791,8 +721,8 @@ to the result array.
 =cut
 
 sub uv {
-  my ($parent, $bytes, $dev, $res) = @_;
-  my $uv =  lo_nibble($bytes->[5])*10 + hi_nibble($bytes->[4]);
+  my ($parent, $bytes, $nib, $dev, $res) = @_;
+  my $uv =  $nib->[11]*10 + $nib->[8];
   my $risk = uv_string($uv);
   #printf STDERR "%s uv=%d risk=%s\n", $dev, $uv, $risk;
   push @$res,
@@ -811,7 +741,7 @@ sub uv {
   1;
 }
 
-=head2 C<uv2( $parent, $bytes, $device, \@result)>
+=head2 C<uv2( $parent, $bytes, $nibbles, $device, \@result)>
 
 This method processes a UV Index reading for UVN800 sensor type.  It
 appends an xPL message to the result array.
@@ -819,8 +749,8 @@ appends an xPL message to the result array.
 =cut
 
 sub uv2 {
-  my ($parent, $bytes, $dev, $res) = @_;
-  my $uv =  hi_nibble($bytes->[4]);
+  my ($parent, $bytes, $nib, $dev, $res) = @_;
+  my $uv =  $nib->[8];
   my $risk = uv_string($uv);
   #printf STDERR "%s uv=%d risk=%s\n", $dev, $uv, $risk;
   push @$res,
@@ -839,7 +769,7 @@ sub uv2 {
   1;
 }
 
-=head2 C<temperature( $parent, $bytes, $device, \@result)>
+=head2 C<temperature( $parent, $bytes, $nibbles, $device, \@result)>
 
 This method processes a temperature reading.  It appends an xPL message
 to the result array.
@@ -847,11 +777,9 @@ to the result array.
 =cut
 
 sub temperature {
-  my ($parent, $bytes, $dev, $res) = @_;
-  my $temp =
-    (($bytes->[6]&0x8) ? -1 : 1) *
-      (hi_nibble($bytes->[5])*10 + lo_nibble($bytes->[5]) +
-       hi_nibble($bytes->[4])/10);
+  my ($parent, $bytes, $nib, $dev, $res) = @_;
+  my $temp = $nib->[10]*10 + $nib->[11] + $nib->[8]/10;
+  $temp *= -1 if ($bytes->[6]&0x8);
   #printf STDERR "%s temp=%.1f\n", $dev, $temp;
   push @$res,
     xPL::Message->new(
@@ -867,7 +795,7 @@ sub temperature {
   1;
 }
 
-=head2 C<humidity( $parent, $bytes, $device, \@result)>
+=head2 C<humidity( $parent, $bytes, $nibbles, $device, \@result)>
 
 This method processes a humidity reading.  It appends an xPL message
 to the result array.
@@ -875,8 +803,8 @@ to the result array.
 =cut
 
 sub humidity {
-  my ($parent, $bytes, $dev, $res) = @_;
-  my $hum = lo_nibble($bytes->[7])*10 + hi_nibble($bytes->[6]);
+  my ($parent, $bytes, $nib, $dev, $res) = @_;
+  my $hum = $nib->[15]*10 + $nib->[12];
   my $hum_str = ['normal', 'comfortable', 'dry', 'wet']->[$bytes->[7]>>6];
   #printf STDERR "%s hum=%d%% %s\n", $dev, $hum, $hum_str;
   push @$res,
@@ -954,7 +882,7 @@ sub simple_battery {
   $battery_low;
 }
 
-=head2 C<percentage_battery( $parent, $bytes, $device, \@result)>
+=head2 C<percentage_battery( $parent, $bytes, $nibbles, $device, \@result)>
 
 This method processes a battery percentage charge reading.  It appends
 an xPL message to the result array if the battery is low.
@@ -962,8 +890,8 @@ an xPL message to the result array if the battery is low.
 =cut
 
 sub percentage_battery {
-  my ($parent, $bytes, $dev, $res) = @_;
-  my $bat = 100-10*lo_nibble($bytes->[4]);
+  my ($parent, $bytes, $nib, $dev, $res) = @_;
+  my $bat = 100-10*$nib->[9];
   push @$res,
     xPL::Message->new(
                       message_type => 'xpl-trig',
