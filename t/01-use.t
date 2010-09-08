@@ -21,45 +21,45 @@ BEGIN {
   import Test::More tests => scalar @modules;
 }
 
+my %depends =
+  (
+   'xPL::RF::Oregon' => ['Date::Parse'],
+   'xPL::Timer::cron' => ['DateTime::Event::Cron'],
+   'xPL::Timer::sunrise' => ['DateTime::Event::Sunrise'],
+   'xPL::Timer::sunset' => ['DateTime::Event::Sunrise'],
+   'xPL::Timer::recurrence' => ['DateTime::Event::Recurrence'],
+   'xPL::Gtk2Client' => ['Gtk2'],
+   'SMS::Send::CSoft' => ['SMS::Send'],
+   'SMS::Send::SMSDiscount' => ['SMS::Send'],
+   'xPL::Dock::Bluetooth' => ['Net::Bluetooth'],
+   'xPL::Dock::FDNotify' => ['Net::DBus'],
+   'xPL::Dock::XOSD' => ['X::Osd'],
+   'xPL::Dock::Jabber' => ['Net::XMPP'],
+   'xPL::Dock::TCPHelp' => ['Digest::HMAC'],
+  );
+
 my %has;
-eval { require DateTime::Event::Cron; };
-$has{Cron}++ unless ($@);
-eval { require Date::Parse; };
-$has{Parse}++ unless ($@);
-eval { require DateTime::Event::Sunrise; };
-$has{Sunrise}++ unless ($@);
-eval { require DateTime::Event::Recurrence; };
-$has{Recurrence}++ unless ($@);
-eval { require Gtk2; };
-$has{Gtk2}++ unless ($@);
-eval { require SMS::Send; };
-$has{SMS}++ unless ($@);
-eval { require Net::Bluetooth; };
-$has{Bluetooth}++ unless ($@);
-
-
 foreach my $m (@modules) {
  SKIP: {
     skip 'no database defined, see xPL::SQL', 1
       if ($m eq 'xPL::SQL' && !exists $ENV{'XPL_DB_CONFIG'});
-    skip 'Date::Parse not available', 1
-      if ($m eq 'xPL::RF::Oregon' && !$has{Parse});
-    skip 'DateTime::Event::Cron not available', 1
-      if ($m eq 'xPL::Timer::cron' && !$has{Cron});
-    skip 'DateTime::Event::Sunrise not available', 1
-      if ($m eq 'xPL::Timer::sunrise' && !$has{Sunrise});
-    skip 'DateTime::Event::Sunrise not available', 1
-      if ($m eq 'xPL::Client::DawnDusk' && !$has{Sunrise});
-    skip 'DateTime::Event::Sunrise not available', 1
-      if ($m eq 'xPL::Timer::sunset' && !$has{Sunrise});
-    skip 'DateTime::Event::Recurrence not available', 1
-      if ($m eq 'xPL::Timer::recurrence' && !$has{Recurrence});
-    skip 'Gtk2 not available', 1 if ($m eq 'xPL::Gtk2Client' && !$has{Gtk2});
-    skip 'SMS::Send not available', 1
-      if ($m =~ /^SMS::Send::/ && !$has{SMS});
-    skip 'Net::Bluetooth not available', 1
-      if ($m eq 'xPL::Dock::Bluetooth' && !$has{Bluetooth});
+
+    my $missing;
+    foreach my $dep (@{$depends{$m}||[]}) {
+      next if (has_module(\%has, $dep));
+      $missing = $dep;
+      last;
+    }
+    skip $missing.' not available', 1 if (defined $missing);
 
     require_ok($m);
   }
 }
+
+sub has_module {
+  my ($cache, $module) = @_;
+  return $cache->{$module} if (exists $cache->{$module});
+  eval " require $module ";
+  $cache->{$module} = !$@;
+}
+
