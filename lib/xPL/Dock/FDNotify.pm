@@ -87,16 +87,16 @@ sub xpl_handler {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  unless ($msg->text) {
+  unless ($msg->field('text')) {
     return;
   }
 
-  my $delay = $msg->delay;
+  my $delay = $msg->field('delay');
   $delay = defined $delay ? $delay * 1000 : -1;
 
   # appname, replaces_id, icon, summary, body, actions, hints, delay
   $self->{_dbus_object}->Notify($self->{_xpl}->device_id,
-                                0, '', $msg->text, '', [], {}, $delay);
+                                0, '', $msg->field('text'), '', [], {}, $delay);
   return 1;
 }
 

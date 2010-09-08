@@ -36,7 +36,3 @@ class_type=request
 command=request
 
 summary=xpl-cmnd/hbeat.request: acme-lamp.livingroom -> *
-
-command[query]=query
-xPL::Message::hbeat::request::xplcmnd->command: command, query, is invalid.
-It should be one of 'request'.

@@ -81,7 +81,7 @@ $dingus->main_loop(1); # receive message
 $widget->main_loop(1); # receive message but ignore
 
 is(ref($dingus_msg), 'xPL::Message', 'dingus_should receive message');
-is($dingus_msg->extra_field('test'), 'test 1',
+is($dingus_msg->field('test'), 'test 1',
    'dingus_should receive message - content');
 
 is($widget_msg, undef, 'widget should not receive message');

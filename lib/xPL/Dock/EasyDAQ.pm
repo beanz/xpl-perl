@@ -116,12 +116,12 @@ sub xpl_in {
   my $self = $p{arguments};
   my $xpl = $self->xpl;
 
-  if ($msg->device eq 'debug') {
+  if ($msg->field('device') eq 'debug') {
     $self->{_io}->write(Msg->new('A', 0, 'query status of outputs'));
   }
-  return 1 unless ($msg->device =~ /^easydaq-r(\d+)$/);
+  return 1 unless ($msg->field('device') =~ /^easydaq-r(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
-  my $command = lc $msg->current;
+  my $command = lc $msg->field('current');
   if ($command eq "high") {
     $self->{_state} |= 1<<($num-1);
     $self->{_io}->write(Msg->new('C', $self->{_state},

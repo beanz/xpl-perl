@@ -133,9 +133,9 @@ sub xpl_in {
   my $xpl = $self->xpl;
   my $state = $self->{_state};
 
-  return 1 unless ($msg->device =~ /^o(\d+)$/);
+  return 1 unless ($msg->field('device') =~ /^o(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
-  my $command = lc $msg->current;
+  my $command = lc $msg->field('current');
   my $io = $self->{_io};
   if ($command eq "high") {
     $io->write(sprintf("XA%d", $num));

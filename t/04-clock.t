@@ -12,4 +12,4 @@ my $msg = xPL::Message->new(class => "clock.update",
                             head => { source => "acme-clock.hall", },
                             body => [ time => $t ]);
 ok($msg, "created clock update message");
-is($msg->time, $t, "clock update time");
+is($msg->field('time'), $t, "clock update time");

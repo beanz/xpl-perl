@@ -117,11 +117,11 @@ sub hub {
   my %p = @_;
 
   my $msg = $p{message};
-
+  my $remote_ip = $msg->field('remote_ip');
   if ($msg->class =~ /^(?:hbeat|config)$/ &&
       ($msg->class_type eq 'app' or $msg->class_type eq 'end') &&
-      $self->is_local_address($msg->remote_ip)) {
-    my $client = $msg->remote_ip.':'.$msg->port;
+      $self->is_local_address($remote_ip)) {
+    my $client = $remote_ip.':'.$msg->field('port');
     if ($msg->class_type eq 'app') {
       $self->update_client($client, $msg);
     } else {
@@ -176,7 +176,7 @@ sub update_client {
   my $msg = shift;
   $self->add_client($client, $msg) unless ($self->exists_client($client));
   $self->client_last($client, time);
-  $self->client_interval($client, $msg->interval);
+  $self->client_interval($client, $msg->field('interval'));
   $self->client_identity($client, $msg->source);
   return 1;
 }
@@ -221,8 +221,8 @@ sub add_client {
 
   $self->info('Adding client: ', $client, ' "', $msg->source, "\"\n");
 
-  my $ip = $msg->remote_ip;
-  my $port = $msg->port;
+  my $ip = $msg->field('remote_ip');
+  my $port = $msg->field('port');
   my $sin = sockaddr_in($port, inet_aton($ip));
   $self->add_item('client',
                   $client,

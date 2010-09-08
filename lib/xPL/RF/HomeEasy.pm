@@ -65,9 +65,9 @@ sub parse {
 #  printf "homeeasy c=%s u=%d a=%x\n",
 #    $res->{command}, $res->{unit}, $res->{address};
   my $body = [
-              command => $res->{command},
-              unit => $res->{unit},
               address => (sprintf "0x%x",$res->{address}),
+              unit => $res->{unit},
+              command => $res->{command},
              ];
 
   push @$body, level => $res->{level} if ($res->{command} eq 'preset');

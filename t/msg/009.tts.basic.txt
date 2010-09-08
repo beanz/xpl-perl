@@ -43,27 +43,3 @@ summary=xpl-cmnd/tts.basic: acme-despotic.orator -> * - Empty the dishwasher!
 speech=Empty the dishwasher!
 
 volume=100
-
-speech[Dinner is served!]=Dinner is served!
-
-volume[0]=0
-
-volume[-15]=undef
-xPL::Message::tts::basic::xplcmnd->volume: volume, -15, is invalid.
-It should be an integer between 0 and 100.
-
-volume[-111]=undef
-xPL::Message::tts::basic::xplcmnd->volume: volume, -111, is invalid.
-It should be an integer between 0 and 100.
-
-speed[10]=10
-
-speed[-10]=-10
-
-speed[-11]=undef
-xPL::Message::tts::basic::xplcmnd->speed: speed, -11, is invalid.
-It should be an integer between -10 and 10.
-
-speed[11]=undef
-xPL::Message::tts::basic::xplcmnd->speed: speed, 11, is invalid.
-It should be an integer between -10 and 10.

@@ -111,25 +111,25 @@ sub xpl_in {
   my $self = $p{arguments};
   my $xpl = $self->xpl;
 
-  if ($msg->base =~ /hex/) { # hack to aid debug
-    $self->{_io}->write(hex => $msg->value, data => $msg,
+  if ($msg->field('base') =~ /hex/) { # hack to aid debug
+    $self->{_io}->write(hex => $msg->field('value'), data => $msg,
                         desc => 'debug message');
     return 1;
   }
-  return 1 unless ($msg->base =~ /^(\d+)(x(\d+))?$/);
+  return 1 unless ($msg->field('base') =~ /^(\d+)(x(\d+))?$/);
   my $base = $1;
   my $multi = $3 || 1;
   my $hex;
-  if ($msg->value =~ /^0x([0-9a-f]+)/i) {
+  if ($msg->field('value') =~ /^0x([0-9a-f]+)/i) {
     $hex = $1;
-  } elsif (my @l = ($msg->value=~/\G[ ,]?(\d+)/mg)) {
+  } elsif (my @l = ($msg->field('value')=~/\G[ ,]?(\d+)/mg)) {
     $hex = sprintf "%02x" x scalar @l, @l;
-  } elsif (exists $self->{_rgb}->{lc $msg->value}) {
-    $hex = $self->{_rgb}->{lc $msg->value};
+  } elsif (exists $self->{_rgb}->{lc $msg->field('value')}) {
+    $hex = $self->{_rgb}->{lc $msg->field('value')};
   } else {
     return 1;
   }
-  my $fade = $msg->extra_field('fade');
+  my $fade = $msg->field('fade');
   if (defined $fade) {
     return $self->dmx_fade($msg, $base, $hex, $multi, $fade);
   }
@@ -301,9 +301,9 @@ sub send_xpl_confirm {
              class => 'dmx.confirm',
              body =>
              [
-              base => $msg->base,
-              type => $msg->type,
-              value => $msg->value,
+              base => $msg->field('base'),
+              type => $msg->field('type'),
+              value => $msg->field('value'),
              ]);
 }
 

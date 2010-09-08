@@ -313,10 +313,10 @@ sub config_response {
   my %p = @_;
   my $msg = $p{message};
   my @changed;
-  foreach my $name (sort $msg->extra_fields()) {
+  foreach my $name (sort $msg->body_fields()) {
     next unless ($self->{_config}->is_item($name));
     my $old = $self->{_config}->get_item($name);
-    my $new = $msg->extra_field($name);
+    my $new = $msg->field($name);
     my $event = $self->{_config}->update_item($name, $new);
     if ($event) {
       # print STDERR

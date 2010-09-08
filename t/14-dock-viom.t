@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 56;
+use Test::More tests => 54;
 use t::Helpers qw/test_warn test_error test_output/;
 $|=1;
 
@@ -141,7 +141,14 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 On Period\n",
    'read response - o01/high');
 
-$msg->current('low');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-viom.test' },
+                         body =>
+                         [
+                          type => 'output',
+                          device => 'o01',
+                          current => 'low',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - o01/low');
 $buf = '';
@@ -151,7 +158,14 @@ print $client "Output 1 Inactive\r\n";
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 Inactive\n", 'read response - o01/low');
 
-$msg->current('pulse');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-viom.test' },
+                         body =>
+                         [
+                          type => 'output',
+                          device => 'o01',
+                          current => 'pulse',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - o01/pulse');
 $buf = '';
@@ -168,7 +182,14 @@ print $client "Output 1 Inactive\r\n";
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 Inactive\n", 'read response - o01/pulse');
 
-$msg->current('toggle');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-viom.test' },
+                         body =>
+                         [
+                          type => 'output',
+                          device => 'o01',
+                          current => 'toggle',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - o01/toggle');
 $buf = '';
@@ -179,7 +200,6 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 On Period\n",
    'read response - o01/toggle');
 
-$msg->current('toggle');
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - o01/toggle(off)');
 $buf = '';
@@ -190,16 +210,6 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "Output 1 Inactive\n",
    'read response - o01/toggle(off)');
 
-
-$msg->device('invalid');
-$xpl->dispatch_xpl_message($msg);
-# tested by can_read below
-
-$msg->device('o01');
-$msg->current('invalid');
-is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
-   "Unsupported setting: invalid\n", 'device receive a message - o01/invalid');
-ok(!$client_sel->can_read(0.01), 'device receive a message - o01/invalid');
 
 # The begin block is global of course but this is where it is really used.
 BEGIN{

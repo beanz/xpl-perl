@@ -116,25 +116,25 @@ sub xpl_in {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  my $heyu_command = command_xpl_to_heyu($msg->command);
+  my $heyu_command = command_xpl_to_heyu($msg->field('command'));
   return 1 unless ($heyu_command);
 
   my @devices;
   my $data1;
   my $data2;
-  if ($msg->device) {
-    device_xpl_to_heyu($msg->device, \@devices);
+  if ($msg->field('device')) {
+    device_xpl_to_heyu($msg->field('device'), \@devices);
   }
-  if ($msg->house) {
-    house_xpl_to_heyu($msg->house, \@devices);
+  if ($msg->field('house')) {
+    house_xpl_to_heyu($msg->field('house'), \@devices);
   }
   my @args = ();
-  if ($heyu_command =~ /^bright|dim$/ && $msg->level) {
-    push @args, level_xpl_to_heyu($msg->level);
+  if ($heyu_command =~ /^bright|dim$/ && $msg->field('level')) {
+    push @args, level_xpl_to_heyu($msg->field('level'));
   }
   if ($heyu_command eq 'xfunc') {
-    $data1 = $msg->data1;
-    $data2 = $msg->data2;
+    $data1 = $msg->field('data1');
+    $data2 = $msg->field('data2');
     return 1 unless (defined $data1 && defined $data2);
     $data1 = sprintf '%02x', $data1;
     $data2 = sprintf '%02x', $data2;
@@ -144,9 +144,9 @@ sub xpl_in {
       my %args = (
                   message_type => 'xpl-trig',
                   class => 'x10.confirm',
-                  body => [ command => $msg->command,
+                  body => [ command => $msg->field('command'),
                             device => device_heyu_to_xpl($device),
-                            data1 => $msg->data1, data2 => $msg->data2 ],
+                            data1 => $msg->field('data1'), data2 => $msg->field('data2') ],
                  );
       $self->xpl->send(%args);
     }

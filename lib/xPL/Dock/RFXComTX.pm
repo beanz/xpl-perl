@@ -143,25 +143,25 @@ sub xpl_x10 {
   my $peerport = $p{peerport};
   my $self = $p{arguments};
 
-  if ($msg->house) {
-    foreach (split //, $msg->house) {
+  if ($msg->field('house')) {
+    foreach (split //, $msg->field('house')) {
       my $rf_msg =
-        xPL::IORecord::Hex->new(raw => encode_x10(command => $msg->command,
-                                                  house => $msg->house),
-                 desc => $msg->house.' '.$msg->command);
-      foreach (1..$msg->extra_field('repeat')||1) {
+        xPL::IORecord::Hex->new(raw => encode_x10(command => $msg->field('command'),
+                                                  house => $msg->field('house')),
+                 desc => $msg->field('house').' '.$msg->field('command'));
+      foreach (1..$msg->field('repeat')||1) {
         $self->{_io}->write($rf_msg);
       }
     }
-  } elsif ($msg->device) {
-    foreach (split /,/, $msg->device) {
+  } elsif ($msg->field('device')) {
+    foreach (split /,/, $msg->field('device')) {
       my ($house, $unit) = /^([a-p])(\d+)$/i or next;
       my $rf_msg =
-        xPL::IORecord::Hex->new(raw => encode_x10(command => $msg->command,
+        xPL::IORecord::Hex->new(raw => encode_x10(command => $msg->field('command'),
                                                   house => $house,
                                                   unit => $unit),
-                                desc => $house.$unit.' '.$msg->command);
-      foreach (1..$msg->extra_field('repeat')||1) {
+                                desc => $house.$unit.' '.$msg->field('command'));
+      foreach (1..$msg->field('repeat')||1) {
         $self->{_io}->write($rf_msg);
       }
     }
@@ -187,14 +187,14 @@ sub xpl_homeeasy {
 
   my %args = ();
   foreach (qw/address unit command/) {
-    my $val = $msg->$_ or do {
+    my $val = $msg->field($_) or do {
       warn "Invalid homeeasy.basic message:\n  ", $msg->summary, "\n";
       return;
     };
     $args{$_} = $val;
   }
   if ($args{command} eq 'preset') {
-    my $level = $msg->level;
+    my $level = $msg->field('level');
     unless (defined $level) {
       warn "homeeasy.basic 'preset' message is missing 'level':\n  ",
         $msg->summary, "\n";
@@ -204,7 +204,7 @@ sub xpl_homeeasy {
   }
   my $rf_msg = xPL::IORecord::Hex->new(raw => encode_homeeasy(%args),
                                        desc => $msg->summary);
-  foreach (1..$msg->extra_field('repeat')||1) {
+  foreach (1..$msg->field('repeat')||1) {
     $self->{_io}->write($rf_msg);
   }
   return 1;

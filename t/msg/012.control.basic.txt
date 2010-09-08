@@ -48,16 +48,6 @@ type=output
 
 current=pulse
 
-device[2]=2
-
 data1=undef
 
 name=undef
-
-type[variable]=variable
-
-current[inc]=inc
-
-type[scent]=scent
-xPL::Message::control::basic::xplcmnd->type: type, scent, is invalid.
-It should be one of 'balance', 'flag', 'infrared', 'input', 'macro', 'mute', 'output', 'variable', 'periodic', 'scheduled', 'slider' or 'timer'.

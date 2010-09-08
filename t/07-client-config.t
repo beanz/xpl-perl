@@ -112,7 +112,17 @@ is(scalar @args, 0, 'no changes so no callbacks');
 
 @args = ();
 $xpl->remove_event_callback('config_changed_cb');
-$msg->extra_field(username => 'bar');
+$msg =
+  xPL::Message->new(message_type => 'xpl-cmnd',
+                    head => { source => 'acme-config.tester' },
+                    class => 'config.response',
+                    body =>
+                    [
+                     newconf => 'foo',
+                     username => 'bar',
+                     password => 'pass',
+                     bar => 'baz', # should be ignored
+                    ]);
 $xpl->dispatch_xpl_message($msg);
 is(scalar @args, 1, 'changes involved one callback');
 %p = @{$args[0]};

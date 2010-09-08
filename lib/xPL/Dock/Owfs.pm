@@ -101,8 +101,8 @@ sub xpl_in {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  my $device = uc $msg->device;
-  my $current = lc $msg->current;
+  my $device = uc $msg->field('device');
+  my $current = lc $msg->field('current');
   unless ($device =~ /^[0-9A-F]{2}\.[0-9A-F]+$/) {
     return 1;
   }

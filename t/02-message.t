@@ -76,12 +76,16 @@ foreach my $m (sort keys %msg) {
     my @args;
     if ($method =~s/\[(.*)\]//) {
       @args = split $COMMA, $LAST_PAREN_MATCH;
+      die @args;
     }
     my $result;
     my $error;
     eval {
       local $SIG{__WARN__} = sub { $error = shift; return 1; };
-      $result = $msg->$method(@args);
+      $result = $msg->field($method);
+      if (!defined $result && $expected_result ne 'undef') {
+        $result = $msg->$method();
+      }
     };
     unless (defined $result) {
       $result = 'undef';

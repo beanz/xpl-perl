@@ -104,7 +104,15 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 #$msg_str =~ s/basic/confirm/;
 #check_sent_msg($msg_str);
 
-$msg->extra_field(repeat => 2);
+$msg = xPL::Message->new(strict => 0,
+                         class => 'x10.basic',
+                         head => { source => 'acme-x10.test' },
+                         body =>
+                         [
+                          command => 'on',
+                          device => 'a1,xxx',
+                          repeat => 2,
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - a1/on');
@@ -150,7 +158,14 @@ print $client pack 'H*', '37';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\n", 'read response - p/all_lights_off');
 
-$msg->extra_field(repeat => 2);
+$msg = xPL::Message->new(class => 'x10.basic',
+                         head => { source => 'acme-x10.test' },
+                         body =>
+                         [
+                          command => 'all_lights_off',
+                          house => 'p',
+                          repeat => 2,
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - p/all_lights_off');
@@ -211,7 +226,15 @@ print $client pack 'H*', '37';
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    "received: 37\n", 'read response - homeeasy');
 
-$msg->extra_field(repeat => 2);
+$msg = xPL::Message->new(class => 'homeeasy.basic',
+                         head => { source => 'acme-homeeasy.test' },
+                         body =>
+                         [
+                          command => 'off',
+                          address => '0x31f8177',
+                          unit => '10',
+                          repeat => 2,
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - homeeasy');

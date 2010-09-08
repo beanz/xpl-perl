@@ -91,22 +91,22 @@ sub xpl_handler {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  my $row = $msg->row;
+  my $row = $msg->field('row');
   unless ($row && $row >= 1 && $row <= $self->{_rows}) {
     $row = 1;
   }
-  if ((lc $msg->command) eq 'clear') {
+  if ((lc $msg->field('command')) eq 'clear') {
     $self->clear_screen();
   }
-  unless ($msg->text) {
+  unless ($msg->field('text')) {
     return;
   }
 
-  my $delay = $msg->delay;
+  my $delay = $msg->field('delay');
   $delay = $self->{_max_delay} if (!defined $delay ||
                                    $delay > $self->{_max_delay});
   $self->{_xosd}->set_timeout($delay);
-  $self->{_xosd}->string($row-1, $msg->text);
+  $self->{_xosd}->string($row-1, $msg->field('text'));
   return 1;
 }
 

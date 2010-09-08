@@ -109,12 +109,12 @@ sub xpl_in {
   my $self = $p{arguments};
   my $xpl = $self->xpl;
 
-  if ($msg->device eq 'debug') {
+  if ($msg->field('device') eq 'debug') {
     $self->{_io}->write('s0');
   }
-  return 1 unless ($msg->device =~ /^udin-r(\d+)$/);
+  return 1 unless ($msg->field('device') =~ /^udin-r(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
-  my $command = lc $msg->current;
+  my $command = lc $msg->field('current');
   if ($command eq "high") {
     $self->{_io}->write(sprintf("n%d", $num));
   } elsif ($command eq "low") {

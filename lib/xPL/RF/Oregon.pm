@@ -259,8 +259,8 @@ sub wgr918_anemometer {
                                device => $dev_str,
                                type => 'speed',
                                current => $speed,
-                               average => $avspeed,
                                units => 'mps',
+                               average => $avspeed,
                               ]
                      ),
     xPL::Message->new(
@@ -309,8 +309,8 @@ sub wtgr800_anemometer {
                                device => $dev_str,
                                type => 'speed',
                                current => $speed,
-                               average => $avspeed,
                                units => 'mps',
+                               average => $avspeed,
                               ]
                      ),
     xPL::Message->new(

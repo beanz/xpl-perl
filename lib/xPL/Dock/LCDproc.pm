@@ -104,20 +104,20 @@ sub xpl_in {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  my $row = $msg->row;
+  my $row = $msg->field('row');
   unless ($row && $row >= 1 && $row <= ($self->{_rows}||1)) {
     $row = 1;
   }
-  if ((lc $msg->command) eq 'clear') {
+  if ((lc $msg->field('command')) eq 'clear') {
     $self->clear_screen();
   }
-  unless ($msg->text) {
+  unless ($msg->field('text')) {
     return;
   }
 
-  my $delay = $msg->delay;
+  my $delay = $msg->field('delay');
   $delay = $self->{_delay} if (!defined $delay || $delay > $self->{_delay});
-  $self->write_row($row, $msg->text);
+  $self->write_row($row, $msg->field('text'));
   if ($xpl->exists_timer('row'.$row)) {
     $xpl->remove_timer('row'.$row);
   }

@@ -44,13 +44,3 @@ summary=xpl-stat/dawndusk.basic: acme-sensor.garden -> * - daynight/day
 type=daynight
 
 status=day
-
-status[night]=night
-
-type[dawndusk]=undef
-xPL::Message::dawndusk::basic::xplstat->type: type, dawndusk, is invalid.
-It should be one of 'daynight'.
-
-status[dawn]=undef
-xPL::Message::dawndusk::basic::xplstat->status: status, dawn, is invalid.
-It should be one of 'day' or 'night'.

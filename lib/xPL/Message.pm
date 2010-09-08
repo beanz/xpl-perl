@@ -370,27 +370,8 @@ sub parse_body_parameters {
         push @{$self->{_extra_order}}, $k;
       }
     }
-    my $spec = $self->field_spec();
-    foreach my $rec (@$spec) {
-      my $name = $rec->{name};
-      if (exists $self->{_body}->{$name}) {
-        if ($self->{_strict}) {
-          $self->$name($self->{_body}->{$name});
-        }
-      } elsif (exists $rec->{required}) {
-        if (exists $rec->{default}) {
-          $self->{_body}->{$name} = $rec->{default};
-          push @{$self->{_body_order}}, $name;
-        }
-        if ($self->{_strict}) {
-          $self->argh("requires '$name' parameter in body");
-        } else {
-          $self->ouch("requires '$name' parameter in body");
-        }
-      }
-    }
   } else {
-    cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATE_WARNING});
+    cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATED_WARNING});
     my %processed = ();
     my $spec = $self->field_spec();
     foreach my $field_rec (@$spec) {
@@ -537,14 +518,13 @@ sub body_string {
     foreach ($_[0]->body_fields()) {
       my $v = $_[0]->{'_body'}->{$_};
       my $n = $_;
-      $n =~ s/_/-/g;
+      $n = 'remote-ip' if ($_ eq 'remote_ip');
       next unless (defined $v);
       foreach ((ref $v) ? @{$v} : ($v)) {
         $b .= "$n=".$_."$LF";
       }
     }
   }
-  $b .= $_[0]->extra_field_string() unless (ref $_[0] eq 'xPL::Message');
   $b .= "}$LF";
   return $b;
 }
@@ -696,7 +676,7 @@ updates the extra field with the new value before it returns.
 sub extra_field {
   my $self = shift;
   my $key = shift;
-  cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATE_WARNING});
+  cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATED_WARNING});
   $self->_parse_body() if ($self->{_body_content});
   if (@_) {
     push @{$self->{_body_order}}, $key unless (exists $self->{_body}->{$key});
@@ -821,16 +801,7 @@ sub make_body_fields {
     $_[0]->make_body_field($rec);
     push @f, $rec->{name};
   }
-  my $new = $_[0].'::body_fields';
-  return if (defined &{$new});
-  #  print STDERR "  $new => make_body_fields, @f\n";
-  no strict qw/refs/;
-  *{$new} =
-    sub {
-      @f;
-    };
-  use strict qw/refs/;
-  $new = $_[0].'::is_body_field';
+  my $new = $_[0].'::is_body_field';
   return if (defined &{$new});
   #  print STDERR "  $new => make_body_fields, @f\n";
   my %m = map { $_ => 1 } @f;
@@ -889,9 +860,10 @@ sub make_body_field {
   no strict qw/refs/;
   *{$new} =
     sub {
-      cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATE_WARNING});
+      cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATED_WARNING});
       $_[0]->_parse_body() if ($_[0]->{_body_content});
       if (@_ > 1) {
+        cluck "Mutable\n" if ($ENV{XPL_PERL_MUTABLE_WARNING});
         if ($_[0]->{_strict} && !$validation->valid($_[1])) {
           $_[0]->$error_handler($name,
                                 $name.$COMMA.$SPACE.$_[1].", is invalid.\n".

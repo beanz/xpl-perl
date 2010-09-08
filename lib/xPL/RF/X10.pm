@@ -81,7 +81,7 @@ sub x10_xpl_message {
   my $parent = shift;
   my $command = shift;
   my $device = shift;
-  my $body = [ device => $device, command => $command ];
+  my $body = [ command => $command, device => $device ];
   if ($command eq 'bright' or $command eq 'dim') {
     push @$body, level => $parent->{_default_x10_level};
   }

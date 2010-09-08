@@ -264,9 +264,9 @@ sub send_im {
   my %p = @_;
   my $msg = $p{message};
   print STDERR $msg->summary, "\n";
-  my $to = $msg->to();
+  my $to = $msg->field('to');
   exists $self->{_friend_map}->{$to} or return 1;
-  my $body = $msg->body() or return 1;
+  my $body = $msg->field('body') or return 1;
   $self->{_xmpp}->MessageSend(to => $to, body => $body);
   return 1;
 }

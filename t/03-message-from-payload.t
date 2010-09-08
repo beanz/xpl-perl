@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 10;
 
 use_ok('xPL::Message');
 
@@ -66,20 +66,6 @@ is($msg->summary, 'xpl-stat/fred.schema: vendor-device-instance -> *',
 is($msg->string, $payload,
    'new_from_payload with duplicate field - content out');
 
-$msg->extra_field('c', ['value-c1', 'value-c2']);
-$payload_body =
-'b=value-b
-b=value-b2
-b=value-b3
-c=value-c1
-c=value-c2
-a=value-a
-}
-';
-$payload = $payload_pre.$payload_body;
-is($msg->string, $payload,
-   'new_from_payload with duplicate field - modified content out');
-
 $payload =
 'xpl-stat
 {
@@ -111,4 +97,3 @@ interval=5
 my $m = xPL::Message->new_from_payload($payload);
 ok($m, 'new_from_pauload hbeat.basic');
 is($m->string, $payload, 'new_from_payload hbeat.basic body');
-is($m->interval(40), 40, 'new_from_payload hbeat.basic field not-strict');

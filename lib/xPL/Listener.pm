@@ -587,12 +587,14 @@ sub dispatch_xpl_message {
     my $filter = $self->xpl_callback_filter($id);
     if (defined $filter) {
       foreach my $key (keys %$filter) {
-        next CB unless ($msg->can($key));
+        my $val = $msg->field($key);
+        $val = $msg->$key if (!defined $val && $msg->can($key));
+        next CB unless (defined $val);
         my $match = $filter->{$key};
         if (ref($match) eq 'CODE') {
-          next CB unless (&{$match}($msg->$key()));
+          next CB unless (&{$match}($val));
         } else {
-          next CB unless ($msg->$key() =~ $match);
+          next CB unless ($val =~ $match);
         }
       }
     }

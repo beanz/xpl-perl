@@ -43,17 +43,16 @@ my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::DMX', 'plugin has correct type');
 
-my $msg = xPL::Message->new(class => 'dmx.basic',
-                            head => { source => 'acme-dmx.test' },
-                            body =>
-                            [
-                             base => 1,
-                             type => 'set',
-                             value => 'dummy',
-                            ]);
 foreach my $color ('ff0000', '00ff00', '0000ff') {
   my $val = $color eq 'ff0000' ? 'red' : '0x'.$color;
-  $msg->value($val);
+  my $msg = xPL::Message->new(class => 'dmx.basic',
+                              head => { source => 'acme-dmx.test' },
+                              body =>
+                              [
+                               base => 1,
+                               type => 'set',
+                               value => $val,
+                              ]);
   $xpl->dispatch_xpl_message($msg);
 
   ok($client_sel->can_read(0.5), 'serial device ready to read - '.$color);
@@ -78,7 +77,14 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
                  }, 'dmx.confirm for '.$val);
 }
 
-$msg->base('1x2');
+my $msg = xPL::Message->new(class => 'dmx.basic',
+                              head => { source => 'acme-dmx.test' },
+                              body =>
+                              [
+                               base => '1x2',
+                               type => 'set',
+                               value => '0x0000ff',
+                              ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - base=1x2');
@@ -103,21 +109,40 @@ check_sent_msg({
                         ],
                }, 'dmx.confirm for 1x2=0x0000ff');
 
-$msg->value('invalid');
+$msg = xPL::Message->new(class => 'dmx.basic',
+                              head => { source => 'acme-dmx.test' },
+                              body =>
+                              [
+                               base => '1x2',
+                               type => 'set',
+                               value => 'invalid',
+                              ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok(!$client_sel->can_read(0.1),
    'serial device nothing to read - invalid value');
 
-$msg->value('red');
-$msg->base('invalid');
+$msg = xPL::Message->new(class => 'dmx.basic',
+                              head => { source => 'acme-dmx.test' },
+                              body =>
+                              [
+                               base => 'invalid',
+                               type => 'set',
+                               value => 'red',
+                              ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok(!$client_sel->can_read(0.1),
    'serial device nothing to read - invalid base');
 
-$msg->base('hex');
-$msg->value('010001ff');
+$msg = xPL::Message->new(class => 'dmx.basic',
+                              head => { source => 'acme-dmx.test' },
+                              body =>
+                              [
+                               base => 'hex',
+                               type => 'set',
+                               value => '010001ff',
+                              ]);
 $xpl->dispatch_xpl_message($msg);
 
 ok($client_sel->can_read(0.5), 'serial device ready to read - base=hex');
@@ -143,9 +168,15 @@ check_sent_msg({
                }, 'dmx.confirm for hex=010001ff');
 
 $plugin->{_min_visible_diff} = 64; # limit length of fade
-$msg->base('1');
-$msg->value('0xff0000');
-$msg->extra_field('fade', .1);
+$msg = xPL::Message->new(class => 'dmx.basic',
+                              head => { source => 'acme-dmx.test' },
+                              body =>
+                              [
+                               base => 1,
+                               type => 'set',
+                               value => '0xff0000',
+                               fade => .1,
+                              ]);
 $xpl->dispatch_xpl_message($msg);
 
 check_sent_msg({
@@ -158,9 +189,15 @@ check_sent_msg({
                         ],
                }, 'dmx.confirm for 1=0xff0000');
 
-$msg->base('4');
-$msg->value('128,128');
-$msg->extra_field('fade', .3);
+$msg = xPL::Message->new(class => 'dmx.basic',
+                              head => { source => 'acme-dmx.test' },
+                              body =>
+                              [
+                               base => 4,
+                               type => 'set',
+                               value => '128,128',
+                               fade => .3,
+                              ]);
 $xpl->dispatch_xpl_message($msg);
 
 check_sent_msg({

@@ -82,7 +82,7 @@ sub xpl_handler {
   my $peerport = $p{peerport};
 
   my @cmd = qw/xvkbd -text/;
-  push @cmd, $msg->keys;
+  push @cmd, $msg->field('keys');
   $self->info("Executing '@cmd'\n");
   system(@cmd);
   return 1;

@@ -56,8 +56,8 @@ my $msg = xPL::Message->new(class => 'control.basic',
                             head => { source => 'acme-udin.test' },
                             body =>
                             [
-                             type => 'output',
                              device => 'udin-r1',
+                             type => 'output',
                              current => 'high',
                             ]);
 $xpl->dispatch_xpl_message($msg);
@@ -68,7 +68,14 @@ is($buf, "n1\r", 'content is correct - udin-r1/high');
 
 wait_for_tick($xpl, $count);
 
-$msg->current('low');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-udin.test' },
+                         body =>
+                         [
+                          device => 'udin-r1',
+                          type => 'output',
+                          current => 'low',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - udin-r1/low');
 $buf = '';
@@ -76,8 +83,14 @@ is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r1/low');
 is($buf, "f1\r", 'content is correct - udin-r1/low');
 
 wait_for_tick($xpl, $count);
-$msg->current('pulse');
-$msg->device('udin-r3');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-udin.test' },
+                         body =>
+                         [
+                          device => 'udin-r3',
+                          type => 'output',
+                          current => 'pulse',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - udin-r3/pulse');
 $buf = '';
@@ -90,7 +103,14 @@ is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r3/pulse');
 is($buf, "f3\r", 'content is correct - udin-r3/pulse');
 wait_for_tick($xpl, $count);
 
-$msg->current('toggle');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-udin.test' },
+                         body =>
+                         [
+                          device => 'udin-r3',
+                          type => 'output',
+                          current => 'toggle',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - udin-r3/toggle');
 $buf = '';
@@ -98,20 +118,38 @@ is((sysread $client, $buf, 64), 3, 'read is correct size - udin-r3/toggle');
 is($buf, "t3\r", 'content is correct - udin-r3/toggle');
 wait_for_tick($xpl, $count);
 
-$msg->current('invalid');
-$msg->device('udin-r4');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-udin.test' },
+                         body =>
+                         [
+                          device => 'udin-r4',
+                          type => 'output',
+                          current => 'invalid',
+                         ]);
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    "Unsupported setting: invalid\n",
    'device receive a message - udin-r4/invalid');
 # can read tested below
 
-$msg->current('pulse');
-$msg->device('oXX');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-udin.test' },
+                         body =>
+                         [
+                          device => 'oXX',
+                          type => 'output',
+                          current => 'pulse',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok(!$client_sel->can_read(0.1), 'device received no message - invalid/pulse');
 
-$msg->current('high');
-$msg->device('debug');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-udin.test' },
+                         body =>
+                         [
+                          device => 'debug',
+                          type => 'output',
+                          current => 'high',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - debug/high');
 $buf = '';

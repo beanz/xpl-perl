@@ -44,11 +44,3 @@ class_type=end
 interval=10
 
 summary=xpl-stat/hbeat.end: acme-lamp.livingroom -> *
-
-port[1023]=undef
-xPL::Message::hbeat::end::xplstat->port: port, 1023, is invalid.
-It should be an integer between 1024 and 65535.
-
-remote_ip[not-ip]=undef
-xPL::Message::hbeat::end::xplstat->remote_ip: remote_ip, not-ip, is invalid.
-It should be an IP address.

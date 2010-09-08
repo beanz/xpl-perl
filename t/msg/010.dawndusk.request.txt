@@ -44,11 +44,3 @@ summary=xpl-cmnd/dawndusk.request: acme-sensor.garden -> * - status/daynight
 command=status
 
 query=daynight
-
-command[unknown]=undef
-xPL::Message::dawndusk::request::xplcmnd->command: command, unknown, is invalid.
-It should be one of 'status'.
-
-query[dawndusk]=undef
-xPL::Message::dawndusk::request::xplcmnd->query: query, dawndusk, is invalid.
-It should be one of 'daynight'.

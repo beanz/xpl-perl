@@ -337,7 +337,7 @@ is($xpl->xpl_callback_callback_count('null'), 3, "callback counter self-skip");
 ok($cb2 && exists $cb2->{message}, "message returned");
 is(ref($cb2->{message}), "xPL::Message::clock::update::xplstat",
    "correct message type");
-is($cb2->{message}->time(), '20051113182651', "correct value");
+is($cb2->{message}->field('time'), '20051113182651', "correct value");
 
 undef $cb2;
 $xpl->send(head =>

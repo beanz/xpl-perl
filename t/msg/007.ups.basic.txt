@@ -44,17 +44,3 @@ summary=xpl-trig/ups.basic: acme-ups.node0 -> * - battery onbattery
 status=battery
 
 event=onbattery
-
-status[mains]=mains
-
-status[unknown]=unknown
-
-status[solar]=undef
-xPL::Message::ups::basic::xpltrig->status: status, solar, is invalid.
-It should be one of 'mains', 'battery' or 'unknown'.
-
-event[onmains]=onmains
-
-event[solarflare]=undef
-xPL::Message::ups::basic::xpltrig->event: event, solarflare, is invalid.
-It should be one of 'onmains', 'onbattery', 'battlow', 'battfull', 'bti', 'btp', 'btf', 'comms_lost', 'comms_ok', 'input_freq_error', 'input_freq_ok', 'input_voltage_high', 'input_voltage_low', 'input_voltage_ok', 'output_voltage_high', 'output_voltage_low', 'output_voltage_ok', 'output_overload', 'output_ok', 'temp_high' or 'temp_ok'.

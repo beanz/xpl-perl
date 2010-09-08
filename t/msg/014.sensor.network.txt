@@ -48,13 +48,3 @@ device=router1
 type=packets
 
 current=1234
-
-device[router2]=router2
-
-type[bytes]=bytes
-
-current[blah]=blah
-
-type[scent]=scent
-xPL::Message::sensor::network::xpltrig->type: type, scent, is invalid.
-It should be one of 'packets', 'bytes', 'bps' or 'db'.

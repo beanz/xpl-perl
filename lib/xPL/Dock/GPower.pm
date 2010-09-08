@@ -107,11 +107,11 @@ sub xpl_handler {
   my %p = @_;
   my $msg = $p{message};
 
-  unless (defined $msg->type && (lc $msg->type) eq 'current') {
+  unless (defined $msg->field('type') && (lc $msg->field('type')) eq 'current') {
     return;
   }
 
-  my $rec = $self->{_cfg}->{variables}->{lc $msg->device};
+  my $rec = $self->{_cfg}->{variables}->{lc $msg->field('device')};
   unless (defined $rec) {
     return;
   }
@@ -124,10 +124,10 @@ sub xpl_handler {
     $start_time = $end_time - 6;
   }
   $self->{_last}->{$rec} = $end_time;
-  my $watts = $msg->current * 240;
+  my $watts = $msg->field('current') * 240;
   my $duration = $end_time - $start_time;
   my $kwh = ($watts / ( 3600 / $duration ) ) / 1000;
-  $self->info($msg->device, ": ", $kwh, "kwh\n");
+  $self->info($msg->field('device'), ": ", $kwh, "kwh\n");
   $self->queue_batch_entry($rec, $start_time, $end_time, $kwh);
   return 1;
 }

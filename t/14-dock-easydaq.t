@@ -77,7 +77,14 @@ is($m, '4301', 'content is correct - easydaq-r1/high');
 
 wait_for_tick($xpl, $count);
 
-$msg->current('low');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-easydaq.test' },
+                         body =>
+                         [
+                          device => 'easydaq-r1',
+                          type => 'output',
+                          current => 'low',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r1/low');
 $buf = '';
@@ -86,8 +93,14 @@ $m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, '4300', 'content is correct - easydaq-r1/low');
 
 wait_for_tick($xpl, $count);
-$msg->current('pulse');
-$msg->device('easydaq-r3');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-easydaq.test' },
+                         body =>
+                         [
+                          device => 'easydaq-r3',
+                          type => 'output',
+                          current => 'pulse',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r3/pulse');
 $buf = '';
@@ -102,17 +115,36 @@ $m = xPL::IORecord::Hex->new(raw => $buf);
 is($m, '4300', 'content is correct - easydaq-r3/pulse');
 wait_for_tick($xpl, $count);
 
-$msg->current('toggle');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-easydaq.test' },
+                         body =>
+                         [
+                          device => 'easydaq-r3',
+                          type => 'output',
+                          current => 'toggle',
+                         ]);
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg) }),
    "Unsupported setting: toggle\n", 'unsupported - easydaq-r3/toggle');
 
-$msg->current('pulse');
-$msg->device('oXX');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-easydaq.test' },
+                         body =>
+                         [
+                          device => 'oXX',
+                          type => 'output',
+                          current => 'pulse',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok(!$client_sel->can_read(0.1), 'device received no message - invalid/pulse');
 
-$msg->current('high');
-$msg->device('debug');
+$msg = xPL::Message->new(class => 'control.basic',
+                         head => { source => 'acme-easydaq.test' },
+                         body =>
+                         [
+                          device => 'debug',
+                          type => 'output',
+                          current => 'high',
+                         ]);
 $xpl->dispatch_xpl_message($msg);
 ok($client_sel->can_read(0.5), 'device receive a message - debug/high');
 $buf = '';

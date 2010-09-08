@@ -85,13 +85,13 @@ sub xpl_handler {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  unless (defined $msg->device && (lc $msg->type) eq 'wake') {
+  unless (defined $msg->field('device') && (lc $msg->field('type')) eq 'wake') {
     return;
   }
 
-  $self->info('Waking device ', $msg->device, "\n");
+  $self->info('Waking device ', $msg->field('device'), "\n");
 
-  system $self->{_sudo_command}, $self->{_wol_command}, $msg->device;
+  system $self->{_sudo_command}, $self->{_wol_command}, $msg->field('device');
 
   return 1;
 }
