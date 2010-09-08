@@ -33,6 +33,7 @@ my %depends =
    'SMS::Send::SMSDiscount' => ['SMS::Send'],
    'xPL::Dock::Bluetooth' => ['Net::Bluetooth'],
    'xPL::Dock::FDNotify' => ['Net::DBus'],
+   'xPL::Dock::GPower' => ['HTTP::Request'],
    'xPL::Dock::XOSD' => ['X::Osd'],
    'xPL::Dock::Jabber' => ['Net::XMPP'],
    'xPL::Dock::TCPHelp' => ['Digest::HMAC'],
