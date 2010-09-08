@@ -57,11 +57,11 @@ our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_collection(input => [qw/handle arguments callback
-                                          callback_count
+                                          callback_count anyevent
                                           callback_time_total
                                           callback_time_max/],
                              timer => [qw/next timeout
-                                          timer next_fn count
+                                          timer next_fn count anyevent
                                           arguments callback
                                           callback_count
                                           callback_time_total
@@ -76,6 +76,19 @@ __PACKAGE__->make_collection(input => [qw/handle arguments callback
 __PACKAGE__->make_readonly_accessor(qw/ip broadcast interface
                                        listen_port port hubless
                                        last_sent_message/);
+
+our $EVENT_LOOP = (defined $AnyEvent::VERBOSE ? 'anyevent' : 'default');
+{
+  my $prefix =
+    __PACKAGE__.'::_'.$EVENT_LOOP.'_';
+  no strict qw/refs/;
+  foreach my $method (qw/main_loop time_now
+                         add_input remove_input
+                         timer_next remove_timer/) {
+    *{__PACKAGE__.'::'.$method} = *{$prefix.$method};
+  }
+  use strict qw/refs/;
+}
 
 =head2 C<new(%params)>
 
@@ -618,9 +631,8 @@ force the loop to exit after that number of iterations.
 
 =cut
 
-sub main_loop {
-  my $self = shift;
-  my $count = shift;
+sub _default_main_loop {
+  my ($self, $count) = @_;
 
   local $SIG{'USR1'} = sub { $self->dump_statistics };
   my $sub = sub { $self->exiting(@_) };
@@ -638,6 +650,27 @@ sub main_loop {
       $self->dispatch_input($handle);
     }
     $self->dispatch_timers();
+  }
+  return 1;
+}
+
+sub _anyevent_main_loop {
+  my ($self, $count) = @_;
+
+  local $SIG{'USR1'} = sub { $self->dump_statistics };
+  my $sub = sub { $self->exiting(@_) };
+  local $SIG{'INT'} = $sub;
+  local $SIG{'QUIT'} = $sub;
+  local $SIG{'TERM'} = $sub;
+
+  if (defined $count) {
+    while ($count > 0) {
+      AnyEvent->one_event;
+      $count--;
+    }
+  } else {
+    my $exit = AnyEvent->condvar;
+    $exit->recv;
   }
   return 1;
 }
@@ -714,24 +747,25 @@ sub add_timer {
   my %p = @_;
   exists $p{id} or $self->argh("requires 'id' parameter");
   exists $p{timeout} or $self->argh("requires 'timeout' parameter");
-  $self->exists_timer($p{id}) and
-    $self->argh("timer '".$p{id}."' already exists");
+  my $id = $p{id};
+  $self->exists_timer($id) and
+    $self->argh("timer '".$id."' already exists");
 
+  my $time = time_now();
   my $timeout = $p{timeout};
   my $timer = xPL::Timer->new_from_string($timeout);
   my $next_fn = sub { $timer->next(@_) };
   my $next;
   if ($timeout =~ /^-[0-9\.]+$/) {
-    $next = Time::HiRes::time;
+    $next = $time;
   } else {
-    $next = $next_fn->(Time::HiRes::time);
+    $next = $next_fn->($time);
   }
 
-  $p{next} = $next;
   $p{next_fn} = $next_fn;
   $p{timer} = $timer;
-  $self->add_callback_item('timer', $p{id}, \%p);
-
+  $self->add_callback_item('timer', $id, \%p);
+  $self->timer_next($id, $next);
   return 1;
 }
 
@@ -744,6 +778,33 @@ with the event loop.
 
 This method drops the timer with the given id from the event loop.
 
+=cut
+
+sub _default_remove_timer {
+  my $self = shift;
+  my $id = shift;
+  $self->exists_timer($id) or
+    return $self->ouch("timer '$id' is not registered");
+  $self->remove_item('timer', $id);
+  return 1;
+}
+
+sub _anyevent_remove_timer {
+  my $self = shift;
+  my $id = shift;
+  $self->exists_timer($id) or
+    return $self->ouch("timer '$id' is not registered");
+
+  my $ae = $self->timer_attrib($id, 'anyevent');
+  if ($ae) {
+    undef $ae;
+    $self->timer_attrib($id, 'anyevent', 0);
+  }
+
+  $self->remove_item('timer', $id);
+  return 1;
+}
+
 =head2 C<timers()>
 
 This method returns the ids of all the registered timers.
@@ -753,10 +814,30 @@ This method returns the ids of all the registered timers.
 This method returns the value of the attribute of the timer with the
 given id.
 
-=head2 C<timer_next($id)>
+=head2 C<timer_next($id, [$next])>
 
 This method returns the time that the timer with the given id is next
 due to expire.
+
+=cut
+
+sub _default_timer_next {
+  my $self = shift;
+  my $id = shift;
+  return $self->timer_attrib($id, 'next', @_);
+}
+
+sub _anyevent_timer_next {
+  my ($self, $id, $next) = @_;
+  return $self->timer_attrib($id, 'next') unless (defined $next);
+  my $time = time_now();
+  $self->timer_anyevent($id,
+                        AnyEvent->timer(after => ($next - $time),
+                                        cb => sub {
+                                          $self->dispatch_timer($id);
+                                        }));
+  return $self->timer_attrib($id, 'next', $next);
+}
 
 =head2 C<timer_callback_count($id)>
 
@@ -813,7 +894,7 @@ is due to be dispatched.
 
 sub timer_minimum_timeout {
   my $self = shift;
-  my $t = Time::HiRes::time;
+  my $t = time_now();
   my $min = min($self->timer_next_ticks);
   return $min ? $min-$t : undef;
 }
@@ -830,8 +911,9 @@ sub reset_timer {
   $self->exists_timer($id) or
     return $self->ouch("timer '$id' is not registered");
 
-  my $r = $self->{_col}->{timer}->{$id};
-  $r->{next} = &{$r->{next_fn}}(@_);
+  my $time = shift || time_now();
+  my $next = $self->timer_next_fn($id)->($time);
+  $self->timer_next($id, $next);
   return 1;
 }
 
@@ -861,10 +943,9 @@ sub dispatch_timer {
       $self->remove_timer($id);
       return;
     }
+
   }
-  if ($self->exists_timer($id)) {
-    $self->timer_next($id, $self->timer_next_fn($id)->());
-  }
+  $self->reset_timer($id) if ($self->exists_timer($id));
   return $res;
 }
 
@@ -876,7 +957,7 @@ This method dispatches any timers that have expired.
 
 sub dispatch_timers {
   my $self = shift;
-  my $t = Time::HiRes::time;
+  my $t = time_now();
   foreach my $id ($self->timers) {
     next unless ($self->timer_next($id) <= $t);
     $self->dispatch_timer($id);
@@ -919,15 +1000,27 @@ arguments mentioned above.
 
 =cut
 
-sub add_input {
+sub _default_add_input {
   my $self = shift;
   my %p = @_;
   exists $p{handle} or $self->argh("requires 'handle' argument");
   $self->add_callback_item('input', $p{handle}, \%p);
-
   if ($self->{_select}) {
     $self->{_select}->add($p{handle});
   }
+  return 1;
+}
+
+sub _anyevent_add_input {
+  my $self = shift;
+  my %p = @_;
+  exists $p{handle} or $self->argh("requires 'handle' argument");
+  my $handle = $p{handle};
+  $p{anyevent} = AnyEvent->io(fh => $handle, poll => 'r',
+                              cb => sub {
+                                $self->dispatch_input($handle)
+                              });
+  $self->add_callback_item('input', $handle, \%p);
   return 1;
 }
 
@@ -955,7 +1048,7 @@ This method drops the given handle from the event loop.
 
 =cut
 
-sub remove_input {
+sub _default_remove_input {
   my $self = shift;
   my $handle = shift;
   $self->exists_input($handle) or
@@ -965,6 +1058,22 @@ sub remove_input {
     # make sure we have the real thing not just a string
     my $real = $self->input_handle($handle);
     $self->{_select}->remove($real);
+  }
+
+  $self->remove_item('input', $handle);
+  return 1;
+}
+
+sub _anyevent_remove_input {
+  my $self = shift;
+  my $handle = shift;
+  $self->exists_input($handle) or
+    return $self->ouch("input '$handle' is not registered");
+
+  my $ae = $self->input_attrib($handle, 'anyevent');
+  if ($ae) {
+    undef $ae;
+    $self->input_attrib($handle, 'anyevent', 0);
   }
 
   $self->remove_item('input', $handle);
@@ -1049,6 +1158,14 @@ sub dump_statistics {
     printf STDERR "%10.7f %s\n", $m{$id}, $id;
   }
   return 1;
+}
+
+sub _default_time_now {
+  Time::HiRes::time;
+}
+
+sub _anyevent_time_now {
+  AnyEvent->now;
 }
 
 1;

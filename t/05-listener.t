@@ -13,6 +13,8 @@ $|=1;
 my $timeout = 0.25;
 use_ok("xPL::Listener");
 
+my $event_loop = $xPL::Listener::EVENT_LOOP;
+
 { # normally only clients have an identity but we'll need one to test
   # the self_skip option on xPL callbacks
   package MY::Listener;
@@ -53,7 +55,7 @@ like(test_error(sub { $xpl->add_input(handle => \*STDIN); }),
 ok($xpl->remove_input(\*STDIN), "removing input");
 
 is(test_error(sub { $xpl->add_input(); }),
-   "MY::Listener->add_input: requires 'handle' argument",
+   "MY::Listener->_${event_loop}_add_input: requires 'handle' argument",
    "adding input without handle argument");
 
 @h = $xpl->inputs();
@@ -445,7 +447,7 @@ is(test_warn(sub { $xpl->xpl_callback_callback_count('none'); }),
    "checking count of non-existent callback");
 
 is(test_warn(sub { $xpl->remove_timer('none'); }),
-   ref($xpl)."->remove_item: timer item 'none' not registered",
+   ref($xpl)."->_${event_loop}_remove_timer: timer 'none' is not registered",
    "removing non-existent timer");
 
 is(test_warn(sub { $xpl->timer_next('none'); }),
@@ -457,7 +459,7 @@ is(test_warn(sub { $xpl->timer_callback_count('none'); }),
    "querying non-existent timer tick count");
 
 is(test_warn(sub { $xpl->remove_input('none'); }),
-   ref($xpl)."->remove_input: input 'none' is not registered",
+   ref($xpl)."->_${event_loop}_remove_input: input 'none' is not registered",
    "removing non-existent input");
 
 is(test_warn(sub { $xpl->dispatch_input('none'); }),

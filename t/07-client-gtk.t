@@ -39,6 +39,7 @@ my $errors;
     Gtk2->main_quit;
   }
 }
+my $event_loop = $xPL::Listener::EVENT_LOOP;
 
 # we bind a fake hub to make sure we don't accidentally hit a live
 # udp port
@@ -98,7 +99,7 @@ is($called, 1, 'timer callback was called');
 ok($xpl->remove_timer('test'), 'timer removed');
 
 is(test_warn(sub { $xpl->remove_input('test') }),
-   q{xPL::Gtk2ClientExit->remove_input: input 'test' is not registered},
+   q{xPL::Gtk2ClientExit->_}.$event_loop.q{_remove_input: input 'test' is not registered},
    'remove_input warning case');
 
 sub wait_for_tick {

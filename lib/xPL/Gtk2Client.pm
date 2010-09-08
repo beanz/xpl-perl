@@ -62,25 +62,41 @@ our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
-=head2 C<add_timer(...)>
+if (defined $AnyEvent::VERBOSE) {
+  # using AnyEvent so xPL::Listener should work without changes
+} else {
+  # not using AnyEvent so we need to override some methods to make
+  # xPL::Listener's own event loop work
+  no strict qw/refs/;
+  *{__PACKAGE__."::add_timer"} = *{__PACKAGE__."::_gtk2_add_timer"};
+  *{__PACKAGE__."::add_input"} = *{__PACKAGE__."::_gtk2_add_input"};
+  *{__PACKAGE__."::remove_input"} = *{__PACKAGE__."::_gtk2_remove_input"};
+  use strict qw/refs/;
+}
+
+=head2 C<_gtk2_add_timer(...)>
 
 Wrap L<xPL::Client::add_timer> method to add timer to Gtk2 main loop.
+This should not be called directly but is used when L<AnyEvent> is not
+being used by L<xPL::Listener>.
 
 =cut
 
-sub add_timer {
+sub _gtk2_add_timer {
   my $self = shift;
   $self->SUPER::add_timer(@_);
   return $self->_add_timeout();
 }
 
-=head2 C<add_input(...)>
+=head2 C<add_input_gtk2(...)>
 
 Wrap L<xPL::Client::add_input> method to add input to Gtk2 main loop.
+This should not be called directly but is used when AnyEvent is not
+being used by L<xPL::Listener>.
 
 =cut
 
-sub add_input {
+sub _gtk2_add_input {
   my $self = shift;
   my %p = @_;
   $self->SUPER::add_input(@_);
@@ -91,13 +107,15 @@ sub add_input {
   return 1;
 }
 
-=head2 C<remove_input(...)>
+=head2 C<_gtk2_remove_input(...)>
 
 Wrap L<xPL::Client::remove_input> method to remove input from Gtk2 main loop.
+This should not be called directly but is used when AnyEvent is not
+being used by L<xPL::Listener>.
 
 =cut
 
-sub remove_input {
+sub _gtk2_remove_input {
   my $self = shift;
   my $handle = shift;
   $self->SUPER::remove_input($handle);
@@ -117,9 +135,10 @@ sub _add_timeout {
   my $self = shift;
   Glib::Source->remove($self->{_timeout_handle})
       if (defined $self->{_timeout_handle});
+  my $timeout = $self->timer_minimum_timeout()*1000;
+  $timeout = 0 if ($timeout < 0);
   $self->{_timeout_handle} =
-    Glib::Timeout->add($self->timer_minimum_timeout()*1000,
-                       \&_gtk2_timeout_callback, $self);
+    Glib::Timeout->add($timeout, \&_gtk2_timeout_callback, $self);
   return 1;
 }
 
