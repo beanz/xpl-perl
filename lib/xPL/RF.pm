@@ -63,7 +63,7 @@ sub new {
   bless $self, $pkg;
   $self->verbose($p{verbose});
   $p{source} or die "$pkg->new: requires 'source' parameter\n";
-  $self->source($p{source});
+  $self->{_source} = $p{source};
   $self->{_default_x10_level} = 10;
   $self->{_duplicate_timeout} = $p{duplicate_timeout} || .5;
   $self->{_cache} = {};
@@ -86,17 +86,13 @@ sub verbose {
 
 =head2 C<source( [ $new_source ] )>
 
-This is a getter/setter method for the xPL source for messages generated
+This is a getter method for the xPL source for messages generated
 by the RF parser.
 
 =cut
 
 sub source {
-  my $self = shift;
-  if (@_) {
-    $self->{_source} = $_[0];
-  }
-  return $self->{_source};
+  $_[0]->{_source};
 }
 
 =head2 C<stash( $key, $value )>
