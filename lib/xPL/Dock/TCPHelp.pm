@@ -148,14 +148,14 @@ sub read_client {
          {\r?\n # Standard xPL Message Body
          ((?:[-_a-z0-9]+=.*?\r?\n)*)
          }\r?\n
-         ([-_a-z0-9]+\.[-_a-z0-9]+)\r?\n # Class
+         ([-_a-z0-9]+\.[-_a-z0-9]+)\r?\n # Schema
          {\r?\n # Standard xPL Message Body
          ((?:[-_a-z0-9]+=.*?\r?\n)*)
          }\r?\n
         )
        //ix) {
     my ($hmac, $body, $version, $time, $method, $lines,
-        $message_type, $head_content, $class, $body_content) =
+        $message_type, $head_content, $schema, $body_content) =
           ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10);
     $xpl->info($handle.": message received\n");
     my $digest = Digest::HMAC->new($self->{_secret}, 'Digest::SHA');
@@ -179,7 +179,7 @@ sub read_client {
     eval {
       $message = xPL::Message->new(message_type => $message_type,
                                    head_content => $head_content,
-                                   class => $class,
+                                   schema => $schema,
                                    body_content => $body_content);
     };
     if ($@) {
@@ -193,10 +193,10 @@ sub read_client {
     }
     my %filter =
       (
-       class => $message->class,
+       schema => $message->schema,
       );
 
-    $filter{to} = $message->from if ($class eq 'im');
+    $filter{to} = $message->from if ($schema =~ /^im\./);
 
     $xpl->add_xpl_callback(id => $handle.'!wait',
                            filter => \%filter,

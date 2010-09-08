@@ -60,7 +60,7 @@ rmdir $dir.'/BAT4';
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-bat0',
@@ -79,7 +79,7 @@ is(test_output(sub { $xpl->dispatch_timer('linux!'.$plugin); }, \*STDOUT),
 
 check_sent_msg({
                 message_type => 'xpl-stat',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-bat0',
@@ -98,7 +98,7 @@ is(test_output(sub { $xpl->dispatch_timer('linux!'.$plugin); }, \*STDOUT),
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'ups.basic',
+                schema => 'ups.basic',
                 body =>
                 [
                  status => 'battery',
@@ -107,7 +107,7 @@ check_sent_msg({
                }, 'checking xPL message - ac trig');
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-bat0',

@@ -57,7 +57,7 @@ check_sent_msg({
                            'current' => '20.1',
                           ],
                 'message_type' => 'xpl-trig',
-                'class' => 'sensor.basic'
+                'schema' => 'sensor.basic'
                }, 'temp reported');
 check_sent_msg({
                 'body' => [
@@ -66,7 +66,7 @@ check_sent_msg({
                            'current' => '101',
                           ],
                 'message_type' => 'xpl-trig',
-                'class' => 'sensor.basic'
+                'schema' => 'sensor.basic'
                }, 'count.1 reported');
 
 $plugin->owfs_write('28.FEFEFE000000/counters.A', 102);
@@ -85,7 +85,7 @@ SKIP: {
                              'current' => '20.1',
                           ],
                   'message_type' => 'xpl-stat',
-                  'class' => 'sensor.basic'
+                  'schema' => 'sensor.basic'
                  }, 'temp reported');
   check_sent_msg({
                   'body' => [
@@ -94,7 +94,7 @@ SKIP: {
                              'current' => '102',
                             ],
                   'message_type' => 'xpl-trig',
-                  'class' => 'sensor.basic'
+                  'schema' => 'sensor.basic'
                  }, 'count.1 reported');
   unlink 't/ow/1/28.FEFEFE000000/counters.A';
   unlink 't/ow/1/28.FEFEFE000000/counters.B';
@@ -134,7 +134,7 @@ check_sent_msg({
                            'current' => '25.8438',
                           ],
                 'message_type' => 'xpl-trig',
-                'class' => 'sensor.basic'
+                'schema' => 'sensor.basic'
                }, 'temp reported');
 check_sent_msg({
                 'body' => [
@@ -143,14 +143,14 @@ check_sent_msg({
                            'current' => '24.6653',
                           ],
                 'message_type' => 'xpl-trig',
-                'class' => 'sensor.basic'
+                'schema' => 'sensor.basic'
                }, 'humidity reported');
 
 my $file = 't/ow/2/05.CFCFCF000000/PIO';
 unlink $file;
 $xpl->dispatch_xpl_message(
   xPL::Message->new(message_type => 'xpl-cmnd',
-                    class => 'control.basic',
+                    schema => 'control.basic',
                     head => { source => 'acme-owfs.test' },
                     body =>
                     [
@@ -163,7 +163,7 @@ unlink $file;
 
 $xpl->dispatch_xpl_message(
   xPL::Message->new(message_type => 'xpl-cmnd',
-                    class => 'control.basic',
+                    schema => 'control.basic',
                     head => { source => 'acme-owfs.test' },
                     body =>
                     [
@@ -177,7 +177,7 @@ unlink $file;
 is(test_output(sub {
   $xpl->dispatch_xpl_message(
     xPL::Message->new(message_type => 'xpl-cmnd',
-                      class => 'control.basic',
+                      schema => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
                       [
@@ -195,7 +195,7 @@ unlink $file;
 is(test_warn(sub {
   $xpl->dispatch_xpl_message(
     xPL::Message->new(message_type => 'xpl-cmnd',
-                      class => 'control.basic',
+                      schema => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
                       [
@@ -209,7 +209,7 @@ is(test_warn(sub {
 is(test_warn(sub {
   $xpl->dispatch_xpl_message(
     xPL::Message->new(message_type => 'xpl-cmnd',
-                      class => 'control.basic',
+                      schema => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
                       [
@@ -222,7 +222,7 @@ is(test_warn(sub {
 is(test_output(sub {
   $xpl->dispatch_xpl_message(
     xPL::Message->new(message_type => 'xpl-cmnd',
-                      class => 'control.basic',
+                      schema => 'control.basic',
                       head => { source => 'acme-owfs.test' },
                       body =>
                       [
@@ -267,7 +267,7 @@ sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class =~ /^hbeat\./) {
+         $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

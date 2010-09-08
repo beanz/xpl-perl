@@ -97,7 +97,7 @@ sub parse {
     }
 
     $args = {
-             class => 'security.basic',
+             schema => 'security.basic',
              body => [
                       command => $command,
                      ]
@@ -119,7 +119,7 @@ sub parse {
 
     $args =
       {
-       class => 'security.zone',
+       schema => 'security.zone',
        body => [
                 event => 'alert',
                 zone  => $device,
@@ -134,7 +134,7 @@ sub parse {
 
   $args =
     {
-     class => 'x10.security',
+     schema => 'x10.security',
      body => [
               command => $command,
               device  => $short_device,

@@ -59,7 +59,7 @@ wait_for_variable($xpl, \$plugin->{_read_count});
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-sda',
@@ -69,7 +69,7 @@ check_sent_msg({
                }, 'checking xPL message - sda trig');
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-sdb',
@@ -93,7 +93,7 @@ wait_for_variable($xpl, \$plugin->{_read_count});
 
 check_sent_msg({
                 message_type => 'xpl-stat',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-sda',
@@ -103,7 +103,7 @@ check_sent_msg({
                }, 'checking xPL message - sda stat');
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-sdb',
@@ -127,7 +127,7 @@ wait_for_variable($xpl, \$plugin->{_read_count});
 
 check_sent_msg({
                 message_type => 'xpl-stat',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-sda',

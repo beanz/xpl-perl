@@ -22,7 +22,7 @@ xPL::Gtk2Client - Perl extension for a graphical xPL Client
                                     'Last Message' => 'text',
                                     'Last Time' => 'text');
   $vbox->add($slist);
-  foreach (['Send Request' => sub { $xpl->send(class=>'hbeat.request') }],
+  foreach (['Send Request' => sub { $xpl->send(schema=>'hbeat.request') }],
            ['Quit' => sub { Gtk2->main_quit }]) {
     my $button = Gtk2::Button->new($_->[0]);
     $button->signal_connect(clicked => $_->[1]);

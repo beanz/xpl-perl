@@ -88,7 +88,7 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              {
                                               source => 'acme-lcdproc.test',
                                              },
-                                             class=> 'osd.basic',
+                                             schema=> 'osd.basic',
                                              body =>
                                              [
                                               row => 2,
@@ -118,7 +118,7 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              {
                                               source => 'acme-lcdproc.test',
                                              },
-                                             class=> 'osd.basic',
+                                             schema=> 'osd.basic',
                                              body =>
                                              [
                                               # row intentionally out of range
@@ -152,7 +152,7 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              {
                                               source => 'acme-lcdproc.test',
                                              },
-                                             class=> 'osd.basic',
+                                             schema=> 'osd.basic',
                                              body =>
                                              [
                                               # row intentionally out of range
@@ -184,7 +184,7 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              {
                                               source => 'acme-lcdproc.test',
                                              },
-                                             class=> 'osd.basic',
+                                             schema=> 'osd.basic',
                                              body =>
                                              [
                                               'command' => 'write',
@@ -214,7 +214,7 @@ $xpl->dispatch_xpl_message(xPL::Message->new(message_type => 'xpl-cmnd',
                                              {
                                               source => 'acme-lcdproc.test',
                                              },
-                                             class=> 'osd.basic',
+                                             schema=> 'osd.basic',
                                              body =>
                                              [
                                               'command' => 'clear',
@@ -261,8 +261,6 @@ check_line($client_sel, $client, $buf, "hello");
 print $client "connect LCDproc 0.5dev ".
   "proto 0.1 lcd cellwid 5 cellhgt 8\n";
 
-print STDERR "H\n";
-print STDERR "F: ", $_, "_", $_->fileno, "\n" for ($xpl->inputs);
 is(test_output(sub { $xpl->main_loop(1) }, \*STDOUT),
    q{Connected to LCD (?x?)
 queued: screen_add xplosd
@@ -271,7 +269,6 @@ queued: screen_set xplosd -priority hidden
 sending: screen_add xplosd
 },
    'connected message - no dimensions');
-print STDERR "H\n";
 
 $device->close;
 {
@@ -294,7 +291,7 @@ is(test_output(
                                              {
                                               source => 'acme-lcdproc.test',
                                              },
-                                             class=> 'osd.basic',
+                                             schema=> 'osd.basic',
                                              body =>
                                              [
                                               'command' => 'write',
@@ -312,7 +309,7 @@ is(test_output(
                                              {
                                               source => 'acme-lcdproc.test',
                                              },
-                                             class=> 'osd.basic',
+                                             schema=> 'osd.basic',
                                              body =>
                                              [
                                               row => 2,

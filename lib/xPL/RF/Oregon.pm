@@ -238,7 +238,7 @@ sub wgr918_anemometer {
   my @res = ();
   push @res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev_str,
               type => 'speed',
@@ -248,7 +248,7 @@ sub wgr918_anemometer {
              ],
     },
       {
-       class => 'sensor.basic',
+       schema => 'sensor.basic',
        body => [
                 device => $dev_str,
                 type => 'direction',
@@ -279,7 +279,7 @@ sub wtgr800_anemometer {
   my @res = ();
   push @res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev_str,
               type => 'speed',
@@ -289,7 +289,7 @@ sub wtgr800_anemometer {
              ],
     },
       {
-       class => 'sensor.basic',
+       schema => 'sensor.basic',
        body => [
                 device => $dev_str,
                 type => 'direction',
@@ -362,7 +362,7 @@ sub rtgr328n_datetime {
   #print STDERR "datetime: $date $time $day\n";
   my @res = ();
   return [ {
-            class => 'datetime.basic',
+            schema => 'datetime.basic',
             body => [
                      datetime => $date.$time,
                      'date' => $date,
@@ -448,7 +448,7 @@ sub common_rain {
   #print STDERR "$dev_str rain = $rain, total = $train, flip = $flip\n";
   push @res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev_str,
               type => 'speed',
@@ -457,7 +457,7 @@ sub common_rain {
              ],
     },
       {
-       class => 'sensor.basic',
+       schema => 'sensor.basic',
        body => [
                 device => $dev_str,
                 type => 'distance',
@@ -466,7 +466,7 @@ sub common_rain {
                ],
       },
         {
-         class => 'sensor.basic',
+         schema => 'sensor.basic',
          body => [
                   device => $dev_str,
                   type => 'count',
@@ -499,7 +499,7 @@ sub pcr800_rain {
   #print STDERR "$dev_str rain = $rain, total = $train\n";
   push @res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev_str,
               type => 'speed',
@@ -508,7 +508,7 @@ sub pcr800_rain {
              ],
     },
       {
-       class => 'sensor.basic',
+       schema => 'sensor.basic',
        body => [
                 device => $dev_str,
                 type => 'distance',
@@ -699,7 +699,7 @@ sub uv {
   #printf STDERR "%s uv=%d risk=%s\n", $dev, $uv, $risk;
   push @$res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev,
               type => 'uv',
@@ -724,7 +724,7 @@ sub uv2 {
   #printf STDERR "%s uv=%d risk=%s\n", $dev, $uv, $risk;
   push @$res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev,
               type => 'uv',
@@ -749,7 +749,7 @@ sub temperature {
   #printf STDERR "%s temp=%.1f\n", $dev, $temp;
   push @$res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev,
               type => 'temp',
@@ -773,7 +773,7 @@ sub humidity {
   #printf STDERR "%s hum=%d%% %s\n", $dev, $hum, $hum_str;
   push @$res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev,
               type => 'humidity',
@@ -804,7 +804,7 @@ sub pressure {
   #printf STDERR "%s baro: %d %s\n", $dev, $hpa, $forecast;
   push @$res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev,
               type => 'pressure',
@@ -829,7 +829,7 @@ sub simple_battery {
   my $bat = $battery_low ? 10 : 90;
   push @$res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev,
               type => 'battery',
@@ -852,7 +852,7 @@ sub percentage_battery {
   my $bat = 100-10*$nib->[9];
   push @$res,
     {
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [
               device => $dev,
               type => 'battery',

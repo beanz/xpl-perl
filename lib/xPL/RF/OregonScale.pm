@@ -62,7 +62,7 @@ sub parse {
   my $dev_str = sprintf 'bwr102.%02x', hi_nibble($bytes->[1]);
   my $unknown = sprintf "%x%x", lo_nibble($bytes->[3]), hi_nibble($bytes->[2]);
   return [{
-           class => 'sensor.basic',
+           schema => 'sensor.basic',
            body => [
                     device => $dev_str,
                     type => 'weight',
@@ -92,7 +92,7 @@ sub parse_gr101 {
   $weight = sprintf "%.1f", $weight/400.8;
   my $dev_str = sprintf 'gr101.%02x', $bytes->[1];
   return [{
-           class => 'sensor.basic',
+           schema => 'sensor.basic',
            body => [
                     device => $dev_str,
                     type => 'weight',

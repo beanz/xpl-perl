@@ -89,7 +89,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'dawndusk.request',
+                          schema => 'dawndusk.request',
                          },
                          callback => sub { $self->query_handler(@_) });
   return $self;
@@ -105,7 +105,7 @@ the given status.
 sub send_dawndusk {
   my ($self, $status) = @_;
   return $self->xpl->send(message_type => 'xpl-trig',
-                          class => 'dawndusk.basic',
+                          schema => 'dawndusk.basic',
                           body => [ type => 'dawndusk', status => $status ],
                          );
 }
@@ -153,7 +153,7 @@ sub query_handler {
   my $peerport = $p{peerport};
 
   return $self->xpl->send(message_type => 'xpl-stat',
-                          class => 'dawndusk.basic',
+                          schema => 'dawndusk.basic',
                           body => [
                                    type => 'daynight',
                                    status => $self->{_state},

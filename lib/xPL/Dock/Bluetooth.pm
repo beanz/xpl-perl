@@ -94,7 +94,7 @@ sub poll_bluetooth {
     my $msg =
       xPL::Message->new(head => { source => $xpl->id },
                         message_type => $old eq $new ? 'xpl-stat' : 'xpl-trig',
-                        class => 'sensor.basic',
+                        schema => 'sensor.basic',
                         body =>
                         [
                          device => 'bt.'.$addr,

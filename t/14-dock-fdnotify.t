@@ -41,7 +41,7 @@ is(ref $mock, 'Net::DBus::RemoteObject', 'DBUS object created');
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-fdnotify.test' },
-                            class => 'osd.basic',
+                            schema => 'osd.basic',
                             body => [ command => 'write', text => 'test' ]);
 $xpl->dispatch_xpl_message($msg);
 my @calls = $mock->calls;
@@ -60,7 +60,7 @@ is($calls[0], q!Net::DBus::RemoteObject::Notify $args = [
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-fdnotify.test' },
-                         class => 'osd.basic',
+                         schema => 'osd.basic',
                          body => [ command => 'write', text => 'test',
                                    delay => 90 ]);
 $xpl->dispatch_xpl_message($msg);
@@ -80,7 +80,7 @@ is($calls[0], q!Net::DBus::RemoteObject::Notify $args = [
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-fdnotify.test' },
-                         class => 'osd.basic',
+                         schema => 'osd.basic',
                          body => [ command => 'write', ]);
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
@@ -90,7 +90,7 @@ sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class =~ /^hbeat\./) {
+         $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

@@ -61,7 +61,7 @@ is(scalar $bridge->peers, 1, "fake client accepted");
 fake_hub_message($bridge,
                  message_type => 'xpl-stat',
                  head => { source => 'acme-clock.cuckoo' },
-                 class => "clock.update",
+                 schema => "clock.update",
                  body => [ time => strftime("%Y%m%d%H%M%S", localtime(time)) ]);
 
 # run main loop for message to be received and re-transmitted to clients
@@ -75,12 +75,12 @@ ok($cs->sysread($buf, 1500), "received first message");
 my $msg_str = xPL::Bridge::unpack_message($buf);
 my $msg = xPL::Message->new_from_payload($msg_str);
 ok($msg, "first message object");
-is($msg->class, 'clock.update', "first message class");
+is($msg->schema, 'clock.update', "first message class");
 is($msg->source, 'acme-clock.cuckoo', "first message source");
 
 $msg = xPL::Message->new(message_type => 'xpl-stat',
                          head => { source => 'acme-clock.clepsydra' },
-                         class => "clock.update",
+                         schema => "clock.update",
                          body => [ time => strftime("%Y%m%d%H%M%S",
                                                localtime(time)) ]);
 ok($msg, "prepared message to send from client");
@@ -113,7 +113,7 @@ ok($sel->can_read(0.2), "client has message to read");
 
 $msg = xPL::Message->new(message_type => 'xpl-stat',
                          head => { source => 'acme-clock.clepsydra', hop => 9 },
-                         class => "hbeat.basic");
+                         schema => "hbeat.basic");
 ok($msg, "prepared message to send from client");
 $msg_str = $msg->string;
 ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)),
@@ -147,7 +147,7 @@ is($w,
 fake_hub_message($bridge,
                  message_type => 'xpl-stat',
                  head => { source => 'acme-clock.cuckoo', hop => 9 },
-                 class => "hbeat.basic");
+                 schema => "hbeat.basic");
 is(test_warn(sub { $bridge->main_loop(1); }),
    "Dropping local msg: xpl-stat/hbeat.basic: acme-clock.cuckoo -> * \n",
    'dropping message warning - local');

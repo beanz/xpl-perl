@@ -52,10 +52,10 @@ my $opposite = { day => 'night', 'night' => 'day' }->{$state};
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-dawndusk.test' },
-                            class => 'dawndusk.request');
+                            schema => 'dawndusk.request');
 $xpl->dispatch_xpl_message($msg);
 check_sent_msg({ message_type => 'xpl-stat',
-                 class => 'dawndusk.basic',
+                 schema => 'dawndusk.basic',
                  body => [
                           type => 'daynight',
                           status => $state,
@@ -68,7 +68,7 @@ foreach my $timer (@$timers) {
   is(test_output(sub { $xpl->dispatch_timer($timer) } , \*STDOUT),
      (ucfirst $timer)."\n");
   check_sent_msg({ message_type => 'xpl-trig',
-                   class => 'dawndusk.basic',
+                   schema => 'dawndusk.basic',
                    body => [
                             type => 'dawndusk',
                             status => $timer,
@@ -79,7 +79,7 @@ $plugin->{_verbose} = 0;
 foreach my $timer (@$timers) {
   is(test_output(sub { $xpl->dispatch_timer($timer) } , \*STDOUT), '');
   check_sent_msg({ message_type => 'xpl-trig',
-                   class => 'dawndusk.basic',
+                   schema => 'dawndusk.basic',
                    body => [
                             type => 'dawndusk',
                             status => $timer,
@@ -111,7 +111,7 @@ sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class =~ /^hbeat\./) {
+         $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

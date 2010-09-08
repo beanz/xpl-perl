@@ -15,7 +15,7 @@ xPL::Message - Perl extension for xPL message base class
                                source => 'acme-lamp.livingroom',
                                target => '*',
                               },
-                              class => 'hbeat.app',
+                              schema => 'hbeat.app',
                               body =>
                               [
                                interval => 10,
@@ -30,7 +30,7 @@ xPL::Message - Perl extension for xPL message base class
                            {
                             source => 'acme-lamp.livingroom',
                            },
-                           class => 'hbeat.app',
+                           schema => 'hbeat.app',
                            body =>
                            [
                             remote_ip => '127.0.0.1',
@@ -74,7 +74,7 @@ our $OPEN_SQUARE_BRACKET = q{[};
 our $CLOSE_SQUARE_BRACKET = q{]};
 our %MESSAGE_TYPES = map { $_ => 1 } qw/xpl-cmnd xpl-stat xpl-trig/;
 
-__PACKAGE__->make_readonly_accessor(qw/class/);
+__PACKAGE__->make_readonly_accessor(qw/message_type schema/);
 
 =head2 C<new(%parameter_hash)>
 
@@ -90,10 +90,10 @@ are:
   'xpl-stat' and 'xpl-trig', for each of the three styles of xPL
   Message.
 
-=item class
+=item schema
 
-  The class or schema of the message.  It should be the
-  full schema name, such as 'hbeat.basic'.
+  The schema of the message.  It should be the full schema name, such
+  as 'hbeat.basic'.
 
 =back
 
@@ -113,8 +113,20 @@ sub new {
   my $self = { _verbose => $p{verbose}||0, };
   bless $self, $pkg;
 
-  defined $p{class} or $pkg->argh(q{requires 'class' parameter});
-  $self->{_class} = $p{class};
+  if (exists $p{class}) {
+    $pkg->ouch('"class" is deprecated. '.
+               'Set "schema" to "class.class_type" instead');
+    $p{schema} = $p{class};
+    delete $p{class};
+    if (exists $p{class_type}) {
+      $pkg->ouch('"class_type" is deprecated. '.
+                 'Set "schema" to "class.class_type" instead');
+      $p{schema} .= '.'.$p{class_type};
+    }
+  }
+
+  defined $p{schema} or $pkg->argh(q{requires 'schema' parameter});
+  $self->{_schema} = $p{schema};
 
   exists $p{message_type} or $pkg->argh(q{requires 'message_type' parameter});
   my $message_type = $p{message_type};
@@ -171,7 +183,7 @@ sub new_from_payload {
     xPL::Message->argh("Invalid body: $body\n");
   }
   $r{body_content} = $2;
-  $r{class} = $1;
+  $r{schema} = $1;
   # strict => 0 is only really needed when xPL::SlowMessage's are created
   return $_[0]->new(strict => 0, %r);
 }
@@ -278,7 +290,7 @@ sub summary {
   sprintf
     '%s/%s: %s -> %s %s',
       $self->{_message_type},
-        $self->{_class}, $self->{_source}, $self->{_target},
+        $self->{_schema}, $self->{_source}, $self->{_target},
             $self->body_summary();
 }
 
@@ -338,7 +350,7 @@ message.
 =cut
 
 sub body_string {
-  $_[0]->{_class}."$LF\{$LF".$_[0]->body_content."}$LF";
+  $_[0]->{_schema}."$LF\{$LF".$_[0]->body_content."}$LF";
 }
 
 =head2 C<body_content()>
@@ -362,19 +374,11 @@ sub body_content {
   $b;
 }
 
-=head2 C<message_type( [ $new_message_type ] )>
+=head2 C<message_type( )>
 
-This method returns the message type identifier.  If the optional new
-value argument is present, then this method updates the message type
-identifier with the new value before it returns.
+This method returns the message type identifier.
 
-=cut
-
-sub message_type {
-  $_[0]->{_message_type}
-}
-
-=head2 C<hop( [ $new_hop ] )>
+=head2 C<hop( )>
 
 This method returns the hop count.
 
@@ -386,11 +390,9 @@ sub hop {
   $self->{_hop};
 }
 
-=head2 C<source( [ $new_source ] )>
+=head2 C<source( )>
 
-This method returns the source id.  If the optional new value argument
-is present, then this method updates the source id to the new value
-before it returns.
+This method returns the source id.
 
 =cut
 
@@ -400,11 +402,9 @@ sub source {
   $self->{_source};
 }
 
-=head2 C<target( [ $new_target ] )>
+=head2 C<target( )>
 
-This method returns the target id.  If the optional new value argument
-is present, then this method updates the target id to the new value
-before it returns.
+This method returns the target id.
 
 =cut
 
@@ -414,9 +414,33 @@ sub target {
   $self->{_target};
 }
 
+=head2 C<schema()>
+
+This method returns the xPL message schema (e.g. "hbeat.basic").
+
 =head2 C<class()>
 
-This method returns the class.
+DEPRECATED.  This method returns the schema class (e.g. "hbeat").
+
+=cut
+
+sub class {
+  my $self = shift;
+  $self->ouch('This method is deprecated.');
+  (split /\./, $self->{_schema}, 2)[0]
+}
+
+=head2 C<class_type()>
+
+DEPRECATED.  This method returns the class type (e.g. "basic").
+
+=cut
+
+sub class_type {
+  my $self = shift;
+  $self->ouch('This method is deprecated.');
+  (split /\./, $self->{_schema}, 2)[1]
+}
 
 =head2 C<field( $field )>
 

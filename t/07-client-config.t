@@ -35,7 +35,7 @@ is($xpl->needs_config(), 2, 'needs_config()');
 my $msg =
   xPL::Message->new(message_type => 'xpl-cmnd',
                     head => { source => 'acme-config.tester' },
-                    class => 'config.list',
+                    schema => 'config.list',
                     body => [ command => 'request' ]);
 $xpl->dispatch_xpl_message($msg);
 
@@ -62,7 +62,7 @@ option=friend[32]
 $msg =
   xPL::Message->new(message_type => 'xpl-cmnd',
                     head => { source => 'acme-config.tester' },
-                    class => 'config.response',
+                    schema => 'config.response',
                     body =>
                     [
                      newconf => 'foo',
@@ -115,7 +115,7 @@ $xpl->remove_event_callback('config_changed_cb');
 $msg =
   xPL::Message->new(message_type => 'xpl-cmnd',
                     head => { source => 'acme-config.tester' },
-                    class => 'config.response',
+                    schema => 'config.response',
                     body =>
                     [
                      newconf => 'foo',
@@ -134,7 +134,7 @@ is($p{type}, 'changed', 'username - type');
 $msg =
   xPL::Message->new(message_type => 'xpl-cmnd',
                     head => { source => 'acme-config.tester' },
-                    class => 'config.current',
+                    schema => 'config.current',
                     body => [ command => 'request' ]);
 @msg = ();
 $xpl->dispatch_xpl_message($msg);

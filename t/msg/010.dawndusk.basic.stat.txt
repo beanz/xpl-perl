@@ -7,7 +7,7 @@ $args =
     source => 'acme-sensor.garden',
     target => '*',
    },
-   class => 'dawndusk.basic',
+   schema => 'dawndusk.basic',
    body =>
    [
     type => 'daynight',
@@ -35,7 +35,7 @@ source=acme-sensor.garden
 
 target=*
 
-class=dawndusk.basic
+schema=dawndusk.basic
 
 summary=xpl-stat/dawndusk.basic: acme-sensor.garden -> * daynight/day
 

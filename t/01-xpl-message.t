@@ -12,7 +12,7 @@ use_ok('xPL::Message');
 my $msg;
 
 ok($msg = xPL::Message->new(message_type => "xpl-stat",
-                            class => "fred.schema",
+                            schema => "fred.schema",
                             head =>
                             {
                              source => 'bnz-acme.source',
@@ -39,7 +39,7 @@ is($msg->body_string(),
 # regression test for http://www.xpl-perl.org.uk/ticket/24
 # xPL::Message->new(...) corrupts the body argument
 my %args = (message_type => 'xpl-cmnd',
-            class => 'x10.basic',
+            schema => 'x10.basic',
             head => { source => 'bnz-acme.test' },
             body => [
                      command => 'on',

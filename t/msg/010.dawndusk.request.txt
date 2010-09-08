@@ -7,7 +7,7 @@ $args =
     source => 'acme-sensor.garden',
     target => '*',
    },
-   class => 'dawndusk.request',
+   schema => 'dawndusk.request',
    body =>
    [
     command => 'status',
@@ -35,7 +35,7 @@ source=acme-sensor.garden
 
 target=*
 
-class=dawndusk.request
+schema=dawndusk.request
 
 summary=xpl-cmnd/dawndusk.request: acme-sensor.garden -> * status/daynight
 

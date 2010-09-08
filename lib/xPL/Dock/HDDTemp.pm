@@ -130,7 +130,7 @@ sub read {
     } else {
       $type = 'xpl-stat';
     }
-    $self->xpl->send(message_type => $type, class => 'sensor.basic',
+    $self->xpl->send(message_type => $type, schema => 'sensor.basic',
                      body =>
                      [ device => $device, type => 'temp', current => $temp ]);
   }

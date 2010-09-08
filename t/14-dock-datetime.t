@@ -47,7 +47,7 @@ my $time = time;
 my $datetime = strftime "%Y%m%d%H%M%S", localtime $time;
 
 check_sent_msg({ message_type => 'xpl-trig',
-                 class => 'datetime.basic',
+                 schema => 'datetime.basic',
                  body => [
                           datetime => $datetime,
                           date => (substr $datetime, 0, 8, ''),
@@ -58,13 +58,13 @@ check_sent_msg({ message_type => 'xpl-trig',
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-datetime.test' },
-                            class => 'datetime.request');
+                            schema => 'datetime.request');
 $xpl->dispatch_xpl_message($msg);
 $time = time;
 $datetime = strftime "%Y%m%d%H%M%S", localtime $time;
 
 check_sent_msg({ message_type => 'xpl-stat',
-                 class => 'datetime.basic',
+                 schema => 'datetime.basic',
                  body => [
                           status => $datetime,
                           epoch => $time,
@@ -90,7 +90,7 @@ sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class =~ /^hbeat\./) {
+         $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

@@ -18,7 +18,7 @@ BEGIN {
 use xPL::Message;
 use lib 't/lib';
 
-my $msg = xPL::Message->new(class => 'test.basic',
+my $msg = xPL::Message->new(schema => 'test.basic',
                             head => { source => 'bnz-test.default' });
 ok($msg);
 is($msg->fieldname, 'field not overriden',

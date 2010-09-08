@@ -45,7 +45,7 @@ is($calls[0],
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-xosd.test' },
-                            class => 'osd.basic',
+                            schema => 'osd.basic',
                             body => [ command => 'write', text => 'test' ]);
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
@@ -55,7 +55,7 @@ is($calls[1], "X::Osd::string 0 test", "'string 0 test' called");
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
-                         class => 'osd.basic',
+                         schema => 'osd.basic',
                          body => [ command => 'clear', text => 'test',
                                    row => 2, delay => 4 ]);
 $xpl->dispatch_xpl_message($msg);
@@ -71,7 +71,7 @@ is($calls[6], "X::Osd::string 1 test", "'string 1 test' called");
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
-                         class => 'osd.basic',
+                         schema => 'osd.basic',
                          body => [ command => 'write', text => 'test',
                                    row => 5, delay => 90 ]);
 $xpl->dispatch_xpl_message($msg);
@@ -82,7 +82,7 @@ is($calls[1], "X::Osd::string 0 test", "'string 0 test' called");
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
-                         class => 'osd.basic',
+                         schema => 'osd.basic',
                          body => [ command => 'write', text => 'test',
                                    row => -1 ]);
 $xpl->dispatch_xpl_message($msg);
@@ -93,7 +93,7 @@ is($calls[1], "X::Osd::string 0 test", "'string 0 test' called");
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                          head => { source => 'acme-xosd.test' },
-                         class => 'osd.basic',
+                         schema => 'osd.basic',
                          body => [ command => 'write', ]);
 $xpl->dispatch_xpl_message($msg);
 @calls = $mock->calls;
@@ -103,7 +103,7 @@ sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class =~ /^hbeat\./) {
+         $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

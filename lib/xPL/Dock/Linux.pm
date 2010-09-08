@@ -103,7 +103,7 @@ sub poll {
 #     } else {
 #       $type = 'xpl-stat';
 #     }
-#     $self->xpl->send(message_type => $type, class => 'sensor.basic',
+#     $self->xpl->send(message_type => $type, schema => 'sensor.basic',
 #                      body =>
 #                      [ device => $device, type => 'temp', current => $temp ]);
 #   }
@@ -129,7 +129,7 @@ sub poll {
       } else {
         $type = 'xpl-stat';
       }
-      $self->xpl->send(message_type => $type, class => 'sensor.basic',
+      $self->xpl->send(message_type => $type, schema => 'sensor.basic',
                        body => [
                                 device => $device,
                                 type => 'battery',
@@ -149,7 +149,7 @@ sub poll {
         $self->info("$device $state ($online)\n");
         if (defined $old) {
           $self->xpl->send(message_type => 'xpl-trig',
-                           class => 'ups.basic',
+                           schema => 'ups.basic',
                            body => [
                                     status => $state,
                                     event => 'on'.$state,

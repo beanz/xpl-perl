@@ -44,7 +44,7 @@ my $cs = $ss->accept();
 
 my $msg = xPL::Message->new(message_type => 'xpl-stat',
                             head => { source => 'acme-clock.clepsydra' },
-                            class => "clock.update",
+                            schema => "clock.update",
                             body => [ time => strftime("%Y%m%d%H%M%S",
                                                        localtime(time)) ],
                            );

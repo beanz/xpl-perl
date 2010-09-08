@@ -61,7 +61,7 @@ is($m, '4200', 'content is correct - 4200');
 wait_for_tick($xpl, $count);
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                            class => 'control.basic',
+                            schema => 'control.basic',
                             head => { source => 'acme-easydaq.test' },
                             body =>
                             [
@@ -79,7 +79,7 @@ is($m, '4301', 'content is correct - easydaq-r1/high');
 wait_for_tick($xpl, $count);
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-easydaq.test' },
                          body =>
                          [
@@ -96,7 +96,7 @@ is($m, '4300', 'content is correct - easydaq-r1/low');
 
 wait_for_tick($xpl, $count);
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-easydaq.test' },
                          body =>
                          [
@@ -119,7 +119,7 @@ is($m, '4300', 'content is correct - easydaq-r3/pulse');
 wait_for_tick($xpl, $count);
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-easydaq.test' },
                          body =>
                          [
@@ -131,7 +131,7 @@ is(test_warn(sub { $xpl->dispatch_xpl_message($msg) }),
    "Unsupported setting: toggle\n", 'unsupported - easydaq-r3/toggle');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-easydaq.test' },
                          body =>
                          [
@@ -143,7 +143,7 @@ $xpl->dispatch_xpl_message($msg);
 ok(!$client_sel->can_read(0.1), 'device received no message - invalid/pulse');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-easydaq.test' },
                          body =>
                          [
@@ -185,7 +185,7 @@ sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class =~ /^hbeat\./) {
+         $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

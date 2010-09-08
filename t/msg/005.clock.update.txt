@@ -7,7 +7,7 @@ $args =
     source => "acme-clock.livingroom",
     target => "*",
    },
-   class => "clock.update",
+   schema => "clock.update",
    body =>
    [
     time => "20051113182650",
@@ -33,7 +33,7 @@ source=acme-clock.livingroom
 
 target=*
 
-class=clock.update
+schema=clock.update
 
 time=20051113182650
 

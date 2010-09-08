@@ -118,7 +118,7 @@ sub hub {
 
   my $msg = $p{message};
   my $remote_ip = $msg->field('remote_ip');
-  if ($msg->class =~ /^(?:hbeat|config)\.(app|end)$/ &&
+  if ($msg->schema =~ /^(?:hbeat|config)\.(app|end)$/ &&
       $self->is_local_address($remote_ip)) {
     my $type = $1;
     my $client = $remote_ip.':'.$msg->field('port');

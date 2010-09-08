@@ -71,7 +71,7 @@ wait_for_variable($xpl, \$plugin->{_read_count});
 
 check_sent_msg({
                 message_type => 'xpl-stat',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-myth',
@@ -105,7 +105,7 @@ wait_for_variable($xpl, \$plugin->{_read_count});
 
 check_sent_msg({
                 message_type => 'xpl-stat',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-myth',

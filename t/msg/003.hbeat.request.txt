@@ -7,7 +7,7 @@ $args =
     source => "acme-lamp.livingroom",
     target => "*",
    },
-   class => "hbeat.request",
+   schema => "hbeat.request",
    body => [ command => 'request' ],
   };
 
@@ -30,7 +30,7 @@ source=acme-lamp.livingroom
 
 target=*
 
-class=hbeat.request
+schema=hbeat.request
 
 command=request
 

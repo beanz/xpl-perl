@@ -69,7 +69,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-linev',
@@ -80,7 +80,7 @@ check_sent_msg({
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-timeleft',
@@ -99,7 +99,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 check_sent_msg({
                 message_type => 'xpl-stat',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-linev',
@@ -110,7 +110,7 @@ check_sent_msg({
 
 check_sent_msg({
                 message_type => 'xpl-stat',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-timeleft',
@@ -133,7 +133,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-linev',
@@ -144,7 +144,7 @@ check_sent_msg({
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'ups.basic',
+                schema => 'ups.basic',
                 body =>
                 [
                  status => 'battery',
@@ -154,7 +154,7 @@ check_sent_msg({
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-timeleft',
@@ -180,7 +180,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [
                  device => 'mytestid-linev',

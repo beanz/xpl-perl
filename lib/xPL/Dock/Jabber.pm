@@ -194,7 +194,7 @@ sub connect {
                                   },
                                   filter => {
                                              message_type => 'xpl-cmnd',
-                                             class => 'im.basic',
+                                             schema => 'im.basic',
                                             });
 
   my %fm = map { $_ => 1 } split /,/, join ",",
@@ -237,7 +237,7 @@ sub jabber_message {
     return 1;
   } else {
     $self->{_xpl}->send(message_type => 'xpl-trig',
-                        class => 'im.basic',
+                        schema => 'im.basic',
                         body =>
                         [
                          body => $body,

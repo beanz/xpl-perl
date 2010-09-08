@@ -90,7 +90,7 @@ is(test_output(sub {
    'read response - f03ff03f');
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                            class => 'x10.basic',
+                            schema => 'x10.basic',
                             head => { source => 'acme-x10.test' },
                             body =>
                             [
@@ -120,7 +120,7 @@ is(test_output(sub {
 #check_sent_msg($msg_str);
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'x10.basic',
+                         schema => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
                          [
@@ -160,7 +160,7 @@ is(test_output(sub {
 
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'x10.basic',
+                         schema => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
                          [
@@ -184,7 +184,7 @@ is(test_output(sub {
    "received: 37\n", 'read response - p/all_lights_off');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'x10.basic',
+                         schema => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
                          [
@@ -225,7 +225,7 @@ is(test_output(sub {
 
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'x10.basic',
+                         schema => 'x10.basic',
                          head => { source => 'acme-x10.test' },
                          body =>
                          [
@@ -238,7 +238,7 @@ is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
 
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'homeeasy.basic',
+                         schema => 'homeeasy.basic',
                          head => { source => 'acme-homeeasy.test' },
                          body =>
                          [
@@ -263,7 +263,7 @@ is(test_output(sub {
    "received: 37\n", 'read response - homeeasy');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'homeeasy.basic',
+                         schema => 'homeeasy.basic',
                          head => { source => 'acme-homeeasy.test' },
                          body =>
                          [
@@ -306,7 +306,7 @@ is(test_output(sub {
    "received: 37\n", 'read response - homeeasy');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'homeeasy.basic',
+                         schema => 'homeeasy.basic',
                          head => { source => 'acme-homeeasy.test' },
                          body =>
                          [
@@ -333,7 +333,7 @@ is(test_output(sub {
 
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'homeeasy.basic',
+                         schema => 'homeeasy.basic',
                          head => { source => 'acme-he.test' },
                          body => []);
 is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
@@ -342,7 +342,7 @@ is(test_warn(sub { $xpl->dispatch_xpl_message($msg); }),
    'invalid homeeasy.basic message');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'homeeasy.basic',
+                         schema => 'homeeasy.basic',
                          head => { source => 'acme-he.test' },
                          body =>
                          [
@@ -426,7 +426,7 @@ sub check_sent_msg {
   my ($string) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class =~ /^hbeat\./) {
+         $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $string) {

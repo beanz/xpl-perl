@@ -7,7 +7,7 @@ $args =
     source => "acme-phone.livingroom",
     target => "acme-tv.livingroom",
    },
-   class => "osd.basic",
+   schema => "osd.basic",
    body =>
    [
     command => "clear",
@@ -41,7 +41,7 @@ source=acme-phone.livingroom
 
 target=acme-tv.livingroom
 
-class=osd.basic
+schema=osd.basic
 
 command=clear
 

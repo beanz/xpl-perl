@@ -59,7 +59,7 @@ is($output,
    'is found output');
 check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
                                  message_type => 'xpl-trig',
-                                 class => 'sensor.basic',
+                                 schema => 'sensor.basic',
                                  body =>
                                  [
                                   device => 'bt.00:1A:75:DE:DE:DE',
@@ -76,7 +76,7 @@ is($output,
    'is still found output');
 check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
                                  message_type => 'xpl-stat',
-                                 class => 'sensor.basic',
+                                 schema => 'sensor.basic',
                                  body =>
                                  [
                                   device => 'bt.00:1A:75:DE:DE:DE',
@@ -93,7 +93,7 @@ $output = test_output(sub { $xpl->dispatch_timer('poll-bluetooth') },
 is($output, '', 'not found output - not verbose');
 check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
                                  message_type => 'xpl-trig',
-                                 class => 'sensor.basic',
+                                 schema => 'sensor.basic',
                                  body =>
                                  [
                                   device => 'bt.00:1A:75:DE:DE:DE',
@@ -105,7 +105,7 @@ check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
 sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
-  while ($msg->[0] && $msg->[0]->class =~ /^hbeat\./) {
+  while ($msg->[0] && $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

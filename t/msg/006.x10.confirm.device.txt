@@ -7,7 +7,7 @@ $args =
     source => "acme-x10heyu.node0",
     target => "*",
    },
-   class => "x10.confirm",
+   schema => "x10.confirm",
    body =>
    [
     command => "on",
@@ -35,7 +35,7 @@ source=acme-x10heyu.node0
 
 target=*
 
-class=x10.confirm
+schema=x10.confirm
 
 summary=xpl-trig/x10.confirm: acme-x10heyu.node0 -> * on/a2
 

@@ -92,8 +92,8 @@ is(test_error(sub {
                             'command=write text="This is a test"')
    }),
    'xPL::Listener->send_aux: message error: '.
-     "xPL::Message->new: requires 'class' parameter",
-   'missing class.type');
+     "xPL::Message->new: requires 'schema' parameter",
+   'missing schema.type');
 
 is(join("!!",xPL::Listener::simple_tokenizer('test=1 2 3 ~ stop')),
    'test!!1!!2!!3!!~ stop',

@@ -9,23 +9,23 @@ use t::Helpers qw/test_warn test_error/;
 use_ok("xPL::Message");
 my $valid_msg = xPL::Message->new(message_type => 'xpl-cmnd',
                                   head => { source => 'acme-test.test' },
-                                  class => 'test.schema');
+                                  schema => 'test.schema');
 ok($valid_msg, 'sample message to get message type');
 my $ref = ref $valid_msg;
 my $msg;
 is(test_error(sub { $msg = xPL::Message->new(); }),
-   $ref."->new: requires 'class' parameter",
-   "xPL::Message missing class test");
+   $ref."->new: requires 'schema' parameter",
+   "xPL::Message missing schema test");
 
-is(test_error(sub { $msg = xPL::Message->new(class => "remote.basic") }),
+is(test_error(sub { $msg = xPL::Message->new(schema => "remote.basic") }),
    $ref."->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 
-is(test_error(sub { $msg = xPL::Message->new(class => "unknown.basic") }),
+is(test_error(sub { $msg = xPL::Message->new(schema => "unknown.basic") }),
    $ref."->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 
-is(test_error(sub { $msg = xPL::Message->new(class => "fred.schema",
+is(test_error(sub { $msg = xPL::Message->new(schema => "fred.schema",
                                              message_type => 'testing') }),
    ($ref eq 'xPL::Message'
     ? 'xPL::Message->new' : 'xPL::SlowMessage->message_type').
@@ -34,7 +34,7 @@ It should be one of xpl-cmnd, xpl-stat or xpl-trig.",
    "xPL::Message invalid message type test");
 
 is(test_error(sub { $msg = xPL::Message->new(message_type => "xpl-stat",
-                                             class => "fred.schema"); }),
+                                             schema => "fred.schema"); }),
    $ref."->parse_head_parameters: requires 'source' parameter",
    "xPL::Message missing source test");
 
@@ -109,13 +109,13 @@ $msg = xPL::Message->new(message_type => "xpl-stat",
                          {
                           source => "vendor-device.instance",
                          },
-                         class => "fred.schema",
+                         schema => "fred.schema",
                          );
 
 my $invalid;
 is(test_error(sub {
   $invalid = xPL::Message->new(message_type => 'xpl-cmnd',
-                               class => 'invalid.header',
+                               schema => 'invalid.header',
                                strict => 1,
                                head_content => "hop=10\ntarget=*",
                                body_content => "");
@@ -123,9 +123,9 @@ is(test_error(sub {
   '',
   'check no error with lazy parsing of head and body');
 
-my $class;
-is(test_error(sub { $class = $invalid->class; }),
+my $schema;
+is(test_error(sub { $schema = $invalid->schema; }),
   q{},
-  'check no error when head is parsed - can check class');
-is($class, 'invalid.header',
-  'check no error when head is parsed - can check class - content');
+  'check no error when head is parsed - can check schema');
+is($schema, 'invalid.header',
+  'check no error when head is parsed - can check schema - content');

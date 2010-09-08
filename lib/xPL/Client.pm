@@ -153,12 +153,12 @@ sub new {
     );
   if ($self->hubless) {
     $self->standard_hbeat_mode(1);
-    $xpl_message_args{class} = $class.'.basic';
+    $xpl_message_args{schema} = $class.'.basic';
     $self->add_xpl_callback(id => '!hub-found',
                             self_skip => 0,
                             filter =>
                             {
-                             class => $self->{_hbeat_class}.'.basic',
+                             schema => $self->{_hbeat_class}.'.basic',
                              source => $self->id,
                             },
                             callback => sub {
@@ -169,7 +169,7 @@ sub new {
 
   } else {
     $self->fast_hbeat_mode();
-    $xpl_message_args{class} = $class.'.app';
+    $xpl_message_args{schema} = $class.'.app';
     push @{$xpl_message_args{body}}, port => $self->listen_port;
     push @{$xpl_message_args{body}}, remote_ip => $self->ip;
   }
@@ -181,7 +181,7 @@ sub new {
                           filter =>
                           {
                            message_type => 'xpl-cmnd',
-                           class => 'hbeat.request',
+                           schema => 'hbeat.request',
                           },
                           callback => sub { $self->hbeat_request(@_) });
 
@@ -190,21 +190,21 @@ sub new {
                             filter =>
                             {
                              message_type => 'xpl-cmnd',
-                             class => 'config.list',
+                             schema => 'config.list',
                             },
                             callback => sub { $self->config_list(@_) });
     $self->add_xpl_callback(id => '!config-current',
                             filter =>
                             {
                              message_type => 'xpl-cmnd',
-                             class => 'config.current',
+                             schema => 'config.current',
                             },
                             callback => sub { $self->config_current(@_) });
     $self->add_xpl_callback(id => '!config-response',
                             filter =>
                             {
                              message_type => 'xpl-cmnd',
-                             class => 'config.response',
+                             schema => 'config.response',
                             },
                             callback => sub { $self->config_response(@_) });
   }
@@ -214,7 +214,7 @@ sub new {
                           filter =>
                           {
                            message_type => 'xpl-cmnd',
-                           class => 'ping.request',
+                           schema => 'ping.request',
                           },
                           callback => sub { $self->ping_request(@_) });
 
@@ -274,7 +274,7 @@ This method sends a response to an incoming C<config.list> request.
 sub config_list {
   my $self = shift;
   $self->send(message_type => 'xpl-stat',
-              class => 'config.list',
+              schema => 'config.list',
               body => $self->{_config}->config_types);
   return 1
 }
@@ -288,7 +288,7 @@ This method sends a response to an incoming C<config.current> request.
 sub config_current {
   my $self = shift;
   $self->send(message_type => 'xpl-stat',
-              class => 'config.current',
+              schema => 'config.current',
               body => $self->{_config}->config_current,
               body_order => [$self->{_config}->items]);
   return 1
@@ -443,7 +443,7 @@ sub fast_hbeat_mode {
                           self_skip => 0,
                           filter =>
                           {
-                           class => $self->{_hbeat_class}.'.app',
+                           schema => $self->{_hbeat_class}.'.app',
                            source => $self->id,
                           },
                           callback => sub { $self->hub_response(@_) });
@@ -660,7 +660,7 @@ sub send_ping_response {
   push @body, checktime => $self->{ping}->{time}
     if (exists $self->{ping}->{time});
   $self->send(message_type => 'xpl-stat',
-              class => 'ping.response', body => \@body);
+              schema => 'ping.response', body => \@body);
   return 1;
 }
 
@@ -709,7 +709,7 @@ sub send_hbeat_end {
   return unless (defined $self->{_hbeat_mode});
   undef $self->{_hbeat_mode};
   $self->send(message_type => 'xpl-stat',
-              class => $self->{_hbeat_class}.'.end',
+              schema => $self->{_hbeat_class}.'.end',
               body =>
               [
                interval => $self->hbeat_interval,

@@ -92,7 +92,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'control.basic',
+                          schema => 'control.basic',
                           type => 'output',
                          });
   $self->{_state} = 0;

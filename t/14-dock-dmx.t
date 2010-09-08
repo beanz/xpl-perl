@@ -46,7 +46,7 @@ is(ref $plugin, 'xPL::Dock::DMX', 'plugin has correct type');
 foreach my $color ('ff0000', '00ff00', '0000ff') {
   my $val = $color eq 'ff0000' ? 'red' : '0x'.$color;
   my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                              class => 'dmx.basic',
+                              schema => 'dmx.basic',
                               head => { source => 'acme-dmx.test' },
                               body =>
                               [
@@ -72,7 +72,7 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
      "received: 00".(substr $m, -2)."\n", 'read response - '.$color);
   check_sent_msg({
                   message_type => 'xpl-trig',
-                  class => 'dmx.confirm',
+                  schema => 'dmx.confirm',
                   body => [
                            base => 1,
                            type => 'set',
@@ -82,7 +82,7 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
 }
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                            class => 'dmx.basic',
+                            schema => 'dmx.basic',
                               head => { source => 'acme-dmx.test' },
                               body =>
                               [
@@ -106,7 +106,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'dmx.confirm',
+                schema => 'dmx.confirm',
                 body => [
                          base => '1x2',
                          type => 'set',
@@ -115,7 +115,7 @@ check_sent_msg({
                }, 'dmx.confirm for 1x2=0x0000ff');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                            class => 'dmx.basic',
+                            schema => 'dmx.basic',
                               head => { source => 'acme-dmx.test' },
                               body =>
                               [
@@ -129,7 +129,7 @@ ok(!$client_sel->can_read(0.1),
    'serial device nothing to read - invalid value');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                            class => 'dmx.basic',
+                            schema => 'dmx.basic',
                               head => { source => 'acme-dmx.test' },
                               body =>
                               [
@@ -143,7 +143,7 @@ ok(!$client_sel->can_read(0.1),
    'serial device nothing to read - invalid base');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                            class => 'dmx.basic',
+                            schema => 'dmx.basic',
                               head => { source => 'acme-dmx.test' },
                               body =>
                               [
@@ -167,7 +167,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'dmx.confirm',
+                schema => 'dmx.confirm',
                 body => [
                          base => 'hex',
                          type => 'set',
@@ -177,7 +177,7 @@ check_sent_msg({
 
 $plugin->{_min_visible_diff} = 64; # limit length of fade
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                            class => 'dmx.basic',
+                            schema => 'dmx.basic',
                               head => { source => 'acme-dmx.test' },
                               body =>
                               [
@@ -190,7 +190,7 @@ $xpl->dispatch_xpl_message($msg);
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'dmx.confirm',
+                schema => 'dmx.confirm',
                 body => [
                          base => 1,
                          type => 'set',
@@ -199,7 +199,7 @@ check_sent_msg({
                }, 'dmx.confirm for 1=0xff0000');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                            class => 'dmx.basic',
+                            schema => 'dmx.basic',
                               head => { source => 'acme-dmx.test' },
                               body =>
                               [
@@ -212,7 +212,7 @@ $xpl->dispatch_xpl_message($msg);
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'dmx.confirm',
+                schema => 'dmx.confirm',
                 body => [
                          base => 4,
                          type => 'set',

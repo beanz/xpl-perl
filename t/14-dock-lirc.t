@@ -53,7 +53,7 @@ wait_for_callback($xpl, input => $plugin->{_io}->input_handle);
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'remote.basic',
+                schema => 'remote.basic',
                 body =>
                 [
                  device => 'vcr0081',

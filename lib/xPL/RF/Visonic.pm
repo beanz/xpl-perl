@@ -100,7 +100,7 @@ sub codesecure {
 
   my %args =
     (
-     class => 'x10.security',
+     schema => 'x10.security',
      body => [
               command => $event,
               device  => $device,
@@ -153,7 +153,7 @@ sub powercode {
   my @res;
   my $args =
     {
-     class => 'security.zone',
+     schema => 'security.zone',
      body => [
               event => 'alert',
               zone  => 'powercode.'.$device,
@@ -176,7 +176,7 @@ sub powercode {
 #}
   $args =
     {
-     class => 'x10.security',
+     schema => 'x10.security',
      body => [
               command => $alert ? 'alert' : 'normal',
               device  => $device,

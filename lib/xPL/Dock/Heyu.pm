@@ -69,7 +69,7 @@ sub init {
   $xpl->add_xpl_callback(id => 'x10', callback => sub { $self->xpl_in(@_) },
                          filter => {
                                     message_type => 'xpl-cmnd',
-                                    class => 'x10.basic',
+                                    schema => 'x10.basic',
                                    });
 
   my $fh = $self->{_monitor_fh} =
@@ -142,7 +142,7 @@ sub xpl_in {
                           [$self->seq, $heyu_command, $data1, $device, $data2]);
       my %args = (
                   message_type => 'xpl-trig',
-                  class => 'x10.confirm',
+                  schema => 'x10.confirm',
                   body => [ command => $msg->field('command'),
                             device => device_heyu_to_xpl($device),
                             data1 => $msg->field('data1'), data2 => $msg->field('data2') ],
@@ -172,8 +172,8 @@ sub heyu_monitor {
                                             length($self->{_buffer}));
   while ($self->{_buffer} =~ s/^(.*?)\n//) {
     $_ = $LAST_PAREN_MATCH;
-    my $class = 'x10.basic';
-    $class = 'x10.confirm' if (/sndc/);
+    my $schema = 'x10.basic';
+    $schema = 'x10.confirm' if (/sndc/);
     # TOFIX: process timestamps
     if (m!Monitor started!) {
       $self->{_monitor_ready} = 1;
@@ -183,7 +183,7 @@ sub heyu_monitor {
       my $h = lc($2);
       my $level = $4;
       my $u = join ',', sort { $a <=> $b } @{$self->{_unit}->{$h}|| ['0']};
-      $self->send_xpl($class, $h.$u, $f, $level);
+      $self->send_xpl($schema, $h.$u, $f, $level);
       delete $self->{_unit}->{$h};
     } elsif (m!function\s+xPreset\s+:\s+housecode\s+(\w)\s+unit\s+(\d+)\s+level\s+(\d+)! ||
              m!func\s+xPreset\s+:\s+hu\s+(\w)(\d+)\s+level\s+(\d+)!) {
@@ -191,7 +191,7 @@ sub heyu_monitor {
       my $h = lc($1);
       my $u = $2;
       my $level = [ 49, $3 ];
-      $self->send_xpl($class, $h.$u, $f, $level);
+      $self->send_xpl($schema, $h.$u, $f, $level);
       delete $self->{_unit}->{$h}; # TODO: should we do this? need to check spec
     } elsif (m!address\s+unit\s+(\S+)\s+:\s+housecode\s+(\w+)!) {
       push @{$self->{_unit}->{lc($2)}}, $1;
@@ -226,7 +226,7 @@ sub read_helper {
   return 1;
 }
 
-=head2 C<send_xpl( $class, $device, $command, [ $level ] )>
+=head2 C<send_xpl( $schema, $device, $command, [ $level ] )>
 
 This functions is used to send out x10.basic xpl-trig messages as a
 result of messages from "heyu monitor".
@@ -235,7 +235,7 @@ result of messages from "heyu monitor".
 
 sub send_xpl {
   my $self = shift;
-  my $class = shift;
+  my $schema = shift;
   my $device = shift;
   my $command = shift;
   my $level = shift;
@@ -244,7 +244,7 @@ sub send_xpl {
   my %args =
     (
      message_type => 'xpl-trig',
-     class => $class,
+     schema => $schema,
      body => [
               command => $xpl_command,
               device => device_heyu_to_xpl($device),
@@ -257,7 +257,7 @@ sub send_xpl {
   } elsif ($level) {
     push @{$args{body}}, level => level_heyu_to_xpl($level);
   }
-  $self->debug("Sending $class $device $command",
+  $self->debug("Sending $schema $device $command",
                ($level ? " ".$level : ""), "\n");
   $self->xpl->send(%args);
 }

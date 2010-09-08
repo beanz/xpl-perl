@@ -127,7 +127,7 @@ sub read {
     $self->xpl->remove_input($sock);
     $sock->close;
 
-    $self->xpl->send(message_type => 'xpl-stat', class => 'sensor.basic',
+    $self->xpl->send(message_type => 'xpl-stat', schema => 'sensor.basic',
                      body => [ device => $self->xpl->instance_id.'-myth',
                                type => 'generic',
                                current => $usage,

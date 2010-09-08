@@ -106,7 +106,7 @@ $hub->main_loop(1);
 my $last2 = $hub->client_attrib($client, 'last');
 is($last2, $last+1, "last time incremented");
 
-$xpl->send(message_type => "xpl-stat", class => "hbeat.blah",
+$xpl->send(message_type => "xpl-stat", schema => "hbeat.blah",
            body =>
            [
             interval => $xpl->hbeat_interval,
@@ -129,7 +129,7 @@ use_ok('xPL::Message');
 my $id = 'bnz-client.test';
 my $fake = '127.0.0.1:9999';
 my $msg = xPL::Message->new(message_type => 'xpl-stat',
-                            class => 'hbeat.app',
+                            schema => 'hbeat.app',
                             head => { source => $id },
                             body =>
                             [

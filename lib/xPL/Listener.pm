@@ -435,7 +435,7 @@ sub send_from_list {
     if ($k eq '-m') {
       $args{message_type} = $v;
     } elsif ($k eq '-c') {
-      $args{class} = $v;
+      $args{schema} = $v;
     } elsif ($k eq '-s') {
       $args{head}->{source} = $v;
     } elsif ($k eq '-t') {
@@ -483,7 +483,7 @@ the hash are:
 
     {
      message_type => 'xpl-trig',
-     class => 'x10.basic',
+     schema => 'x10.basic',
     }
 
   It is also possible, though not advisable in normal Perl code, to
@@ -511,8 +511,8 @@ sub add_xpl_callback {
     unless (ref($filter)) {
       my %f = simple_tokenizer($filter);
       $p{filter} = $filter = \%f;
-      if (exists $f{class} && $f{class} =~ /^(\w+)$/) {
-        $f{class} .= '\\.\w+';
+      if (exists $f{schema} && $f{schema} =~ /^(\w+)$/) {
+        $f{schema} .= '\\.\w+';
       }
     }
   }

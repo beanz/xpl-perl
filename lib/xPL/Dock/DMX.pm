@@ -85,7 +85,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'dmx.basic',
+                          schema => 'dmx.basic',
                           type => 'set',
                          });
   $self->read_rgb_txt();
@@ -297,7 +297,7 @@ sub send_xpl_confirm {
   my $msg = shift;
   my $xpl = $self->xpl;
   $xpl->send(message_type => 'xpl-trig',
-             class => 'dmx.confirm',
+             schema => 'dmx.confirm',
              body =>
              [
               base => $msg->field('base'),

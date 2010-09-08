@@ -39,7 +39,7 @@ $xpl->main_loop(1); # send
 is($xpl->hbeat_count, 1, 'correct hbeat count');
 $xpl->main_loop(1); # receive
 ok($msg, 'message arrived');
-is($msg->class, 'hbeat.basic',
+is($msg->schema, 'hbeat.basic',
    'hbeat.basic since no port ip information is needed');
 is(int($end_time - $start_time), 0, 'message sent immediately');
 
@@ -57,7 +57,7 @@ $xpl->main_loop(1); # receive
 is($xpl->hbeat_count, 1, 'correct hbeat count');
 is($xpl2->hbeat_count, 1, 'correct hbeat count');
 ok($msg, 'message arrived');
-is($msg->class, 'hbeat.basic',
+is($msg->schema, 'hbeat.basic',
    'hbeat.basic since no port ip information is needed');
 is($msg->source, $xpl2->id, 'received second clients hbeat.basic message');
 

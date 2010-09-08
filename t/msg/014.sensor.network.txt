@@ -7,7 +7,7 @@ $args =
     source => 'acme-1wire.node0',
     target => '*',
    },
-   class => 'sensor.network',
+   schema => 'sensor.network',
    body =>
    [
     device => 'router1',
@@ -37,7 +37,7 @@ source=acme-1wire.node0
 
 target=*
 
-class=sensor.network
+schema=sensor.network
 
 summary=xpl-trig/sensor.network: acme-1wire.node0 -> * router1/packets/1234
 

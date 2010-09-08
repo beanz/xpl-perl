@@ -150,7 +150,7 @@ sub read {
          current => $value,
         );
       push @body, units => $units if (defined $units);
-      $self->xpl->send(message_type => $msgtype, class => 'sensor.basic',
+      $self->xpl->send(message_type => $msgtype, schema => 'sensor.basic',
                        body => \@body);
     } elsif ($field eq 'STATUS') {
       my $state = $value =~ /ONLINE/ ? 'mains' : 'battery';
@@ -163,7 +163,7 @@ sub read {
         $self->info("$device\[status]=$state ($value)\n");
         if (defined $old) {
           $self->xpl->send(message_type => 'xpl-trig',
-                           class => 'ups.basic',
+                           schema => 'ups.basic',
                            body => [
                                     status => $state,
                                     event => 'on'.$state,

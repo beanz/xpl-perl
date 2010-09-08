@@ -7,7 +7,7 @@ $args =
     source => 'acme-1wire.node0',
     target => '*',
    },
-   class => 'sensor.basic',
+   schema => 'sensor.basic',
    body =>
    [
     device => 'bed1',
@@ -37,7 +37,7 @@ source=acme-1wire.node0
 
 target=*
 
-class=sensor.basic
+schema=sensor.basic
 
 summary=xpl-trig/sensor.basic: acme-1wire.node0 -> * bed1/temp/21.05
 

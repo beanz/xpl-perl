@@ -7,7 +7,7 @@ $args =
     source => 'acme-boombox.kitchen',
     target => '*',
    },
-   class => 'audio.basic',
+   schema => 'audio.basic',
    body =>
    [
     command => 'play',
@@ -33,7 +33,7 @@ source=acme-boombox.kitchen
 
 target=*
 
-class=audio.basic
+schema=audio.basic
 
 command=play
 

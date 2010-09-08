@@ -5,7 +5,7 @@ $args =
    {
     source => 'acme-usr.modem1',
    },
-   class => 'cid.basic',
+   schema => 'cid.basic',
    body =>
    [
     calltype => 'outbound',
@@ -33,7 +33,7 @@ source=acme-usr.modem1
 
 target=*
 
-class=cid.basic
+schema=cid.basic
 
 summary=xpl-trig/cid.basic: acme-usr.modem1 -> * outbound/012345678910
 

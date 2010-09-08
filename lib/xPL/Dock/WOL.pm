@@ -65,7 +65,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'wol.basic',
+                          schema => 'wol.basic',
                          },
                          callback => sub { $self->xpl_handler(@_) });
   return $self;

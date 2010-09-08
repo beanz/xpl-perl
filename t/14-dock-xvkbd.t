@@ -45,7 +45,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-xvkbd.test',
                                      },
-                                     class=> 'remote.basic',
+                                     schema=> 'remote.basic',
                                      body =>
                                      [
                                       'keys' => 'helloworld',

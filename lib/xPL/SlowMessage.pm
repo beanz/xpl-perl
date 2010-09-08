@@ -15,7 +15,7 @@ xPL::Message - Perl extension for xPL message base class
                                source => 'acme-lamp.livingroom',
                                target => '*',
                               },
-                              class => 'hbeat.app',
+                              schema => 'hbeat.app',
                               body =>
                               [
                                interval => 10,
@@ -30,7 +30,7 @@ xPL::Message - Perl extension for xPL message base class
                            {
                             source => 'acme-lamp.livingroom',
                            },
-                           class => 'hbeat.app',
+                           schema => 'hbeat.app',
                            body =>
                            [
                             remote_ip => '127.0.0.1',
@@ -83,8 +83,6 @@ our $OPEN_SQUARE_BRACKET = q{[};
 our $CLOSE_SQUARE_BRACKET = q{]};
 our %MESSAGE_TYPES = map { $_ => 1 } qw/xpl-cmnd xpl-stat xpl-trig/;
 
-__PACKAGE__->make_readonly_accessor(qw/class/);
-
 my $path = $INC{'xPL/SlowMessage.pm'};
 $path =~ s!([/\\])SlowMessage\.pm$!${1}schema!;
 my @paths = ($path);
@@ -121,12 +119,12 @@ are:
   'xpl-stat' and 'xpl-trig', for each of the three styles of xPL
   Message.
 
-=item class
+=item schema
 
-  The class or schema of the message.  This should be the
-  full schema name, such as 'hbeat.basic'.  This field is used
-  to determine the type of xPL Message object that will actually
-  be instantiated and returned to the caller.
+  The schema of the message.  This should be the full schema name,
+  such as 'hbeat.basic'.  This field is used to determine the type of
+  xPL Message object that will actually be instantiated and returned
+  to the caller.
 
 =back
 
@@ -140,25 +138,29 @@ sub new {
   my %p = @_;
   exists $p{strict} or $p{strict} = 1;
 
-  if (exists $p{class_type}) {
-    $pkg->ouch('"class_type" is deprecated. '.
-               'Set "class" to "class.type" instead');
-    $p{class} .= '.'.$p{class_type};
+  if (exists $p{class}) {
+    $pkg->ouch('"class" is deprecated. '.
+               'Set "schema" to "class.class_type" instead');
+    $p{schema} = $p{class};
+    delete $p{class};
+    if (exists $p{class_type}) {
+      $pkg->ouch('"class_type" is deprecated. '.
+                 'Set "schema" to "class.class_type" instead');
+      $p{schema} .= '.'.$p{class_type};
+    }
   }
 
-  my $class;
-  my $class_type;
-  defined $p{class} or $pkg->argh(q{requires 'class' parameter});
-  unless ($p{class} =~ /^([A-Z0-9]{1,8})\.([A-Z0-9]{1,8})$/i) {
-    $pkg->argh("'class' parameter, ".$p{class}.", is invalid.\n".
+  defined $p{schema} or $pkg->argh(q{requires 'schema' parameter});
+  unless ($p{schema} =~ /^([A-Z0-9]{1,8})\.([A-Z0-9]{1,8})$/i) {
+    $pkg->argh("'schema' parameter, ".$p{schema}.", is invalid.\n".
                'It must be up to 8 characters (from A-Z, a-z and 0-9), a dot, '
                .'and then up to 8 more characters (from A-Z, a-z and 0-9).');
   }
-  $class = $1;
-  $class_type = $2;
+  my $class = $1;
+  my $class_type = $2;
 
   my $module = $pkg.$DOUBLE_COLON.(lc $class).$DOUBLE_COLON.(lc $class_type);
-  if (exists $specs{$p{class}} && !exists $modules{$module}) {
+  if (exists $specs{$p{schema}} && !exists $modules{$module}) {
     make_class($class, $class_type)
   }
   if (!exists $p{message_type}) {
@@ -180,7 +182,7 @@ sub new {
 
   unless (exists $modules{$module}) {
     $module = $pkg;
-    $pkg->ouch("New message type ", $p{class}, "\n")
+    $pkg->ouch("New message type ", $p{schema}, "\n")
       if (exists $ENV{XPL_MSG_WARN});
   } else {
     $module = $modules{$module};
@@ -192,7 +194,7 @@ sub new {
   $self->{_verbose} = $p{verbose}||0;
   $self->{_strict} = $p{strict};
 
-  $self->{_class} = $p{class};
+  $self->{_schema} = $p{schema};
   $self->message_type($message_type);
 
   if ($p{head_content}) {
@@ -368,10 +370,9 @@ sub pretty_print {
   $self->_parse_head() if ($self->{_head_content});
   my $str =
     sprintf
-      '%s/%s.%s: %s -> %s',
+      '%s/%s: %s -> %s',
       $self->{_message_type},
-      $self->{_class}, $self->{_class_type},
-      $self->{_source}, $self->{_target};
+      $self->{_schema}, $self->{_source}, $self->{_target};
   my $spec = $self->spec();
   $self->_parse_body() if ($self->{_body_content});
   if ($spec->{summary}) {
@@ -513,20 +514,6 @@ sub target {
     $self->{_target} = $value;
   }
   return $self->{_target};
-}
-
-=head2 C<class()>
-
-This method returns the schema class (e.g. "hbeat.basic").
-
-=head2 C<class_type()>
-
-This method returns the class type.
-
-=cut
-
-sub class_type {
-  (split /\./, $_[0]->{_class}, 2)[1]
 }
 
 =head2 C<valid_id( $identifier )>

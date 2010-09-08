@@ -100,7 +100,7 @@ sub parse {
   my $kwh = ( ($bytes->[4]<<16) + ($bytes->[2]<<8) + ($bytes->[3]) ) / 100;
   #print "rfxmeter: ", $kwh, "kwh\n";
   return [{
-           class => 'sensor.basic',
+           schema => 'sensor.basic',
            body => [
                     device => 'rfxmeter.'.$device,
                     type => 'energy',

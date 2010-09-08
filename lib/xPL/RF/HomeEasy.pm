@@ -72,7 +72,7 @@ sub parse {
 
   push @$body, level => $res->{level} if ($res->{command} eq 'preset');
 
-  return [{ class => 'homeeasy.basic', body => $body }];
+  return [{ schema => 'homeeasy.basic', body => $body }];
 }
 
 1;

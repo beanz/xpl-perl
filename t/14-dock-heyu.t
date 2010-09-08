@@ -66,7 +66,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10.basic',
+                                     schema=> 'x10.basic',
                                      body =>
                                      [
                                       'command' => 'on',
@@ -86,7 +86,7 @@ is($out, "Acknowledged 00000000 on a3\n", 'helper ack 0');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'x10.basic',
+                schema => 'x10.basic',
                 body => [
                          'command' => 'on',
                          'device' => 'a0',
@@ -95,7 +95,7 @@ check_sent_msg({
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'x10.basic',
+                schema => 'x10.basic',
                 body => [
                          command => 'bright',
                          device => 'a2',
@@ -105,7 +105,7 @@ check_sent_msg({
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'x10.confirm',
+                schema => 'x10.confirm',
                 body => [
                          command => 'on',
                          device => 'a3,a10',
@@ -114,7 +114,7 @@ check_sent_msg({
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'x10.basic',
+                schema => 'x10.basic',
                 body => [
                          command => 'extended',
                          device => 'l6',
@@ -125,7 +125,7 @@ check_sent_msg({
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'x10.basic',
+                schema => 'x10.basic',
                 body => [
                          command => 'on',
                          device => 'a4,a5,a6,a10',
@@ -134,7 +134,7 @@ check_sent_msg({
 
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'x10.basic',
+                schema => 'x10.basic',
                 body => [
                          command => 'extended',
                          device => 'l6',
@@ -150,7 +150,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10.basic',
+                                     schema=> 'x10.basic',
                                      body =>
                                      [
                                       'command' => 'dim',
@@ -176,7 +176,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10.basic',
+                                     schema=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'extended',
@@ -220,7 +220,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10.basic',
+                                     schema=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'extended',
@@ -236,7 +236,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10.basic',
+                                     schema=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'extended',
@@ -252,7 +252,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10.basic',
+                                     schema=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'invalid',
@@ -268,7 +268,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-heyu.test',
                                      },
-                                     class=> 'x10.basic',
+                                     schema=> 'x10.basic',
                                      body =>
                                      [
                                       command => 'bright',
@@ -326,7 +326,7 @@ sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class =~ /^hbeat\./) {
+         $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

@@ -85,7 +85,7 @@ sub init {
                          arguments => $self,
                          filter => {
                                     message_type => 'xpl-cmnd',
-                                    class => 'control.basic',
+                                    schema => 'control.basic',
                                     type => 'output',
                                    });
 

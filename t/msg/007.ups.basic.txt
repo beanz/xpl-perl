@@ -7,7 +7,7 @@ $args =
     source => 'acme-ups.node0',
     target => '*',
    },
-   class => 'ups.basic',
+   schema => 'ups.basic',
    body =>
    [
     status => 'battery',
@@ -35,7 +35,7 @@ source=acme-ups.node0
 
 target=*
 
-class=ups.basic
+schema=ups.basic
 
 summary=xpl-trig/ups.basic: acme-ups.node0 -> * battery/onbattery
 

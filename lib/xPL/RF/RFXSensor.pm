@@ -109,7 +109,7 @@ sub parse {
       }
       $cache->{$base}->{temp} = $temp;
       return [{
-               class => 'sensor.basic',
+               schema => 'sensor.basic',
                body => [
                         device => $device,
                         type => 'temp',
@@ -122,7 +122,7 @@ sub parse {
       my @res = ();
       push @res,
         {
-         class => 'sensor.basic',
+         schema => 'sensor.basic',
          body => [
                   device => $device,
                   type => 'voltage',
@@ -146,7 +146,7 @@ sub parse {
       }
       push @res,
         {
-         class => 'sensor.basic',
+         schema => 'sensor.basic',
          body => [
                   device => $device,
                   type => 'humidity',
@@ -159,7 +159,7 @@ sub parse {
       my $v = ( ($bytes->[2]<<3) + ($bytes->[3]>>5) ) / 100;
       $cache->{$base}->{supply} = $v;
       return [{
-               class => 'sensor.basic',
+               schema => 'sensor.basic',
                body => [
                         device => $device,
                         type => 'voltage',

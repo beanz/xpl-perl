@@ -127,7 +127,7 @@ sub device_reader {
       my $xplmsg =
         xPL::Message->new(message_type => 'xpl-trig',
                           head => { source => $xpl->id, },
-                          class => 'sensor.basic',
+                          schema => 'sensor.basic',
                           body =>
                           [
                            device => $dev,
@@ -140,7 +140,7 @@ sub device_reader {
     my $xplmsg =
       xPL::Message->new(message_type => 'xpl-trig',
                         head => { source => $xpl->id, },
-                        class => 'sensor.basic',
+                        schema => 'sensor.basic',
                         body =>
                         [
                          device => $device,

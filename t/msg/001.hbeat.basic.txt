@@ -7,7 +7,7 @@ $args =
     source => "acme-lamp.livingroom",
     target => "*",
    },
-   class => "hbeat.basic",
+   schema => "hbeat.basic",
    body =>
    [
     interval => 10,
@@ -36,7 +36,7 @@ source=acme-lamp.livingroom
 
 target=*
 
-class=hbeat.basic
+schema=hbeat.basic
 
 interval=10
 

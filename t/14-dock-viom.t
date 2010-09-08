@@ -130,7 +130,7 @@ is(test_output(sub {
    'read response - input changed state');
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [ device => 'i01', type => 'input', current => 'low' ],
                }, 'i01 low');
@@ -144,14 +144,14 @@ is(test_output(sub {
    '', 'read response - input changed state');
 check_sent_msg({
                 message_type => 'xpl-trig',
-                class => 'sensor.basic',
+                schema => 'sensor.basic',
                 body =>
                 [ device => 'i01', type => 'input', current => 'high' ],
                }, 'i01 low');
 $plugin->{_verbose} = 2;
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                            class => 'control.basic',
+                            schema => 'control.basic',
                             head => { source => 'acme-viom.test' },
                             body =>
                             [
@@ -173,7 +173,7 @@ is(test_output(sub {
    'read response - o01/high');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-viom.test' },
                          body =>
                          [
@@ -194,7 +194,7 @@ is(test_output(sub {
    "Output 1 Inactive\n", 'read response - o01/low');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-viom.test' },
                          body =>
                          [
@@ -226,7 +226,7 @@ is(test_output(sub {
    "Output 1 Inactive\n", 'read response - o01/pulse');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-viom.test' },
                          body =>
                          [
@@ -261,7 +261,7 @@ is(test_output(sub {
    'read response - o01/toggle(off)');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-viom.test' },
                          body =>
                          [
@@ -273,7 +273,7 @@ $xpl->dispatch_xpl_message($msg);
 ok(!$client_sel->can_read(0.5), 'device receive no message - output1/toggle');
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
-                         class => 'control.basic',
+                         schema => 'control.basic',
                          head => { source => 'acme-viom.test' },
                          body =>
                          [
@@ -306,7 +306,7 @@ sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
   while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->class =~ /^hbeat\./) {
+         $msg->[0]->schema =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {

@@ -87,7 +87,7 @@ sub x10_xpl_message {
   }
   my %args =
     (
-     class => 'x10.basic',
+     schema => 'x10.basic',
      body => $body,
     );
   return \%args;

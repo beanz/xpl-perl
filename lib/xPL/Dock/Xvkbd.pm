@@ -61,7 +61,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'remote.basic',
+                          schema => 'remote.basic',
                          },
                          callback => sub { $self->xpl_handler(@_) });
   return $self;

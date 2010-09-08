@@ -69,7 +69,7 @@ sub init {
                          callback => sub { $self->xpl_in(@_) },
                          filter => {
                                     message_type => 'xpl-cmnd',
-                                    class => 'osd',
+                                    schema => 'osd',
                                    });
 
   $self->{_protocol_expected} = '0.3';

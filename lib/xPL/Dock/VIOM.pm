@@ -86,7 +86,7 @@ sub init {
                          arguments => $self,
                          filter => {
                                     message_type => 'xpl-cmnd',
-                                    class => 'control.basic',
+                                    schema => 'control.basic',
                                     type => 'output',
                                    });
 
@@ -206,7 +206,7 @@ sub send_xpl {
   my %args =
     (
      message_type => 'xpl-trig',
-     class => 'sensor.basic',
+     schema => 'sensor.basic',
      body => [ device => $device, type => 'input', current => $level ],
     );
   $self->info('Sending ', $device, ' ', $level, "\n");

@@ -44,7 +44,7 @@ BEGIN {
 use_ok('xPL::Message');
 
 my %methods =
-  map { $_ => 1 } qw/message_type source target hop class summary verbose/;
+  map { $_ => 1 } qw/message_type source target hop schema summary verbose/;
 foreach my $m (sort keys %msg) {
   my $rec = $msg{$m};
   my $args;

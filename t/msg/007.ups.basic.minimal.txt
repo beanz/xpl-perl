@@ -5,7 +5,7 @@ $args =
    {
     source => 'acme-ups.node0',
    },
-   class => 'ups.basic',
+   schema => 'ups.basic',
    body =>
    [
     status => 'battery',

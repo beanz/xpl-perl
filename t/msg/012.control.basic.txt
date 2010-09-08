@@ -7,7 +7,7 @@ $args =
     source => 'acme-viom.node0',
     target => '*',
    },
-   class => 'control.basic',
+   schema => 'control.basic',
    body =>
    [
     device => '1',
@@ -37,7 +37,7 @@ source=acme-viom.node0
 
 target=*
 
-class=control.basic
+schema=control.basic
 
 summary=xpl-cmnd/control.basic: acme-viom.node0 -> * 1/output/pulse
 

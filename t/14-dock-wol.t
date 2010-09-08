@@ -45,7 +45,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-wol.test',
                                      },
-                                     class=> 'wol.basic',
+                                     schema=> 'wol.basic',
                                      body =>
                                      [
                                       device => 'sleepy',
@@ -62,7 +62,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-wol.test',
                                      },
-                                     class=> 'wol.basic',
+                                     schema=> 'wol.basic',
                                      body =>
                                      [
                                       device => 'sneezy',
@@ -78,7 +78,7 @@ is(test_output(sub {
                                      {
                                       source => 'acme-wol.test',
                                      },
-                                     class=> 'wol.basic',
+                                     schema=> 'wol.basic',
                                      body =>
                                      [
                                       type => 'wake',

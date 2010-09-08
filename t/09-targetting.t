@@ -64,18 +64,18 @@ my $dingus_msg;
 $dingus->add_xpl_callback(id => 'test',
                           callback => sub {
                             my %p=@_;
-                            return if ($p{message}->class =~ /^hbeat\./);
+                            return if ($p{message}->schema =~ /^hbeat\./);
                             $dingus_msg = $p{message};
                           });
 my $widget_msg;
 $widget->add_xpl_callback(id => 'test',
                           callback => sub {
                             my %p=@_;
-                            return if ($p{message}->class =~ /^hbeat\./);
+                            return if ($p{message}->schema =~ /^hbeat\./);
                             $widget_msg = $p{message};
                           });
 
-$dingus->send(message_type => "xpl-stat", class => "test.test",
+$dingus->send(message_type => "xpl-stat", schema => "test.test",
               head =>
               {
                source => 'bnz-tester.test', # avoid self_skip tests

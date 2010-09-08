@@ -14,7 +14,7 @@ use_ok("xPL::Message");
 
 my $msg;
 is(test_error(sub {
-                $msg = xPL::Message->new(class => "osd.basic",
+                $msg = xPL::Message->new(schema => "osd.basic",
                          head => { source => "vendor-device.instance" },
                        ); }),
    "xPL::SlowMessage::osd::basic::xplcmnd->process_field_record: requires 'command' parameter in body",

@@ -5,7 +5,7 @@ $args =
    {
     source => "acme-hammer.shed",
    },
-   class => "xpl.test",
+   schema => "xpl.test",
    body =>
    [
     extra => "test of extra field",
@@ -30,7 +30,7 @@ source=acme-hammer.shed
 
 target=*
 
-class=xpl.test
+schema=xpl.test
 
 extra=test of extra field
 

@@ -66,7 +66,7 @@ sub parse {
     #printf "electrisave d=%s kwh=%.2f\n", $dev, $kwh;
     push @msgs,
       {
-       class => 'sensor.basic',
+       schema => 'sensor.basic',
        body => [
                 device => 'electrisave.'.$dev,
                 type => 'current',

@@ -73,7 +73,7 @@ sub init {
                          filter =>
                          {
                           message_type => 'xpl-cmnd',
-                          class => 'datetime.request',
+                          schema => 'datetime.request',
                          },
                          callback => sub { $self->query_handler(@_) });
   return $self;
@@ -91,7 +91,7 @@ sub send_datetime {
   my $time = time;
   my $datetime = strftime "%Y%m%d%H%M%S", localtime $time;
   return $self->xpl->send(message_type => 'xpl-trig',
-                          class => 'datetime.basic',
+                          schema => 'datetime.basic',
                           body =>
                           [
                            datetime => $datetime,
@@ -131,7 +131,7 @@ sub query_handler {
   my $time = time;
   my $datetime = strftime "%Y%m%d%H%M%S", localtime $time;
   return $self->xpl->send(message_type => 'xpl-stat',
-                          class => 'datetime.basic',
+                          schema => 'datetime.basic',
                           body =>
                           [
                            status => $datetime,

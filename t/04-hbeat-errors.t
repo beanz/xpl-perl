@@ -14,14 +14,14 @@ use_ok("xPL::Message");
 
 my $msg;
 is(test_error(sub {
-                $msg = xPL::Message->new(class => "hbeat.app",
+                $msg = xPL::Message->new(schema => "hbeat.app",
                          head => {source => "vendor-device.instance"},
                        ); }),
    "xPL::SlowMessage::hbeat::app::xplstat->process_field_record: requires 'port' parameter in body",
    "xPL::Message::hbeat::app missing port test");
 
 is(test_error(sub {
-                $msg = xPL::Message->new(class => "hbeat.app",
+                $msg = xPL::Message->new(schema => "hbeat.app",
                          head => {source => "vendor-device.instance"},
                          body => [ port => 12345, ],
                        ); }),
@@ -29,7 +29,7 @@ is(test_error(sub {
    "xPL::Message::hbeat::app missing remote_ip test");
 
 is(test_error(sub {
-                $msg = xPL::Message->new(class => "hbeat.app",
+                $msg = xPL::Message->new(schema => "hbeat.app",
                          head => {source => "vendor-device.instance"},
                          body => [ port => 123, ],
                        ); }),
@@ -38,7 +38,7 @@ It should be an integer between 1024 and 65535.",
    "xPL::Message::hbeat::app port number too low");
 
 is(test_error(sub {
-                $msg = xPL::Message->new(class => "hbeat.app",
+                $msg = xPL::Message->new(schema => "hbeat.app",
                          head => {source => "vendor-device.instance"},
                          body => [ port => 99999, ],
                        ); }),
@@ -47,7 +47,7 @@ It should be an integer between 1024 and 65535.",
    "xPL::Message::hbeat::app port number too high");
 
 is(test_error(sub {
-                $msg = xPL::Message->new(class => "hbeat.app",
+                $msg = xPL::Message->new(schema => "hbeat.app",
                          head => {source => "vendor-device.instance"},
                          body => [ port => 'notvalid', ],
                        ); }),
@@ -58,7 +58,7 @@ It should be an integer between 1024 and 65535.",
 # Check that invalid port number is accepted if strict mode is off.
 my $port;
 is(test_warn(sub {
-                $msg = xPL::Message->new(class => "hbeat.app",
+                $msg = xPL::Message->new(schema => "hbeat.app",
                          head => {source => "vendor-device.instance"},
                          strict => 0,
                          body => [ port => 123, ],

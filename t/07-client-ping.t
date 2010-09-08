@@ -42,11 +42,11 @@ ok(!$xpl->exists_timer("!fast-hbeat"), "hbeat timer removed");
 $xpl->add_timer(id => '!tick', timeout => 0.001);
 
 fake_hub_response($xpl, message_type => 'xpl-cmnd',
-                  class => "ping.request");
+                  schema => "ping.request");
 wait_for_callback($xpl, xpl_callback => '!ping-request');
 ok($xpl->exists_timer('!ping-response'), 'ping response timer created');
 fake_hub_response($xpl, message_type => 'xpl-cmnd',
-                  class => "ping.request");
+                  schema => "ping.request");
 wait_for_callback($xpl, xpl_callback => '!ping-request');
 ok($xpl->exists_timer('!ping-response'), 'ping response timer still exists');
 # TODO: should check that the timeout isn't reset

@@ -7,7 +7,7 @@ $args =
     source => 'acme-sensor.garden',
     target => '*',
    },
-   class => 'dawndusk.basic',
+   schema => 'dawndusk.basic',
    body =>
    [
     type => 'dawndusk',
@@ -35,7 +35,7 @@ source=acme-sensor.garden
 
 target=*
 
-class=dawndusk.basic
+schema=dawndusk.basic
 
 summary=xpl-trig/dawndusk.basic: acme-sensor.garden -> * dawndusk/dawn
 
