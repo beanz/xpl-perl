@@ -3,7 +3,7 @@ default_message_type: xpl-trig
 types:
   xpl-trig:
     fields:
-      - name: field
+      - name: fieldname
         validation: 
           type: Set
           set:

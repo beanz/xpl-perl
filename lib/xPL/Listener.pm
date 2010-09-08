@@ -77,7 +77,7 @@ __PACKAGE__->make_readonly_accessor(qw/ip broadcast interface
                                        listen_port port hubless
                                        last_sent_message/);
 
-our $EVENT_LOOP = (defined $AnyEvent::VERBOSE ? 'anyevent' : 'default');
+our $EVENT_LOOP = (defined $AnyEvent::VERSION ? 'anyevent' : 'default');
 {
   my $prefix =
     __PACKAGE__.'::_'.$EVENT_LOOP.'_';
