@@ -50,7 +50,7 @@ $msg = xPL::Message->new_from_payload($payload);
 ok($msg, 'new_from_payload with duplicate field - constructor');
 is($msg->string, $payload,
    'new_from_payload with duplicate field - content in');
-is(join(",", $msg->extra_fields()), 'b,c,a',
+is(join(",", $msg->body_fields()), 'b,c,a',
    'new_from_payload with duplicate field - fields');
 $payload_body =
 'b=value-b

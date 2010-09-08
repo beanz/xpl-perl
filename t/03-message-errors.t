@@ -3,7 +3,7 @@
 # Copyright (C) 2005, 2008 by Mark Hindess
 
 use strict;
-use Test::More tests => 28;
+use Test::More tests => 26;
 use t::Helpers qw/test_warn test_error/;
 
 use_ok("xPL::Message");
@@ -209,15 +209,6 @@ $msg = xPL::Message->new(message_type => "xpl-stat",
                          },
                          class => "fred.schema",
                          );
-
-is(test_error(sub { xPL::Message->make_body_field() }),
-   'xPL::Message->make_body_field: BUG: missing body field record',
-   'make_body_field without field record');
-
-is(test_error(sub { xPL::Message->make_body_field({}) }),
-   'xPL::Message->make_body_field: '.
-     'BUG: missing body field record missing name',
-   'make_body_field with name in field record');
 
 my $invalid;
 is(test_error(sub {

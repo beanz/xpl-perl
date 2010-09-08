@@ -47,7 +47,7 @@ is(scalar $bridge->peers, 1, "fake client accepted");
 fake_hub_message($bridge,
                  head => { source => 'acme-clock.cuckoo' },
                  class => "clock.update",
-                 body => { time => strftime("%Y%m%d%H%M%S", localtime(time)) });
+                 body => [ time => strftime("%Y%m%d%H%M%S", localtime(time)) ]);
 
 # run main loop for message to be received and re-transmitted to clients
 $bridge->main_loop(1);
@@ -66,8 +66,8 @@ is($msg->source, 'acme-clock.cuckoo', "first message source");
 
 $msg = xPL::Message->new(head => { source => 'acme-clock.clepsydra' },
                          class => "clock.update",
-                         body => { time => strftime("%Y%m%d%H%M%S",
-                                               localtime(time)) });
+                         body => [ time => strftime("%Y%m%d%H%M%S",
+                                               localtime(time)) ]);
 ok($msg, "prepared message to send from client");
 $msg_str = $msg->string;
 ok($cs->syswrite(xPL::Bridge::pack_message($msg_str)), "client sent message");

@@ -123,11 +123,11 @@ is($xpl->hbeat_mode, 'hopeful', "hbeat mode is hopeful");
 fake_hub_response($xpl,
                   message_type => "xpl-stat", class => "hbeat.blah",
                   body =>
-                  {
+                  [
                    interval => $xpl->hbeat_interval,
                    port => $xpl->listen_port,
                    remote_ip => $xpl->ip,
-                  },
+                  ],
                   );
 
 $xpl->main_loop(1);
@@ -141,11 +141,11 @@ fake_hub_response($xpl,
                   },
                   class => "hbeat.app",
                   body =>
-                  {
+                  [
                    interval => $xpl->hbeat_interval,
                    port => $xpl->listen_port,
                    remote_ip => $xpl->ip,
-                  },
+                  ],
                  );
 
 $xpl->main_loop(1);

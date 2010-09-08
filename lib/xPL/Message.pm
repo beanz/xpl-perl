@@ -58,7 +58,7 @@ if ($@) {
 }
 use xPL::Validation;
 
-use Carp qw/cluck/;
+use Carp qw/cluck confess/;
 
 use xPL::Base;
 #use AutoLoader qw(AUTOLOAD);
@@ -288,17 +288,6 @@ sub _parse_body {
   $_[0]->parse_body_parameters(\@body);
 }
 
-=head2 C<field_spec()>
-
-This is the default field specification.  It is empty.  Specific
-message classes are intended to override this method.
-
-=cut
-
-sub field_spec {
-  []
-}
-
 =head2 C<spec()>
 
 This is the default message specification.  It is empty.  Specific
@@ -366,60 +355,10 @@ sub parse_body_parameters {
       }
       $self->{_body}->{$k} = $v;
       push @{$self->{_body_order}}, $k;
-      unless ($self->is_body_field($k)) {
-        push @{$self->{_extra_order}}, $k;
-      }
     }
   } else {
-    cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATED_WARNING});
-    my %processed = ();
-    my $spec = $self->field_spec();
-    foreach my $field_rec (@$spec) {
-      $self->process_field_record($body, $field_rec, \%processed);
-    }
-    foreach ($body_order ? @{$body_order} : sort keys %{$body}) {
-      next if (exists $processed{$_});
-      $self->{_body}->{$_} = $body->{$_};
-      push @{$self->{_body_order}}, $_;
-      push @{$self->{_extra_order}}, $_;
-    }
+    confess "Deprecated\n";
   }
-  return 1;
-}
-
-=head2 C<process_field_record( $body_hash_ref, $field_record_hash_ref )>
-
-This method is called by the constructor to process a single field
-in body of the message according to the field specification for the
-message type.
-
-=cut
-
-sub process_field_record {
-  my $self = shift;
-  my $body = shift;
-  my $rec = shift;
-  my $processed = shift;
-  my $name = $rec->{name};
-  unless (exists $body->{$name}) {
-    if (exists $rec->{default}) {
-      $body->{$name} = $rec->{default};
-    } elsif (exists $rec->{required}) {
-      if ($self->{_strict}) {
-        $self->argh("requires '$name' parameter in body");
-      } else {
-        $self->ouch("requires '$name' parameter in body");
-      }
-    } else {
-      return 1;
-    }
-  }
-  if ($self->{_strict}) {
-    $self->$name($body->{$name});
-  } else {
-    $self->{_body}->{$name} = $body->{$name};
-  }
-  $processed->{$name}++;
   return 1;
 }
 
@@ -519,7 +458,6 @@ sub body_string {
       my $v = $_[0]->{'_body'}->{$_};
       my $n = $_;
       $n = 'remote-ip' if ($_ eq 'remote_ip');
-      next unless (defined $v);
       foreach ((ref $v) ? @{$v} : ($v)) {
         $b .= "$n=".$_."$LF";
       }
@@ -665,26 +603,6 @@ sub valid_id {
   return 'valid';
 }
 
-=head2 C<extra_field( $field, [ $value ] )>
-
-This method returns the value of the extra field from the message
-body.  If the optional new value argument is present, then this method
-updates the extra field with the new value before it returns.
-
-=cut
-
-sub extra_field {
-  my $self = shift;
-  my $key = shift;
-  cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATED_WARNING});
-  $self->_parse_body() if ($self->{_body_content});
-  if (@_) {
-    push @{$self->{_body_order}}, $key unless (exists $self->{_body}->{$key});
-    $self->{_body}->{$key} = $_[0];
-  }
-  return $self->{_body}->{$key};
-}
-
 =head2 C<field( $field )>
 
 This method returns the value of the field from the message
@@ -697,37 +615,6 @@ sub field {
   my $key = shift;
   $self->_parse_body() if ($self->{_body_content});
   $self->{_body}->{$key};
-}
-
-=head2 C<extra_fields()>
-
-This method returns the names of the extra fields present in this
-message.
-
-=cut
-
-sub extra_fields {
-  $_[0]->_parse_body() if ($_[0]->{_body_content});
-  return @{$_[0]->{_body_order}};
-}
-
-=head2 C<extra_field_string()>
-
-This method returns a formatted string that forms the part of the xPL
-message body that contains the extra fields.
-
-=cut
-
-sub extra_field_string {
-  $_[0]->_parse_body() if ($_[0]->{_body_content});
-  my $b = $EMPTY;
-  foreach my $k (@{$_[0]->{_extra_order}}) {
-    my $v = $_[0]->{_body}->{$k};
-    foreach ((ref $v) ? @{$v} : ($v)) {
-      $b .= $k.$EQUALS.$_.$LF;
-    }
-  }
-  return $b;
 }
 
 =head2 C<body_fields()>
@@ -773,107 +660,9 @@ sub make_class {
       sub {
         $spec->{types}->{$message_type}
       };
-    if (exists $spec->{types}->{$message_type}->{fields}) {
-      my $fs = $module.'::field_spec';
-      *{$fs} =
-        sub {
-          $spec->{types}->{$message_type}->{fields}
-        };
-    }
     use strict qw/refs/;
-    $module->make_body_fields();
     $modules{$module} = $module;
   }
-  return 1;
-}
-
-=head2 C<make_body_fields( )>
-
-This method populates the symbol table.  It creates the methods for
-the fields listed in the L<field_spec> for the message sub-classes.
-It also creates a C<body_fields> method from the specification.
-
-=cut
-
-sub make_body_fields {
-  my @f = ();
-  foreach my $rec (@{$_[0]->field_spec()}) {
-    $_[0]->make_body_field($rec);
-    push @f, $rec->{name};
-  }
-  my $new = $_[0].'::is_body_field';
-  return if (defined &{$new});
-  #  print STDERR "  $new => make_body_fields, @f\n";
-  my %m = map { $_ => 1 } @f;
-  no strict qw/refs/;
-  *{$new} =
-    sub {
-      exists $m{$_[1]};
-    };
-  use strict qw/refs/;
-  return 1;
-}
-
-sub is_body_field {
-  return undef
-}
-
-=head2 C<make_body_field( $record )>
-
-This class method makes a type safe method to get/set the named field
-of the xPL Message body.
-
-For instance, called as:
-
-  __PACKAGE__->make_body_field({
-                                name => 'interval',
-                                validation => { type => 'IntegerRange',
-                                                min => 5, max => 30 ),
-                                error => 'It should be blah, blah, blah.',
-                               );
-
-it creates a method that can be called as:
-
-  $msg->interval(5);
-
-or:
-
-  my $interval = $msg->interval();
-
-=cut
-
-sub make_body_field {
-  my $pkg = shift;
-  my $rec = shift or $pkg->argh('BUG: missing body field record');
-  my $name = $rec->{name} or
-    $pkg->argh('BUG: missing body field record missing name');
-  my $validation = $rec->{validation} || { type => 'Any' };
-  $validation = xPL::Validation->new(%{$validation});
-  my $die = $rec->{die} || 0;
-  my $error_message =
-    exists $rec->{error} ? $rec->{error} : $validation->error();
-
-  my $error_handler = $die ? 'argh_named' : 'ouch_named';
-  my $new = $pkg.$DOUBLE_COLON.$name;
-  return if (defined &{$new});
-#  print STDERR "  $new => body_field, ",$validation->summary,"\n";
-  no strict qw/refs/;
-  *{$new} =
-    sub {
-      cluck "Deprecated\n" if ($ENV{XPL_PERL_DEPRECATED_WARNING});
-      $_[0]->_parse_body() if ($_[0]->{_body_content});
-      if (@_ > 1) {
-        cluck "Mutable\n" if ($ENV{XPL_PERL_MUTABLE_WARNING});
-        if ($_[0]->{_strict} && !$validation->valid($_[1])) {
-          $_[0]->$error_handler($name,
-                                $name.$COMMA.$SPACE.$_[1].", is invalid.\n".
-                                $error_message);
-        }
-        $_[0]->{_body}->{$name} = $_[1];
-      }
-      return $_[0]->{_body}->{$name};
-    };
-  use strict qw/refs/;
   return 1;
 }
 

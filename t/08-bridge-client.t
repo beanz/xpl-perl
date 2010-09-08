@@ -44,8 +44,8 @@ my $cs = $ss->accept();
 
 my $msg = xPL::Message->new(head => { source => 'acme-clock.clepsydra' },
                             class => "clock.update",
-                            body => { time => strftime("%Y%m%d%H%M%S",
-                                                       localtime(time)) },
+                            body => [ time => strftime("%Y%m%d%H%M%S",
+                                                       localtime(time)) ],
                            );
 ok($msg, "prepared message to send from remote");
 my $msg_str = $msg->string;
