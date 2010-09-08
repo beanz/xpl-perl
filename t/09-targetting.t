@@ -54,14 +54,14 @@ my $dingus_msg;
 $dingus->add_xpl_callback(id => 'test',
                           callback => sub {
                             my %p=@_;
-                            return if ($p{message}->class eq 'hbeat');
+                            return if ($p{message}->class =~ /^hbeat\./);
                             $dingus_msg = $p{message};
                           });
 my $widget_msg;
 $widget->add_xpl_callback(id => 'test',
                           callback => sub {
                             my %p=@_;
-                            return if ($p{message}->class eq 'hbeat');
+                            return if ($p{message}->class =~ /^hbeat\./);
                             $widget_msg = $p{message};
                           });
 

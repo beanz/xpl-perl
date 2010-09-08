@@ -105,11 +105,11 @@ check_sent_msg(xPL::Message->new(head => { source => $xpl->id },
 sub check_sent_msg {
   my ($expected, $desc) = @_;
   my $msg = shift @msg;
-  while ((ref $msg->[0]) =~ /^xPL::Message::hbeat/) {
+  while ($msg->[0] && $msg->[0]->class =~ /^hbeat\./) {
     $msg = shift @msg; # skip hbeat.* message
   }
   if (defined $expected) {
-    is_deeply($msg->[0], $expected, 'message as expected - '.$desc);
+    is($msg->[0]->string, $expected->string, 'message as expected - '.$desc);
   } else {
     is(scalar @msg, 0, 'message not expected - '.$desc);
   }
