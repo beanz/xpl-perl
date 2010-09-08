@@ -51,7 +51,7 @@ BEGIN {
 
 use_ok('xPL::RF');
 
-my $rf = xPL::RF->new(source => 'bnz-rftest.default');
+my $rf = xPL::RF->new();
 foreach my $m (sort keys %msg) {
   my $rec = $msg{$m};
   my $res;

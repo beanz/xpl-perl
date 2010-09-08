@@ -3,19 +3,14 @@
 # Copyright (C) 2007, 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 33;
+use Test::More tests => 32;
 use t::Helpers qw/test_error test_warn/;
 
 use_ok('xPL::RF');
 
 is(xPL::RF::hex_dump('ABC'), '414243', 'hex_dump() function test');
 
-is(test_error(sub { xPL::RF->new(); }),
-   qq{xPL::RF->new: requires 'source' parameter\n},
-   'xPL::RF requires source parameter');
-
-my $rf = xPL::RF->new(source => 'bnz-rfxcom.localhost',
-                      duplicate_timeout => 1);
+my $rf = xPL::RF->new(duplicate_timeout => 1);
 ok($rf, 'RF constructor');
 
 my $res = $rf->process_variable_length(pack 'H*', '4d14');
@@ -29,7 +24,7 @@ ok($res, 'recognizes valid length - 0-bit null');
 is($res->{length}, 1, 'recognizes sufficient data - 0-bit null');
 is($res->{messages}, undef, 'no messages - 0-bit null');
 
-$rf = xPL::RF->new(source => 'bnz-rfxcom.localhost', verbose => 1);
+$rf = xPL::RF->new(verbose => 1);
 is(test_warn(sub { $res = $rf->process_variable_length(pack 'H*','100000'); }),
    "Unknown message, len=16:\n  0000\n", 'warning - 16-bit null');
 ok($res, 'recognizes valid length - 16-bit null');
