@@ -301,6 +301,7 @@ lib/xPL/schema/wol.confirm.yaml
 lib/xPL/schema/x10.basic.yaml
 lib/xPL/schema/x10.confirm.yaml
 lib/xPL/schema/x10.security.yaml
+lib/xPL/SlowMessage.pm
 lib/xPL/Timer/cron.pm
 lib/xPL/Timer.pm
 lib/xPL/Timer/recurrence.pm
@@ -327,14 +328,17 @@ t/01-use.t
 t/01-xpl-base.t
 t/01-xpl-interfaces.t
 t/01-xpl-message.t
+t/01-xpl-slowmessage.t
 t/01-xpl-utils.t
 t/01-xpl-validation.t
 t/02-homeeasy.t
 t/02-message.t
+t/02-message-v.t
 t/02-schema-yaml.t
 t/02-timer.t
 t/02-x10.t
 t/03-message-errors.t
+t/03-message-errors-v.t
 t/03-message-from-payload.t
 t/03-message-method-maker.t
 t/03-rf-misc.t
@@ -345,6 +349,7 @@ t/04-config.t
 t/04-hbeat-errors.t
 t/04-osd-errors.t
 t/04-queue.t
+t/05-listener-anyevent.t
 t/05-listener-send-methods.t
 t/05-listener.t
 t/06-hub.t
@@ -410,6 +415,7 @@ t/interfaces/ip.addr.show.linux/ip
 t/lib/Net/DBus.pm
 t/lib/X/Osd.pm
 t/lib/xPL/Dock/Test.pm
+t/lib/xPL/Dock/Wrap.pm
 t/linux/1/sys/class/power_supply/AC/online
 t/linux/1/sys/class/power_supply/BAT0/energy_full
 t/linux/1/sys/class/power_supply/BAT0/energy_now
