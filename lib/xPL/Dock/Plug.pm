@@ -41,6 +41,8 @@ __PACKAGE__->make_readonly_accessor($_) foreach (qw/xpl verbose/);
 
 =head2 C<getopts()>
 
+Empty L<Getopt::Long> options that should be overloaded.
+
 =cut
 
 sub getopts {
@@ -59,7 +61,9 @@ sub new {
   bless {}, $pkg;
 }
 
-=head2 C<init(%params)>
+=head2 C<init( $xpldock )>
+
+Empty initialization method that should be overriden.
 
 =cut
 
@@ -83,6 +87,10 @@ sub vendor_id {
 
 =head2 C<name()>
 
+This method returns a name to use as the device id for the L<xPL::Dock>
+client using this plugin.  It should be overriden if the default string
+is not suitable (e.g. if it is not a valid device id).
+
 =cut
 
 sub name {
@@ -90,6 +98,12 @@ sub name {
   $n =~ s/^xPL::Dock:://;
   lc $n;
 }
+
+=head2 C<config()>
+
+Lazily creates a config object for this L<xPL::Dock> plugin.
+
+=cut
 
 sub config {
   my ($self) = @_;
@@ -101,7 +115,7 @@ sub config {
   $self->{_config}
 }
 
-=head2 C<required_field( $name, $message, $use_argv )>
+=head2 C<required_field( $xpldock, $name, $message, $use_argv )>
 
 This method handles the checking of a require parameter for a plugin.
 
