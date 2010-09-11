@@ -1,5 +1,0 @@
-/etc/sv/xpl-viom/run
-/etc/sv/xpl-viom/log/run
-/etc/sv/xpl-viom/log/status
-/etc/sv/xpl-viom/env/DATALIMIT
-/etc/sv/xpl-viom/env/FILELIMIT

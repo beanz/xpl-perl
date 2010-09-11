@@ -1,5 +1,0 @@
-/etc/sv/xpl-heyu/run
-/etc/sv/xpl-heyu/log/run
-/etc/sv/xpl-heyu/log/status
-/etc/sv/xpl-heyu/env/DATALIMIT
-/etc/sv/xpl-heyu/env/FILELIMIT

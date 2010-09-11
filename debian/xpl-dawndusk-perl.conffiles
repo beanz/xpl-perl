@@ -1,5 +1,0 @@
-/etc/sv/xpl-dawndusk/run
-/etc/sv/xpl-dawndusk/log/run
-/etc/sv/xpl-dawndusk/log/status
-/etc/sv/xpl-dawndusk/env/DATALIMIT
-/etc/sv/xpl-dawndusk/env/FILELIMIT

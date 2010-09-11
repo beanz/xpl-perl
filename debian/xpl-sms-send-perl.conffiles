@@ -1,5 +1,0 @@
-/etc/sv/xpl-sms-send/run
-/etc/sv/xpl-sms-send/log/run
-/etc/sv/xpl-sms-send/log/status
-/etc/sv/xpl-sms-send/env/DATALIMIT
-/etc/sv/xpl-sms-send/env/FILELIMIT

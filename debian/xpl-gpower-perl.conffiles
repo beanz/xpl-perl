@@ -1,5 +1,0 @@
-/etc/sv/xpl-gpower/run
-/etc/sv/xpl-gpower/log/run
-/etc/sv/xpl-gpower/log/status
-/etc/sv/xpl-gpower/env/DATALIMIT
-/etc/sv/xpl-gpower/env/FILELIMIT

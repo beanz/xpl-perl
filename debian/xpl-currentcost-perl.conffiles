@@ -1,5 +1,0 @@
-/etc/sv/xpl-currentcost/run
-/etc/sv/xpl-currentcost/log/run
-/etc/sv/xpl-currentcost/log/status
-/etc/sv/xpl-currentcost/env/DATALIMIT
-/etc/sv/xpl-currentcost/env/FILELIMIT

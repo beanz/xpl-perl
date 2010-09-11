@@ -1,5 +1,0 @@
-/etc/sv/xpl-owfs/run
-/etc/sv/xpl-owfs/log/run
-/etc/sv/xpl-owfs/log/status
-/etc/sv/xpl-owfs/env/DATALIMIT
-/etc/sv/xpl-owfs/env/FILELIMIT

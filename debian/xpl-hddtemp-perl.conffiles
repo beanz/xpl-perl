@@ -1,5 +1,0 @@
-/etc/sv/xpl-hddtemp/run
-/etc/sv/xpl-hddtemp/log/run
-/etc/sv/xpl-hddtemp/log/status
-/etc/sv/xpl-hddtemp/env/DATALIMIT
-/etc/sv/xpl-hddtemp/env/FILELIMIT

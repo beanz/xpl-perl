@@ -1,5 +1,0 @@
-/etc/sv/xpl-datetime/run
-/etc/sv/xpl-datetime/log/run
-/etc/sv/xpl-datetime/log/status
-/etc/sv/xpl-datetime/env/DATALIMIT
-/etc/sv/xpl-datetime/env/FILELIMIT

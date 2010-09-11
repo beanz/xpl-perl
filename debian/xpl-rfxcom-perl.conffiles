@@ -1,5 +1,0 @@
-/etc/sv/xpl-rfxcom/run
-/etc/sv/xpl-rfxcom/log/run
-/etc/sv/xpl-rfxcom/log/status
-/etc/sv/xpl-rfxcom/env/DATALIMIT
-/etc/sv/xpl-rfxcom/env/FILELIMIT

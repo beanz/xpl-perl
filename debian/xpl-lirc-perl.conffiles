@@ -1,5 +1,0 @@
-/etc/sv/xpl-lirc/run
-/etc/sv/xpl-lirc/log/run
-/etc/sv/xpl-lirc/log/status
-/etc/sv/xpl-lirc/env/DATALIMIT
-/etc/sv/xpl-lirc/env/FILELIMIT

@@ -1,5 +1,0 @@
-/etc/sv/xpl-xvkbd/run
-/etc/sv/xpl-xvkbd/log/run
-/etc/sv/xpl-xvkbd/log/status
-/etc/sv/xpl-xvkbd/env/DATALIMIT
-/etc/sv/xpl-xvkbd/env/FILELIMIT

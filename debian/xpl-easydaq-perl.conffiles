@@ -1,5 +1,0 @@
-/etc/sv/xpl-easydaq/run
-/etc/sv/xpl-easydaq/log/run
-/etc/sv/xpl-easydaq/log/status
-/etc/sv/xpl-easydaq/env/DATALIMIT
-/etc/sv/xpl-easydaq/env/FILELIMIT
