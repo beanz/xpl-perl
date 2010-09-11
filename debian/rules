@@ -51,6 +51,7 @@ install-stamp:
 	#$(MAKE) test
 	$(MAKE) install DESTDIR=$(TMP) PREFIX=/usr
 
+	-rm $(TMP)/usr/bin/xpl-send.sh $(TMP)/usr/bin/xpl-send.c
 	# As this is a architecture independent package, we are not
 	# supposed to install stuff to /usr/lib. MakeMaker creates
 	# the dirs, we delete them from the deb:
