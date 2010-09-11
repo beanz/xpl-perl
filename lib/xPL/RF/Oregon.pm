@@ -168,6 +168,8 @@ sub parse {
   }
 
   my @nibbles = map { hex $_ } split //, unpack "H*", $message;
+#  my @nibbles = map { vec $message, $_ + ($_%2 ? -1 : 1), 4
+#                    } 0..(2*length $message);
   my $checksum = $rec->{checksum};
   if ($checksum && !$checksum->($bytes, \@nibbles)) {
     return;
