@@ -81,6 +81,29 @@ sub nibble_sum {
   return $s;
 }
 
+=head2 C<str_nibble_sum($count, $str)>
+
+This function returns the sum of the nibbles of count nibbles from
+a string.  It is not exported as it is not really intended to be
+used.
+
+=cut
+
+sub str_nibble_sum {
+  my $c = $_[0];
+  my $cc = $c - $c%2;
+  my $s = 0;
+  foreach (0..$cc-1) {
+    $s += vec $_[1], $_, 4;
+  }
+  $s += str_nibble($_[1], $c-1) if ($c!=$cc);
+  return $s;
+}
+
+sub str_nibble {
+  vec $_[0], $_[1] + ($_[1]%2 ? -1 : 1), 4
+}
+
 =head2 C<new_nibble_sum($count, \@nibbles)>
 
 This function returns the sum of the nibbles of count nibbles.
@@ -88,7 +111,6 @@ This function returns the sum of the nibbles of count nibbles.
 =cut
 
 sub new_nibble_sum {
-  my $c = $_[0];
   my $s = 0;
   foreach (0..$_[0]-1) {
     $s += $_[1]->[$_];
