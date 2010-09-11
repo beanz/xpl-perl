@@ -221,7 +221,7 @@ is(test_error(sub {
                                 instance_id => 'thisinstanceidistoolong');
    }),
    "xPL::Client->new: instance_id, thisinstanceidistoolong, is invalid.\n".
-   "The default can be overriden by setting the XPL_HOSTNAME environment\n".
+   "The default can be overridden by setting the XPL_HOSTNAME environment\n".
    "variable",
    "client invalid instance_id parameter");
 

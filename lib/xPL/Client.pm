@@ -111,7 +111,7 @@ sub new {
   $p{instance_id} =~ s/\..*$//; # strip domain if there is one
   $p{instance_id}=~/^[A-Za-z0-9]{1,16}$/ or
     $self->argh('instance_id, '.$p{instance_id}.", is invalid.\n".
-      "The default can be overriden by setting the XPL_HOSTNAME environment\n".
+      "The default can be overridden by setting the XPL_HOSTNAME environment\n".
       'variable');
 
   foreach ([hbeat_interval => 5, 5, 30, 'minutes'],
@@ -567,7 +567,7 @@ sub ping_request {
 
 This method is intended to confirm that the client is functioning
 correctly.  The default implementation simply calls L<ping_done> with
-the string argument, 'ok'.  It is intended to be overriden by clients
+the string argument, 'ok'.  It is intended to be overridden by clients
 to provide more substancial functionality to confirm (or not) that the
 client is really functioning correctly.  It is intended that the
 checking is asynchonous so strictly-speaking this method should begin
@@ -582,7 +582,7 @@ sub ping_action {
 
 =head2 C<ping_kill_action()>
 
-This method is intended to be overriden by clients and should terminate
+This method is intended to be overridden by clients and should terminate
 any checking process that has been started.  It is called by the method
 that sends the ping response if the check is not finished sufficiently
 quickly.

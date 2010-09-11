@@ -63,7 +63,7 @@ sub new {
 
 =head2 C<init( $xpldock )>
 
-Empty initialization method that should be overriden.
+Empty initialization method that should be overridden.
 
 =cut
 
@@ -76,7 +76,7 @@ sub init {
 =head2 C<vendor_id()>
 
 Defines a vendor identifier for the dock plugin.  This should probably
-be overriden for third party dock plugins.  Particularly if the plugins
+be overridden for third party dock plugins.  Particularly if the plugins
 have configuration specifications.
 
 =cut
@@ -88,7 +88,7 @@ sub vendor_id {
 =head2 C<name()>
 
 This method returns a name to use as the device id for the L<xPL::Dock>
-client using this plugin.  It should be overriden if the default string
+client using this plugin.  It should be overridden if the default string
 is not suitable (e.g. if it is not a valid device id).
 
 =cut

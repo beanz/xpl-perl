@@ -119,7 +119,7 @@ sub new {
 =head2 C<init( $parameter_hash_ref )>
 
 This method processes the parameters passed to the validation.  It
-does nothing in this base class, but it should be overriden by
+does nothing in this base class, but it should be overridden by
 validation classes that have parameters.
 
 =cut
@@ -145,7 +145,7 @@ sub singleton {
 
 This method returns a string containing a summary of the xPL
 validation.  It is intended for use when logging and debugging.  This
-method is intended to be overriden so that specific validations can
+method is intended to be overridden so that specific validations can
 append brief relevant data to the common components of the summary.
 
 =cut

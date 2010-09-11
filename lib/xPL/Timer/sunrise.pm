@@ -43,12 +43,12 @@ sub-class supports the following parameter hash values:
 =item latitude
 
 The latitude in degrees - North is positive.  If this value is
-ommitted, then the environment variable LATITUDE will be used.
+omitted, then the environment variable LATITUDE will be used.
 
 =item longitude
 
 The longitude in degrees - East is positive.  If this value is
-ommitted, then the environment variable LONGITUDE will be used.
+omitted, then the environment variable LONGITUDE will be used.
 
 =item altitude
 

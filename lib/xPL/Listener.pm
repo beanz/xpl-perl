@@ -707,8 +707,8 @@ sub exit {
 
 =head2 C<exiting( )>
 
-This method is called when we are exiting and can be overriden to provide
-additional behaviour.  When overriden the exiting method should probably
+This method is called when we are exiting and can be overridden to provide
+additional behaviour.  When overridden the exiting method should probably
 end with:
 
   return $self->SUPER::exiting(@_);

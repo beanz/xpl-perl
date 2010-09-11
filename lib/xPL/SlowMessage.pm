@@ -348,7 +348,7 @@ sub process_field_record {
 =head2 C<default_message_type()>
 
 This method returns the default message type.  It is undefined for
-the base class, but it can be overriden.
+the base class, but it can be overridden.
 
 =cut
 
@@ -360,7 +360,7 @@ sub default_message_type {
 
 This method returns a string containing a summary of the xPL message.
 It is intended for use when logging.  This method is intended to be
-overriden so that specific messages can append brief relevant data
+overridden so that specific messages can append brief relevant data
 to the common components of the summary.
 
 =cut
