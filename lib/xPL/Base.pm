@@ -80,7 +80,7 @@ sub add_item {
     $self->argh("BUG: item type, $type, invalid");
   my $id = shift or $self->argh('BUG: item id missing');
   my $attribs = shift or $self->argh('BUG: item attribs missing');
-  if ($self->exists_item($type, $id)) {
+  if (exists $self->{_col}->{$type}->{$id}) {
     $self->argh("$type item '$id' already registered");
   }
   $attribs->{'!type!'} = $type;
@@ -118,7 +118,7 @@ sub remove_item {
   exists $self->{_col}->{$type} or
     $self->argh("BUG: item type, $type, invalid");
   my $id = shift or $self->argh('BUG: item id missing');
-  unless ($self->exists_item($type, $id)) {
+  unless (exists $self->{_col}->{$type}->{$id}) {
     return $self->ouch("$type item '$id' not registered");
   }
 
@@ -140,10 +140,24 @@ sub item_attrib {
   exists $self->{_col}->{$type} or
     $self->argh("BUG: item type, $type, invalid");
   my $id = shift or $self->argh('BUG: item id missing');
-  unless ($self->exists_item($type, $id)) {
+  unless (exists $self->{_col}->{$type}->{$id}) {
     return $self->ouch("$type item '$id' not registered");
   }
   my $key = shift or $self->argh('missing key');
+  if (@_) {
+    $self->{_col}->{$type}->{$id}->{$key} = $_[0];
+  }
+  return $self->{_col}->{$type}->{$id}->{$key};
+}
+
+sub _item_attrib {
+  my $self = shift;
+  my $type = shift;
+  my $id = shift or $self->argh_named('item_attrib', 'BUG: item id missing');
+  unless (exists $self->{_col}->{$type}->{$id}) {
+    return $self->ouch_named('item_attrib', "$type item '$id' not registered");
+  }
+  my $key = shift or $self->argh_named('item_attrib', 'missing key');
   if (@_) {
     $self->{_col}->{$type}->{$id}->{$key} = $_[0];
   }
@@ -303,7 +317,7 @@ sub make_item_attribute_method {
   no strict 'refs';
   *{"$new"} =
     sub {
-      shift->item_attrib($collection_type, shift, $attribute_name, @_);
+      shift->_item_attrib($collection_type, shift, $attribute_name, @_);
     };
   use strict 'refs';
   return 1;
@@ -716,7 +730,7 @@ sub ouch {
   return;
 }
 
-=head2 C<argh_named(@message)>
+=head2 C<argh_named($method_name, @message)>
 
 This methods is just another helper to 'die' a helpful error messages.
 
@@ -729,7 +743,7 @@ sub argh_named {
   croak $pkg."->$name: @_\n";
 }
 
-=head2 C<ouch_named(@message)>
+=head2 C<ouch_named($method_name, @message)>
 
 This methods is just another helper to 'warn' a helpful error messages.
 
