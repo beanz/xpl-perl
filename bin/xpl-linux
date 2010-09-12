@@ -4,7 +4,7 @@ use xPL::Dock qw/-run/;
 
 =head1 NAME
 
-xpl-linux - Perl script for an xPL linux monitor
+xpl-linux - Perl script for an xPL Linux monitor
 
 =head1 SYNOPSIS
 
@@ -19,7 +19,7 @@ xpl-linux - Perl script for an xPL linux monitor
     --linux-poll-interval nn - number of seconds between polling the
                                system (120)
 
-  # start the linux client listening and broadcasting on first ethernet
+  # start the Linux client listening and broadcasting on first Ethernet
   # interface in verbose mode using poll interval of 120 seconds
   xpl-linux --interface eth0 --verbose --linux-verbose
 

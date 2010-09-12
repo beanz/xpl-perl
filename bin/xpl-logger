@@ -17,7 +17,7 @@ xpl-logger - Perl script for an example xPL logger application
   Any filter arguments are concatenated with space and passed to the
   xPL callback setup.
 
-  # start the logger listening and broadcasting on first ethernet
+  # start the logger listening and broadcasting on first Ethernet
   # interface in verbose mode
   xpl-logger -i eth0 -v
 

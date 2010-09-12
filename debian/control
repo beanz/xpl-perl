@@ -126,8 +126,8 @@ Description: xPL LCDproc OSD application
 # Package: xpl-linux-perl
 # Architecture: all
 # Depends: runit | daemontools-run, libxpl-perl, xpl-common-perl
-# Description: xPL linux monitor
-#  This package sets up an xPL linux monitor to run automatically.
+# Description: xPL Linux monitor
+#  This package sets up an xPL Linux monitor to run automatically.
 
 # Package: xpl-linux-cpu-perl
 # Architecture: all

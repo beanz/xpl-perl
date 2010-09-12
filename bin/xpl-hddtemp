@@ -23,7 +23,7 @@ xpl-hddtemp - Perl script for an xPL hddtemp monitor
   # start the hddtemp application with poll interval of 60 seconds
   xpl-hddtemp --hddtemp-poll-interval 60
 
-  # start the hddtemp listening and broadcasting on first ethernet
+  # start the hddtemp listening and broadcasting on first Ethernet
   # interface in verbose mode using poll interval of 120 seconds
   xpl-hddtemp --interface eth0 --verbose --hddtemp-verbose
 

@@ -23,7 +23,7 @@ xpl-dg834 - Perl script for an xPL DG834 monitor
   # start the dg834 application with poll interval of 120 seconds
   xpl-dg834 -s 120
 
-  # start the dg834 listening and broadcasting on first ethernet
+  # start the dg834 listening and broadcasting on first Ethernet
   # interface in verbose mode using poll interval of 120 seconds
   xpl-dg834 -i eth0 -v
 

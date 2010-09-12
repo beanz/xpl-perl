@@ -21,7 +21,7 @@ xpl-xosd - Perl script for an xPL X OSD application
     --xosd-rows nn        - the number of rows to display (4)
     --xosd-font fontname  - name of font to use (-adobe-courier-bold-...)
 
-  # start the xosd on first ethernet interface in verbose mode
+  # start the xosd on first Ethernet interface in verbose mode
   xpl-xosd --verbose --xosd-verbose
 
 =head1 DESCRIPTION

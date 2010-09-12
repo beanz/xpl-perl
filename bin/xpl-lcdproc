@@ -20,7 +20,7 @@ xpl-lcdproc - Perl script for an xPL LCDproc OSD application
                                  is allowed to remain on screen for (10)
     --lcdproc-server host:port - the lcdproc server to use (127.0.0.1:13666)
 
-  # start the lcdproc on first ethernet interface in verbose mode
+  # start the lcdproc on first Ethernet interface in verbose mode
   xpl-lcdproc --interface eth0 --verbose --lcdproc-verbose
 
 =head1 DESCRIPTION

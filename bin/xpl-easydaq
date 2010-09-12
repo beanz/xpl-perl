@@ -19,7 +19,7 @@ xpl-easydaq - Perl script for an xPL EasyDAQ USB Relay client
     --easydaq-baud nnnn    - the baud rate (9600)
     --easydaq-tty /dev/xxx - the USB/serial device
 
-  # start the easydaq application on first ethernet interface in verbose mode
+  # start the easydaq application on first Ethernet interface in verbose mode
   xpl-easydaq --interface eth0 --verbose \
               --easydaq-verbose --easydaq-tty /dev/ttyUSB6
 

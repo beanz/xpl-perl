@@ -18,7 +18,7 @@ xpl-owfs - Perl script for an xPL interface to the one-wire filesystem
                                non-loopback or loopback)
     --owfs-mount /mountpoint - the owfs mount point
 
-  # start the owfs application on first ethernet interface in verbose mode
+  # start the owfs application on first Ethernet interface in verbose mode
   xpl-owfs --interface eth0 --verbose --owfs-verbose
 
 =head1 DESCRIPTION

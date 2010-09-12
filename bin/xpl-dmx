@@ -23,7 +23,7 @@ xpl-dmx - Perl script for an xPL DMX Transmitter application
                          green, blue, cyan, magenta, yellow, black, and white
                          are supported.
 
-  # start the dmx application on first ethernet interface in verbose mode
+  # start the dmx application on first Ethernet interface in verbose mode
   # with the Milford device attached to /dev/ttyUSB0
   xpl-dmx --interface eth0 --verbose --dmx-verbose /dev/ttyUSB0
 

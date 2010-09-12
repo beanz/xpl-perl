@@ -17,7 +17,7 @@ xpl-heyu - Perl script for an xPL X10 application
     --interface if0            - the interface for xPL messages (first
                                  non-loopback or loopback)
 
-  # start the x10 application on first ethernet interface in verbose mode
+  # start the x10 application on first Ethernet interface in verbose mode
   xpl-heyu --interface eth0 --verbose --heyu-verbose
 
 =head1 DESCRIPTION

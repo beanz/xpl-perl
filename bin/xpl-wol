@@ -17,7 +17,7 @@ xpl-wol - Perl script for a wake-on-lan sender application
     --interface if0       - the interface for xPL messages (first
                             non-loopback or loopback)
 
-  # start the wol on first ethernet interface in verbose mode
+  # start the wol on first Ethernet interface in verbose mode
   xpl-wol --verbose --wol-verbose
 
 =head1 DESCRIPTION

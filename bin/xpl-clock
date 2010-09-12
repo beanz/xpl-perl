@@ -17,7 +17,7 @@ xpl-clock - Perl script for an example xPL clock application
   # start the clock application with "tick" interval of 60 seconds
   xpl-clock -s 60
 
-  # start the clock listening and broadcasting on first ethernet
+  # start the clock listening and broadcasting on first Ethernet
   # interface in verbose mode using the default "tick" interval of 10
   # seconds
   xpl-clock -i eth0 -v

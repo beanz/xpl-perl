@@ -19,7 +19,7 @@ xpl-datetime - Perl script for an xPL datetime
     --datetime-interval nn - number of seconds between xpl-trig message (60)
                              0 to disable
 
-  # start the datetime on first ethernet interface in verbose mode
+  # start the datetime on first Ethernet interface in verbose mode
   xpl-datetime --verbose --datetime-verbose
 
 =head1 DESCRIPTION

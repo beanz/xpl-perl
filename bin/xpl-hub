@@ -13,7 +13,7 @@ xpl-hub - Perl script for an xPL hub application
   and valid options are (default shown in brackets):
     -i if0 - the interface for xPL messages (first non-loopback or loopback)
 
-  # start the hub listening and broadcasting on first ethernet
+  # start the hub listening and broadcasting on first Ethernet
   # interface in verbose mode
   xpl-hub -i eth0 -v
 

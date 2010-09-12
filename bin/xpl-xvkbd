@@ -15,7 +15,7 @@ xpl-xvkbd - Perl script for an xPL virtual keyboard application
   and valid options are (default shown in brackets):
     -i if0 - the interface for xPL messages (first non-loopback or loopback)
 
-  # start the xvkbd application on first ethernet interface in verbose mode
+  # start the xvkbd application on first Ethernet interface in verbose mode
   xpl-xvkbd -i eth0 -v
 
 =head1 DESCRIPTION

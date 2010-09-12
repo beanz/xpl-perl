@@ -19,7 +19,7 @@ xpl-w800 - Perl script for an xPL W800 RF receiver application
     --w800-tty <device>  - the tty device for the W800 receiver
     --w800-baud nnnn     - the baud rate (4800)
 
-  # start the w800 application on first ethernet interface in verbose mode
+  # start the w800 application on first Ethernet interface in verbose mode
   xpl-w800 --interface eth0 --verbose \
            --w800-verbose --w800-tty /dev/ttyUSB0
 

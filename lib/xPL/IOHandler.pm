@@ -2,7 +2,7 @@ package xPL::IOHandler;
 
 =head1 NAME
 
-xPL::IOHandler - a helper module for queuing writes and processing reads
+xPL::IOHandler - a helper module for queueing writes and processing reads
 
 =head1 SYNOPSIS
 

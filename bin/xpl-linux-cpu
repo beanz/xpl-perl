@@ -17,7 +17,7 @@ xpl-linux-cpu - Perl script for an xPL Linux CPU monitor
   # start the Linux CPU monitor with poll interval of 120 seconds
   xpl-linux-cpu -s 120
 
-  # start the Linux CPU monitor listening and broadcasting on first ethernet
+  # start the Linux CPU monitor listening and broadcasting on first Ethernet
   # interface in verbose mode using poll interval of 120 seconds
   xpl-linux-cpu -i eth0 -v
 

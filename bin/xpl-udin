@@ -19,7 +19,7 @@ xpl-udin - Perl script for an xPL Audon UDIN USB Relay client
     --udin-baud baud     - the baud rate (9600)
     --udin-tty <device>  - the ttyUSB device for the UDIN module
 
-  # start the UDIN application on first ethernet interface in verbose mode
+  # start the UDIN application on first Ethernet interface in verbose mode
   xpl-udin --interface eth0 --verbose --udin-verbose --udin-tty /dev/ttyUSB6
 
 =head1 DESCRIPTION

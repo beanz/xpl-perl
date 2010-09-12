@@ -24,7 +24,7 @@ xpl-jabber - Perl script for an xPL Jabber Instant Message client
     --jabber-friend u@dom  - the name of a trusted user that may chat to us
                              (no default, may be given multiple times)
 
-  # start the notify client on first ethernet interface in verbose mode
+  # start the notify client on first Ethernet interface in verbose mode
   xpl-jabber --verbose --jabber-verbose \
              --jabber-username test --jabber-password pass \
              --jabber-friend friend@jabber.org

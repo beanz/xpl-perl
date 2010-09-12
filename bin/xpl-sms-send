@@ -12,7 +12,7 @@ xpl-sms-send - Perl script for an xPL SMS message sender
   and valid options are (default shown in brackets):
     -i if0  - the interface for xPL messages (first non-loopback or loopback)
 
-  # start the send-sms on first ethernet interface in verbose mode
+  # start the send-sms on first Ethernet interface in verbose mode
   xpl-sms-send -i eth0 -v
 
 =head1 DESCRIPTION

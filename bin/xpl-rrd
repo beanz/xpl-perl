@@ -16,7 +16,7 @@ xpl-rrd - Perl script for an xPL application that logs data to rrd files
              N.B. This is a temporary hack to get around lack of config
              support this will be removed in future.
 
-  # start the rrd listening and broadcasting on first ethernet
+  # start the rrd listening and broadcasting on first Ethernet
   # interface in verbose mode
   xpl-rrd -i eth0 -v
 

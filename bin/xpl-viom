@@ -19,7 +19,7 @@ xpl-viom - Perl script for an xPL VIOM IO controller application
     --viom-baud baud     - the baud rate (9600)
     --viom-tty <device>  - the tty device for the VIOM
 
-  # start the VIOM application on first ethernet interface in verbose mode
+  # start the VIOM application on first Ethernet interface in verbose mode
   xpl-viom --interface eth0 --verbose \
            --viom-verbose --viom-tty /dev/ttyUSB1
 

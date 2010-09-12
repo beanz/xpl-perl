@@ -467,7 +467,7 @@ the hash are:
 =item callback
 
   A code reference to be executed with incoming xPL messages.
-  The default is the emtpy code reference.
+  The default is the empty code reference.
 
 =item arguments
 

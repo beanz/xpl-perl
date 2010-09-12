@@ -14,7 +14,7 @@ xpl-ctx35 - Perl script for an xPL CTX35 application
     -i if0  - the interface for xPL messages (first non-loopback or loopback)
     -B baud - the baud rate (19200)
 
-  # start the ctx35 application on first ethernet interface in verbose mode
+  # start the ctx35 application on first Ethernet interface in verbose mode
   xpl-ctx35 -i eth0 -v
 
 =head1 DESCRIPTION

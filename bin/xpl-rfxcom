@@ -22,7 +22,7 @@ xpl-rfxcom - Perl script for an xPL RFXCOM RF receiver/transmitter application
     --rfxcom-tx-tty /dev/tty - the serial device for the transmitter
     --rfxcom-tx-baud nnnn    - the baud rate for the transmitter (4800)
 
-  # start the rfxcom-rx application on first ethernet interface in verbose mode
+  # start the rfxcom-rx application on first Ethernet interface in verbose mode
   xpl-rfxcom --interface eth0 --verbose \
              --rfxcom-rx-verbose --rfxcom-tx-verbose \
              --rfxcom-rx <device> --rfxcom-tx <device>

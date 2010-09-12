@@ -26,7 +26,7 @@ xpl-rfxcom-tx - Perl script for an xPL RFXCOM RF transmitter application
                                   Domia Lite RF
     --no-x10             - disable X10/security RF
 
-  # start the rfxcom-tx application on first ethernet interface in
+  # start the rfxcom-tx application on first Ethernet interface in
   # verbose mode
   xpl-rfxcom-tx --interface eth0 --verbose \
                 --rfxcom-verbose --rfxcom-tx <device>

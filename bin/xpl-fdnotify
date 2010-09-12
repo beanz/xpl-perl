@@ -17,7 +17,7 @@ xpl-fdnotify - Perl script for an xPL X OSD application
     --interface if0       - the interface for xPL messages (first
                             non-loopback or loopback)
 
-  # start the notify client on first ethernet interface in verbose mode
+  # start the notify client on first Ethernet interface in verbose mode
   xpl-fdnotify --verbose --fdnotify-verbose
 
 =head1 DESCRIPTION

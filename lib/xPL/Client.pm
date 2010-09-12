@@ -568,9 +568,9 @@ sub ping_request {
 This method is intended to confirm that the client is functioning
 correctly.  The default implementation simply calls L<ping_done> with
 the string argument, 'ok'.  It is intended to be overridden by clients
-to provide more substancial functionality to confirm (or not) that the
+to provide more substantial functionality to confirm (or not) that the
 client is really functioning correctly.  It is intended that the
-checking is asynchonous so strictly-speaking this method should begin
+checking is asynchronous so strictly-speaking this method should begin
 the checking process.
 
 =cut

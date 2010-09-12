@@ -21,7 +21,7 @@ xpl-tcphelp - Perl script for an xPL TCP Helper
     --tcphelp-secret shared-secret - the share secret used by connecting
                                        clients
 
-  # start the notify client on first ethernet interface in verbose mode
+  # start the notify client on first Ethernet interface in verbose mode
   xpl-tcphelp --verbose --tcphelp-secret "this is a rubbish secret"
 
 =head1 DESCRIPTION

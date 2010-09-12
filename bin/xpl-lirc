@@ -20,7 +20,7 @@ xpl-lirc - Perl script for an xPL interface to an LIRC daemon
                            domain socket a host or a host:port
                            pair (/dev/lircd)
 
-  # start the lirc client on first ethernet interface in verbose mode
+  # start the lirc client on first Ethernet interface in verbose mode
   # using socket /dev/lircd
   xpl-lirc --interface eth0 --verbose --lirc-verbose
 
