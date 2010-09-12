@@ -68,7 +68,7 @@ sub read {
 
 =head2 C<tag()>
 
-Regular expression for tags that form records.  Default is C<qr/[^>]+/>
+Regular expression for tags that form records.  Default is C<<qr/[^>]+/>>
 which is almost certainly too general and should be overridden.  See
 L<xPL::Dock::CurrentCost> for example usage.
 

@@ -288,7 +288,7 @@ sub config_current {
 =head2 C<_read_spec($key)>
 
 This method reads the specification for the given key.  It looks for
-the file, C<'xPL/config/<key>.yaml'> on the C<@INC> include path.  The
+the file, C<<'xPL/config/<key>.yaml'>> on the C<@INC> include path.  The
 C<YAML> configuration should be a hash reference with an entry for the
 key C<items> with an array reference of configurable items.  Each
 configurable item is a hash reference containing the following keys:

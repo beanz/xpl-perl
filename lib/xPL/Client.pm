@@ -732,7 +732,7 @@ sub exiting {
   return $self->SUPER::exiting();
 }
 
-=head2 C<add_event_callback(id => 'id', event => 'name', callback => sub {}, ...)>
+=head2 C<<add_event_callback(id => 'id', event => 'name', callback => sub {}, ...)>>
 
 This method adds a callback for the named event.  Currently the only
 event provided is the 'hub_found' event.  The unique identifier is
