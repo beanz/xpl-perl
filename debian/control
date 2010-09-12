@@ -11,7 +11,7 @@ Package: libxpl-perl
 Architecture: all
 Depends: ${perl:Depends}, ${misc:Depends}, libyaml-syck-perl, libmodule-pluggable-perl
 Suggests: librrds-perl, libx-osd-perl, libgtk2-perl, libdatetime-event-sunrise-perl, libdatetime-event-recurrence-perl, libdatetime-event-cron-perl, libtimedate-perl, rrdtool, hddtemp, libwww-perl, libsms-send-perl
-Description:  Perl extension for xPL Protocol
+Description: Perl extension for xPL Protocol
  These modules are intended to provide a framework for writing xPL
  applications (see http://wiki.xplproject.org.uk/) in Perl.  A number
  of sample applications are also provided including a hub, a logging
