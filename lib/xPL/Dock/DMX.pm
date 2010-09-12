@@ -267,7 +267,7 @@ sub do_fades {
 sub _next_change {
   my $f = shift;
   my $t = shift;
-  return undef unless ($t >= $f->{start_t} && $t < $f->{end_t});
+  return unless ($t >= $f->{start_t} && $t < $f->{end_t});
   my $nt = $t + $f->{int_t};
   return $nt > $f->{end_t} ? $f->{end_t} : $nt;
 }

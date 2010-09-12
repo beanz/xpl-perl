@@ -532,3 +532,9 @@ t/x10/j-dim.txt
 t/x10/l-bright.txt
 t/x10/m4-off.txt
 xpl-perl.spec
+t/author-critic.t
+t/release-eol.t
+t/release-kwalitee.t
+t/release-no-tabs.t
+t/release-pod-coverage.t
+t/release-pod-syntax.t

@@ -75,9 +75,7 @@ sub new {
   bless $self, $pkg;
   my $xpl = $self->{_xpl};
   foreach my $c ($self->{_input_record_type}, $self->{_output_record_type}) {
-    next if ($c->can('out'));
-    eval "require $c; import $c; ";
-    die $@ if ($@);
+    $c->can('out') or $self->module_available($c) or die $@;
   }
   $xpl->add_input(handle => $self->input_handle,
                   callback => sub {

@@ -37,7 +37,7 @@ use Exporter;
 our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw(
                                    test_error
-	                           test_warn
+                                   test_warn
                                    test_output
                                    wait_for_callback
                                    wait_for_variable

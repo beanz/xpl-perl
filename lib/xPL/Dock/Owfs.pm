@@ -25,6 +25,7 @@ use warnings;
 use English qw/-no_match_vars/;
 use DirHandle;
 use FileHandle;
+use Time::HiRes qw/sleep/;
 use xPL::Dock::Plug;
 
 our @ISA = qw(xPL::Dock::Plug);
@@ -111,7 +112,7 @@ sub xpl_in {
     $self->owfs_write($device.'/PIO', 0);
   } elsif ($current eq 'pulse') {
     $self->owfs_write($device.'/PIO', 1);
-    select(undef,undef,undef,0.15); # TOFIX
+    sleep(0.15); # TOFIX
     $self->owfs_write($device.'/PIO', 0);
   } else {
     warn "Unsupported setting: $current\n";

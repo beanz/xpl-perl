@@ -628,14 +628,14 @@ that is required.
 
 sub checksum_tester {
   my $found;
-  foreach my $sum (qw/checksum1 checksum2 checksum3 checksum4 checksum5
-                      checksum6 checksum7 checksum8/) {
-    no strict qw/refs/;
+  my @fn = (\&hecksum1, \&checksum2, \&checksum3, \&checksum4,
+            \&checksum5, \&checksum6, \&checksum7, \&checksum8);
+  foreach my $i (0..$#fn) {
+    my $sum = $fn[$i];
     if ($sum->(@_)) {
-      print "Possible use of checksum, $sum\n";
+      print "Possible use of checksum, checksum", $i+1, "\n";
       $found++;
     }
-    use strict;
   }
   exit if ($found);
   for my $i (4..(scalar @{$_[0]})-2) {

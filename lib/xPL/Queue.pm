@@ -70,7 +70,7 @@ the queue contains no items.
 sub dequeue {
   my $self = shift;
   my $rec = shift @{$self->{_q}};
-  return undef unless (defined $rec);
+  return unless (defined $rec);
   $self->_record_queue_time(Time::HiRes::time - $rec->[1]);
   return $rec->[0];
 }
@@ -109,7 +109,7 @@ are kept.
 
 sub average_queue_time {
   my $self = shift;
-  return undef unless (@{$self->{_stats}});
+  return unless (@{$self->{_stats}});
   my $sum = 0;
   foreach (@{$self->{_stats}}) {
     $sum += $_;

@@ -24,6 +24,7 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
+use Time::HiRes qw/sleep/;
 use xPL::IOHandler;
 use xPL::Dock::Plug;
 
@@ -144,7 +145,7 @@ sub xpl_in {
     $self->state_changed('o', $num, 'low', time);
   } elsif ($command eq "pulse") {
     $io->write(sprintf("XA%d", $num));
-    select(undef,undef,undef,0.15);
+    sleep(0.15); # TOFIX
     $io->write(sprintf("XB%d", $num));
     $self->state_changed('o', $num, 'low', time);
   } elsif ($command eq "toggle") {

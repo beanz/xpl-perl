@@ -183,7 +183,7 @@ Reads a value from a file.
 
 sub read_line {
   my ($file) = @_;
-  open my $fh, '<'.$FILE_PREFIX.$file or return undef;
+  open my $fh, '<', $FILE_PREFIX.$file or return;
   my $v = <$fh>;
   close $fh;
   chomp $v;

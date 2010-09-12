@@ -191,7 +191,7 @@ sub rrd_data_sources {
   my $rrd = shift;
 
   my $hash = RRDs::info $rrd;
-  return undef unless ($hash);
+  return unless ($hash);
   my %ds;
   foreach my $key (keys %$hash){
     $ds{$1}++ if ($key =~ /^ds\[([^]]+)\]/);
