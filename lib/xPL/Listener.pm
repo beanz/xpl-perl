@@ -606,15 +606,14 @@ xpl_callbacks.
 sub dispatch_xpl_message {
   my ($self, $msg, $peeraddr, $peerport) = @_;
 
+  my $can_id = $self->can('id');
+  my $own_message = $can_id && $msg->source eq $self->id;
+  my $not_for_us = $can_id && $msg->target ne '*' && $msg->target ne $self->id;
  CB:
   foreach my $id (sort $self->xpl_callbacks()) {
     my $rec = $self->{_col}->{xpl_callback}->{$id};
-    if ($self->can('id')) {
-      next if ($self->xpl_callback_self_skip($id) &&
-               $msg->source eq $self->id);
-      next if ($self->xpl_callback_targetted($id) &&
-               $msg->target ne '*' && $msg->target ne $self->id);
-    }
+    next if ($own_message && $self->xpl_callback_self_skip($id));
+    next if ($not_for_us && $self->xpl_callback_targetted($id));
     my $filter = $self->xpl_callback_filter($id);
     if (defined $filter) {
       foreach my $key (keys %$filter) {
