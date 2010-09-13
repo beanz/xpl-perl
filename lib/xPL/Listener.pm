@@ -511,9 +511,9 @@ sub add_xpl_callback {
     unless (ref($filter)) {
       my %f = simple_tokenizer($filter);
       $p{filter} = $filter = \%f;
-      if (exists $f{schema} && $f{schema} =~ /^(\w+)$/) {
-        $f{schema} .= '\\.\w+';
-      }
+    }
+    if (exists $p{filter}->{schema} && $p{filter}->{schema} =~ /^(\w+)$/) {
+      $p{filter}->{schema} .= '\\.\w+';
     }
   }
   return $self->add_callback_item('xpl_callback', $p{id}, \%p);
