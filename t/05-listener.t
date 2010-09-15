@@ -105,7 +105,7 @@ ok(defined $to && $to > 0 && $to <= $timeout, "timer reset timeout - ".$to);
 ok($xpl->remove_timer('tick'), "remove timer");
 
 is(test_warn(sub { $xpl->reset_timer('tick', $now) }),
-   "MY::Listener->reset_timer: timer 'tick' is not registered",
+   "MY::Listener->reset_timer: timer 'tick' not registered",
    'timer reset - warn');
 
 $timeout = .5;
@@ -441,7 +441,7 @@ is(test_error(sub { $xpl->add_xpl_callback(id => 'test',
    "adding callback with invalid filter");
 
 is(test_warn(sub { $xpl->remove_xpl_callback('none'); }),
-   ref($xpl)."->remove_item: xpl_callback item 'none' not registered",
+   ref($xpl)."->remove_xpl_callback: xpl_callback 'none' not registered",
    "removing non-existent callback");
 
 is(test_warn(sub { $xpl->xpl_callback_callback_count('none'); }),
@@ -449,7 +449,7 @@ is(test_warn(sub { $xpl->xpl_callback_callback_count('none'); }),
    "checking count of non-existent callback");
 
 is(test_warn(sub { $xpl->remove_timer('none'); }),
-   ref($xpl)."->_${event_loop}_remove_timer: timer 'none' is not registered",
+   ref($xpl)."->_${event_loop}_remove_timer: timer 'none' not registered",
    "removing non-existent timer");
 
 is(test_warn(sub { $xpl->timer_next('none'); }),
@@ -461,11 +461,11 @@ is(test_warn(sub { $xpl->timer_callback_count('none'); }),
    "querying non-existent timer tick count");
 
 is(test_warn(sub { $xpl->remove_input('none'); }),
-   ref($xpl)."->_${event_loop}_remove_input: input 'none' is not registered",
+   ref($xpl)."->_${event_loop}_remove_input: input 'none' not registered",
    "removing non-existent input");
 
 is(test_warn(sub { $xpl->dispatch_input('none'); }),
-   ref($xpl)."->dispatch_input: input 'none' is not registered",
+   ref($xpl)."->dispatch_input: input 'none' not registered",
    "dispatching non-existent input");
 
 is(test_warn(sub { $xpl->input_callback_count('none'); }),
@@ -473,7 +473,7 @@ is(test_warn(sub { $xpl->input_callback_count('none'); }),
    "checking attribute of non-existent input");
 
 is(test_warn(sub { $xpl->dispatch_timer('none'); }),
-   ref($xpl)."->dispatch_timer: timer 'none' is not registered",
+   ref($xpl)."->dispatch_timer: timer 'none' not registered",
    "dispatching non-existent timer");
 
 {

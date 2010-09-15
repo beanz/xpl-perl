@@ -99,7 +99,7 @@ is($called, 1, 'timer callback was called');
 ok($xpl->remove_timer('test'), 'timer removed');
 
 is(test_warn(sub { $xpl->remove_input('test') }),
-   q{xPL::Gtk2ClientExit->_}.$event_loop.q{_remove_input: input 'test' is not registered},
+   q{xPL::Gtk2ClientExit->_}.$event_loop.q{_remove_input: input 'test' not registered},
    'remove_input warning case');
 
 sub wait_for_tick {

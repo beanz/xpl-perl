@@ -136,6 +136,7 @@ sub new {
   my %p = @_;
   $self->{_verbose} = $p{verbose} || 0;
   $self->{_hubless} = $p{hubless} || 0;
+  $self->{_xpl_filter_tree} = {};
 
   if (exists $p{port}) {
     $p{port} =~ /^(\d+)$/ or $self->argh('port invalid');
@@ -516,6 +517,23 @@ sub add_xpl_callback {
       $p{filter}->{schema} .= '\\.\w+';
     }
   }
+  my $tree = $self->{_xpl_filter_tree};
+  my $type = $p{filter}->{message_type} || '';
+  if ($type =~ /^xpl-(cmnd|stat|trig)$/) {
+    delete $p{filter}->{message_type};
+  } else {
+    $type = '';
+  }
+  my $schema = $p{filter}->{schema} || '';
+  if ($schema =~ /^\w+\.\w+$/) {
+    delete $p{filter}->{schema};
+  } else {
+    $schema = '';
+  }
+  $tree->{$type}->{$schema}->{$p{id}} = 1;
+  $p{tree} = $tree->{$type}->{$schema};
+  delete $p{filter} unless (keys %{$p{filter}});
+  #print STDERR "Added ", $p{id}, " to tree ", ${type}, " -> ", ${schema}, "\n";
   return $self->add_callback_item('xpl_callback', $p{id}, \%p);
 }
 
@@ -528,6 +546,19 @@ is registered.
 
 This method removes the registered xPL message callback for the given
 id.
+
+=cut
+
+sub remove_xpl_callback {
+  my ($self, $id) = @_;
+  $self->exists_xpl_callback($id) or
+    return $self->ouch("xpl_callback '$id' not registered");
+  delete $self->xpl_callback_attrib($id, 'tree')->{$id};
+  $self->remove_item('xpl_callback', $id);
+  return 1;
+}
+
+
 
 =head2 C<xpl_callback_attrib($id, $attrib)>
 
@@ -609,9 +640,16 @@ sub dispatch_xpl_message {
   my $can_id = $self->can('id');
   my $own_message = $can_id && $msg->source eq $self->id;
   my $not_for_us = $can_id && $msg->target ne '*' && $msg->target ne $self->id;
+
+  my $message_type = $msg->message_type;
+  my $schema = $msg->schema;
+  my $tree = $self->{_xpl_filter_tree};
+  my @callbacks = (keys %{$tree->{$message_type}->{$schema}},
+                   keys %{$tree->{$message_type}->{''}},
+                   keys %{$tree->{''}->{$schema}},
+                   keys %{$tree->{''}->{''}});
  CB:
-  foreach my $id (sort $self->xpl_callbacks()) {
-    my $rec = $self->{_col}->{xpl_callback}->{$id};
+  foreach my $id (@callbacks) {
     next if ($own_message && $self->xpl_callback_self_skip($id));
     next if ($not_for_us && $self->xpl_callback_targetted($id));
     my $filter = $self->xpl_callback_filter($id);
@@ -803,7 +841,7 @@ sub _default_remove_timer {
   my $self = shift;
   my $id = shift;
   $self->exists_timer($id) or
-    return $self->ouch("timer '$id' is not registered");
+    return $self->ouch("timer '$id' not registered");
   $self->remove_item('timer', $id);
   return 1;
 }
@@ -812,7 +850,7 @@ sub _anyevent_remove_timer {
   my $self = shift;
   my $id = shift;
   $self->exists_timer($id) or
-    return $self->ouch("timer '$id' is not registered");
+    return $self->ouch("timer '$id' not registered");
 
   my $ae = $self->timer_attrib($id, 'anyevent');
   if ($ae) {
@@ -928,7 +966,7 @@ sub reset_timer {
   my $self = shift;
   my $id = shift;
   $self->exists_timer($id) or
-    return $self->ouch("timer '$id' is not registered");
+    return $self->ouch("timer '$id' not registered");
 
   my $time = shift || time_now();
   my $next = $self->timer_next_fn($id)->($time);
@@ -946,7 +984,7 @@ sub dispatch_timer {
   my $self = shift;
   my $id = shift;
   $self->exists_timer($id) or
-    return $self->ouch("timer '$id' is not registered");
+    return $self->ouch("timer '$id' not registered");
 
   my $res = $self->call_callback('timer', $id);
   if (!defined $res or !$res) {
@@ -1071,7 +1109,7 @@ sub _default_remove_input {
   my $self = shift;
   my $handle = shift;
   $self->exists_input($handle) or
-    return $self->ouch("input '$handle' is not registered");
+    return $self->ouch("input '$handle' not registered");
 
   if ($self->{_select}) {
     # make sure we have the real thing not just a string
@@ -1087,7 +1125,7 @@ sub _anyevent_remove_input {
   my $self = shift;
   my $handle = shift;
   $self->exists_input($handle) or
-    return $self->ouch("input '$handle' is not registered");
+    return $self->ouch("input '$handle' not registered");
 
   my $ae = $self->input_attrib($handle, 'anyevent');
   if ($ae) {
@@ -1144,7 +1182,7 @@ sub dispatch_input {
   my $self = shift;
   my $handle = shift;
   $self->exists_input($handle) or
-    return $self->ouch("input '$handle' is not registered");
+    return $self->ouch("input '$handle' not registered");
   return $self->call_callback('input', $handle,
                               $self->input_handle($handle),
                               $self->input_arguments($handle));
