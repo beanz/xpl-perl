@@ -44,12 +44,16 @@ sub getopts {
   $self->{_max_delay} = 10;
   $self->{_rows} = 4;
   $self->{_font} = '-adobe-courier-bold-r-normal--72-0-0-0-p-0-iso8859-1';
+  $self->{_indent} = 0;
+  $self->{_offset} = 0;
   return
     (
      'xosd-verbose+' => \$self->{_verbose},
      'xosd-max-delay=i' => \$self->{_max_delay},
      'xosd-rows=i' => \$self->{_rows},
      'xosd-font=s' => \$self->{_font},
+     'xosd-indent=i' => \$self->{_indent},
+     'xosd-offset=i' => \$self->{_offset},
     );
 }
 
@@ -66,6 +70,8 @@ sub init {
 
   my $xosd = $self->{_xosd} = X::Osd->new($self->{_rows});
   $xosd->set_font($self->{_font});
+  $xosd->set_horizontal_offset($self->{_indent});
+  $xosd->set_vertical_offset($self->{_offset});
 
   $xpl->add_xpl_callback(id => 'xpl_handler',
                          filter =>
