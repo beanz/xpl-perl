@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 25;
+use Test::More tests => 27;
 use t::Helpers qw/test_warn test_error test_output/;
 use lib 't/lib';
 $|=1;
@@ -38,10 +38,14 @@ my $mock = $plugin->{_xosd};
 is(ref $mock, 'X::Osd', 'X::Osd created');
 
 my @calls = $mock->calls;
-is(scalar @calls, 1, 'correct number of calls - 1');
+is(scalar @calls, 3, 'correct number of calls - 3');
 is($calls[0],
    'X::Osd::set_font -adobe-courier-bold-r-normal--72-0-0-0-p-0-iso8859-1',
    "'set_font ...' called");
+is($calls[1],
+   'X::Osd::set_horizontal_offset 0', "'set_horizonatal_offset 0' called");
+is($calls[2],
+   'X::Osd::set_vertical_offset 0', "'set_vertical_offset 0' called");
 
 my $msg = xPL::Message->new(message_type => 'xpl-cmnd',
                             head => { source => 'acme-xosd.test' },
