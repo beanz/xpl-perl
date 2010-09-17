@@ -97,14 +97,14 @@ sub parse {
          "Hex: ", unpack("H*",$message), "\n";
    return [];
   }
-  my $kwh = ( ($bytes->[4]<<16) + ($bytes->[2]<<8) + ($bytes->[3]) ) / 100;
-  #print "rfxmeter: ", $kwh, "kwh\n";
+  my $count = ($bytes->[4]<<16) + ($bytes->[2]<<8) + ($bytes->[3]);
+  #print "rfxmeter: ", $count, "count\n";
   return [{
            schema => 'sensor.basic',
            body => [
                     device => 'rfxmeter.'.$device,
-                    type => 'energy',
-                    current => $kwh,
+                    type => 'count',
+                    current => $count,
                    ],
           }];
 }
@@ -133,7 +133,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2007, 2009 by Mark Hindess
+Copyright (C) 2007, 2010 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
