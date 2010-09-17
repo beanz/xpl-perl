@@ -356,8 +356,6 @@ t/08-bridge.t
 t/09-hub-ignore-remote-hbeat.t
 t/09-targetting.t
 t/10-mainloop.t
-t/11-sms-send-csoft.t
-t/11-sms-send-smsdiscount.t
 t/12-dock.t
 t/13-dock-plug.t
 t/13-iohandler.t
