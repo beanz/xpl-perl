@@ -15,6 +15,9 @@ libxpl-perl (0.12-0.1) unstable; urgency=low
   * xPL::Dock::XOSD now has --xosd-offset and --xosd-indent options for
     vertical and horizontal offsets.
   * Debian package improvements.
+  * xPL::RF::RFXMeter report count rather than kwh since we can't
+    tell if the device is an RFXMeter or RFXPower.  Thanks to
+    Thomas Chiroux and others for pointing this out.
 
  -- Mark Hindess <soft-debian@temporalanomaly.com>  Thu, 16 Sep 2010 22:06:11 +0100
 
