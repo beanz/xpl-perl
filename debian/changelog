@@ -1,5 +1,25 @@
 libxpl-perl (0.11-1) unstable; urgency=low
 
+  * Replace xPL::Message class/class_type fields with single schema field.
+  * Make xPL::Message body parameter take an array.
+  * Remove strictness/validation from xPL::Message (to get old behaviour
+    set XPL_MESSAGE_VALIDATE environment variable to 1).
+  * Remove xPL::RF source field and make xPL::RF parsing return
+    xPL::Message arguments rather than actual xPL::Messages to make parsers
+    less coupled to xPL.
+  * Make xPL::Message immutable - move the only mutation logic to xPL::Bridge.
+  * Test improvements: more coverage, fewer test dependencies.
+  * Add AnyEvent support to xPL::Listener.
+  * SMS::Send::CSoft and SMS::Send::SMSDiscount moved to CPAN and debian
+    packages placed in the xpl-perl repository.
+  * xPL::Dock::XOSD now has --xosd-offset and --xosd-indent options for
+    vertical and horizontal offsets.
+  * Debian package improvements.
+
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Thu, 16 Sep 2010 22:06:11 +0100
+
+libxpl-perl (0.11-1) unstable; urgency=low
+
   * xpl-bluetooth use service discovery to poll devices.  Thanks
     to Nicolas Goubaux.
   * xpl-owfs improve humidity DAC support.  Thanks to Marc

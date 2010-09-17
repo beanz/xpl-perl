@@ -1,5 +1,31 @@
 Revision history for Perl extension xPL.
 
+{{$NEXT}}
+
+        - Major API changes.  Warns if deprecated functionality is
+          use.  Setting XPL_MESSAGE_VALIDATE environment variable
+          gets back validation behaviour and implicit message type
+          guessing but this behaviour should not normally be relied 
+          upon.
+        - Replace xPL::Message class/class_type fields with single
+          schema field.
+        - Make xPL::Message body parameter take an array.
+        - Remove strictness/validation from xPL::Message (to get old
+          behaviour set XPL_MESSAGE_VALIDATE environment variable to
+          1).
+        - Remove xPL::RF source field and make xPL::RF parsing return
+          xPL::Message arguments rather than actual xPL::Messages to
+          make parsers less coupled to xPL.
+        - Make xPL::Message immutable - move the only mutation logic
+          to xPL::Bridge.
+        - Test improvements: more coverage, fewer test dependencies.
+        - Add AnyEvent support to xPL::Listener.
+        - SMS::Send::CSoft and SMS::Send::SMSDiscount moved to CPAN
+          and debian packages placed in the xpl-perl repository.
+        - xPL::Dock::XOSD now has --xosd-offset and --xosd-indent
+          options for vertical and horizontal offsets.
+        - Debian package improvements.
+
 0.11 Thu, 19 Aug 2010 16:40:03 +0100
 
         - xpl-bluetooth use service discovery to poll devices.  Thanks
