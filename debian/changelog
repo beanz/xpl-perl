@@ -1,4 +1,4 @@
-libxpl-perl (0.11-1) unstable; urgency=low
+libxpl-perl (0.12-0.1) unstable; urgency=low
 
   * Replace xPL::Message class/class_type fields with single schema field.
   * Make xPL::Message body parameter take an array.
