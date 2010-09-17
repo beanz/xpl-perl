@@ -170,8 +170,6 @@ debian/xpl-xvkbd-perl.README.Debian
 doc/footer.tex
 doc/header.tex
 doc/Makefile
-lib/SMS/Send/CSoft.pm
-lib/SMS/Send/SMSDiscount.pm
 lib/xPL/Base.pm
 lib/xPL/Bridge.pm
 lib/xPL/Client.pm
