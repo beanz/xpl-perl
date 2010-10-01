@@ -12,7 +12,7 @@ xPL::Gtk2Client - Perl extension for a graphical xPL Client
 
   my $xpl = xPL::Gtk2Client->new(vendor_id => 'acme', device_id => 'monitor',
                                  @ARGV);
-  $xpl->add_xpl_callback(id => "logger", self_skip => 0, targetted => 0,
+  $xpl->add_xpl_callback(id => "logger", self_skip => 0, targeted => 0,
                          callback => \&log);
   my %seen;
   my $win = Gtk2::Window->new('toplevel');

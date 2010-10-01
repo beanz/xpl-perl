@@ -85,7 +85,7 @@ sub new {
   my $self = $pkg->SUPER::new(port => 3865, @_);
   $self->add_xpl_callback(id => "!hub",
                           callback => sub { $self->hub(@_) },
-                          targetted => 0);
+                          targeted => 0);
   $self->add_timer(id => "!clean",
                    timeout => 60,
                    callback => sub {$self->clean_client_list() });

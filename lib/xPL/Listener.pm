@@ -67,7 +67,7 @@ __PACKAGE__->make_collection(input => [qw/handle arguments callback
                                           callback_time_total
                                           callback_time_max/],
                              xpl_callback => [qw/filter
-                                                 self_skip targetted
+                                                 self_skip targeted
                                                  arguments callback
                                                  callback_count
                                                  callback_time_total
@@ -503,7 +503,12 @@ sub add_xpl_callback {
   my %p = @_;
   exists $p{id} or $self->argh("requires 'id' argument");
   exists $p{self_skip} or $p{self_skip} = 1;
-  exists $p{targetted} or $p{targetted} = 1;
+  if (exists $p{targetted}) {
+    $p{targeted} = $p{targetted};
+    delete $p{targetted};
+    $self->ouch('"targetted" is deprecated. Use "targeted" instead.');
+  }
+  exists $p{targeted} or $p{targeted} = 1;
   if (exists $p{filter}) {
     my $filter = $p{filter};
     if (ref($filter) && ref($filter) ne "HASH") {
@@ -651,7 +656,7 @@ sub dispatch_xpl_message {
  CB:
   foreach my $id (@callbacks) {
     next if ($own_message && $self->xpl_callback_self_skip($id));
-    next if ($not_for_us && $self->xpl_callback_targetted($id));
+    next if ($not_for_us && $self->xpl_callback_targeted($id));
     my $filter = $self->xpl_callback_filter($id);
     if (defined $filter) {
       foreach my $key (keys %$filter) {

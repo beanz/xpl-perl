@@ -113,7 +113,7 @@ sub new {
 
   $self->add_xpl_callback(id => '!bridge',
                           callback => sub { $self->bridge(@_) },
-                          targetted => 0);
+                          targeted => 0);
 
   $self->add_timer(id => '!clean-seen-cache',
                    callback => sub { $self->clean_seen_cache(@_); },

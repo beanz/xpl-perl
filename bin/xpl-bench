@@ -60,7 +60,7 @@ my %s = ();
 
 # Add a callback to receive all incoming xPL messages
 $xpl->add_xpl_callback(id => 'bench',
-                       self_skip => 0, targetted => 0,
+                       self_skip => 0, targeted => 0,
                        filter => { schema => 'bench.basic' },
                        callback => \&bench);
 

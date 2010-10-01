@@ -29,7 +29,7 @@ my $timefmt = "%Y-%m-%d %H:%M:%S";
 
 my $xpl = xPL::Gtk2Client->new(vendor_id => 'bnz', device_id => 'gtk2mon',
                                @ARGV);
-$xpl->add_xpl_callback(id => "logger", self_skip => 0, targetted => 0,
+$xpl->add_xpl_callback(id => "logger", self_skip => 0, targeted => 0,
                        callback => \&log);
 my %d;
 my $win = Gtk2::Window->new('toplevel');
