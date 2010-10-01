@@ -1,14 +1,13 @@
 use 5.006;
 use ExtUtils::MakeMaker;
-use FileHandle;
 
 my @exe = ();
-my $fh = FileHandle->new("<MANIFEST");
+open my $fh, '<'. 'MANIFEST';
 while (<$fh>) {
   chomp;
   push @exe, $_ if (m!^bin/!);
 }
-$fh->close;
+close $fh;
 
 eval { require YAML::Syck; };
 if ($@) {

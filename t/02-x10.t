@@ -3,7 +3,6 @@
 # Copyright (C) 2007 by Mark Hindess
 
 use strict;
-use DirHandle;
 use English qw/-no_match_vars/;
 use t::Helpers qw/test_warn test_error/;
 my %msg;
@@ -17,8 +16,8 @@ BEGIN {
   my $SLASH = q{/};
   my $tests = 1;
   my $dir = 't/x10';
-  my $dh = DirHandle->new($dir) or die "Open of $dir directory: $ERRNO\n";
-  foreach (sort $dh->read) {
+  opendir my $dh, $dir or die "Open of $dir directory: $ERRNO\n";
+  foreach (sort readdir $dh) {
     next if (!/^(.*)\.txt$/);
     my $name = $LAST_PAREN_MATCH;
     my $f = $dir.$SLASH.$_;
@@ -39,7 +38,7 @@ BEGIN {
     $tests += 6;
     close $fh;
   }
-  $dh->close;
+  closedir $dh;
   require Test::More;
   import Test::More tests => $tests;
 }

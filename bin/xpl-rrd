@@ -37,7 +37,6 @@ use xPL::Client;
 use DB_File;
 use RRDs;
 use Fcntl;
-use FileHandle;
 
 $|=1; # autoflush helps debugging
 
@@ -75,8 +74,7 @@ die "Failed to open $state_db file: $!\n" unless ($tie_h);
 
 my %map = ();
 if ($device_map) {
-  my $fh = FileHandle->new('<'.$device_map) or
-    die "Failed to open $device_map: $!\n";
+  open my $fh, '<', $device_map or die "Failed to open $device_map: $!\n";
   while(<$fh>) {
     next if (/^\s*$/ || /^\s*#/); # skip blank or comment lines
     chomp;
@@ -86,7 +84,7 @@ if ($device_map) {
       warn "$device_map line $. invalid line: $_\n";
     }
   }
-  $fh->close;
+  close $fh;
 }
 
 my %last;

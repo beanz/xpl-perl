@@ -21,7 +21,6 @@ in RRD database files.
 
 use strict;
 use File::Find;
-use FileHandle;
 use File::Path qw/mkpath/;
 use POSIX qw/strftime/;
 use RRDs;
@@ -117,8 +116,7 @@ foreach my $dir (sort keys %rrds) {
       foreach my $var (@$sources) {
         print $var, ": ";
         my $index = $gb."/$var.html";
-        my $fh = FileHandle->new(">".$index) ||
-          die "Failed to open $index: $!\n";
+        open my $fh, '>', $index or die "Failed to open $index: $!\n";
         my $title = 'for '.$var.' from '.$dir.'/'.$a;
         $fh->print("<html><head><title>Graphs $title</title></head><body>\n");
         $fh->print("<h1>Graphs $title</h1>");
@@ -160,14 +158,13 @@ foreach my $dir (sort keys %rrds) {
           $fh->print("<img src=\"$file\" />\n");
         }
         $fh->print("</body></html>\n");
-        $fh->close;
+        close $fh;
       }
       if ((scalar @$sources) == 1) {
         symlink($sources->[0].".html", $gb."/index.html");
       } else {
         my $index = $gb."/index.html";
-        my $fh = FileHandle->new(">".$index) ||
-          die "Failed to open $index: $!\n";
+        open my $fh, '>', $index or die "Failed to open $index: $!\n";
         my $title = " from ".$a;
         $fh->print("<html><head><title>Graphs $title</title></head><body>\n");
         $fh->print("<h1>Graphs $title</h1>");
@@ -179,7 +176,7 @@ foreach my $dir (sort keys %rrds) {
           $fh->print("<a href=\"$var\"><img src=\"$file\" /></a>\n");
         }
         $fh->print("</body></html>\n");
-        $fh->close;
+        close $fh;
       }
     };
     warn $@ if ($@);

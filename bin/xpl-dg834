@@ -38,7 +38,6 @@ use strict;
 use warnings;
 use Getopt::Long;
 use Pod::Usage;
-use FileHandle;
 use LWP::UserAgent;
 use POSIX qw/strftime/;
 use xPL::Client;
@@ -79,12 +78,12 @@ unless ($conf) {
   }
   die "Failed to find configuration file\n" unless ($conf);
 }
-my $fh = FileHandle->new($conf) || die "Failed to open $conf: $!\n";
+open my $fh, '<', $conf or die "Failed to open $conf: $!\n";
 my $user = <$fh>;
 chomp($user);
 my $pass = <$fh>;
 chomp($pass);
-$fh->close;
+close $fh;
 
 my $ua = LWP::UserAgent->new;
 

@@ -3,7 +3,6 @@
 # Copyright (C) 2008 by Mark Hindess
 
 use strict;
-use DirHandle;
 use English qw/-no_match_vars/;
 use t::Helpers qw/test_warn test_error/;
 use Test::More tests => 17;

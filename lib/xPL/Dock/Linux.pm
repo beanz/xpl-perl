@@ -24,7 +24,6 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use xPL::Dock::Plug;
-use DirHandle;
 
 our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
@@ -169,9 +168,9 @@ Returns a list reference of directory entries or an empty list reference.
 =cut
 
 sub dir_entries {
-  my $dh = DirHandle->new($FILE_PREFIX.$_[0]) or return [];
-  my @e = sort $dh->read;
-  $dh->close;
+  opendir my $dh, $FILE_PREFIX.$_[0] or return [];
+  my @e = sort readdir $dh;
+  closedir $dh;
   return \@e;
 }
 

@@ -36,7 +36,6 @@ driver.
 
 use strict;
 use warnings;
-use FileHandle;
 use Getopt::Long;
 use Pod::Usage;
 use xPL::Client;
@@ -65,8 +64,7 @@ my $config_file = shift or
 
 my %drivers = map { $_ => 1 } SMS::Send->installed_drivers();
 
-my $fh =
-  FileHandle->new($config_file) or die "Failed to read $config_file: $!\n";
+open my $fh, '<', $config_file or die "Failed to read $config_file: $!\n";
 my $driver;
 my $default;
 while (<$fh>) {
@@ -84,7 +82,7 @@ while (<$fh>) {
     }
   }
 }
-$fh->close;
+close $fh;
 die "No driver configuration found\n" unless (defined $default);
 
 foreach my $driver (keys %drivers) {

@@ -1,0 +1,127 @@
+#!/usr/bin/perl -w
+
+=head1 NAME
+
+xpl-bench - Perl script for an example xPL benchmark application
+
+=head1 SYNOPSIS
+
+  xpl-bench [flags] [options] [filter...]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose client mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+    -n nnn - the number of messages to send (100)
+
+  # start the benchmark
+  xpl-logger -i eth0 -v
+
+=head1 DESCRIPTION
+
+This script is an xPL client that benchmarks an xPL setup.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Pod::Usage;
+use xPL::Client;
+use List::Util qw/sum max min/;
+
+$|=1; # autoflush helps debugging
+
+my %args = ( vendor_id => 'bnz', device_id => 'bench', );
+my %opt = ();
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $number = 100;
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'number=i' => \$number,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+           ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+
+my $count = 0;
+my %s = ();
+
+# Add a callback to receive all incoming xPL messages
+$xpl->add_xpl_callback(id => 'bench',
+                       self_skip => 0, targetted => 0,
+                       filter => { schema => 'bench.basic' },
+                       callback => \&bench);
+
+$xpl->add_event_callback(id => 'trigger_send', event => 'hub_found',
+                         callback => sub { send_msg($xpl) });
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to log the incoming messages
+sub bench {
+  my %p = @_;
+  my $msg = $p{message};
+  my $peer = $p{peeraddr}.':'.$p{peerport};
+
+  my $elapsed = $xpl->time_now - $msg->field('time');
+#  print STDERR $peer, ": ", $elapsed, "\n";
+  push @{$s{$peer}}, $elapsed;
+  send_msg($xpl, $msg->source) or dump_stats();
+  return 1;
+};
+
+sub send_msg {
+  my ($xpl, $target) = @_;
+  return unless ($count++ < $number);
+  $xpl->send(message_type => 'xpl-stat',
+             head => { target => $target || '*'},
+             schema => 'bench.basic',
+             body => [ time => $xpl->time_now ]);
+  return 1;
+}
+
+sub dump_stats {
+  foreach my $p (keys %s) {
+    print $p;
+    printf ": %.4f/%.4f/%.4f\n",
+      min(@{$s{$p}}), max(@{$s{$p}}), sum(@{$s{$p}})/(scalar @{$s{$p}});
+  }
+  $xpl->dump_statistics;
+  exit;
+}
+
+# send a "hbeat.end" message on exit
+END { defined $xpl && $xpl->send_hbeat_end(); }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005, 2008 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

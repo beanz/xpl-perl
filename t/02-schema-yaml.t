@@ -3,7 +3,6 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use DirHandle;
 use English qw/-no_match_vars/;
 use Test::More;
 my %yaml;
@@ -11,15 +10,15 @@ my %yaml;
 my $tests = 0;
 my $SLASH = q{/};
 my $dir = 'lib/xPL/schema';
-my $dh = DirHandle->new($dir) or die "Open of $dir directory: $ERRNO\n";
-foreach (sort $dh->read) {
+opendir my $dh, $dir or die "Open of $dir directory: $ERRNO\n";
+foreach (sort readdir $dh) {
   next if (!/^(.*)\.yaml$/);
   my $name = $LAST_PAREN_MATCH;
   my $f = $dir.$SLASH.$_;
   $yaml{$name} = $f;
   $tests += 3;
 }
-$dh->close;
+closedir $dh;
 eval { require YAML; };
 if ($@) {
   plan skip_all => 'YAML not available';

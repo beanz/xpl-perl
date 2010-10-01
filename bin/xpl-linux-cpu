@@ -77,13 +77,13 @@ $xpl->main_loop();
 
 # The callback to connect to linux-cpu
 sub poll_linux_cpu {
-  my $fh = FileHandle->new('/proc/stat');
+  open my $fh, '/proc/stat';
   unless ($fh) {
     warn "Failed to open /proc/stat: $!\n";
     return 1;
   }
   my $line = <$fh>;
-  $fh->close;
+  close $fh;
   my $type;
   my %d;
   ($type,@d{qw/user nice sys idle iowait irq softirq steal/}) =

@@ -1,0 +1,76 @@
+#!/usr/bin/perl -w
+use strict;
+use IO::Socket::INET;
+use IO::Select;
+use Digest::HMAC;
+use Digest::SHA;
+
+my $secret = shift;
+my $sock = IO::Socket::INET->new(Listen => 10, ReuseAddr => 1,
+                                 LocalPort => 38650, Proto => 'tcp') or die;
+my $sel = IO::Select->new($sock);
+
+my $self = {};
+while (1) {
+  foreach my $fh ($sel->can_read) {
+    if ($fh eq $sock) {
+      my $new = $sock->accept();
+      $sel->add($new);
+      $self->{$new} = { fh => $new, buf => '' };
+      print "$new: accepted\n";
+    } elsif (exists $self->{$fh}) {
+      my $rec = $self->{$fh};
+      my $bytes = $fh->sysread($rec->{buf}, 2048, length $rec->{buf});
+      unless ($bytes) {
+        print "$fh: closing\n";
+        $sel->remove($fh);
+        $fh->close;
+        next;
+      }
+      print "$fh: read $bytes bytes\n", $rec->{buf}, "\n";
+      if ($rec->{buf} =~
+          /^(\w+)\r?\n
+           (
+            (\d+\.\d+)\r?\n
+            (\d+)\r?\n
+            (
+             xpl-(cmnd|trig|stat)\r?\n
+             {\r?\n
+             (?:[-_a-z0-9]+=.*?\r?\n)*
+             }\r?\n
+             [-_a-z0-9]+\.[-_a-z0-9]+\r?\n
+             {\r?\n
+             (?:[-_a-z0-9]+=.*?\r?\n)*
+             }\r?\n
+            )
+           )
+          /ix) {
+        my ($hmac, $body, $version, $time, $message) = ($1, $2, $3, $4, $5);
+        print "$fh: message received\n";
+        my $digest = Digest::HMAC->new($secret, 'Digest::SHA');
+        $digest->add($body);
+        my $expect = $digest->hexdigest;
+        print "$fh: HMAC: $hmac\nHMAC? $expect\n";
+        unless ($expect eq $hmac) {
+          print "$fh: invalid hmac\n";
+          $sel->remove($fh);
+          $fh->close;
+          next;
+        }
+        print "$fh: valid hmac\n";
+        my $now = time;
+        unless ($time > $now-120 && $time < $now+120) {
+          print "$fh: invalid time ($time !~ $now)\n";
+          $sel->remove($fh);
+          $fh->close;
+          next;
+        }
+        print "$fh: valid time $time ~= $now\n";
+        my $udp = IO::Socket::INET->new(PeerAddr => '192.168.32.255:3865',
+                                        Proto => 'udp',
+                                        Broadcast => 1) or die $!,"\n";
+        $udp->print($message);
+      }
+    }
+  }
+}

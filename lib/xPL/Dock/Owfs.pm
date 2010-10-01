@@ -23,7 +23,6 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
-use DirHandle;
 use Time::HiRes qw/sleep/;
 use xPL::Dock::Plug;
 
@@ -246,11 +245,11 @@ directories.
 sub find_ow_devices {
   my $ow_dir = shift;
   my $res = shift || [];
-  my $dh = DirHandle->new($ow_dir) or do {
+  opendir my $dh, $ow_dir or do {
     warn "Failed to open ow dir, $ow_dir: $!\n";
     return $res;
   };
-  foreach my $dev ($dh->read) {
+  foreach my $dev (readdir $dh) {
     if ($dev =~ /^[0-9a-f]{2}\.[0-9a-f]{12}$/i) {
       push @$res, $ow_dir.'/'.$dev;
       foreach my $sub (qw/main aux/) {
@@ -259,7 +258,7 @@ sub find_ow_devices {
       }
     }
   }
-  $dh->close;
+  closedir $dh;
   return $res;
 }
 

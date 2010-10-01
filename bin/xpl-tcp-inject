@@ -1,0 +1,18 @@
+#!/usr/bin/perl -w
+use strict;
+use IO::Socket::INET;
+use Digest::SHA qw/hmac_sha1_hex/;
+
+my $peer = shift;
+my $secret = shift;
+my $sock = IO::Socket::INET->new($peer) or die $!, "\n";
+my $msg;
+{ local $/ = undef;
+  $msg = <>;
+}
+my $version = '1.0';
+my $time = time;
+my $body = $version."\n".$time."\n".$msg;
+my $hmac = hmac_sha1_hex($body, $secret);
+$sock->print($hmac."\n".$body);
+$sock->close;
