@@ -1,5 +1,5 @@
 #!/usr/bin/perl -w
-
+use AnyEvent;
 use xPL::Dock qw/-run/;
 
 =head1 NAME

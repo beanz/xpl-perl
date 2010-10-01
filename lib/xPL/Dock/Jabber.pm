@@ -24,27 +24,11 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use xPL::Dock::Plug;
-use Net::XMPP;
-{
-  # http://blogs.perl.org/users/marco_fontani/2010/03/google-talk-with-perl.html
-  # monkey-patch XML::Stream to support the google-added JID
-  package XML::Stream;
-  no warnings 'redefine';
-  sub SASLAuth {
-    my $self = shift;
-    my $sid  = shift;
-    my $first_step =
-      $self->{SIDS}->{$sid}->{sasl}->{client}->client_start();
-    my $first_step64 = MIME::Base64::encode_base64($first_step,"");
-    $self->Send( $sid,
-                 "<auth xmlns='" . &ConstXMLNS('xmpp-sasl') .
-                 "' mechanism='" .
-                 $self->{SIDS}->{$sid}->{sasl}->{client}->mechanism() .
-                 "' " .  q{xmlns:ga='http://www.google.com/talk/protocol/auth'
-            ga:client-uses-full-bind-result='true'} . # JID
-                 ">".$first_step64."</auth>");
-  }
-}
+
+use utf8;
+use AnyEvent;
+use AnyEvent::XMPP::Client;
+use AnyEvent::XMPP::IM::Message;
 
 use POSIX qw/strftime/;
 
@@ -131,71 +115,39 @@ sub connect {
   my $config = $self->config;
   my $host = $config->get_item('host') || $self->{_host};
   my $port = $config->get_item('port') || $self->{_port};
-  my $xmpp = $self->{_xmpp} = Net::XMPP::Client->new( debuglevelxx => 100 );
-  my %con_args =
-    (
-     hostname => $host,
-     port => $port,
-     connectiontype => 'tcpip',
-     tls => 1,
-    );
-  if ($host =~ /google\.com$/) {
-    print STDERR "Setting componentname and tls\n";
-    $con_args{componentname} = 'gmail.com';
-    $con_args{tls} = 1;
-    $xmpp->{SERVER}->{componentname} = 'gmail.com';
-  }
-  $xmpp->Connect(%con_args)
-    or $self->argh("Failed to connect to ".$host.':'.$port.": $!\n");
-  $self->info("Connected to jabber server\n");
-  $xmpp->SetCallBacks(presence => sub { $self->jabber_presence(@_); },
-                      message => sub { $self->jabber_message(@_); },
-                     );
+  my $xmpp = $self->{_xmpp} = AnyEvent::XMPP::Client->new(debug => 0);
 
-  my $stream = $xmpp->{STREAM};
-  $self->info("STREAM: $stream\n");
-  my $sid = $xmpp->{SESSION}->{id};
-  $self->info("SID: $sid\n");
+  $xmpp->add_account($config->get_item('username')||$self->{_user},
+                   $config->get_item('password')||$self->{_pass},
+                   $host, $port);
 
-  my ($type, $message) =
-    $xmpp->AuthSend(username => $config->get_item('username')||$self->{_user},
-                    password => $config->get_item('password')||$self->{_pass},
-                    resource =>
-                      $config->get_item('resource')||$self->{_resource});
+  $xmpp->reg_cb(session_ready => sub {
+                my ($xmpp, $acc) = @_;
+                $xmpp->set_presence('available', 'Bot', 10);
+              },
+              disconnect => sub {
+                my ($xmpp, $acc, $h, $p, $reas) = @_;
+                $xpl->info("disconnect ($h:$p): $reas\n");
+              },
+              error => sub {
+                my ($xmpp, $acc, $err) = @_;
+                $xpl->argh("ERROR: " . $err->string . "\n");
+              },
+              message => sub {
+                my ($xmpp, $acc, $msg) = @_;
+                $self->xmpp_message($xmpp, $msg);
+              });
+  $xmpp->start;
 
-  unless ($type eq 'ok') {
-    $self->argh("Failed to authenticate - $type: $message\n");
-  }
-  $self->info("Authenticated with jabber server\n");
-
-  $xmpp->RosterGet();
-  $self->info("Roster requested\n");
-
-  $xmpp->PresenceSend();
-  $self->info("Presence sent\n");
-
-  # try to ensure the connection is set up
-  my $result = $xmpp->Process(1.04);
-
-  $sid = $xmpp->{SESSION}->{id};
-  $self->info("SID: $sid\n");
-
-  foreach (keys %{$stream->{SIDS}}) {
-    print "SIDS: ", $_, "\n";
-  }
-  my $jsock = $self->{_jsock} = $stream->{SIDS}->{$sid}->{sock};
-  $self->argh("Jabber connection failed\n") unless ($jsock);
-  undef $self->{_select};
-  $xpl->add_input(handle => $jsock, callback => sub { $self->jabber_read() });
-
-  $self->{_xpl}->add_xpl_callback(id => 'im.basic',
-                                  callback => sub {
-                                      $self->send_im(@_)
-                                  },
-                                  filter => {
-                                             message_type => 'xpl-cmnd',
-                                             schema => 'im.basic',
-                                            });
+  $xpl->add_xpl_callback(id => 'im.basic',
+                         callback => sub {
+                           $self->send_im(@_)
+                         },
+                         filter =>
+                         {
+                          message_type => 'xpl-cmnd',
+                          schema => 'im.basic',
+                         });
 
   my %fm = map { $_ => 1 } split /,/, join ",",
     @{$self->{_friends}}, @{$config->get_item('friend')||[]};
@@ -203,38 +155,36 @@ sub connect {
 }
 
 
-sub jabber_message {
-  my $self = shift;
-  my ($sid, $obj) = @_;
-  my $from = $obj->GetFrom();
-  my $type = $obj->GetType();
-  my $subj = $obj->GetSubject();
-  my $body = $obj->GetBody();
-  print STDERR "Message: ", $from, " ! ", $type, " ! ",
-                   $subj, " ! ", $body, " !\n" if ($self->verbose);
-  return unless ($type eq 'chat');
-  return unless ($body);
-  $from =~ s!/[^/]+!!;
+sub xmpp_message {
+  my ($self, $xmpp, $msg) = @_;
+  my $user = $msg->from;
+  my $body = $msg->body || '';
+  my $from = $user;
+  $self->info('Message: ', $from, ': ', $body, "\n") if ($self->verbose);
+  $from =~ s!/[^/]+$!!;
   unless (exists $self->{_friend_map}->{$from}) {
-    print STDERR "Non-friend '$from' said '$body'\n";
+    $self->ouch("Non-friend '$from' said '$body'\n");
     return;
   }
+  return if ($body =~ /^\s*$/);
   my ($command, $message) = split /\s+/, $body, 2;
+  my $reply = $msg->make_reply;
+  $command = lc $command;
   if ($command eq 'help') {
     $self->info("Replying to help request\n");
-    $self->{_xmpp}->Send($obj->Reply(body => "Usage:\n"));
+    $reply->add_body("Usage:\n");
   } elsif ($command eq 'xpl') {
     eval { $self->{_xpl}->send_from_string($message); };
-    return 1;
+    $reply->add_body($@ ? $@ : 'ok');
   } elsif ($command eq 'log') {
     $self->info("Replying to log request\n");
     # TODO: figure out how to do logging
     #$self->{_xpl}->add_xpl_callback(id => $from.'!'.$message,
     #                                callback => sub {
-    #                                    $self->log($from, $obj, @_)
+    #                                    $self->log($msg, @_)
     #                                },
     #                                filter => $message);
-    return 1;
+    $reply->add_body('Sorry, logging is not implemented yet');
   } else {
     $self->{_xpl}->send(message_type => 'xpl-trig',
                         schema => 'im.basic',
@@ -243,18 +193,19 @@ sub jabber_message {
                          body => $body,
                          from => $from,
                         ]);
+    return 1;
   }
-
+  $reply->send;
   return 1;
 }
 
 sub log {
   my $self = shift;
-  my $from = shift;
-  my $obj = shift;
+  my $msg = shift;
   my %p = @_;
-  my $msg = $p{message};
-  $self->{_xmpp}->Send($obj->Reply(body => $msg->summary));
+  my $reply = $msg->make_reply;
+  $reply->add_body($p{message}->summary);
+  $reply->send;
   return 1;
 }
 
@@ -266,7 +217,7 @@ sub send_im {
   my $to = $msg->field('to');
   exists $self->{_friend_map}->{$to} or return 1;
   my $body = $msg->field('body') or return 1;
-  $self->{_xmpp}->MessageSend(to => $to, body => $body);
+  $self->{_xmpp}->send_message($body => $to, undef, 'chat');
   return 1;
 }
 
