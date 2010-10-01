@@ -21,7 +21,6 @@ BEGIN {
   import Test::More tests => 11;
 }
 
-use FileHandle;
 use t::Helpers qw/test_error test_warn/;
 $|=1;
 
@@ -83,7 +82,7 @@ remote-ip=".$xpl->ip."
 ";
 is($buf, $hb, "first hbeat content");
 
-my $fh = FileHandle->new('</dev/zero');
+open my $fh, '<', '/dev/zero';
 my $called;
 ok($fh, 'file handle for input testing');
 $xpl->add_input(handle => $fh, callback => sub { $called++; Gtk2->main_quit; });

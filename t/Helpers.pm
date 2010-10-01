@@ -29,7 +29,6 @@ use 5.006;
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
-use FileHandle;
 use File::Temp qw/tempfile/;
 
 use Exporter;
@@ -97,11 +96,11 @@ sub test_output {
   $sub->();
   open $fh, ">&", $oldfh or die "Can't dup \$oldfh: $!";
   $tmpfh->flush;
-  my $rfh = FileHandle->new('<'.$tmpfile);
+  open my $rfh, '<', $tmpfile;
   local $/;
   undef $/;
   my $c = <$rfh>;
-  $rfh->close;
+  close $rfh;
   unlink $tmpfile;
   $tmpfh->close;
   return $c;

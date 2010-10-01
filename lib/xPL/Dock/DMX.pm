@@ -24,7 +24,6 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
-use FileHandle;
 use List::Util qw/min max/;
 use Time::HiRes;
 use xPL::IOHandler;
@@ -317,7 +316,7 @@ sub read_rgb_txt {
   my $self = shift;
   my $file = $self->{_rgb_txt};
   my %rgb;
-  my $rgb = FileHandle->new($file) or return $self->default_rgb();
+  open my $rgb, '<', $file or return $self->default_rgb();
   while (<$rgb>) {
     next unless (/^(\d+)\s+(\d+)\s+(\d+)\s+(.*)\s*$/);
     $rgb{lc $4} = sprintf "%02x%02x%02x", $1, $2, $3;

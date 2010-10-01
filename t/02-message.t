@@ -5,7 +5,6 @@
 use strict;
 use DirHandle;
 use English qw/-no_match_vars/;
-use FileHandle;
 my %msg;
 
 my $EMPTY = q{};
@@ -22,7 +21,7 @@ BEGIN {
     next if (!/^(.*)\.txt$/);
     my $name = $LAST_PAREN_MATCH;
     my $f = $dir.$SLASH.$_;
-    my $fh = FileHandle->new($f) or die "Failed to open $f: $ERRNO\n";
+    open my $fh, '<', $f or die "Failed to open $f: $ERRNO\n";
     local $RS = "\n\n";
     my ($args, $string, @methods) = <$fh>;
     chomp $string;
@@ -34,7 +33,7 @@ BEGIN {
        methods => \@methods,
       };
     $tests += 8 + 2*(scalar @methods);
-    $fh->close;
+    close $fh;
   }
   $dh->close;
   require Test::More;

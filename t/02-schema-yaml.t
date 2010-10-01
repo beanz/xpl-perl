@@ -5,7 +5,6 @@
 use strict;
 use DirHandle;
 use English qw/-no_match_vars/;
-use FileHandle;
 use Test::More;
 my %yaml;
 

@@ -23,7 +23,6 @@ use strict;
 use warnings;
 use Carp;
 use English qw/-no_match_vars/;
-use FileHandle;
 use Socket;
 use Text::Balanced qw/extract_quotelike/;
 use Time::HiRes;
@@ -475,7 +474,7 @@ sub interfaces_ip {
   my $self = shift;
   my $command = $self->find_in_path('ip') or return;
   my @res;
-  my $fh = FileHandle->new($command.' addr show|');
+  open my $fh, $command.' addr show|';
   my $if;
   while (<$fh>) {
     if (/^\d+:\s+([a-zA-Z0-9:]+):/) {
@@ -492,7 +491,7 @@ sub interfaces_ip {
         };
     }
   }
-  $fh->close;
+  close $fh;
   return \@res;
 }
 
@@ -509,7 +508,7 @@ sub interfaces_ifconfig {
   my $self = shift;
   my $command = $self->find_in_path('ifconfig') or return;
   my @res;
-  my $fh = FileHandle->new($command.' -a|');
+  open my $fh, $command.' -a|';
   my $rec;
   while (<$fh>) {
     if (/^([a-zA-Z0-9:]+):\s+flags/ or /^([a-zA-Z0-9:]+)\s*Link/) {
@@ -533,6 +532,7 @@ sub interfaces_ifconfig {
       $rec->{broadcast} = $1;
     }
   }
+  close $fh;
   push @res, $rec if ($rec && $rec->{ip} && $rec->{broadcast});
   return \@res;
 }

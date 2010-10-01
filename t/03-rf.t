@@ -6,7 +6,6 @@ use strict;
 use DirHandle;
 use English qw/-no_match_vars/;
 use t::Helpers qw/test_warn test_error/;
-use FileHandle;
 my %msg;
 
 my $EMPTY = q{};
@@ -23,7 +22,7 @@ BEGIN {
     next if (!/^(.*)\.txt$/);
     my $name = $LAST_PAREN_MATCH;
     my $f = $dir.$SLASH.$_;
-    my $fh = FileHandle->new($f) or die "Failed to open $f: $ERRNO\n";
+    open my $fh, '<', $f or die "Failed to open $f: $ERRNO\n";
     local $RS = "\n\n";
     my ($message, $length, $count, $string, $warn, $flags) = <$fh>;
     chomp $message;
@@ -42,7 +41,7 @@ BEGIN {
        flags => $flags,
       };
     $tests += 4;
-    $fh->close;
+    close $fh;
   }
   $dh->close;
   require Test::More;

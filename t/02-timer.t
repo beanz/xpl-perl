@@ -5,7 +5,6 @@
 use strict;
 use DirHandle;
 use English qw/-no_match_vars/;
-use FileHandle;
 use t::Helpers qw/test_warn test_error/;
 use Test::More tests => 77;
 $|=1;

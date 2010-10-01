@@ -24,7 +24,6 @@ use warnings;
 
 use English qw/-no_match_vars/;
 use DirHandle;
-use FileHandle;
 use Time::HiRes qw/sleep/;
 use xPL::Dock::Plug;
 
@@ -129,13 +128,14 @@ file system.
 
 sub owfs_write {
   my ($self, $file, $value) = @_;
-  my $fh = FileHandle->new('>'.$self->{_mount}.'/'.$file) or do {
+  open my $fh, '>', $self->{_mount}.'/'.$file or do {
     warn "Failed to write ow file, $file: $!\n";
     return;
   };
   $self->debug("Writing $value to $file\n");
   $fh->print($value);
   $fh->flush();
+  close $fh;
   return;
 }
 
@@ -271,11 +271,12 @@ This function returns the contents of a owfs file or undef on failure.
 
 sub read_ow_file {
   my $file = shift;
-  my $fh = FileHandle->new("<".$file) or do {
+  open my $fh, '<', $file or do {
     warn "Failed to read ow file, $file: $!\n";
     return;
   };
   my $value = <$fh>;
+  close $fh;
   chomp($value);
   $value =~ s/\s+$//;
   $value =~ s/^\s+//;

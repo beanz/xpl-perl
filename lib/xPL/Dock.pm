@@ -26,7 +26,6 @@ use warnings;
 
 use Carp;
 use English qw/-no_match_vars/;
-use FileHandle;
 use Getopt::Long;
 use Pod::Usage;
 use xPL::Client;

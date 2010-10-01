@@ -23,7 +23,6 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
-use FileHandle;
 use IO::Pipe;
 use IPC::Open3;
 use POSIX ":sys_wait_h";

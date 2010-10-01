@@ -24,7 +24,6 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
-use FileHandle;
 use xPL::RF;
 use xPL::X10 qw/:all/;
 use xPL::HomeEasy qw/:all/;
