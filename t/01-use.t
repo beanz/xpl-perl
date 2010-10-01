@@ -33,7 +33,7 @@ my %depends =
    'xPL::Dock::FDNotify' => ['Net::DBus'],
    'xPL::Dock::GPower' => ['HTTP::Request'],
    'xPL::Dock::XOSD' => ['X::Osd'],
-   'xPL::Dock::Jabber' => ['Net::XMPP'],
+   'xPL::Dock::Jabber' => ['AnyEvent::XMPP'],
    'xPL::Dock::TCPHelp' => ['Digest::HMAC'],
   );
 
