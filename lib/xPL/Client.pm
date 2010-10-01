@@ -273,9 +273,14 @@ This method sends a response to an incoming C<config.list> request.
 
 sub config_list {
   my $self = shift;
+  my $body = $self->{_config}->config_types;
+  my @body = ();
+  foreach (qw/config reconf option/) {
+    push @body, $_ => $body->{$_} if (exists $body->{$_});
+  }
   $self->send(message_type => 'xpl-stat',
               schema => 'config.list',
-              body => $self->{_config}->config_types);
+              body => \@body);
   return 1
 }
 
@@ -287,10 +292,14 @@ This method sends a response to an incoming C<config.current> request.
 
 sub config_current {
   my $self = shift;
+  my @body = ();
+  foreach ($self->{_config}->items) {
+    my $v = $self->{_config}->get_item($_) || '';
+    push @body, $_ => $v;
+  }
   $self->send(message_type => 'xpl-stat',
               schema => 'config.current',
-              body => $self->{_config}->config_current,
-              body_order => [$self->{_config}->items]);
+              body => \@body);
   return 1
 }
 
