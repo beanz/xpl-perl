@@ -195,18 +195,6 @@ sub DESTROY {
   $_[0]->cleanup;
 }
 
-sub cleanup {
-  my $self = shift;
-  return unless ($self->{_is_initialized});
-  foreach my $t ($self->timers) {
-    $self->remove_timer($t);
-  }
-  foreach my $i ($self->inputs) {
-    next unless (defined $i);
-    $self->remove_input($i);
-  }
-}
-
 =head1 ATTRIBUTE METHODS
 
 =head2 C<ip()>
@@ -737,6 +725,25 @@ sub _anyevent_main_loop {
   return 1;
 }
 
+=head2 C<cleanup( )>
+
+This method removes all timers and inputs.  It is called by the
+destructor.
+
+=cut
+
+sub cleanup {
+  my $self = shift;
+  return unless ($self->{_is_initialized});
+  foreach my $t ($self->timers) {
+    $self->remove_timer($t);
+  }
+  foreach my $i ($self->inputs) {
+    next unless (defined $i);
+    $self->remove_input($i);
+  }
+}
+
 =head2 C<exit( )>
 
 This method closes down the client.
@@ -1221,6 +1228,12 @@ sub dump_statistics {
   }
   return 1;
 }
+
+=head2 C<time_now( )>
+
+This method returns the current time for use in event loop callbacks.
+
+=cut
 
 sub _default_time_now {
   Time::HiRes::time;
