@@ -77,7 +77,7 @@ $xpl->main_loop();
 
 # The callback to connect to linux-cpu
 sub poll_linux_cpu {
-  open my $fh, '/proc/stat';
+  open my $fh, '<', '/proc/stat';
   unless ($fh) {
     warn "Failed to open /proc/stat: $!\n";
     return 1;

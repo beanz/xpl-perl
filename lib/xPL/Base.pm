@@ -474,7 +474,7 @@ sub interfaces_ip {
   my $self = shift;
   my $command = $self->find_in_path('ip') or return;
   my @res;
-  open my $fh, $command.' addr show|';
+  open my $fh, '-|', $command, qw/addr show/;
   my $if;
   while (<$fh>) {
     if (/^\d+:\s+([a-zA-Z0-9:]+):/) {
@@ -508,7 +508,7 @@ sub interfaces_ifconfig {
   my $self = shift;
   my $command = $self->find_in_path('ifconfig') or return;
   my @res;
-  open my $fh, $command.' -a|';
+  open my $fh, '-|', $command, '-a';
   my $rec;
   while (<$fh>) {
     if (/^([a-zA-Z0-9:]+):\s+flags/ or /^([a-zA-Z0-9:]+)\s*Link/) {
