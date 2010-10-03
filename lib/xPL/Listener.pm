@@ -193,6 +193,8 @@ sub new {
 
 sub DESTROY {
   $_[0]->cleanup;
+  $_[0]->{_listen_sock}->close if (defined $_[0]->{_listen_sock});
+  $_[0]->{_send_sock}->close if (defined $_[0]->{_send_sock});
 }
 
 =head1 ATTRIBUTE METHODS
