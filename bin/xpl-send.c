@@ -9,13 +9,13 @@
 #include <errno.h>
 
 static char* usage =
-  "Usage: xpl-send <ip-address> [type] [target] [class] [body-line] ...\n"
+  "Usage: xpl-send <ip-address> [type] [target] [schema] [body-line] ...\n"
   "where:\n"
   "  ip-address should be the ip address to broadcast on (mandatory)\n"
   "  type is one of xpl-cmnd, xpl-stat or xpl-trig (optional)\n"
   "  target is of the either 'target=*' or a string like\n"
   "         'target=blah-dee.blah' (optional)\n"
-  "  class is a schema class such as osd.basic, x10.basic, etc. (optional)\n"
+  "  schema is a schema class such as osd.basic, x10.basic, etc. (optional)\n"
   "  body-line is a line for the xPL message body such as 'command=clear'\n"
   "            or 'text=hello', etc. (zero or more)\n"
   "\n";

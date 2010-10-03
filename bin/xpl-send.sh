@@ -19,10 +19,10 @@ case "$1" in
     ;;
 esac
 
-class='osd.basic'
+schema='osd.basic'
 case "$1" in
   *.*)
-    class=$1
+    schema=$1
     shift
     ;;
 esac
@@ -39,6 +39,6 @@ hop=1
 source=bnz-nc."`uname -n`"
 $target
 }
-$class
+$schema
 {
 $body}" | nc -q0 -b -u $addr 3865

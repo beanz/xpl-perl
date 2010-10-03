@@ -104,7 +104,7 @@ my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 $xpl->add_xpl_callback(id => 'xpl', callback => \&xpl,
                        filter => {
                                   message_type => 'xpl-cmnd',
-                                  class => 'sendmsg.basic',
+                                  schema => 'sendmsg.basic',
                                  });
 
 # Run the main loop
@@ -144,7 +144,7 @@ sub send_conf {
   my $error = shift;
   my %body = ( status => $status );
   $body{error} = $error if ($error);
-  return $xpl->send(class => 'sendmsg.confirm', body => \%body);
+  return $xpl->send(schema => 'sendmsg.confirm', body => \%body);
 }
 
 # send a "hbeat.end" message on exit

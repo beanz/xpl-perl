@@ -68,7 +68,7 @@ $args{'verbose'} = $verbose if ($verbose);
 
 my $host = shift || '192.168.0.1';
 $args{instance_id} = ($instance_id ? $instance_id :
-                      ($host !~ /^(\d+\.){3}\d+$/ ? $host : "default"));
+                      ($host !~ /^(\d+\.){3}\d+$/ ? $host : 'default'));
 
 unless ($conf) {
   foreach ($ENV{HOME}.'/.dg834rc', '/etc/dg834rc', 'dg834rc') {
@@ -90,7 +90,7 @@ my $ua = LWP::UserAgent->new;
 # Create an xPL Client object
 my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 my $state = {};
-my $buf = "";
+my $buf = '';
 
 # Add a timer to the xPL Client event loop to generate the
 # "sensor.network" messages.  The negative interval causes the timer
@@ -114,7 +114,7 @@ sub poll_dg834 {
       sleep 2;
       return poll_dg834();
     }
-    warn "Failed with: ".$res->status_line."!\n";
+    warn 'Failed with: '.$res->status_line."!\n";
     return 1;
   }
   my $c = $res->content;
@@ -176,8 +176,8 @@ sub poll_dg834 {
 
 sub xpl_send {
   my ($dev, $var, $val, $type) = @_;
-  my $class = $type eq "count" ? 'sensor.basic' : 'sensor.network';
-  return $xpl->send(message_type => 'xpl-stat', class => $class,
+  my $schema = $type eq 'count' ? 'sensor.basic' : 'sensor.network';
+  return $xpl->send(message_type => 'xpl-stat', schema => $schema,
                     body =>
                     [
                      device => $dev.'-'.$var,
@@ -201,7 +201,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2006, 2008 by Mark Hindess
+Copyright (C) 2006, 2010 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
