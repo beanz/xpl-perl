@@ -1,8 +1,8 @@
-package xPL::SlowMessage;
+package xPL::ValidatedMessage;
 
 =head1 NAME
 
-xPL::Message - Perl extension for xPL message base class
+xPL::Message - Perl extension for xPL message class
 
 =head1 SYNOPSIS
 
@@ -83,8 +83,8 @@ our $OPEN_SQUARE_BRACKET = q{[};
 our $CLOSE_SQUARE_BRACKET = q{]};
 our %MESSAGE_TYPES = map { $_ => 1 } qw/xpl-cmnd xpl-stat xpl-trig/;
 
-my $path = $INC{'xPL/SlowMessage.pm'};
-$path =~ s!([/\\])SlowMessage\.pm$!${1}schema!;
+my $path = $INC{'xPL/ValidatedMessage.pm'};
+$path =~ s!([/\\])ValidatedMessage\.pm$!${1}schema!;
 my @paths = ($path);
 push @paths, $ENV{XPL_SCHEMA_PATH} if (exists $ENV{XPL_SCHEMA_PATH});
 find({
@@ -107,7 +107,7 @@ find({
 
 =head2 C<new(%parameter_hash)>
 
-The constructor creates a new xPL::SlowMessage object.  The constructor
+The constructor creates a new xPL::ValidatedMessage object.  The constructor
 takes a parameter hash as arguments.  Valid parameters in the hash
 are:
 
@@ -139,13 +139,14 @@ sub new {
   exists $p{strict} or $p{strict} = 1;
 
   if (exists $p{class}) {
-    $pkg->ouch('"class" is deprecated. '.
-               'Set "schema" to "class.class_type" instead');
+    warnings::warnif('deprecated',
+        '"class" is deprecated. Set "schema" to "class.class_type" instead');
     $p{schema} = $p{class};
     delete $p{class};
     if (exists $p{class_type}) {
-      $pkg->ouch('"class_type" is deprecated. '.
-                 'Set "schema" to "class.class_type" instead');
+      warnings::warnif('deprecated',
+                       '"class_type" is deprecated. '.
+                       'Set "schema" to "class.class_type" instead');
       $p{schema} .= '.'.$p{class_type};
     }
   }
@@ -206,9 +207,10 @@ sub new {
   if ($p{body_content}) {
     $self->{_body_content} = $p{body_content};
   } elsif (exists $p{body} && ref $p{body} eq 'HASH') {
-    $pkg->ouch('Providing "body" hash reference is deprecated. '.
-               'Use an array reference so that order is preserved. '.
-               'For example: [ device => "device", command => "on" ]');
+    warnings::warnif('deprecated',
+                     'Providing "body" hash reference is deprecated. '.
+                     'Use an array reference so that order is preserved. '.
+                     'For example: [ device => "device", command => "on" ]');
     $self->{_body} = $p{body};
     $self->{_body_order} = $p{body_order};
     $self->validate_body_parameters();
@@ -615,7 +617,7 @@ sub make_class {
   $modules{$parent} = $parent;
   my $isa = $parent.'::ISA';
   no strict qw/refs/;
-  *{$isa} = [qw/xPL::SlowMessage/];
+  *{$isa} = [qw/xPL::ValidatedMessage/];
   if (exists $spec->{default_message_type}) {
     my $dmt = $parent.'::default_message_type';
     *{$dmt} =

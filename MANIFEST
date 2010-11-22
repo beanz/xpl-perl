@@ -272,7 +272,6 @@ lib/xPL/schema/wol.confirm.yaml
 lib/xPL/schema/x10.basic.yaml
 lib/xPL/schema/x10.confirm.yaml
 lib/xPL/schema/x10.security.yaml
-lib/xPL/SlowMessage.pm
 lib/xPL/Timer/cron.pm
 lib/xPL/Timer.pm
 lib/xPL/Timer/recurrence.pm
@@ -280,6 +279,7 @@ lib/xPL/Timer/simple.pm
 lib/xPL/Timer/sunrise.pm
 lib/xPL/Timer/sunset.pm
 lib/xPL/Utils.pm
+lib/xPL/ValidatedMessage.pm
 lib/xPL/Validation/Any.pm
 lib/xPL/Validation/Integer.pm
 lib/xPL/Validation/IntegerRange.pm

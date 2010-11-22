@@ -7,7 +7,7 @@ use Test::More tests => 3;
 BEGIN {
   $ENV{XPL_MESSAGE_VALIDATE} = 1;
   $ENV{XPL_SCHEMA_PATH} = 't/schema';
-  package xPL::SlowMessage::test::basic::xpltrig;
+  package xPL::ValidatedMessage::test::basic::xpltrig;
   sub fieldname {
     return "field not overriden";
   }

@@ -28,7 +28,7 @@ is(test_error(sub { $msg = xPL::Message->new(schema => "unknown.basic") }),
 is(test_error(sub { $msg = xPL::Message->new(schema => "fred.schema",
                                              message_type => 'testing') }),
    ($ref eq 'xPL::Message'
-    ? 'xPL::Message->new' : 'xPL::SlowMessage->message_type').
+    ? 'xPL::Message->new' : 'xPL::ValidatedMessage->message_type').
    ": message type identifier, testing, is invalid.
 It should be one of xpl-cmnd, xpl-stat or xpl-trig.",
    "xPL::Message invalid message type test");

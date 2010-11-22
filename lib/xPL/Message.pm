@@ -49,6 +49,7 @@ This module creates an xPL message.
 use 5.006;
 use strict;
 use warnings;
+use warnings::register;
 use English qw/-no_match_vars/;
 use Carp qw/confess/;
 
@@ -106,21 +107,22 @@ sub new {
 
   my %p = @_;
   if ($p{validate} || $ENV{XPL_MESSAGE_VALIDATE}) {
-    require xPL::SlowMessage;
-    import xPL::SlowMessage;
-    return xPL::SlowMessage->new(@_);
+    require xPL::ValidatedMessage;
+    import xPL::ValidatedMessage;
+    return xPL::ValidatedMessage->new(@_);
   }
   my $self = { _verbose => $p{verbose}||0, };
   bless $self, $pkg;
 
   if (exists $p{class}) {
-    $pkg->ouch('"class" is deprecated. '.
-               'Set "schema" to "class.class_type" instead');
+    warnings::warnif('deprecated',
+        '"class" is deprecated. Set "schema" to "class.class_type" instead');
     $p{schema} = $p{class};
     delete $p{class};
     if (exists $p{class_type}) {
-      $pkg->ouch('"class_type" is deprecated. '.
-                 'Set "schema" to "class.class_type" instead');
+      warnings::warnif('deprecated',
+                       '"class_type" is deprecated. '.
+                       'Set "schema" to "class.class_type" instead');
       $p{schema} .= '.'.$p{class_type};
     }
   }
@@ -145,9 +147,10 @@ sub new {
   if ($p{body_content}) {
     $self->{_body_content} = $p{body_content};
   } elsif (exists $p{body} && ref $p{body} eq 'HASH') {
-    $pkg->ouch('Providing "body" hash reference is deprecated. '.
-               'Use an array reference so that order is preserved. '.
-               'For example: [ device => "device", command => "on" ]');
+    warnings::warnif('deprecated',
+                     'Providing "body" hash reference is deprecated. '.
+                     'Use an array reference so that order is preserved. '.
+                     'For example: [ device => "device", command => "on" ]');
     $self->{_body} = $p{body};
     $self->{_body_order} = $p{body_order} || [sort keys %{$self->{_body}}];
   } else {
@@ -190,7 +193,7 @@ sub new_from_payload {
   }
   $r{body_content} = $2;
   $r{schema} = $1;
-  # strict => 0 is only really needed when xPL::SlowMessage's are created
+  # strict => 0 is only really needed when xPL::ValidatedMessage's are created
   return $_[0]->new(strict => 0, %r);
 }
 
@@ -426,25 +429,23 @@ This method returns the xPL message schema (e.g. "hbeat.basic").
 
 =head2 C<class()>
 
-DEPRECATED.  This method returns the schema class (e.g. "hbeat").
+This method returns the schema class (e.g. "hbeat").
 
 =cut
 
 sub class {
   my $self = shift;
-  $self->ouch('This method is deprecated.');
   (split /\./, $self->{_schema}, 2)[0]
 }
 
 =head2 C<class_type()>
 
-DEPRECATED.  This method returns the class type (e.g. "basic").
+This method returns the class type (e.g. "basic").
 
 =cut
 
 sub class_type {
   my $self = shift;
-  $self->ouch('This method is deprecated.');
   (split /\./, $self->{_schema}, 2)[1]
 }
 
