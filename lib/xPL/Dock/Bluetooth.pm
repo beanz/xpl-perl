@@ -91,18 +91,16 @@ sub poll_bluetooth {
     my $old = $state->{$addr}->{v} || 'low';
     my @sdp_array = sdp_search($addr, '0', '');
     my $new = $state->{$addr}->{v} = $sdp_array[0] ? 'high' : 'low';
-    my $msg =
-      xPL::Message->new(head => { source => $xpl->id },
-                        message_type => $old eq $new ? 'xpl-stat' : 'xpl-trig',
-                        schema => 'sensor.basic',
-                        body =>
-                        [
-                         device => 'bt.'.$addr,
-                         type => 'input',
-                         current => $new,
-                        ]);
-    $xpl->send($msg);
-    $self->info('sending ', $msg->summary, "\n");
+    $self->info('sent ',
+                $xpl->send(message_type =>
+                             $old eq $new ? 'xpl-stat' : 'xpl-trig',
+                           schema => 'sensor.basic',
+                           body =>
+                           [
+                            device => 'bt.'.$addr,
+                            type => 'input',
+                            current => $new,
+                           ])->summary, "\n");
   }
   return 1;
 }
