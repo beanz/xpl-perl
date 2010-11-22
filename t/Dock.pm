@@ -8,7 +8,7 @@ t::Dock - Perl extension for Helper functions for tests.
 
   use Test::More tests => 2;
   use t::Dock qw/:all/;
-  check_sent_msg('description' => $message_string);
+  check_sent_message('description' => $message_string);
 
 =head1 DESCRIPTION
 
@@ -24,16 +24,18 @@ use strict;
 use warnings;
 use Exporter;
 our @ISA = qw(Exporter);
-our %EXPORT_TAGS = ( 'all' => [ qw(check_sent_message) ] );
+our %EXPORT_TAGS = ( 'all' => [ qw(check_sent_message
+                                   check_sent_messages
+                                  ) ] );
 our @EXPORT_OK = ( @{ $EXPORT_TAGS{'all'} } );
 our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 use Test::More;
 
-our @msg;
+our @msg = ();
 sub xPL::Dock::_send_aux_string {
-  my ($self, $sin, $msg) = @_;
-  push @msg, $msg;
+  my ($self, $sin, $str) = @_;
+  push @msg, $str unless ($str =~ /^hbeat\./m);
   1;
 }
 
@@ -48,16 +50,34 @@ using the description provided.
 
 sub check_sent_message {
   my ($desc, $string) = @_;
-  my $msg;
-  do {
-    $msg = shift @msg;
-  } while ($msg && $msg =~ /^hbeat\./m);
+  my $msg = shift @msg;
   if (defined $string) {
     is_deeply([split /\n/, $msg], [split /\n/, $string],
               'message as expected'.($desc ? ' - '.$desc : ''));
   } else {
-    is(scalar @msg, 0, 'message not expected');
+    is($msg, undef, 'message not expected'.($desc ? ' - '.$desc : ''));
   }
+}
+
+=head2 C<check_sent_message($description => $message_string)>
+
+This method checks all the messages caught with the
+C<xPL::Dock::_send_aux_string> overriden method is the provided
+method.  It performs one test comparing the strings of the messages
+using the description provided.
+
+=cut
+
+sub check_sent_messages {
+  my ($desc, $string) = @_;
+  my $msg = join '', @msg;
+  if (defined $string) {
+    is_deeply([split /\n/, $msg], [split /\n/, $string],
+              'messages as expected'.($desc ? ' - '.$desc : ''));
+  } else {
+    is($msg, '', 'messages not expected'.($desc ? ' - '.$desc : ''));
+  }
+  @msg = ();
 }
 
 1;
