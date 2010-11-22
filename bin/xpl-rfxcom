@@ -8,7 +8,7 @@ xpl-rfxcom - Perl script for an xPL RFXCOM RF receiver/transmitter application
 
 =head1 SYNOPSIS
 
-  xpl-rfxcom [flags] [options] --rfxcom-rx <device> --rfxcom-tx <device>
+  xpl-rfxcom [flags] [options] --rfxcom-rx-tty <device> --rfxcom-tx-tty <device>
   where valid flags are:
     --help              - show this help text
     --verbose           - verbose mode (for the xPL layer)
@@ -25,7 +25,7 @@ xpl-rfxcom - Perl script for an xPL RFXCOM RF receiver/transmitter application
   # start the rfxcom-rx application on first Ethernet interface in verbose mode
   xpl-rfxcom --interface eth0 --verbose \
              --rfxcom-rx-verbose --rfxcom-tx-verbose \
-             --rfxcom-rx <device> --rfxcom-tx <device>
+             --rfxcom-rx-tty <device> --rfxcom-tx-tty <device>
 
 =head1 DESCRIPTION
 

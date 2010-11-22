@@ -23,7 +23,7 @@ xpl-rfxcom-rx - Perl script for an xPL RFXCOM RF receiver application
   # start the rfxcom-rx application on first Ethernet interface in
   # verbose mode
   xpl-rfxcom-rx --interface eth0 --verbose \
-                --rfxcom-verbose --rfxcom-rx <device>
+                --rfxcom-rx-verbose --rfxcom-rx-tty <device>
 
 =head1 DESCRIPTION
 
