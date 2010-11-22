@@ -305,6 +305,7 @@ This method sends a message using the given C<sockaddr_in> structure.
 The L<xPL::Message> is either passed directly or constructed from the
 given parameters.  The advantage of passing parameters is that the
 C<source> value will be filled in for objects for which it is defined.
+It returns the message sent if successful or undef otherwise.
 
 =cut
 
@@ -325,13 +326,10 @@ sub send_aux {
     };
     $self->argh("message error: $@") if ($@);
   }
-  if (ref($msg)) {
-    $msg = $msg->string;
-  }
-
-  $self->{_last_sent_message} = $msg;
+  my $msgstr = ref $msg ? $msg->string : $msg;
+  $self->{_last_sent_message} = $msgstr;
   my $sock = $self->{_send_sock};
-  return send($sock, $msg, 0, $sin);
+  return send($sock, $msgstr, 0, $sin) and $msg;
 }
 
 =head2 C<send( $msg | %params )>
