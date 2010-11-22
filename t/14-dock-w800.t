@@ -8,17 +8,10 @@ use IO::Select;
 use Socket;
 use Test::More tests => 14;
 use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
-
+use t::Dock qw/check_sent_message/;
 $|=1;
 
 use_ok('xPL::Dock','W800');
-
-my @msg;
-sub xPL::Dock::send_aux {
-  my $self = shift;
-  my $sin = shift;
-  push @msg, [@_];
-}
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
 my $device = IO::Socket::INET->new(Listen => 5, LocalAddr => '127.0.0.1:0');
@@ -51,7 +44,7 @@ is(test_output(sub {
                }, \*STDOUT),
    "xpl-trig/x10.basic: bnz-dingus.mytestid -> * on/a11\n",
    'read response - a11/on');
-check_sent_msg(q!xpl-trig
+check_sent_message('a11/on' => q!xpl-trig
 {
 hop=1
 source=bnz-dingus.mytestid
@@ -69,15 +62,15 @@ is(test_output(sub {
                  wait_for_callback($xpl, input => $plugin->{_io}->input_handle)
                }, \*STDOUT),
    '', 'read response - incomplete');
-check_sent_msg(undef);
+check_sent_message('incomplete');
 
 print $client pack 'H*', 'f7';
 is(test_output(sub {
                  wait_for_callback($xpl, input => $plugin->{_io}->input_handle)
                }, \*STDOUT),
    "Processing: 649b08f7\n", # duplicate so no xPL message summary
-   'read response - a11/on');
-check_sent_msg(undef);
+   'read response - a11/on duplicate');
+check_sent_message('a11/on duplicate');
 
 # The begin block is global of course but this is where it is really used.
 BEGIN{
@@ -94,20 +87,4 @@ Sending on 127.0.0.1
 The --w800-tty parameter is required
 or the value can be given as a command line argument
 }, 'missing parameter');
-}
-
-sub check_sent_msg {
-  my ($string) = @_;
-  my $msg = shift @msg;
-  while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->schema =~ /^hbeat\./) {
-    $msg = shift @msg; # skip hbeat.* message
-  }
-  if (defined $string) {
-    my $m = $msg->[0];
-    is_deeply([split /\n/, $m->string], [split /\n/, $string],
-              'message as expected - '.$m->summary);
-  } else {
-    is(scalar @msg, 0, 'message not expected');
-  }
 }
