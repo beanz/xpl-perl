@@ -38,6 +38,7 @@ suitable callback to handle the reply.
 use 5.006;
 use strict;
 use warnings;
+use warnings::register;
 
 use IO::Select;
 use List::Util qw/min/;
@@ -496,7 +497,8 @@ sub add_xpl_callback {
   if (exists $p{targetted}) {
     $p{targeted} = $p{targetted};
     delete $p{targetted};
-    $self->ouch('"targetted" is deprecated. Use "targeted" instead.');
+    warnings::warnif('deprecated',
+                     '"targetted" is deprecated. Use "targeted" instead.');
   }
   exists $p{targeted} or $p{targeted} = 1;
   if (exists $p{filter}) {
