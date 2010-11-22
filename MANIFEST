@@ -205,7 +205,6 @@ lib/xPL/Dock/WOL.pm
 lib/xPL/Dock/XOSD.pm
 lib/xPL/Dock/Xvkbd.pm
 lib/xPL/Gtk2Client.pm
-lib/xPL/HomeEasy.pm
 lib/xPL/Hub.pm
 lib/xPL/IOHandler.pm
 lib/xPL/IORecord/CRLFLine.pm
@@ -220,16 +219,6 @@ lib/xPL/IORecord/ZeroSplitLine.pm
 lib/xPL/Listener.pm
 lib/xPL/Message.pm
 lib/xPL/Queue.pm
-lib/xPL/RF/Electrisave.pm
-lib/xPL/RF/HomeEasy.pm
-lib/xPL/RF/Oregon.pm
-lib/xPL/RF/OregonScale.pm
-lib/xPL/RF.pm
-lib/xPL/RF/RFXMeter.pm
-lib/xPL/RF/RFXSensor.pm
-lib/xPL/RF/Visonic.pm
-lib/xPL/RF/X10.pm
-lib/xPL/RF/X10Security.pm
 lib/xPL/schema/audio.basic.yaml
 lib/xPL/schema/audio.request.yaml
 lib/xPL/schema/cid.basic.yaml
@@ -288,7 +277,6 @@ lib/xPL/Validation/Pattern.pm
 lib/xPL/Validation.pm
 lib/xPL/Validation/PositiveInteger.pm
 lib/xPL/Validation/Set.pm
-lib/xPL/X10.pm
 Makefile.PL
 MANIFEST
 META.yml                                 Module meta-data (added by MakeMaker)
@@ -313,7 +301,6 @@ t/03-message-errors-v.t
 t/03-message-from-payload.t
 t/03-message-method-maker.t
 t/03-rf-misc.t
-t/03-rf.t
 t/04-clock.t
 t/04-collection-api.t
 t/04-config.t
@@ -507,14 +494,14 @@ t/rf/visonic-03-powercode-secondary.txt
 t/rf/visonic-04-powercode-parity-error.txt
 t/rf/visonic-05-codesecure-invalid.txt
 t/rf/visonic-06-codesecure-flags.txt
-t/rf/x10-01-a11-on-dup.txt
-t/rf/x10-01-a11-on-no-dup.txt
 t/rf/x10-01-a11-on.txt
-t/rf/x10-02-a11-off.txt
-t/rf/x10-03-a11-bright.txt
-t/rf/x10-04-a11-dim.txt
-t/rf/x10-05-a-dim-no-unitcode.txt
-t/rf/x10-06-non-x10.txt
+t/rf/x10-02-a11-on-dup.txt
+t/rf/x10-03-a11-on-no-dup.txt
+t/rf/x10-04-a11-off.txt
+t/rf/x10-05-a11-bright.txt
+t/rf/x10-06-a11-dim.txt
+t/rf/x10-07-a-dim-no-unitcode.txt
+t/rf/x10-08-non-x10.txt
 t/rf/x10sec-01.txt
 t/rf/x10sec-02-alert-tamper-min.txt
 t/rf/x10sec-03-lowbat.txt

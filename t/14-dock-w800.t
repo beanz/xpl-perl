@@ -6,7 +6,7 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 14;
+use Test::More tests => 12;
 use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 use t::Dock qw/check_sent_message/;
 $|=1;
@@ -39,9 +39,7 @@ ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::W800', 'plugin has correct type');
 
 print $client pack 'H*', '649b08f7';
-is(test_output(sub {
-                 wait_for_callback($xpl, input => $plugin->{_io}->input_handle)
-               }, \*STDOUT),
+is(test_output(sub { wait_for_message() }, \*STDOUT),
    "xpl-trig/x10.basic: bnz-dingus.mytestid -> * on/a11\n",
    'read response - a11/on');
 check_sent_message('a11/on' => q!xpl-trig
@@ -57,18 +55,9 @@ device=a11
 }
 !);
 $plugin->{_verbose} = 1;
-print $client pack 'H*', '649b08';
-is(test_output(sub {
-                 wait_for_callback($xpl, input => $plugin->{_io}->input_handle)
-               }, \*STDOUT),
-   '', 'read response - incomplete');
-check_sent_message('incomplete');
-
-print $client pack 'H*', 'f7';
-is(test_output(sub {
-                 wait_for_callback($xpl, input => $plugin->{_io}->input_handle)
-               }, \*STDOUT),
-   "Processing: 649b08f7\n", # duplicate so no xPL message summary
+print $client pack 'H*', '649b08f7';
+is(test_output(sub { wait_for_message() }, \*STDOUT),
+   "Processed: master x10 20.649b08f7(dup): x10/a11/on\n",
    'read response - a11/on duplicate');
 check_sent_message('a11/on duplicate');
 
@@ -88,3 +77,11 @@ The --w800-tty parameter is required
 or the value can be given as a command line argument
 }, 'missing parameter');
 }
+
+sub wait_for_message {
+  my ($self) = @_;
+  undef $plugin->{_got_message};
+  do {
+    AnyEvent->one_event;
+  } until ($plugin->{_got_message});
+ }

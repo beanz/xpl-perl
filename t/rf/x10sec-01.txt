@@ -15,7 +15,6 @@ security.zone
 event=alert
 zone=x10sec7f
 state=false
-delay=max
 }
 xpl-trig
 {
@@ -27,6 +26,17 @@ x10.security
 {
 command=normal
 device=127
-delay=max
 }
-
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=x10sec7f
+type=battery
+current=90
+units=%
+}

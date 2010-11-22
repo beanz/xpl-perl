@@ -24,8 +24,7 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
-use xPL::RF qw/hex_dump/;
-use xPL::IOHandler;
+use AnyEvent::RFXCOM::RX;
 use xPL::Dock::Plug;
 
 our @ISA = qw(xPL::Dock::Plug);
@@ -68,20 +67,11 @@ sub init {
                         'The --rfxcom-rx-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
-  my $io = $self->{_io} =
-    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
-                        device => $self->{_device},
-                        baud => $self->{_baud},
-                        reader_callback => sub { $self->device_reader(@_) },
-                        input_record_type => 'xPL::IORecord::VariableLength',
-                        output_record_type => 'xPL::IORecord::Hex',
-                        discard_buffer_timeout => 0.03);
-
-  $self->{_rf} = xPL::RF->new(source => $xpl->id);
-
-  $io->write(hex => 'F020', desc => 'version check');
-  $io->write(hex => "F02A", desc => 'enable all possible receiving modes');
-  $io->write(hex => 'F041', desc => 'variable length with visonic');
+  $self->{rx} =
+    AnyEvent::RFXCOM::RX->new(device => $self->{_device},
+                              baud => $self->{_baud},
+                              callback => sub { $self->device_reader(@_);
+                                                $self->{_got_message}++ });
 
   return $self;
 }
@@ -94,16 +84,103 @@ responsible for sending out the xPL messages.
 =cut
 
 sub device_reader {
-  my ($self, $handler, $msg, $last) = @_;
+  my ($self, $res) = @_;
   my $xpl = $self->xpl;
-  my $res = $self->{_rf}->process_variable_length($msg->raw);
-  print "Processed: $msg\n" if ($self->verbose && !$res->{duplicate});
-  return 1 unless (ref $res->{messages});
-  foreach (@{$res->{messages}}) {
-    my $xplmsg = xPL::Message->new(head => { source => $xpl->id },
-                                   message_type => 'xpl-trig', %$_);
-    print $xplmsg->summary,"\n";
-    $xpl->send($xplmsg);
+  print "Processed: ", $res->summary, "\n" if ($self->verbose);
+  $self->{_last_res} = $res;
+  return 1 if ($res->duplicate);
+  foreach my $m (@{$res->messages||[]}) {
+    if ($m->type eq 'x10') {
+
+      my @body;
+      push @body, command => $m->command;
+      push @body, device => $m->device if ($m->device);
+      push @body, house => $m->house if ($m->house);
+      push @body, level => $m->level if ($m->level);
+
+      print $xpl->send(message_type => 'xpl-trig',
+                       schema => 'x10.basic',
+                       body => \@body)->summary,"\n";
+
+    } elsif ($m->type eq 'homeeasy') {
+
+      my @body;
+      push @body, address => $m->address;
+      push @body, unit => $m->unit;
+      push @body, command => $m->command;
+      push @body, level => $m->level if ($m->level);
+
+      print $xpl->send(message_type => 'xpl-trig',
+                       schema => 'homeeasy.basic',
+                       body => \@body)->summary,"\n";
+
+    } elsif ($m->type eq 'sensor') {
+
+      my @body;
+      push @body, device => $m->device;
+      push @body, type => $m->measurement;
+      push @body, current => $m->value;
+      push @body, units => $m->units if ($m->units);
+
+      print $xpl->send(message_type => 'xpl-trig',
+                       schema => 'sensor.basic',
+                       body => \@body)->summary,"\n";
+
+    } elsif ($m->type eq 'security') {
+
+      my ($t, $id) = split /\./, $m->device, 2;
+      if ($t eq 'powercode' || $m->device =~ /x10sec/) {
+        my $xplmsg;
+        if ($m->event =~ /^(alert|normal)$/) {
+          my @body;
+          push @body, event => 'alert';
+          push @body, zone => $m->device;
+          push @body, state => $m->event eq 'normal' ? 'false' : 'true';
+          push @body, delay  => 'min' if ($m->min_delay && $m->device =~ /x10sec/);
+          push @body, tamper => $m->tamper ? 'true' : 'false' if ($m->tamper);
+          print $xpl->send(message_type => 'xpl-trig',
+                           schema => 'security.zone',
+                           body => \@body)->summary, "\n";
+        } else {
+          my @body;
+          push @body, command => $m->event;
+          push @body, delay  => 'min' if ($m->min_delay);
+          push @body, user => $m->device;
+          print $xpl->send(message_type => 'xpl-trig',
+                           schema => 'security.basic',
+                           body => \@body)->summary, "\n";
+        }
+      }
+      my @body;
+      push @body, command => $m->event;
+      if ($m->device =~ /^x10sec(.*)$/) {
+        push @body, device => hex($1);
+        push @body, tamper => $m->tamper ? 'true' : 'false' if ($m->tamper);
+        push @body, delay  => 'min' if ($m->min_delay);
+      } else {
+        push @body, device => $id;
+        push @body, type => $t;
+        push @body, tamper => $m->tamper ? 'true' : 'false' if ($m->tamper);
+        push @body, min_delay => $m->min_delay if ($m->min_delay);
+      }
+
+      print $xpl->send(message_type => 'xpl-trig',
+                       schema => 'x10.security',
+                       body => \@body)->summary,"\n";
+
+    } elsif ($m->type eq 'datetime') {
+
+      my @body;
+      push @body, datetime => $m->date.$m->time;
+      push @body, 'date' => $m->date;
+      push @body, 'time' => $m->time;
+      push @body, day => $m->day;
+      print $xpl->send(message_type => 'xpl-trig',
+                       schema => 'datetime.basic',
+                       body => \@body)->summary,"\n";
+    } else {
+      $self->ouch("RF message: ", $m->summary, " not supported\n");
+    }
   }
   return 1;
 }

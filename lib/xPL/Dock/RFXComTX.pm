@@ -24,12 +24,8 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
-use xPL::RF;
-use xPL::X10 qw/:all/;
-use xPL::HomeEasy qw/:all/;
-use xPL::IOHandler;
 use xPL::Dock::Plug;
-use xPL::IORecord::Hex;
+use AnyEvent::RFXCOM::TX;
 
 our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
@@ -52,7 +48,6 @@ plugin.
 sub getopts {
   my $self = shift;
   $self->{_baud} = 4800;
-  $self->{_x10} = 1;
   my @opts = (
               'rfxcom-tx-verbose+' => \$self->{_verbose},
               'rfxcom-tx-baud=i' => \$self->{_baud},
@@ -82,16 +77,15 @@ sub init {
                         'The --rfxcom-tx-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
-  my $io = $self->{_io} =
-    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
-                        device => $self->{_device},
-                        baud => $self->{_baud},
-                        ack_timeout => 6,
-                        ack_timeout_callback => sub { $self->reset_device(@_) },
-                        reader_callback => sub { $self->device_reader(@_) },
-                        input_record_type => 'xPL::IORecord::Hex',
-                        output_record_type => 'xPL::IORecord::Hex');
-
+  my @args;
+  foreach (@fields) {
+    push @args, $_ => $self->{'_'.$_};
+  }
+  $self->{_tx} =
+    AnyEvent::RFXCOM::TX->new(device => $self->{_device},
+                              callback => sub { $self->device_reader(@_);
+                                                $self->{_got_message}++},
+                              @args);
 
   # Add a callback to receive incoming xPL messages
   $xpl->add_xpl_callback(id => 'xpl-x10', callback => \&xpl_x10,
@@ -110,19 +104,6 @@ sub init {
                           schema => 'homeeasy.basic',
                          });
 
-  $self->{_rf} = xPL::RF->new(source => $xpl->id);
-
-  $io->write(hex => 'F030F030', desc => 'init/version check');
-  $self->init_device();
-  $io->write(hex => 'F03CF03C', desc => 'enabling harrison')
-    if ($self->harrison);
-  $io->write(hex => 'F03DF03D', desc => 'enabling klikon-klikoff')
-    if ($self->koko);
-  $io->write(hex => 'F03EF03E', desc => 'enabling flamingo')
-    if ($self->flamingo);
-  $io->write(hex => 'F03FF03F', desc => 'disabling x10')
-    unless ($self->x10);
-
   return $self;
 }
 
@@ -140,30 +121,9 @@ sub xpl_x10 {
   my $peerport = $p{peerport};
   my $self = $p{arguments};
 
-  if ($msg->field('house')) {
-    foreach (split //, $msg->field('house')) {
-      my $rf_msg =
-        xPL::IORecord::Hex->new(raw => encode_x10(command => $msg->field('command'),
-                                                  house => $msg->field('house')),
-                 desc => $msg->field('house').' '.$msg->field('command'));
-      foreach (1..$msg->field('repeat')||1) {
-        $self->{_io}->write($rf_msg);
-      }
-    }
-  } elsif ($msg->field('device')) {
-    foreach (split /,/, $msg->field('device')) {
-      my ($house, $unit) = /^([a-p])(\d+)$/i or next;
-      my $rf_msg =
-        xPL::IORecord::Hex->new(raw => encode_x10(command => $msg->field('command'),
-                                                  house => $house,
-                                                  unit => $unit),
-                                desc => $house.$unit.' '.$msg->field('command'));
-      foreach (1..$msg->field('repeat')||1) {
-        $self->{_io}->write($rf_msg);
-      }
-    }
-  } else {
-    warn "Invalid x10.basic message:\n  ", $msg->summary, "\n";
+  my %args = map { $_ => $msg->field($_) } $msg->body_fields;
+  foreach (1..$msg->field('repeat')||1) {
+    $self->{_tx}->transmit(type => 'x10', %args);
   }
   return 1;
 }
@@ -182,27 +142,9 @@ sub xpl_homeeasy {
   my $peerport = $p{peerport};
   my $self = $p{arguments};
 
-  my %args = ();
-  foreach (qw/address unit command/) {
-    my $val = $msg->field($_) or do {
-      warn "Invalid homeeasy.basic message:\n  ", $msg->summary, "\n";
-      return;
-    };
-    $args{$_} = $val;
-  }
-  if ($args{command} eq 'preset') {
-    my $level = $msg->field('level');
-    unless (defined $level) {
-      warn "homeeasy.basic 'preset' message is missing 'level':\n  ",
-        $msg->summary, "\n";
-      return;
-    }
-    $args{level} = $level;
-  }
-  my $rf_msg = xPL::IORecord::Hex->new(raw => encode_homeeasy(%args),
-                                       desc => $msg->summary);
+  my %args = map { $_ => $msg->field($_) } $msg->body_fields;
   foreach (1..$msg->field('repeat')||1) {
-    $self->{_io}->write($rf_msg);
+    $self->{_tx}->transmit(type => 'homeeasy', %args);
   }
   return 1;
 }
@@ -216,62 +158,10 @@ queued transmit messages.
 =cut
 
 sub device_reader {
-  my ($self, $handler, $msg, $last) = @_;
+  my ($self, $data) = @_;
   # TOFIX: send confirm messages?
-  print 'received: ', $msg, "\n";
+  print "Received: ", (unpack 'H*', $data), "\n";
   return 1;
-}
-
-=head2 C<init_device( )>
-
-This method sends the initialization command to the RFXCom transmitter.
-
-=cut
-
-sub init_device {
-  my ($self) = @_;
-  $self->{_io}->write($self->receiver_connected ?
-                      (hex => 'F033F033',
-                       desc => 'variable length mode w/receiver connected') :
-                      (hex => 'F037F037',
-                       desc => 'variable length mode w/o receiver connected'));
-}
-
-=head2 C<reset_device( $waiting )>
-
-This is the ACK timeout callback that attempts to reset the device if
-it has not responded to a command.
-
-=cut
-
-sub reset_device {
-  my ($self, $waiting) = @_;
-  print STDERR "No ack!\n";
-  $self->init_device();
-  1;
-}
-
-=head2 C<encode_x10( %p )>
-
-This function creates the RFXCom transmitter message for the given
-the X10 message specification.
-
-=cut
-
-sub encode_x10 {
-  return pack 'C5', 32, @{xPL::X10::to_rf(@_)};
-}
-
-=head2 C<encode_homeeasy( %p )>
-
-This function creates the RFXCom transmitter message for the given
-the homeeasy message specification.
-
-=cut
-
-sub encode_homeeasy {
-  my ($length, $bytes) = @{xPL::HomeEasy::to_rf(@_)};
-  return pack 'C6', $length, @$bytes;
 }
 
 1;

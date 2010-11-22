@@ -1,4 +1,4 @@
-#!#!/usr/bin/perl -w
+#!/usr/bin/perl -w
 #
 # Copyright (C) 2009 by Mark Hindess
 
@@ -6,21 +6,15 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 27;
+use Test::More;
 use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
+use t::Dock qw/check_sent_messages/;
 $|=1;
 
 use_ok('xPL::Dock','RFXComRX');
 use_ok('xPL::IORecord::Hex');
 
-my @msg;
-sub xPL::Dock::send_aux {
-  my $self = shift;
-  my $sin = shift;
-  push @msg, [@_];
-}
-
-$ENV{XPL_HOSTNAME} = 'mytestid';
+$ENV{XPL_HOSTNAME} = 'default';
 my $device = IO::Socket::INET->new(Listen => 5, LocalAddr => '127.0.0.1:0');
 ok($device, 'creating fake tcp serial client');
 my $sel = IO::Select->new($device);
@@ -28,7 +22,7 @@ my $port = $device->sockport();
 my $xpl;
 
 {
-  local $0 = 'dingus';
+  local $0 = 'rftest';
   local @ARGV = ('-v',
                  '--interface', 'lo',
                  '--define', 'hubless=1',
@@ -45,8 +39,9 @@ my $plugin = ($xpl->plugins)[0];
 ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::RFXComRX', 'plugin has correct type');
 
-foreach my $r (['F020' => '4d26'], ['F02A' => '41'], ['F041' => '41']) {
+foreach my $r (['F020' => '4d26'], ['F041' => '41'], ['F02a' => '41']) {
   my ($recv,$send) = @$r;
+  AnyEvent->one_event;
   ok($client_sel->can_read(0.5), 'device receive a message - '.$recv);
   my $buf = '';
   is((sysread $client, $buf, 64), length($recv)/2,
@@ -56,55 +51,77 @@ foreach my $r (['F020' => '4d26'], ['F02A' => '41'], ['F041' => '41']) {
 
   print $client pack 'H*', $send;
 
-  wait_for_callback($xpl, input => $plugin->{_io}->input_handle);
+  wait_for_message();
 
-  is((unpack 'H*', $plugin->{_io}->{_buffer}),
+  my $res = $plugin->{_last_res};
+  is(sprintf("%02x%s", $res->header_byte, $res->hex_data),
      $send, 'read response - '.$send);
-  $plugin->{_io}->{_buffer} = '';
-#  check_sent_msg('dmx.confirm', '0x'.$color, '1');
 }
 
-print $client pack 'H*', '20649b08f7';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   "xpl-trig/x10.basic: bnz-dingus.mytestid -> * on/a11\n",
-   'read response - a11/on');
-check_sent_msg(q!xpl-trig
-{
-hop=1
-source=bnz-dingus.mytestid
-target=*
+sub wait_for_message {
+  my ($self) = @_;
+  undef $plugin->{_got_message};
+  do {
+    AnyEvent->one_event;
+  } until ($plugin->{_got_message});
 }
-x10.basic
-{
-command=on
-device=a11
-}
-!);
-$plugin->{_verbose} = 1;
-print $client pack 'H*', '20649b08f7';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   '', # duplicate
-   'read response - a11/on');
-check_sent_msg(undef);
 
-$xpl->verbose(0);
-print $client pack 'H*', '20649b28d7';
-is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   ("Processed: 20649b28d7\n".
-    "xpl-trig/x10.basic: bnz-dingus.mytestid -> * off/a11\n"),
-   'read response - a11/off');
-check_sent_msg(q!xpl-trig
-{
-hop=1
-source=bnz-dingus.mytestid
-target=*
+my $tests = 21;
+my $dir = 't/rf';
+my $case = $ENV{XPL_RFXCOM_RX_TESTCASE};
+opendir my $dh, $dir or die "Failed to open $dir: $!";
+foreach my $f (sort readdir $dh) {
+  next if ($case && $f !~ /$case/o);
+  next unless ($f =~ /^(.*)\.txt$/);
+  my $name = $1;
+  my $fp = $dir.'/'.$f;
+  open my $fh, '<', $fp or die "Failed to open $fp: $!";
+  my ($message, $length, $count, $string, $warnings, $flags);
+  {
+    local $/ = "\n\n";
+    ($message, $length, $count, $string, $warnings, $flags) = <$fh>;
+  }
+  close $fh;
+  $message =~ s/\n+$//;
+  $length =~ s/\n+$//;;
+  $count =~ s/ messages\n+$//;;
+  next if ($count == 0);
+  $string =~ s/\n+$//;
+  # TOFIX?
+  $string =~ s/string=(?:comfortable|normal|wet)\n//g;
+  $string =~ s/risk=(?:medium|dangerous|low)\n//g;
+  $string =~ s/average=(?:\d\.\d|\d)\n//g;
+  $string =~ s/base_device=00f0\n//g;
+  $string =~ s/unknown=3d\n//g;
+  $string =~ s/restore=true\n//g;
+  $string =~ s/forecast=(?:unknown|partly)\n//g;
+  $string =~ s/event=alive\n//g;
+  $string =~ s/event=event\n//g;
+  $string =~ s/repeat=true\n//g;
+  $string =~ s/device=rtgr328n\.4d\n//g if ($string =~ /datetime.basic\n/);
+
+  $string =~ s/low-battery=true\n//g;
+  $warnings && $warnings =~ s/\n+$//;
+  if ($flags && $flags =~ s/^pause\s*//) {
+    select undef, undef, undef, 1.1;
+  }
+  if ($flags && $flags =~ s/^clear\s*//) {
+    # clear unit code cache and try again - trash non-X10 decoders, nevermind
+    $_->{unit_cache} = {} foreach (@{$plugin->{rx}->{plugins}});
+    $plugin->{rx}->{_cache} = {};
+  }
+  print $client pack 'H*', $message;
+  my $output;
+  my $warnings_got =
+    test_warn(sub {
+                $output = test_output(sub { wait_for_message() }, \*STDOUT)
+              });
+  check_sent_messages($name => $string);
+  $warnings_got && $warnings_got =~ s/\n+$//;
+  undef $warnings if ($warnings && $warnings eq 'none');
+  is($warnings_got, $warnings, 'warnings - '.$name);
+  $tests += 2;
 }
-x10.basic
-{
-command=off
-device=a11
-}
-!);
 
 # The begin block is global of course but this is where it is really used.
 BEGIN{
@@ -114,7 +131,7 @@ BEGIN{
 {
   local @ARGV = ('-v', '--interface', 'lo', '--define', 'hubless=1');
   is(test_output(sub {
-                   eval { $xpl = xPL::Dock->new(port => 0, name => 'dingus'); }
+                   eval { $xpl = xPL::Dock->new(port => 0, name => 'rftest'); }
                  }, \*STDOUT),
      q{Listening on 127.0.0.1:3865
 Sending on 127.0.0.1
@@ -123,18 +140,4 @@ or the value can be given as a command line argument
 }, 'missing parameter');
 }
 
-sub check_sent_msg {
-  my ($string) = @_;
-  my $msg = shift @msg;
-  while ($msg->[0] && ref $msg->[0] eq 'xPL::Message' &&
-         $msg->[0]->schema =~ /^hbeat\./) {
-    $msg = shift @msg; # skip hbeat.* message
-  }
-  if (defined $string) {
-    my $m = $msg->[0];
-    is_deeply([split /\n/, $m->string], [split /\n/, $string],
-              'message as expected - '.$m->summary);
-  } else {
-    is(scalar @msg, 0, 'message not expected');
-  }
-}
+done_testing($tests);

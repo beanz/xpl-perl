@@ -18,4 +18,17 @@ type=codesecure
 low-battery=true
 repeat=true
 }
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=codesecure.01ba680
+type=battery
+current=10
+units=%
+}
 

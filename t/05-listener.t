@@ -528,6 +528,8 @@ SKIP: {
   ok($xpl, 'constructor from blessed reference - not recommended');
 }
 
+undef $xpl;
+
 # mostly for coverage, these aren't used (yet)
 like(test_warn(sub { xPL::Listener->ouch('ouch') }),
      qr/xPL::Listener->__ANON__(\[[^]]+\])?: ouch/,

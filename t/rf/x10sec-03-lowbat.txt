@@ -33,4 +33,16 @@ tamper=true
 low-battery=true
 delay=min
 }
-
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=x10sec80
+type=battery
+current=10
+units=%
+}

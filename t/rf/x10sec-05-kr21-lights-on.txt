@@ -26,4 +26,16 @@ x10.security
 command=disarm
 device=99
 }
-
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=x10sec63
+type=battery
+current=90
+units=%
+}

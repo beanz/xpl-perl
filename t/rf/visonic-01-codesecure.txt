@@ -16,4 +16,17 @@ command=disarm
 device=01ba680
 type=codesecure
 }
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=codesecure.01ba680
+type=battery
+current=90
+units=%
+}
 
