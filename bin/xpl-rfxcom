@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 
+use AnyEvent;
 use xPL::Dock qw/RFXComRX RFXComTX -run/;
 
 =head1 NAME
