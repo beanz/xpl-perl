@@ -29,9 +29,10 @@ There are several usage examples provided by the xPL Perl distribution.
 use 5.006;
 use strict;
 use warnings;
-use FileHandle;
+
 use English qw/-no_match_vars/;
-use FileHandle;
+
+use Fcntl;
 use IO::Socket::INET;
 use Time::HiRes;
 use xPL::Base;

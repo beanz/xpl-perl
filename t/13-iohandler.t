@@ -4,6 +4,7 @@
 
 use strict;
 use Test::More tests => 34;
+use FileHandle;
 use IO::Select;
 use IO::Socket::INET;
 use IO::Socket::UNIX;
