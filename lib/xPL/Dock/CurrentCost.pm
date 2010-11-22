@@ -125,30 +125,24 @@ sub device_reader {
       my $v = $data{$item}/240;
       my $dev = $device.($p eq 'total' ? '' : '.'.substr $p, 2, 1);
       my $xplmsg =
-        xPL::Message->new(message_type => 'xpl-trig',
-                          head => { source => $xpl->id, },
-                          schema => 'sensor.basic',
-                          body =>
-                          [
-                           device => $dev,
-                           type => 'current',
-                           current => $v,
-                          ]);
-      print $xplmsg->summary,"\n";
-      $xpl->send($xplmsg);
+        $xpl->send(message_type => 'xpl-trig',
+                   schema => 'sensor.basic',
+                   body =>
+                   [
+                    device => $dev,
+                    type => 'current',
+                    current => $v,
+                   ]);
+      print $xplmsg->summary, "\n";
     }
-    my $xplmsg =
-      xPL::Message->new(message_type => 'xpl-trig',
-                        head => { source => $xpl->id, },
-                        schema => 'sensor.basic',
-                        body =>
-                        [
-                         device => $device,
-                         type => 'temp',
-                         current => $data{tmpr},
-                        ]);
-    print $xplmsg->summary,"\n";
-    $xpl->send($xplmsg);
+    print $xpl->send(message_type => 'xpl-trig',
+                     schema => 'sensor.basic',
+                     body =>
+                     [
+                      device => $device,
+                      type => 'temp',
+                      current => $data{tmpr},
+                     ])->summary, "\n";
   } else {
     warn "Sensor type: ", $data{type},
       " not supported.  Message was:\n", $msg,"\n";

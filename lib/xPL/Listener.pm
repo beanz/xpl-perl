@@ -326,10 +326,14 @@ sub send_aux {
     };
     $self->argh("message error: $@") if ($@);
   }
-  my $msgstr = ref $msg ? $msg->string : $msg;
-  $self->{_last_sent_message} = $msgstr;
+  $self->_send_aux_string($sin, ref $msg ? $msg->string : $msg) and $msg;
+}
+
+sub _send_aux_string {
+  my ($self, $sin, $str) = @_;
+  $self->{_last_sent_message} = $str;
   my $sock = $self->{_send_sock};
-  return send($sock, $msgstr, 0, $sin) and $msg;
+  send($sock, $str, 0, $sin);
 }
 
 =head2 C<send( $msg | %params )>

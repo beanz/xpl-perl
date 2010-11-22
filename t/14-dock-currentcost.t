@@ -8,17 +8,11 @@ use IO::Select;
 use Socket;
 use Test::More tests => 27;
 use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
+use t::Dock qw/check_sent_message/;
 
 $|=1;
 
 use_ok('xPL::Dock','CurrentCost');
-
-my @msg;
-sub xPL::Dock::send_aux {
-  my $self = shift;
-  my $sin = shift;
-  push @msg, [@_];
-}
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
 my $device = IO::Socket::INET->new(Listen => 5, LocalAddr => '127.0.0.1:0');
@@ -68,7 +62,7 @@ foreach my $rec (['curcost.02371.1', 'current', '8.87916666666667'],
                  ['curcost.02371', 'temp', '20.7'],
                 ) {
   my ($device, $type, $current) = @$rec;
-  check_sent_msg(qq!xpl-trig
+  check_sent_message($device => qq!xpl-trig
 {
 hop=1
 source=bnz-dingus.mytestid
@@ -118,7 +112,7 @@ foreach my $rec (['cc128.01234.1.1', 'current', '1.4375'],
                  ['cc128.01234.1', 'temp', '18.7'],
                 ) {
   my ($device, $type, $current) = @$rec;
-  check_sent_msg(qq!xpl-trig
+  check_sent_message($device => qq!xpl-trig
 {
 hop=1
 source=bnz-dingus.mytestid
@@ -155,7 +149,7 @@ print $client q{
 
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    q{}, 'historical data ignored');
-check_sent_msg();
+check_sent_message('historical data ignored');
 
 print $client q{
 <msg>
@@ -204,14 +198,14 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDERR),
 </msg>
 },
    'new sensor type');
-check_sent_msg();
+check_sent_message('new sensor type');
 
 print $client q{<invalid>
 </invalid>
 };
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT), '',
    'invalid tag ignored');
-check_sent_msg();
+check_sent_message('invalid tag ignored');
 
 # The begin block is global of course but this is where it is really used.
 BEGIN{
@@ -228,19 +222,4 @@ Sending on 127.0.0.1
 The --currentcost-tty parameter is required
 or the value can be given as a command line argument
 }, 'missing parameter');
-}
-
-sub check_sent_msg {
-  my ($string) = @_;
-  my $msg = shift @msg;
-  while ($msg->[0] && $msg->[0]->schema =~ /^hbeat\./) {
-    $msg = shift @msg; # skip hbeat.* message
-  }
-  if (defined $string) {
-    my $m = $msg->[0];
-    is_deeply([split /\n/, $m->string], [split /\n/, $string],
-              'message as expected - '.$m->summary);
-  } else {
-    is(scalar @msg, 0, 'message not expected');
-  }
 }
