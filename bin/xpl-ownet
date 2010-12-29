@@ -1,0 +1,56 @@
+#!/usr/bin/perl -w
+
+use AnyEvent;
+use xPL::Dock qw/-run/;
+
+=head1 NAME
+
+xpl-ownet - Perl script for an xPL interface to the one-wire filesystem daemon
+
+=head1 SYNOPSIS
+
+  xpl-ownet [flags] [options]
+  where valid flags are:
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --ownet-verbose - verbose mode (for the owfs layer)
+  and valid options are (default shown in brackets):
+    --interface if0  - the interface for xPL messages (first
+                       non-loopback or loopback)
+    --ownet-host ip  - the owserver host (127.0.0.1)
+    --ownet-port ip  - the owserver port (4304)
+
+  # start the ownet application on first Ethernet interface in verbose mode
+  xpl-ownet --interface eth0 --verbose --ownet-verbose
+
+=head1 DESCRIPTION
+
+This script is an xPL client that interfaces with the one-wire
+filesystem using the C<owserver> daemon.  It supports the use of
+C<control.basic> messages with current fields set to 'high', 'low' or
+'pulse' of devices with PIO files.  It also sends sensor.basic
+messages for devices with 'temperature', 'humidity', 'current',
+'counters.A' or 'counters.B' files.  For more details, see the table
+at http://owfs.sourceforge.net/ow_table.html
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+OWFS website: http://owfs.sourceforge.net/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2010 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
