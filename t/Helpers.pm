@@ -35,7 +35,7 @@ use AnyEvent;
 use AnyEvent::Socket;
 use AnyEvent::Handle;
 use constant {
-  DEBUG => $ENV{DEVICE_XPL_TEST_HELPERS_DEBUG}
+  DEBUG => $ENV{XPL_TEST_HELPERS_DEBUG}
 };
 
 use Exporter;
