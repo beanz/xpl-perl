@@ -35,6 +35,20 @@ our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_readonly_accessor($_) foreach (qw/host port/);
 
+my %map =
+  (
+   "temperature" => [ "temp" ],
+   'humidity' => [ 'humidity' ],
+   'HIH4000/humidity' => [ 'humidity', 1 ],
+   'HTM1735/humidity' => [ 'humidity', 2 ],
+   'counters.A' => [ 'count', 0 ],
+   'counters.B' => [ 'count', 1 ],
+   'current' => [ 'current' ],
+  );
+#my @files = sort keys %map; # would need to re-write tests
+my @files = qw!temperature humidity HIH4000/humidity HTM1735/humidity
+               counters.A counters.B current!;
+
 =head2 C<getopts( )>
 
 This method returns the L<Getopt::Long> option definition for the
@@ -175,39 +189,22 @@ sub ownet_reader {
   my $ow = $self->{ow};
   my $cv;
   $cv =
-    $ow->devices(
+    $ow->device_files(
       sub {
-        my $dev = shift;
-        #print $dev, "\n";
+        my ($dev, $file, $value) = @_;
+        #print STDERR $dev, ' ', $file, ' ', $value, "\n";
+        return unless (defined $value);
+        $value += 0; # make sure it is a number without whitespace
         my $id = substr $dev, -16, 15;
-        foreach my $rec ([ "temperature", "temp" ],
-                         [ 'humidity', 'humidity' ],
-                         [ 'HIH4000/humidity', 'humidity', 1 ],
-                         [ 'HTM1735/humidity', 'humidity', 2 ],
-                         [ 'counters.A', 'count', 0 ],
-                         [ 'counters.B', 'count', 1 ],
-                         [ 'current', 'current' ]) {
-          my ($filebase, $type, $index) = @$rec;
-          my $file = $dev.$filebase;
-          $cv->begin;
-          $ow->get($file, sub {
-              my $res = shift;
-              $cv->end;
-              my $value = $res->{data};
-              return unless (defined $value);
-              $value += 0; # make sure it is a number without whitespace
-              my $dev_str =
-                $id.(defined $index ? '.'.$index : '');
-              my $old = $self->{_state}->{$file};
-              my $message_type =
-                (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
-              $self->{_state}->{$file} = $value;
-              $self->send_xpl($message_type, $dev_str, $type, $value);
-              1;
-            });
-        }
+        my ($type, $index) = @{$map{$file}};
+        my $dev_str = $id.(defined $index ? '.'.$index : '');
+        my $old = $self->{_state}->{$file};
+        my $message_type =
+          (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
+        $self->{_state}->{$file} = $value;
+        $self->send_xpl($message_type, $dev_str, $type, $value);
         1;
-      });
+      }, \@files);
   return 1;
 }
 
