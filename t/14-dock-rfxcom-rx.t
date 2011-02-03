@@ -42,6 +42,7 @@ is(ref $plugin, 'xPL::Dock::RFXComRX', 'plugin has correct type');
 foreach my $r (['F020' => '4d26'], ['F041' => '41'], ['F02a' => '41']) {
   my ($recv,$send) = @$r;
   AnyEvent->one_event;
+  AnyEvent->one_event;
   ok($client_sel->can_read(0.5), 'device receive a message - '.$recv);
   my $buf = '';
   is((sysread $client, $buf, 64), length($recv)/2,

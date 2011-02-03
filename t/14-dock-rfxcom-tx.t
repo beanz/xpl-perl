@@ -51,6 +51,7 @@ ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::Wrap', 'plugin has correct type');
 
 AnyEvent->one_event;
+AnyEvent->one_event;
 
 ok($client_sel->can_read(0.5), 'device receive a message - F030F030');
 my $buf = '';
