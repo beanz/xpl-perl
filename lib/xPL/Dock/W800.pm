@@ -123,8 +123,9 @@ sub device_reader {
           push @body, event => 'alert';
           push @body, zone => $m->device;
           push @body, state => $m->event eq 'normal' ? 'false' : 'true';
-          push @body, delay  => 'min' if ($m->min_delay && $m->device =~ /x10sec/);
-          push @body, tamper => $m->tamper ? 'true' : 'false' if ($m->tamper); 
+          push @body, delay  => 'min'
+            if ($m->min_delay && $m->device =~ /x10sec/);
+          push @body, tamper => $m->tamper ? 'true' : 'false' if ($m->tamper);
           print $xpl->send(message_type => 'xpl-trig',
                            schema => 'security.zone',
                            body => \@body)->summary, "\n";
