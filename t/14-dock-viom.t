@@ -72,10 +72,12 @@ $output .=
               }, \*STDOUT);
 ok($output =~ s/Input Change Reporting is On\n//, 'output has reporting on');
 
-ok($client_sel->can_read(0.5), 'device receive a message - COR');
+ok($client_sel->can_read(0.5), 'device receive a message - 1st');
 $buf = '';
-is((sysread $client, $buf, 64), 5, 'read is correct size - COR');
-is($buf, "COR\r\n", 'content is correct - COR');
+is((sysread $client, $buf, 64), 5, 'read is correct size - 1st');
+my $second =
+  $buf eq "CIN\r\n" ? "COR\r\n" : ($buf eq "COR\r\n" ? "CIN\r\n" : undef);
+ok(defined $second, 'content is correct - 1st');
 print $client "Output 1 Inactive\r\n";
 $output .=
   test_output(sub {
@@ -89,17 +91,17 @@ ok($output =~ s/sending: COR\n//, 'output has sending COR');
 ok($output =~ s/queued: CIN\n//, 'output has queued CIN');
 ok($output =~ s/sending: CIN\n//, 'output has sending CIN');
 
-ok($client_sel->can_read(0.5), 'device receive a message - CIN');
+ok($client_sel->can_read(0.5), 'device receive a message - 2nd');
 $buf = '';
-is((sysread $client, $buf, 64), 5, 'read is correct size - CIN');
-is($buf, "CIN\r\n", 'content is correct - CIN');
+is((sysread $client, $buf, 64), 5, 'read is correct size - 2nd');
+is($buf, $second, 'content is correct - 2nd');
 print $client "Input 1 Inactive\r\n";
 is(test_output(sub {
                  wait_for_callback($xpl,
                                    input => $plugin->{_io}->input_handle)
                }, \*STDOUT),
    "Input 1 Inactive\n",
-   'read response - CIN');
+   'read response - 2nd');
 
 $plugin->{_verbose} = 0;
 print $client "Input 1 Inactive\r\n";
