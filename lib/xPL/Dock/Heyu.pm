@@ -214,7 +214,7 @@ sub read_helper {
   my ($self, $handler, $msg, $waiting) = @_;
   my ($recvseq, $rc, $err) = @{$msg->fields};
   unless ($recvseq =~ /^[0-9a-f]{8}$/) {
-    print STDERR "Helper wrote: $_\n";
+    print STDERR "Helper wrote: ", $msg->str, "\n";
     return 1;
   }
   if ($waiting && $recvseq eq $waiting->fields->[0] && $rc == 0) {

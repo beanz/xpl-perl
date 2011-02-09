@@ -159,7 +159,7 @@ is(test_output(sub {
                                      ])); }, \*STDOUT),
    ("queued: 00000001 dim a1 2\n".
     "sending: 00000001 dim a1 2\n"),
-   'x10.basic command=extended output');
+   'x10.basic command=dim output');
 
 $count = $xpl->input_callback_count($plugin->{_io}->{_input_handle});
 $out = '';
@@ -194,24 +194,16 @@ while ($count == $xpl->input_callback_count($plugin->{_io}->{_input_handle})) {
   $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
 }
 
-# hack to fix timing issue... sometimes we get both lines in one read
-if ($out !~ /Received/) {
-  is($out, "Helper wrote: testing unsupported line\n", 'helper output');
+is($out, "Helper wrote: Testing error case\n", 'helper output');
 
-  $count = $xpl->input_callback_count($plugin->{_io}->{_input_handle});
-  $out = '';
-  while ($count ==
-           $xpl->input_callback_count($plugin->{_io}->{_input_handle})) {
-    $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
-  }
-
-  is($out, "Received 00000002: 65280 65280\n", 'helper error');
-} else {
-  is($out,
-     "Helper wrote: testing unsupported line\nReceived 00000002: 65280 65280\n",
-     'helper error');
-  ok(1, 'helper output'); # dummy to keep with plan
+$count = $xpl->input_callback_count($plugin->{_io}->{_input_handle});
+$out = '';
+while ($count ==
+       $xpl->input_callback_count($plugin->{_io}->{_input_handle})) {
+  $out = test_output(sub { $xpl->main_loop(1); }, \*STDERR);
 }
+
+is($out, "Received 00000002: 65280 65280\n", 'helper error');
 
 is(test_output(sub {
                  $xpl->dispatch_xpl_message(
