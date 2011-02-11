@@ -39,7 +39,7 @@ $xpl->{_send_sin} = sockaddr_in($fake_hub_port, $fake_hub_addr);
 ok($xpl->exists_timer("!fast-hbeat"), "hbeat timer exists");
 $xpl->remove_timer("!fast-hbeat");
 ok(!$xpl->exists_timer("!fast-hbeat"), "hbeat timer removed");
-$xpl->add_timer(id => '!tick', timeout => 0.001);
+$xpl->add_timer(id => '!tick', timeout => 0.01);
 
 fake_hub_response($xpl, message_type => 'xpl-cmnd',
                   schema => "ping.request");
