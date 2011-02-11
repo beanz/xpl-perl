@@ -93,7 +93,7 @@ xPL::Bridge(3), xPL::Client(3), xPL::Listener(3)
 Project website: http://www.xpl-perl.org.uk/
 
 Notes about xPL bridges:
-http://wiki.xplproject.org.uk/index.php/Notes_On_Bridge_Implementation
+http://www.xplproject.org.uk/wiki/index.php?title=Notes_On_Bridge_Implementation
 
 =head1 AUTHOR
 

@@ -281,6 +281,8 @@ None by default.
 
 Project website: http://www.xpl-perl.org.uk/
 
+Hub Spec.: http://xplproject.org.uk/wiki/index.php?title=XPL_hubs_specification
+
 =head1 AUTHOR
 
 Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>

@@ -462,6 +462,9 @@ None by default.
 
 Project website: http://www.xpl-perl.org.uk/
 
+Notes about xPL bridges:
+http://www.xplproject.org.uk/wiki/index.php?title=Notes_On_Bridge_Implementation
+
 =head1 AUTHOR
 
 Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
