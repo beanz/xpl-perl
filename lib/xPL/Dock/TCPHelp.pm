@@ -83,7 +83,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl,
                         'secret',

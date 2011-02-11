@@ -68,14 +68,13 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl,
                         'device',
                         'The --currentcost-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
-  my $io = $self->{_io} =
+  $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
                         device => $self->{_device},
                         baud => $self->{_baud},
@@ -93,7 +92,7 @@ responsible for sending out the xPL messages.
 =cut
 
 sub device_reader {
-  my ($self, $handler, $msg, $last) = @_;
+  my ($self, $msg) = @_[0,2];
   my $xpl = $self->xpl;
   my $xml = $msg->str;
   # discard messages without a start tag - incomplete messages

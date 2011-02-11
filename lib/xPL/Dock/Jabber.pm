@@ -73,7 +73,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
   $xpl->add_event_callback(id => $self.'_config_changed',
@@ -95,7 +94,6 @@ sub config_changed {
     my %p = @_;
     # TOFIX support reconfiguration
     print STDERR "Reconfigure\n";
-    my @changes = @{$p{changes}};
     foreach my $change (@{$p{changes}}) {
       if ($change->{'name'} eq 'friend') {
         my %fm = map { $_ => 1 } split /,/, join ",",
@@ -122,19 +120,19 @@ sub connect {
                    $host, $port);
 
   $xmpp->reg_cb(session_ready => sub {
-                my ($xmpp, $acc) = @_;
+                my ($xmpp) = @_;
                 $xmpp->set_presence('available', 'Bot', 10);
               },
               disconnect => sub {
-                my ($xmpp, $acc, $h, $p, $reas) = @_;
+                my ($h, $p, $reas) = @_[2,3,4];
                 $xpl->info("disconnect ($h:$p): $reas\n");
               },
               error => sub {
-                my ($xmpp, $acc, $err) = @_;
+                my $err = $_[2];
                 $xpl->argh("ERROR: " . $err->string . "\n");
               },
               message => sub {
-                my ($xmpp, $acc, $msg) = @_;
+                my ($xmpp, $msg) = @_[0,2];
                 $self->xmpp_message($xmpp, $msg);
               });
   $xmpp->start;
@@ -156,7 +154,7 @@ sub connect {
 
 
 sub xmpp_message {
-  my ($self, $xmpp, $msg) = @_;
+  my ($self, $msg) = @_[0,2];
   my $user = $msg->from;
   my $body = $msg->body || '';
   my $from = $user;
@@ -223,7 +221,7 @@ sub send_im {
 
 sub jabber_presence {
   my $self = shift;
-  my ($sid, $obj) = @_;
+  my $obj = $_[1];
   print STDERR "Presence: ", $obj->GetFrom(), " ! ",
     $obj->GetType, " ! ", $obj->GetShow, " !\n" if ($self->verbose);
   return 1;

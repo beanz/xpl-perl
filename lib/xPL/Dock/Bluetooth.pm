@@ -60,7 +60,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl, 'addresses',
              'At least one --bluetooth-address parameter is required',

@@ -60,7 +60,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
 
@@ -158,7 +157,6 @@ sub read {
       my $device = $self->xpl->instance_id.'-'.(lc $field);
       my $old = $self->{_state}->{$device};
       $self->{_state}->{$device} = $state;
-      my $type;
       if (!defined $old || $state ne $old) {
         $self->info("$device\[status]=$state ($value)\n");
         if (defined $old) {

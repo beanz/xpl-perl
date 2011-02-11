@@ -230,7 +230,7 @@ client.
 =cut
 
 sub init_config {
-  my ($self, $params) = @_;
+  my $self = shift;
   $self->{_config} =
     xPL::Config->new(key => $self->vendor_id.'-'.$self->device_id,
                      instance => $self->instance_id);
@@ -330,7 +330,6 @@ sub config_response {
                        new => $new,
                        type => $event,
                      };
-      my $cb = 'config_'.$name;
       $self->call_event_callbacks('config_'.$name,
                                   type => $event,
                                   old => $old,
@@ -515,8 +514,6 @@ standard rate hbeat timer.
 
 sub hub_response {
   my $self = shift;
-  my %p = @_;
-  my $msg = $p{message};
 
   # we have a winner, our hbeat has been returned
   $self->remove_timer('!fast-hbeat');
@@ -537,8 +534,6 @@ This method is the callback is used to handle C<hbeat.request> messages.
 
 sub hbeat_request {
   my $self = shift;
-  my %p = @_;
-  my $msg = $p{message};
 
   $self->add_timer(id => '!hbeat-response',
                    timeout => 2 + rand 4,
@@ -555,8 +550,6 @@ This method is the callback is used to handle C<ping.request> messages.
 
 sub ping_request {
   my $self = shift;
-  my %p = @_;
-  my $msg = $p{message};
 
   if ($self->exists_timer('!ping-response')) {
     # we are about to respond anyway so do nothing
@@ -790,7 +783,7 @@ sub call_event_callbacks {
   return $count;
 }
 
-=head2 C<validate_param($params, $name, $default, $min, $max, $units)>
+=head2 C<validate_param($params, $name, $default, $min, $max)>
 
 This method is a helper method used by the constructor to check the
 validity of integer arguments against a range and applies the default
@@ -799,7 +792,7 @@ value if it is not provided.
 =cut
 
 sub validate_param {
-  my ($params, $name, $default, $min, $max, $units) = @_;
+  my ($params, $name, $default, $min, $max) = @_;
   exists $params->{$name} or return $params->{$name} = $default;
   ($params->{$name} =~ /^\d+$/ &&
    $params->{$name} >= $min && $params->{$name} <= $max);

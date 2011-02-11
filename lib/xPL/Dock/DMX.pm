@@ -63,13 +63,12 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl,
                         'device', 'The --dmx-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
-  my $io = $self->{_io} =
+  $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
                         device => $self->{_device},
                         baud => $self->{_baud},
@@ -104,10 +103,7 @@ the incoming x10.basic schema messages.
 sub xpl_in {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
   my $self = $p{arguments};
-  my $xpl = $self->xpl;
 
   if ($msg->field('base') =~ /hex/) { # hack to aid debug
     $self->{_io}->write(hex => $msg->field('value'), data => $msg,
@@ -143,7 +139,6 @@ hex value repeated according to the multiplier.
 
 sub dmx_set {
   my ($self, $msg, $base, $hex, $multi) = @_;
-  my $xpl = $self->xpl;
   my $values = $self->{_values};
   $multi = 1 unless (defined $multi);
   my @v = unpack "C*", pack "H*", $hex;
@@ -278,7 +273,7 @@ This is the callback that processes output from the DMX transmitter.
 =cut
 
 sub device_reader {
-  my ($self, $handler, $msg, $last) = @_;
+  my ($self, $msg, $last) = @_[0,2,3];
   print 'received: ', $msg, "\n";
   $self->send_xpl_confirm($last->data) if (ref $last && ref $last->data);
   return 1;

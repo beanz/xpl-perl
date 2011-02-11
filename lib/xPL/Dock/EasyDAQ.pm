@@ -70,13 +70,12 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl,
                         'device', 'The --easydaq-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
-  my $io = $self->{_io} =
+  $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
                         device => $self->{_device},
                         baud => $self->{_baud},
@@ -110,10 +109,7 @@ the incoming x10.basic schema messages.
 sub xpl_in {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
   my $self = $p{arguments};
-  my $xpl = $self->xpl;
 
   if ($msg->field('device') eq 'debug') {
     $self->{_io}->write(Msg->new('A', 0, 'query status of outputs'));
@@ -144,14 +140,12 @@ sub xpl_in {
 
 =head2 C<device_reader()>
 
-This is the callback that processes output from the RFXCOM transmitter.
-It is responsible for reading the 'ACK' messages and sending out any
-queued transmit messages.
+This is the callback that processes output from the EasyDAQ device.
 
 =cut
 
 sub device_reader {
-  my ($self, $handler, $msg, $last) = @_;
+  my ($self, $msg) = @_[0,2];
   print 'received: ', $msg, "\n";
   return 1;
 }

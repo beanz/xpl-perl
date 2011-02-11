@@ -61,7 +61,6 @@ for reading 1-wire temperature, humidity and counter devices.
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl, 'mount',
                         'The --owfs-mount parameter is required', 1);
@@ -96,8 +95,6 @@ sub xpl_in {
   my $self = shift;
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   my $device = uc $msg->field('device');
   my $current = lc $msg->field('current');

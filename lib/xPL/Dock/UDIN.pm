@@ -58,14 +58,13 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl,
                         'device', 'The --udin-tty parameter is required', 1);
 
   $self->SUPER::init($xpl, @_);
 
-  my $io = $self->{_io} =
+  $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
                         device => $self->{_device},
                         baud => $self->{_baud},
@@ -103,10 +102,7 @@ the incoming control.basic schema messages.
 sub xpl_in {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
   my $self = $p{arguments};
-  my $xpl = $self->xpl;
 
   if ($msg->field('device') eq 'debug') {
     $self->{_io}->write('s0');
@@ -138,7 +134,7 @@ is responsible for sending out the sensor.basic xpl-trig messages.
 =cut
 
 sub process_line {
-  my ($self, $handler, $msg, $last) = @_;
+  my ($self, $msg) = @_[0,2];
   my $line = $msg->raw;
   return unless ($line ne '');
   $self->info("received: '$line'\n");

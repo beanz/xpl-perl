@@ -60,7 +60,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
 

@@ -56,7 +56,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
 
@@ -77,7 +76,7 @@ sub init {
   $xpl->add_input(handle => $fh, callback => sub { $self->heyu_monitor(@_) });
 
   my ($rh, $wh);
-  my $pid = open3($wh, $rh, undef, 'xpl-heyu-helper', @ARGV);
+  $self->{_pid} = open3($wh, $rh, undef, 'xpl-heyu-helper', @ARGV);
   $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
                         input_handle => $rh, output_handle => $wh,
@@ -111,8 +110,6 @@ sub xpl_in {
   my $self = shift;
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   my $heyu_command = command_xpl_to_heyu($msg->field('command'));
   return 1 unless ($heyu_command);
@@ -167,8 +164,8 @@ messages.
 
 sub heyu_monitor {
   my $self = shift;
-  my $bytes = $self->{_monitor_fh}->sysread($self->{_buffer}, 512,
-                                            length($self->{_buffer}));
+  $self->{_monitor_fh}->sysread($self->{_buffer}, 512,
+                                length($self->{_buffer}));
   while ($self->{_buffer} =~ s/^(.*?)\n//) {
     $_ = $LAST_PAREN_MATCH;
     my $schema = 'x10.basic';
@@ -211,7 +208,7 @@ command.  It is responsible for reading the results of heyu commands.
 =cut
 
 sub read_helper {
-  my ($self, $handler, $msg, $waiting) = @_;
+  my ($self, $msg, $waiting) = @_[0,2,3];
   my ($recvseq, $rc, $err) = @{$msg->fields};
   unless ($recvseq =~ /^[0-9a-f]{8}$/) {
     print STDERR "Helper wrote: ", $msg->str, "\n";

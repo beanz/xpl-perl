@@ -60,7 +60,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
 
@@ -116,7 +115,7 @@ sub read {
     my $count = 0;
     my $used = 0;
     foreach my $s ($c =~ /(Encoder \d+ is \w+ on \S+ and is \w+)/img) {
-      my ($num, $state) = ($s =~ /Encoder (\d+) is \w+ on \S+ and is (\w+)/i);
+      my ($state) = ($s =~ /Encoder \d+ is \w+ on \S+ and is (\w+)/i);
       #print STDERR $num, " ", $state, "\n";
       $count++;
       $used++ if ($state ne "not");

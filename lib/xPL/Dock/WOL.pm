@@ -57,7 +57,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
 
@@ -81,8 +80,6 @@ sub xpl_handler {
   my $self = shift;
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   unless (defined $msg->field('device') && (lc $msg->field('type')) eq 'wake') {
     return;

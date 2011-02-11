@@ -58,7 +58,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
 
@@ -123,10 +122,6 @@ messages.
 
 sub query_handler {
   my $self = shift;
-  my %p = @_;
-  my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   my $time = time;
   my $datetime = strftime "%Y%m%d%H%M%S", localtime $time;

@@ -60,7 +60,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl,
                         'device', 'The --w800-tty parameter is required', 1);
@@ -117,7 +116,6 @@ sub device_reader {
 
       my ($t, $id) = split /\./, $m->device, 2;
       if ($t eq 'powercode' || $m->device =~ /x10sec/) {
-        my $xplmsg;
         if ($m->event =~ /^(alert|normal)$/) {
           my @body;
           push @body, event => 'alert';

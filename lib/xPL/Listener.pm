@@ -186,8 +186,8 @@ sub new {
 
   undef $self->{_select};
 
-  my $listen = $self->create_listen_socket();
-  my $send = $self->create_send_socket();
+  $self->create_listen_socket();
+  $self->create_send_socket();
 
   return $self;
 }

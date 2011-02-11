@@ -100,7 +100,7 @@ sub _gtk2_add_input {
   my $self = shift;
   my %p = @_;
   $self->SUPER::add_input(@_);
-  my $h = $self->{_handle_map}->{$p{handle}} =
+  $self->{_handle_map}->{$p{handle}} =
     Glib::IO->add_watch($p{handle}->fileno, ['G_IO_IN', 'G_IO_HUP'],
                         \&_gtk2_input_wrapper,
                         [$self, $p{handle}] );

@@ -70,7 +70,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl,
                         'device',
@@ -117,8 +116,6 @@ the incoming x10.basic schema messages.
 sub xpl_x10 {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
   my $self = $p{arguments};
 
   my %args = map { $_ => $msg->field($_) } $msg->body_fields;
@@ -138,8 +135,6 @@ the incoming homeeasy.basic schema messages.
 sub xpl_homeeasy {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
   my $self = $p{arguments};
 
   my %args = map { $_ => $msg->field($_) } $msg->body_fields;

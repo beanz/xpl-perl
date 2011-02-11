@@ -65,7 +65,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
 
@@ -164,7 +163,6 @@ sub ts {
 
 sub queue_batch_entry {
   my ($self, $rec, $start, $end, $kwh) = @_;
-  my $auth_token = $self->{_cfg}->{auth_token};
   my $user_id = $self->{_cfg}->{user_id};
   my $variable_id = $self->{_cfg}->{device}.'.'.$rec->{id};
   my $entry = q{

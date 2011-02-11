@@ -58,7 +58,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
 
@@ -118,7 +117,7 @@ sub poll {
       my $now = read_line($f);
       next unless (defined $now && $now !~ /\D/);
       my $bat = sprintf "%.2f", $now*100/$full;
-      my $device = $self->xpl->instance_id."-".(lc $dev);
+      my $device = $xpl->instance_id."-".(lc $dev);
       my $old = $self->{_state}->{$device.'-battery'};
       $self->{_state}->{$device.'-battery'} = $bat;
       my $type;
@@ -128,32 +127,31 @@ sub poll {
       } else {
         $type = 'xpl-stat';
       }
-      $self->xpl->send(message_type => $type, schema => 'sensor.basic',
-                       body => [
-                                device => $device,
-                                type => 'battery',
-                                current => $bat,
-                                units => '%',
-                               ]
-                      );
+      $xpl->send(message_type => $type, schema => 'sensor.basic',
+                 body => [
+                          device => $device,
+                          type => 'battery',
+                          current => $bat,
+                          units => '%',
+                         ]
+                );
     } elsif (is_file($f = $p.'/'.$dev.'/online')) {
       my $online = read_line($f);
       next unless (defined $online);
       my $state = $online ? 'mains' : 'battery';
-      my $device = $self->xpl->instance_id."-".(lc $dev);
+      my $device = $xpl->instance_id."-".(lc $dev);
       my $old = $self->{_state}->{$device.'-power'};
       $self->{_state}->{$device.'-power'} = $state;
-      my $type;
       if (!defined $old || $state ne $old) {
         $self->info("$device $state ($online)\n");
         if (defined $old) {
-          $self->xpl->send(message_type => 'xpl-trig',
-                           schema => 'ups.basic',
-                           body => [
-                                    status => $state,
-                                    event => 'on'.$state,
-                                   ]
-                          );
+          $xpl->send(message_type => 'xpl-trig',
+                     schema => 'ups.basic',
+                     body => [
+                              status => $state,
+                              event => 'on'.$state,
+                             ]
+                    );
         }
       }
     }

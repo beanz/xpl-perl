@@ -448,7 +448,6 @@ element of the list is a hash reference containing keys for
 
 sub interfaces {
   my $self = shift;
-  my @res;
   # cache the results of interface lookups
   unless (exists $self->{_interfaces}) {
     # I was going to use Net::Ifconfig::Wrapper but it appears to hide
@@ -710,7 +709,7 @@ This methods is just a helper to 'die' a helpful error messages.
 sub argh {
   my $pkg = shift;
   if (ref $pkg) { $pkg = ref $pkg }
-  my ($file, $line, $method) = (caller 1)[1,2,3];
+  my $method = (caller 1)[3];
   $method =~ s/.*:://;
   croak $pkg."->$method: @_\n";
 }
@@ -724,7 +723,7 @@ This methods is just a helper to 'warn' a helpful error messages.
 sub ouch {
   my $pkg = shift;
   if (ref $pkg) { $pkg = ref $pkg }
-  my ($file, $line, $method) = (caller 1)[1,2,3];
+  my $method = (caller 1)[3];
   $method =~ s/.*:://;
   carp $pkg."->$method: @_\n";
   return;

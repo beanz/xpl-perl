@@ -58,10 +58,9 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->SUPER::init($xpl, @_);
-  my $io = $self->{_io} =
+  $self->{_io} =
     xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
                         device => $self->{_server},
                         port => 8765,
@@ -77,7 +76,7 @@ This callback reads data from the LIRC server.
 =cut
 
 sub lirc_reader {
-  my ($self, $handler, $msg, $last) = @_;
+  my ($self, $msg) = @_[0,2];
   $self->info($msg,"\n");
   if ($msg->raw =~ m!^\S+ \S{2} (\S+) (\S+)!) {
     my $device = lc($2);

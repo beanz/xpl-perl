@@ -192,7 +192,7 @@ just override this method to implement specific behaviour.
 
 sub reader_wrapper {
   my ($self, $handle) = @_;
-  my $bytes = $self->read($handle);
+  $self->read($handle);
   while (length $self->{_buffer}) {
     my $obj = $self->{_input_record_type}->read($self->{_buffer});
     defined $obj or last;

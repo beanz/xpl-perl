@@ -68,7 +68,6 @@ sub getopts {
 sub init {
   my $self = shift;
   my $xpl = shift;
-  my %p = @_;
 
   $self->required_field($xpl,
                         'device', 'The --viom-tty parameter is required', 1);
@@ -127,11 +126,7 @@ the incoming control.basic schema messages.
 sub xpl_in {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
   my $self = $p{arguments};
-  my $xpl = $self->xpl;
-  my $state = $self->{_state};
 
   return 1 unless ($msg->field('device') =~ /^o(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
@@ -171,11 +166,9 @@ is responsible for sending out the sensor.basic xpl-trig messages.
 =cut
 
 sub process_line {
-  my ($self, $handler, $msg, $waiting) = @_;
+  my ($self, $msg) = @_[0,2];
   my $line = $msg->raw;
   return unless ($line ne '');
-  my $xpl = $self->xpl;
-  my $state = $self->{_state};
   my $time = time;
   if ($line =~ /[01]{16}/) {
     foreach my $index (0..15) {
@@ -238,7 +231,7 @@ sub state_changed {
   my ($self, $type, $num, $state, $time) = @_;
   my $internal_state = $state_map{$state};
   my $id = (substr $type, 0, 1).(sprintf "%02d", $num);
-  my ($old, $old_time) = @{$self->{_state}->{$id}||['low', $time-1]};
+  my ($old) = @{$self->{_state}->{$id}||['low', $time-1]};
   if ($internal_state ne $old) {
     $self->{_state}->{$id} = [ $internal_state, $time ];
     return [$id, $internal_state];
