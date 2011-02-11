@@ -360,6 +360,7 @@ t/config/xPL/config/test4.yaml
 t/config/xPL/config/test5.yaml
 t/config/xPL/config/test6.yaml
 t/config/xPL/config/test.yaml
+t/Dock.pm
 t/Helpers.pm
 t/interfaces/ifconfig.empty/ifconfig
 t/interfaces/ifconfig.freebsd/ifconfig
