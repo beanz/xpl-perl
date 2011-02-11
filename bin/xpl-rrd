@@ -29,6 +29,7 @@ integration with different output formats.
 
 =cut
 
+use 5.006;
 use strict;
 use warnings;
 use Getopt::Long;

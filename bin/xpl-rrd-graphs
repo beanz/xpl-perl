@@ -19,6 +19,7 @@ in RRD database files.
 
 =cut
 
+use 5.006;
 use strict;
 use File::Find;
 use File::Path qw/mkpath/;

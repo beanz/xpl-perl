@@ -34,6 +34,7 @@ xpl-trig messages for noise, bytes and packet statistics.
 
 =cut
 
+use 5.006;
 use strict;
 use warnings;
 use Getopt::Long;

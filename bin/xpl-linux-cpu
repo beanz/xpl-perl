@@ -28,6 +28,7 @@ and sends them as C<sensor.basic> messages with C<type=count>.
 
 =cut
 
+use 5.006;
 use strict;
 use warnings;
 use Getopt::Long;
