@@ -20,7 +20,10 @@ types:
             - generic
             - humidity
             - input
+            - output
+            - power
             - pressure
+            - setpoint
             - speed
             - temp
             - uv
