@@ -426,13 +426,13 @@ sub send_from_list {
   while ($i <= $#_) {
     my $k = $_[$i++];
     my $v = $_[$i++];
-    if ($k eq '-m') {
+    if ($k eq '-m' || $k eq 'message_type') {
       $args{message_type} = $v;
-    } elsif ($k eq '-c') {
+    } elsif ($k eq '-c' || $k eq 'schema') {
       $args{schema} = $v;
-    } elsif ($k eq '-s') {
+    } elsif ($k eq '-s' || $k eq 'source') {
       $args{head}->{source} = $v;
-    } elsif ($k eq '-t') {
+    } elsif ($k eq '-t' || $k eq 'target') {
       $args{head}->{target} = $v;
     } elsif ($k eq 'validate') {
       $args{$k} = $v;
