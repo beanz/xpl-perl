@@ -40,10 +40,10 @@ sub-class supports the following parameter hash values:
 
 =over 4
 
-=item recurrencetab
+=item freq
 
-This should be a valid recurrencetab-like string of the form
-"minute hour day_of_month month day_of_week".
+This should be a valid L<DateTime::Event::Recurrence> method such
+as C<daily>, C<hourly>, C<weekly>, etc.
 
 =item tz
 
@@ -51,6 +51,9 @@ The timezone to apply to the timer - Europe/London is assumed if this
 value is omitted.
 
 =back
+
+Any other arguments are passed directly to the L<DateTime::Event::Recurrence>
+method.
 
 =cut
 
