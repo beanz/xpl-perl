@@ -24,7 +24,8 @@ use strict;
 use warnings;
 
 use English qw/-no_match_vars/;
-use xPL::IOHandler;
+use AnyEvent::CurrentCost;
+use Device::CurrentCost::Constants;
 use xPL::Dock::Plug;
 
 our @ISA = qw(xPL::Dock::Plug);
@@ -34,13 +35,6 @@ our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
 __PACKAGE__->make_readonly_accessor($_) foreach (qw/baud device/);
-
-{
- package xPL::IORecord::CCXML;
- use base 'xPL::IORecord::XML';
- sub tag { qr/msg/ }
- 1;
-}
 
 =head2 C<getopts( )>
 
@@ -74,13 +68,18 @@ sub init {
                         'The --currentcost-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
-  $self->{_io} =
-    xPL::IOHandler->new(xpl => $self->{_xpl}, verbose => $self->verbose,
-                        device => $self->{_device},
-                        baud => $self->{_baud},
-                        reader_callback => sub { $self->device_reader(@_) },
-                        input_record_type => 'xPL::IORecord::CCXML',
-                        discard_buffer_timeout => 0.1);
+  $self->{_cc} =
+    AnyEvent::CurrentCost->new(device => $self->{_device},
+                               baud => $self->{_baud},
+                               callback => sub { $self->device_reader(@_) },
+                               on_error => sub {
+                                 my ($fatal, $err) = @_;
+                                 if ($fatal) {
+                                   die $err, "\n";
+                                 } else {
+                                   warn $err, "\n";
+                                 }
+                               });
   return $self;
 }
 
@@ -92,60 +91,36 @@ responsible for sending out the xPL messages.
 =cut
 
 sub device_reader {
-  my ($self, $msg) = @_[0,2];
+  my ($self, $msg) = @_;
   my $xpl = $self->xpl;
-  my $xml = $msg->str;
-  # discard messages without a start tag - incomplete messages
-  return 1 if ($xml =~ /<hist>/); # ignore historical data messages
-  $xml =~ m!<msg>(.*?)</msg>!s;
-  my $data = $1;
-  my $base_type;
-  my @dev_keys;
-  if ($data =~ s!<src><name>([^<]+)</name>(.*?)</src>!<src>$1</src>$2!g) {
-    $base_type = 'curcost';
-    @dev_keys = qw/id/;
-  } else {
-    $base_type = 'cc128';
-    @dev_keys = qw/id sensor/;
-  }
-  # xml hack
-  $data =~ s!\s*<([^>]+)>([^<]+)</\1>\s*!$1=$2 !g;
-  $data =~ s!\s*<([^>]+)>([^<]+)</\1>\s*! $1.$2!g;
-  my %data = map { split /=/, $_, 2 } split /\s+/, $data;
-  #print "D: $_ => ", $data{$_}, "\n" foreach (keys %data);
-  my $device = join '.', $base_type, map { lc $_ } @data{@dev_keys};
+  return unless ($msg->has_readings); # sensor type 1 ?
+  my $device =
+    ($self->{_cc}->type == CURRENT_COST_ENVY ? 'cc128' : 'curcost').
+      '.'.$msg->id.'.'.$msg->sensor;
 
-  if ($data{'type'} == 1) { # elec
-    $data{'total.watts'} = 0;
-    foreach my $p ('ch1', 'ch2', 'ch3', 'total') {
-      my $item = $p.'.watts';
-      next unless (exists $data{$item});
-      $data{'total.watts'} += $data{$item} unless ($p eq 'total');
-      my $v = $data{$item}/240;
-      my $dev = $device.($p eq 'total' ? '' : '.'.substr $p, 2, 1);
-      my $xplmsg =
-        $xpl->send(message_type => 'xpl-trig',
+  foreach my $p (1..3, undef) {
+    my $v = $msg->value($p);
+    my $dev = $device.($p ? '.'.$p : '');
+    my $xplmsg =
+      $xpl->send(message_type => 'xpl-trig',
+                 schema => 'sensor.basic',
+                 body =>
+                 [
+                  device => $dev,
+                  type => 'power',
+                  current => 0+$v,
+                  units => 'W',
+                 ]);
+    print $xplmsg->summary, "\n";
+  }
+  print $xpl->send(message_type => 'xpl-trig',
                    schema => 'sensor.basic',
                    body =>
                    [
-                    device => $dev,
-                    type => 'current',
-                    current => $v,
-                   ]);
-      print $xplmsg->summary, "\n";
-    }
-    print $xpl->send(message_type => 'xpl-trig',
-                     schema => 'sensor.basic',
-                     body =>
-                     [
-                      device => $device,
-                      type => 'temp',
-                      current => $data{tmpr},
-                     ])->summary, "\n";
-  } else {
-    warn "Sensor type: ", $data{type},
-      " not supported.  Message was:\n", $msg,"\n";
-  }
+                    device => $device,
+                    type => 'temp',
+                    current => $msg->temperature,
+                   ])->summary, "\n";
   return 1;
 }
 
@@ -170,7 +145,7 @@ Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2005, 2009 by Mark Hindess
+Copyright (C) 2005, 2010 by Mark Hindess
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.7 or,
