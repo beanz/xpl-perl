@@ -26,6 +26,7 @@ use warnings;
 use English qw/-no_match_vars/;
 use AnyEvent::CurrentCost;
 use Device::CurrentCost::Constants;
+use IO::Socket::INET;
 use xPL::Dock::Plug;
 
 our @ISA = qw(xPL::Dock::Plug);
@@ -68,10 +69,18 @@ sub init {
                         'The --currentcost-tty parameter is required', 1);
   $self->SUPER::init($xpl, @_);
 
+  my %args;
+  if ($self->{_device} =~ m!/!) {
+    $args{device} = $self->{_device};
+  } else {
+    $self->{_device} .= ':10001' unless ($self->{_device} =~ /:/);
+    $args{filehandle} = IO::Socket::INET->new($self->{_device})
+  }
   $self->{_cc} =
-    AnyEvent::CurrentCost->new(device => $self->{_device},
+    AnyEvent::CurrentCost->new(%args,
                                baud => $self->{_baud},
-                               callback => sub { $self->device_reader(@_) },
+                               callback => sub { $self->device_reader(@_);
+                                                 $self->{_got_message}++; },
                                on_error => sub {
                                  my ($fatal, $err) = @_;
                                  if ($fatal) {
@@ -98,20 +107,25 @@ sub device_reader {
     ($self->{_cc}->type == CURRENT_COST_ENVY ? 'cc128' : 'curcost').
       '.'.$msg->id.'.'.$msg->sensor;
 
-  foreach my $p (1..3, undef) {
-    my $v = $msg->value($p);
-    my $dev = $device.($p ? '.'.$p : '');
-    my $xplmsg =
-      $xpl->send(message_type => 'xpl-trig',
-                 schema => 'sensor.basic',
-                 body =>
-                 [
-                  device => $dev,
-                  type => 'power',
-                  current => 0+$v,
-                  units => 'W',
-                 ]);
-    print $xplmsg->summary, "\n";
+  if ($msg->units eq 'watts') {
+    foreach my $p (1..3, undef) {
+      my $v = $msg->value($p);
+      my $dev = $device.($p ? '.'.$p : '');
+      my $xplmsg =
+        $xpl->send(message_type => 'xpl-trig',
+                   schema => 'sensor.basic',
+                   body =>
+                   [
+                    device => $dev,
+                    type => 'power',
+                    current => 0+$v,
+                    units => 'W',
+                   ]);
+      print $xplmsg->summary, "\n";
+    }
+  } else {
+    warn "Sensor type: ", $msg->type, " not supported.  Message was:\n",
+      $msg->message, "\n";
   }
   print $xpl->send(message_type => 'xpl-trig',
                    schema => 'sensor.basic',
