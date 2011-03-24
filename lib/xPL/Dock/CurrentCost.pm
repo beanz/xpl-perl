@@ -110,6 +110,7 @@ sub device_reader {
   if ($msg->units eq 'watts') {
     foreach my $p (1..3, undef) {
       my $v = $msg->value($p);
+      next unless (defined $v);
       my $dev = $device.($p ? '.'.$p : '');
       my $xplmsg =
         $xpl->send(message_type => 'xpl-trig',
