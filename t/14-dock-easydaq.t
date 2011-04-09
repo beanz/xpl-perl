@@ -56,7 +56,7 @@ ok($client_sel->can_read(0.5), 'device receive a message - 4200');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - 4200');
 my $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4200', 'content is correct - 4200');
+is($m->str, '4200', 'content is correct - 4200');
 
 wait_for_tick($xpl, $count);
 
@@ -74,7 +74,7 @@ ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r1/high');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - easydaq-r1/high');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4301', 'content is correct - easydaq-r1/high');
+is($m->str, '4301', 'content is correct - easydaq-r1/high');
 
 wait_for_tick($xpl, $count);
 
@@ -92,7 +92,7 @@ ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r1/low');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - easydaq-r1/low');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4300', 'content is correct - easydaq-r1/low');
+is($m->str, '4300', 'content is correct - easydaq-r1/low');
 
 wait_for_tick($xpl, $count);
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
@@ -109,13 +109,13 @@ ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r3/pulse');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - easydaq-r3/pulse');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4304', 'content is correct - easydaq-r3/pulse');
+is($m->str, '4304', 'content is correct - easydaq-r3/pulse');
 wait_for_tick($xpl, $count);
 ok($client_sel->can_read(0.5), 'device receive a message - easydaq-r3/pulse');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - easydaq-r3/pulse');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4300', 'content is correct - easydaq-r3/pulse');
+is($m->str, '4300', 'content is correct - easydaq-r3/pulse');
 wait_for_tick($xpl, $count);
 
 $msg = xPL::Message->new(message_type => 'xpl-cmnd',
@@ -156,7 +156,7 @@ ok($client_sel->can_read(0.5), 'device receive a message - debug/high');
 $buf = '';
 is((sysread $client, $buf, 64), 2, 'read is correct size - debug/high');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '4100', 'content is correct - debug/high');
+is($m->str, '4100', 'content is correct - debug/high');
 print $client chr(0);
 is(test_output(sub {
                  wait_for_callback($xpl,
