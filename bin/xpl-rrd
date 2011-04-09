@@ -63,14 +63,14 @@ $args{'verbose'} = $verbose if ($verbose);
 
 my $rrd_dir =
    shift or pod2usage(-message =>
-                        "The path to rrd directory parameter is required",
+                        'The path to rrd directory parameter is required',
                       -exitstatus => 1);
 
 my $state_db = $rrd_dir.'/state.db';
 
 mkdir $rrd_dir, 0755 unless (-d $rrd_dir);
 my %state;
-my $tie_h = tie %state, "DB_File", $state_db, O_CREAT|O_RDWR, 0666, $DB_HASH;
+my $tie_h = tie %state, 'DB_File', $state_db, O_CREAT|O_RDWR, 0666, $DB_HASH;
 die "Failed to open $state_db file: $!\n" unless ($tie_h);
 
 my %map = ();
@@ -94,10 +94,10 @@ my %last;
 my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 
 # Add a callback to receive all incoming xPL messages
-$xpl->add_xpl_callback(id => "xpl",
+$xpl->add_xpl_callback(id => 'xpl',
                        self_skip => 0, targeted => 0,
                        callback => \&xpl_msg);
-$xpl->add_timer(id => "rrd", timeout => 120, callback => \&rrd);
+$xpl->add_timer(id => 'rrd', timeout => 120, callback => \&rrd);
 
 # Run the main loop
 $xpl->main_loop();
@@ -115,47 +115,47 @@ sub xpl_msg {
   my $device = $msg->device;
   my $type = $msg->type;
   my $current = $msg->current;
-  if ($msg->schema eq 'sensor.basic' && $device && $type eq "temp") {
+  if ($msg->schema eq 'sensor.basic' && $device && $type eq 'temp') {
     my $dev = exists $map{$device} ? $map{$device} : $device;
     delete $state{$dev};
     $state{$dev.'/temp'} =
       join($c, $time, $type, $current, 1, 'GAUGE', -20, 120);
-  } elsif ($schema eq "sensor.basic" && $device && $type eq "humidity") {
+  } elsif ($schema eq 'sensor.basic' && $device && $type eq 'humidity') {
     my $dev = exists $map{$device} ? $map{$device} : $device;
     delete $state{$dev};
     $state{$dev.'/humidity'} =
       join($c, $time, $type, $current, 1, 'GAUGE', 0, 100);
-  } elsif ($schema eq "sensor.basic" && $device && $type eq "pressure") {
+  } elsif ($schema eq 'sensor.basic' && $device && $type eq 'pressure') {
     my $dev = exists $map{$device} ? $map{$device} : $device;
     delete $state{$dev};
     $state{$dev.'/pressure'} =
       join($c, $time, $type, $current, 1, 'GAUGE', 790, 1060);
-  } elsif ($schema eq "sensor.basic" && $device && $type eq "current") {
+  } elsif ($schema eq 'sensor.basic' && $device && $type eq 'current') {
     my $dev = exists $map{$device} ? $map{$device} : $device;
     delete $state{$dev};
     $state{$dev.'/current'} =
       join($c, $time, $type, $current, 1, 'GAUGE', 0, 80);
-  } elsif ($schema eq "sensor.basic" && $device && $type eq "uv") {
+  } elsif ($schema eq 'sensor.basic' && $device && $type eq 'uv') {
     my $dev = exists $map{$device} ? $map{$device} : $device;
     delete $state{$dev};
     $state{$dev.'/uv'} =
       join($c, $time, $type, $current, 1, 'GAUGE', 0, 40);
-  } elsif ($schema eq "sensor.basic" && $device && $type eq "battery") {
+  } elsif ($schema eq 'sensor.basic' && $device && $type eq 'battery') {
     my $dev = $device;
     delete $state{$dev};
     $state{$dev.'/battery'} =
       join($c, $time, $type, $current, 1, 'GAUGE', 0, 100);
-  } elsif ($schema eq "sensor.basic" && $device && $type eq "energy") {
+  } elsif ($schema eq 'sensor.basic' && $device && $type eq 'energy') {
     my $dev = exists $map{$device} ? $map{$device} : $device;
     delete $state{$dev};
     $state{$dev.'/kwh'} =
       join($c, $time, $type, $current, 1, 'COUNTER', 0, 100);
-  } elsif ($schema eq "sensor.network" && $device && $type eq "db") {
+  } elsif ($schema eq 'sensor.network' && $device && $type eq 'db') {
     my $dev = $msg->source;
     $dev =~ s/.*?\.//;
     $state{$dev.'/'.$device.'-db'} =
       join($c, $time, 'db' , $current, 1, 'GAUGE', -10, 200);
-  } elsif ($schema eq "sensor.network" && $device && $type eq "bps") {
+  } elsif ($schema eq 'sensor.network' && $device && $type eq 'bps') {
     my $dev = $msg->source;
     $dev =~ s/.*?\.//;
     $state{$dev.'/'.$device.'-bps'} =
@@ -165,7 +165,7 @@ sub xpl_msg {
       'x10/'.(exists $map{$device} ? $map{$device} : $device);
     $state{$dev} =
       join($c, $time, 'state',
-           $msg->field('command') eq "on" ? 1 : 0, 1, 'GAUGE', 0, 1);
+           $msg->field('command') eq 'on' ? 1 : 0, 1, 'GAUGE', 0, 1);
   } elsif ($schema eq 'sensor.basic' && $type eq 'count') {
     my $dev = $device;
     $dev =~ s/-/\//;
@@ -219,20 +219,20 @@ sub update_rrd {
 sub make_rrd {
   my ($rrd, $time, $dev, $last, $var, $val, $fill, $dstype, $min, $max) = @_;
   RRDs::create($rrd,
-               "--step", 60,
+               '--step', 60,
                "DS:$var:$dstype:300:$min:$max",
-               "RRA:AVERAGE:0.5:1:6000", # 100 hours
-               "RRA:AVERAGE:0.5:60:2400", # every hour for 100 days
-               "RRA:AVERAGE:0.5:1440:400", # every day for 400 days
-               "RRA:AVERAGE:0.5:10080:2080", # every week for 40 years
-               "RRA:MIN:0.5:1:6000",
-               "RRA:MIN:0.5:60:2400",
-               "RRA:MIN:0.5:1440:400",
-               "RRA:MIN:0.5:10080:2080",
-               "RRA:MAX:0.5:1:6000",
-               "RRA:MAX:0.5:60:2400",
-               "RRA:MAX:0.5:1440:400",
-               "RRA:MAX:0.5:10080:2080",
+               'RRA:AVERAGE:0.5:1:6000', # 100 hours
+               'RRA:AVERAGE:0.5:60:2400', # every hour for 100 days
+               'RRA:AVERAGE:0.5:1440:400', # every day for 400 days
+               'RRA:AVERAGE:0.5:10080:2080', # every week for 40 years
+               'RRA:MIN:0.5:1:6000',
+               'RRA:MIN:0.5:60:2400',
+               'RRA:MIN:0.5:1440:400',
+               'RRA:MIN:0.5:10080:2080',
+               'RRA:MAX:0.5:1:6000',
+               'RRA:MAX:0.5:60:2400',
+               'RRA:MAX:0.5:1440:400',
+               'RRA:MAX:0.5:10080:2080',
               );
   my $err = RRDs::error;
   if ($err) {
