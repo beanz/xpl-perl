@@ -15,6 +15,10 @@ if ($@) {
   die "Missing required YAML::Syck (recommended) or YAML module\n" if ($@);
   warn "Found YAML module which is sufficient but YAML::Syck would be better\n";
 }
+eval { require DB_File; };
+warn "DB_File is required for xPL config.basic support but was not found\n"
+  if ($@);
+
 WriteMakefile(
               NAME => 'xPL-Perl',
               VERSION_FROM => 'lib/xPL/Base.pm',
@@ -25,6 +29,7 @@ WriteMakefile(
                 PREREQ_PM => {
                   'Module::Pluggable' => 0,
                   'Date::Parse' => 0,
+                  'AnyEvent' => 0,
                 },
                ) : ()),
              );
