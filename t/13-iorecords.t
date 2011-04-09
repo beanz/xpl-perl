@@ -14,11 +14,11 @@ my $r = xPL::IORecord::Simple->new('test');
 ok($r, 'xPL::IOR::Simple->new');
 is($r->raw, 'test', 'xPL::IOR::Simple->raw');
 is($r->out, 'test', 'xPL::IOR::Simple->out');
-is($r, 'test', 'xPL::IOR::Simple->str overloaded ""');
+is(''.$r, 'test', 'xPL::IOR::Simple->str overloaded ""');
 $r = xPL::IORecord::Simple->new(raw => 'test',
                                 desc => 'description', data => 'data');
 ok($r, 'xPL::IOR::Simple->new w/desc');
-is($r, 'test: description', 'xPL::IOR::Simple->str overloaded "" w/desc');
+is(''.$r, 'test: description', 'xPL::IOR::Simple->str overloaded "" w/desc');
 is($r->data, 'data', 'xPL::IOR::Simple->data');
 
 is(test_error(sub { xPL::IORecord::Simple->new() }),
@@ -33,8 +33,8 @@ foreach my $t ([CRLFLine => "\r\n"], [LFLine => "\n"], [CRLine => "\r"]) {
   is($r->out, 'test'.$eol, $class.'->out');
   is($r->str, 'test: description', $class.'->str');
   my $buf = $eol.'test'.$eol.'123';
-  is($class->read($buf), '', $class.'->read 1');
-  is($class->read($buf), 'test', $class.'->read 2');
+  is($class->read($buf)->str, '', $class.'->read 1');
+  is($class->read($buf)->str, 'test', $class.'->read 2');
   is($class->read($buf), undef, $class.'->read 3');
   is($buf, '123', $class.'->read remaining buffer');
 }
