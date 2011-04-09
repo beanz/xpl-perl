@@ -106,8 +106,6 @@ $xpl->main_loop();
 sub xpl_msg {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
   my $time = time;
   my $c = chr(0);
 

@@ -117,8 +117,6 @@ extended.
 sub xpl_in {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   my @devices;
   if ($msg->field('device')) {

@@ -82,8 +82,6 @@ extended.
 sub xpl_in {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   my $command = $msg->field('command');
   if ($command =~ /^volume\s?([-+]?\d+)/) {

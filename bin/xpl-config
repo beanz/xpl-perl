@@ -80,8 +80,6 @@ $xpl->main_loop();
 sub xpl_hub_response {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   print STDERR "Sending hbeat.request\n" if ($verbose);
   $xpl->send(message_type => 'xpl-cmnd',
@@ -99,8 +97,6 @@ sub xpl_hub_response {
 sub hbeat_response {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   return unless ($msg->schema =~ /^(config|hbeat)\./);
   $clients{$1}->{$msg->source} = $msg;
@@ -145,8 +141,6 @@ sub report {
 sub config_list {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   print "Config list response:\n";
   my %items = ();
@@ -199,8 +193,6 @@ sub give_up {
 sub config_current {
   my %p = @_;
   my $msg = $p{message};
-  my $peeraddr = $p{peeraddr};
-  my $peerport = $p{peerport};
 
   print "Config current response:\n";
   foreach my $f ($msg->body_fields) {
