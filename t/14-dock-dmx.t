@@ -61,7 +61,7 @@ foreach my $color ('ff0000', '00ff00', '0000ff') {
   my $buf = '';
   is((sysread $client, $buf, 64), 6, 'read is correct size - '.$color);
   my $m = xPL::IORecord::Hex->new(raw => $buf);
-  is($m, '010001'.$color, 'content is correct - '.$color);
+  is($m->str, '010001'.$color, 'content is correct - '.$color);
 
   print $client chr(0).(substr $buf, -1);
 
@@ -97,7 +97,7 @@ ok($client_sel->can_read(0.5), 'serial device ready to read - base=1x2');
 my $buf = '';
 is((sysread $client, $buf, 64), 9, 'read is correct size - base=1x2');
 my $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '0100010000ff0000ff', 'content is correct - base=1x2');
+is($m->str, '0100010000ff0000ff', 'content is correct - base=1x2');
 
 print $client chr(0).(substr $buf, -1);
 
@@ -158,7 +158,7 @@ ok($client_sel->can_read(0.5), 'serial device ready to read - base=hex');
 $buf = '';
 is((sysread $client, $buf, 64), 4, 'read is correct size - base=hex');
 $m = xPL::IORecord::Hex->new(raw => $buf);
-is($m, '010001ff', 'content is correct - base=hex');
+is($m->str, '010001ff', 'content is correct - base=hex');
 
 print $client chr(0).(substr $buf, -1);
 
@@ -231,7 +231,8 @@ $xpl->add_input(handle => $client,
                      'read is correct size - '.$expected);
 
                   my $m = xPL::IORecord::Hex->new(raw => $buf);
-                  is($m, '0100'.$expected, 'content is correct - '.$expected);
+                  is($m->str, '0100'.$expected,
+                     'content is correct - '.$expected);
 
                   print $client chr(0).(substr $buf, -1);
 
