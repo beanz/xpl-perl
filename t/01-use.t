@@ -30,11 +30,15 @@ my %depends =
    'SMS::Send::CSoft' => ['SMS::Send'],
    'SMS::Send::SMSDiscount' => ['SMS::Send'],
    'xPL::Dock::Bluetooth' => ['Net::Bluetooth'],
+   'xPL::Dock::CurrentCost' => ['AnyEvent::CurrentCost'],
    'xPL::Dock::FDNotify' => ['Net::DBus'],
    'xPL::Dock::GPower' => ['HTTP::Request'],
-   'xPL::Dock::XOSD' => ['X::Osd'],
    'xPL::Dock::Jabber' => ['AnyEvent::XMPP'],
+   'xPL::Dock::RFXComRX' => ['AnyEvent::RFXCOM::RX'],
+   'xPL::Dock::RFXComTX' => ['AnyEvent::RFXCOM::TX'],
    'xPL::Dock::TCPHelp' => ['Digest::HMAC'],
+   'xPL::Dock::W800' => ['AnyEvent::W800'],
+   'xPL::Dock::XOSD' => ['X::Osd'],
   );
 
 my %has;
