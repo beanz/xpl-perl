@@ -290,12 +290,10 @@ t/01-xpl-message.t
 t/01-xpl-slowmessage.t
 t/01-xpl-utils.t
 t/01-xpl-validation.t
-t/02-homeeasy.t
 t/02-message.t
 t/02-message-v.t
 t/02-schema-yaml.t
 t/02-timer.t
-t/02-x10.t
 t/03-message-errors.t
 t/03-message-errors-v.t
 t/03-message-from-payload.t
