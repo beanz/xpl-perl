@@ -112,9 +112,9 @@ sub xpl_msg {
   my $c = chr(0);
 
   my $schema = $msg->schema;
-  my $device = $msg->device;
-  my $type = $msg->type;
-  my $current = $msg->current;
+  my $device = $msg->field('device');
+  my $type = $msg->field('type');
+  my $current = $msg->field('current');
   if ($msg->schema eq 'sensor.basic' && $device && $type eq 'temp') {
     my $dev = exists $map{$device} ? $map{$device} : $device;
     delete $state{$dev};
