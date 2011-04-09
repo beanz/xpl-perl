@@ -170,6 +170,8 @@ sub xpl_msg {
     my $dev = $device;
     $dev =~ s/-/\//;
     $state{$dev} = join($c, $time, 'count', $current, 0, 'COUNTER', 0, 2**64);
+  } else {
+    return 1; # avoid pointless sync
   }
   $tie_h->sync;
   return 1;
