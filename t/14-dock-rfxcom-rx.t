@@ -6,10 +6,19 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More;
 use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 use t::Dock qw/check_sent_messages/;
 $|=1;
+
+BEGIN {
+  require Test::More;
+  eval { require AnyEvent::RFXCOM::RX; import AnyEvent::RFXCOM::RX; };
+  if ($@) {
+    import Test::More
+      skip_all => 'No AnyEvent::RFXCOM::RX module installed: $@';
+  }
+  import Test::More;
+}
 
 use_ok('xPL::Dock','RFXComRX');
 use_ok('xPL::IORecord::Hex');

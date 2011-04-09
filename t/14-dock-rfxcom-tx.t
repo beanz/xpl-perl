@@ -6,11 +6,20 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 75;
 use t::Helpers qw/test_warn test_error test_output wait_for_callback
                   wait_for_variable /;
 use lib 't/lib';
 $|=1;
+
+BEGIN {
+  require Test::More;
+  eval { require AnyEvent::RFXCOM::TX; import AnyEvent::RFXCOM::TX; };
+  if ($@) {
+    import Test::More
+      skip_all => 'No AnyEvent::RFXCOM::TX module installed: $@';
+  }
+  import Test::More tests => 75;
+}
 
 $ENV{DEVICE_RFXCOM_BASE_DEBUG} = 1;
 

@@ -6,15 +6,15 @@ use strict;
 
 $|=1;
 
+
 BEGIN {
   require Test::More;
-  eval { require AnyEvent; import AnyEvent;
-         require AnyEvent::Socket; import AnyEvent::Socket };
+  eval { require AnyEvent::OWNet; import AnyEvent::OWNet; };
   if ($@) {
-    import Test::More skip_all => 'No AnyEvent::Socket module installed: $@';
+    import Test::More
+      skip_all => 'No AnyEvent::OWNet module installed: $@';
   }
   import Test::More;
-  use t::Helpers qw/:all/;
 }
 
 use xPL::Message;

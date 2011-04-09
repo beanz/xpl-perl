@@ -6,10 +6,18 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 12;
 use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
 use t::Dock qw/check_sent_message/;
 $|=1;
+
+BEGIN {
+  require Test::More;
+  eval { require AnyEvent::W800; import AnyEvent::W800; };
+  if ($@) {
+    import Test::More skip_all => 'No AnyEvent::W800 module installed: $@';
+  }
+  import Test::More tests => 12;
+}
 
 use_ok('xPL::Dock','W800');
 

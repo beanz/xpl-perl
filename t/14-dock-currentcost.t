@@ -6,11 +6,20 @@ use strict;
 use IO::Socket::INET;
 use IO::Select;
 use Socket;
-use Test::More tests => 28;
 use t::Helpers qw/test_warn test_error test_output/;
 use t::Dock qw/check_sent_message/;
 
 $|=1;
+
+BEGIN {
+  require Test::More;
+  eval { require AnyEvent::CurrentCost; import AnyEvent::CurrentCost; };
+  if ($@) {
+    import Test::More
+      skip_all => 'No AnyEvent::CurrentCost module installed: $@';
+  }
+  import Test::More tests => 28;
+}
 
 use_ok('xPL::Dock','CurrentCost');
 
