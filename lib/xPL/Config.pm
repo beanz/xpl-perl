@@ -23,6 +23,7 @@ use 5.006;
 use strict;
 use warnings;
 use English qw/-no_match_vars/;
+use Fcntl;
 use Carp;
 eval { require YAML::Syck; import YAML::Syck qw/LoadFile/; };
 if ($@) {
