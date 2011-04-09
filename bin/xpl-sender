@@ -138,9 +138,8 @@ sub xpl_response {
     if ($msg->schema ne 'ping') {
       print $msg->summary, "\n";
     } else {
-      my $rtt = (Time::HiRes::time-$start_time) - $msg->delay;
-      my $time = $msg->checktime ||
-        $msg->extra_field('time'); # deprecated
+      my $rtt = (Time::HiRes::time-$start_time) - $msg->field('delay');
+      my $time = $msg->field('checktime');
       $time = defined $time ? sprintf '%.6f', $time : 'timeout';
       printf("ping.response: rtt=%.6f checktime=%s %s\n",
              $rtt, $time, $msg->source);

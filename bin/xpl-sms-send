@@ -117,22 +117,21 @@ sub xpl {
   my $peeraddr = $p{peeraddr};
   my $peerport = $p{peerport};
 
-  unless ($msg->body) {
-    return send_conf("error", "null body");
-  }
+  my $body = $msg->field('body');
+  return send_conf("error", "null body") unless ($body);
+
   print $msg->summary,"\n";
 
-  unless ($msg->to =~ /^\+?[-0-9 ]+$/) {
-    return send_conf("error", "invalid number, '".$msg->to."', in 'to' field");
+  my $to = $msg->field('to');
+  unless ($to =~ /^\+?[-0-9 ]+$/) {
+    return send_conf("error", "invalid number, '$to', in 'to' field");
   }
-  my $driver = $msg->extra_field('driver') || $default;
+  my $driver = $msg->field('driver') || $default;
 
-  print STDERR "Using driver, $driver, to send the following to, '",
-    $msg->to, "'\n  ", $msg->body, "\n";
+  print STDERR "Using driver, $driver, to send the following to, '$to'\n",
+    "  $body\n";
 
-  my $response =
-    $drivers{$driver}->send_sms(text => $msg->body, to => $msg->to);
-
+  my $response = $drivers{$driver}->send_sms(text => $body, to => $to);
   if ($response) {
     return send_conf("success");
   } else {
