@@ -17,7 +17,7 @@ BEGIN {
   if ($@) {
     import Test::More skip_all => 'No AnyEvent::RFXCOM::TX module: '.$@;
   }
-  import Test::More tests => 75;
+  import Test::More tests => 71;
 }
 
 $ENV{DEVICE_RFXCOM_BASE_DEBUG} = 1;
@@ -349,31 +349,6 @@ SKIP: {
 }
 
 $client->close;
-
-my @expected = split /\n/, q{Queued: F030F030 version check
-Queued: F03CF03C enabling harrison
-Queued: F03DF03D enabling klikon-klikoff
-Queued: F03EF03E enabling flamingo
-Queued: F033F033 variable length mode w/receiver connected
-};
-
-{
-  local $0 = 'dingus';
-  local @ARGV = ('-v', '--interface', 'lo',
-                 '--rfxcom-tx-verbose',
-                 '--define', 'hubless=1',
-                 '--receiver-connected',
-                 '--x10', '--harrison', '--koko', '--flamingo',
-                 '--rfxcom-tx-tty', '127.0.0.1:'.$port);
-  my $output = test_output(sub { $xpl = xPL::Dock->new(port => 0) }, \*STDERR);
-  is_deeply([split /\n/, $output], \@expected, 'all options output');
-}
-ok($xpl, 'created dock client');
-ok($sel->can_read(0.5), 'device ready to accept');
-$client = $device->accept;
-ok($client, 'client accepted');
-$client_sel = IO::Select->new($client);
-
 
 # The begin block is global of course but this is where it is really used.
 BEGIN{
