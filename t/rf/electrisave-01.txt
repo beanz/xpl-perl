@@ -52,4 +52,16 @@ device=electrisave.a6.3
 type=current
 current=0
 }
-
+xpl-trig
+{
+hop=1
+source=bnz-rftest.default
+target=*
+}
+sensor.basic
+{
+device=electrisave.a6
+type=battery
+current=90
+units=%
+}
