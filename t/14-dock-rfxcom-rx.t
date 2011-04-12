@@ -14,8 +14,7 @@ BEGIN {
   require Test::More;
   eval { require AnyEvent::RFXCOM::RX; import AnyEvent::RFXCOM::RX; };
   if ($@) {
-    import Test::More
-      skip_all => 'No AnyEvent::RFXCOM::RX module installed: $@';
+    import Test::More skip_all => 'No AnyEvent::RFXCOM::RX module: '.$@;
   }
   import Test::More;
 }

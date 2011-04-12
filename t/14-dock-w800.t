@@ -14,7 +14,7 @@ BEGIN {
   require Test::More;
   eval { require AnyEvent::W800; import AnyEvent::W800; };
   if ($@) {
-    import Test::More skip_all => 'No AnyEvent::W800 module installed: $@';
+    import Test::More skip_all => 'No AnyEvent::W800 module: '.$@;
   }
   import Test::More tests => 12;
 }

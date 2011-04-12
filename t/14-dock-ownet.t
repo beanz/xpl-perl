@@ -12,7 +12,7 @@ BEGIN {
   eval { require AnyEvent::OWNet; import AnyEvent::OWNet; };
   if ($@) {
     import Test::More
-      skip_all => 'No AnyEvent::OWNet module installed: $@';
+      skip_all => 'No AnyEvent::OWNet module: '.$@;
   }
   import Test::More;
 }
