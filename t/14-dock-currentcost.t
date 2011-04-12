@@ -15,8 +15,7 @@ BEGIN {
   require Test::More;
   eval { require AnyEvent::CurrentCost; import AnyEvent::CurrentCost; };
   if ($@) {
-    import Test::More
-      skip_all => 'No AnyEvent::CurrentCost module installed: $@';
+    import Test::More skip_all => 'No AnyEvent::CurrentCost module installed';
   }
   import Test::More tests => 28;
 }
