@@ -26,6 +26,7 @@ bin/xpl-monitor
 bin/xpl-mpd
 bin/xpl-mythtv
 bin/xpl-owfs
+bin/xpl-ownet
 bin/xpl-packet-trace
 bin/xpl-perl-setup
 bin/xpl-rfxcom
@@ -193,6 +194,7 @@ lib/xPL/Dock/Linux.pm
 lib/xPL/Dock/LIRC.pm
 lib/xPL/Dock/Mythtv.pm
 lib/xPL/Dock/Owfs.pm
+lib/xPL/Dock/OWNet.pm
 lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm
 lib/xPL/Dock/RFXComRX.pm
