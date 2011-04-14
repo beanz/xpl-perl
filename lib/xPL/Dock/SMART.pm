@@ -91,7 +91,7 @@ sub poll {
     my $dev = $root.'/'.$_;
     my %rec;
     my $cv =
-      run_cmd [qw/smartctl -i -l scttempsts/, $dev],
+      run_cmd [qw/smartctl -i -A/, $dev],
         '>' => \$rec{output}, '<' => '/dev/null', '2>', \$rec{error};
     $cv->cb(sub { $self->read($cv, $dev, \%rec); });
   }
@@ -116,7 +116,7 @@ sub read {
   foreach (split /\n/, $rec->{output}) {
     if (/^Serial Number:\s+(\S+)\s*$/) {
       $rec->{sn} = $1;
-    } elsif (/^Current Temperature:\s+(\S+)\s+Celsius\s*$/) {
+    } elsif (/^194\s+Temperature_Celsius\s+(?:\S+\s+){7}([\d\.]+)\s$/) {
       $rec->{C} = $1;
     }
   }
