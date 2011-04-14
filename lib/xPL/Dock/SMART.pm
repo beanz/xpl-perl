@@ -119,7 +119,7 @@ sub read {
   foreach (split /\n/, $rec->{output}) {
     if (/^Serial Number:\s+(\S+)\s*$/) {
       $rec->{sn} = $1;
-    } elsif (/^194\s+Temperature_Celsius\s+(?:\S+\s+){7}([\d\.]+)\s/) {
+    } elsif (/^194\s+Temperature_Celsius\s+(?:\S+\s+){7}([\d\.]+)/) {
       $rec->{C} = $1;
     }
   }
