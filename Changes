@@ -28,6 +28,9 @@ Revision history for Perl extension xPL.
         - xPL::RF::RFXMeter report count rather than kwh since we can't
           tell if the device is an RFXMeter or RFXPower.  Thanks to
           Thomas Chiroux and others for pointing this out.
+        - New xpl-smart client: Like xpl-hddtemp but works for more
+          drives and reports them by serial number rather than device
+          name which might change over time.
 
 0.11 Thu, 19 Aug 2010 16:40:03 +0100
 
