@@ -91,7 +91,7 @@ sub poll {
     my $dev = $root.'/'.$_;
     my %rec;
     my $cv =
-      run_cmd [qw/smartctl -i -A/, $dev],
+      run_cmd [qw/sudo /usr/sbin/smartctl -i -A/, $dev],
         '>' => \$rec{output}, '<' => '/dev/null', '2>', \$rec{error};
     $cv->cb(sub { $self->read($cv, $dev, \%rec); });
   }
