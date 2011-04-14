@@ -198,11 +198,7 @@ sub ownet_reader {
         my $id = substr $dev, -16, 15;
         my ($type, $index) = @{$map{$file}};
         my $dev_str = $id.(defined $index ? '.'.$index : '');
-        my $old = $self->{_state}->{$file};
-        my $message_type =
-          (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
-        $self->{_state}->{$file} = $value;
-        $self->send_xpl($message_type, $dev_str, $type, $value);
+        $self->xpl->send_sensor_basic($dev_str, $type, $value);
         1;
       }, \@files);
   return 1;

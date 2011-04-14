@@ -126,20 +126,7 @@ sub read {
   return unless (exists $rec->{sn});
   my $device = $self->xpl->instance_id.'-disk-'.$rec->{sn};
   if (exists $rec->{C} && $rec->{C} !~ /[^\d\.]/) {
-    my $temp = $rec->{C};
-    my $unit = 'C';
-    my $old = $self->{_state}->{$device};
-    $self->{_state}->{$device} = $temp;
-    my $type;
-    if (!defined $old || $temp != $old) {
-      $type = 'xpl-trig';
-      $self->info("$device $temp $unit\n");
-    } else {
-      $type = 'xpl-stat';
-    }
-    $self->xpl->send(message_type => $type, schema => 'sensor.basic',
-                     body =>
-                     [ device => $device, type => 'temp', current => $temp ]);
+    $self->xpl->send_sensor_basic($device, 'temp', $rec->{C});
   }
   %{$rec} = ();
   undef $rec;

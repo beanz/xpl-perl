@@ -134,23 +134,7 @@ sub read {
       $value =~ s/ .*$//g;
       $value =~ s/^0+\.?(.)/$1/g;
       $value *= $multi if (defined $multi);
-      $self->{_state}->{$device} = $value;
-      my $msgtype;
-      if (!defined $old || $value ne $old) {
-        $msgtype = 'xpl-trig';
-        $self->info("$device\[$type]=$value".($units||'')."\n");
-      } else {
-        $msgtype = 'xpl-stat';
-      }
-      my @body =
-        (
-         device => $device,
-         type => $type,
-         current => $value,
-        );
-      push @body, units => $units if (defined $units);
-      $self->xpl->send(message_type => $msgtype, schema => 'sensor.basic',
-                       body => \@body);
+      $self->xpl->send_sensor_basic($device, $type, $value, $units);
     } elsif ($field eq 'STATUS') {
       my $state = $value =~ /ONLINE/ ? 'mains' : 'battery';
       $value =~ s/\s+$//;

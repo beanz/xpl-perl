@@ -97,21 +97,7 @@ sub poll_linux_cpu {
     my $val = $d{$k};
     next unless (defined $val);
     my $device = $xpl->instance_id."-".$k;
-    my $old = $state->{$device};
-    $state->{$device} = $old;
-    my $type;
-    if (!defined $old || $val != $old) {
-      $type = 'xpl-trig';
-      print "$device $val\n" if ($verbose);
-    } else {
-      $type = 'xpl-stat';
-    }
-    $xpl->send(message_type => $type, schema => 'sensor.basic',
-               body => [
-                        device => $device,
-                        type => 'count',
-                        current => $val,
-                       ]);
+    $xpl->send_sensor_basic($device, $type, $val);
   }
   return 1;
 }

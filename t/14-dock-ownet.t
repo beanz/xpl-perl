@@ -3,7 +3,7 @@
 # Copyright (C) 2010 by Mark Hindess
 
 use strict;
-
+use t::Helpers qw/test_server test_warn wait_for_variable/;
 $|=1;
 
 
@@ -290,8 +290,21 @@ sub xPL::Dock::send_aux {
   my $sin = shift;
   return if (ref $_[0] && $_[0]->schema =~ /^hbeat\./);
   push @msg, [@_];
-  print STDERR $_[0]->summary, "\n" if (ref $_[0]);
+  my $msg;
+  if (scalar @_ == 1) {
+    $msg = shift;
+  } else {
+    eval {
+      my %p = @_;
+      $p{head}->{source} = $self->id if ($self->can('id') &&
+                                         !exists $p{head}->{source});
+      $msg = xPL::Message->new(%p);
+      # don't think this can happen: return undef unless ($msg);
+    };
+    $self->argh("message error: $@") if ($@);
+  }
   $count++;
+  $msg;
 }
 
 $ENV{XPL_HOSTNAME} = 'mytestid';

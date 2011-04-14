@@ -722,6 +722,41 @@ sub send_hbeat_end {
   return 1;
 }
 
+=head2 C<send_sensor_basic($device, $type, $value, [$units])>
+
+This method is called to send an C<xpl-stat> or C<xpl-trig>
+C<sensor.basic> message depending on whether the C<current>
+value has changed since the previously sent value.
+
+=cut
+
+sub send_sensor_basic {
+  my ($self, $device, $type, $value, $units) = @_;
+  my $key = $device.'-'.$type;
+  my $old = $self->{_sensor_state}->{$key};
+  $self->{_sensor_state}->{$key} = $value;
+  my $msg_type;
+  my $output;
+  if (!defined $old || $value ne $old) {
+    $msg_type = 'xpl-trig';
+    $output = 1;
+  } else {
+    $msg_type = 'xpl-stat';
+  }
+  my @body =
+    (
+     device => $device,
+     type => $type,
+     current => $value,
+    );
+  push @body, units => $units if (defined $units);
+  my $msg = $self->send(message_type => $msg_type,
+                        schema => 'sensor.basic',
+                        body => \@body);
+  $self->info($msg->body_summary, "\n") if ($output);
+  return $msg;
+}
+
 =head2 C<exiting( )>
 
 This method is called when we are exiting.

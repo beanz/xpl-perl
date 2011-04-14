@@ -19,6 +19,20 @@ sub xPL::Dock::send_aux {
   my $self = shift;
   my $sin = shift;
   push @msg, [@_];
+  my $msg;
+  if (scalar @_ == 1) {
+    $msg = shift;
+  } else {
+    eval {
+      my %p = @_;
+      $p{head}->{source} = $self->id if ($self->can('id') &&
+                                         !exists $p{head}->{source});
+      $msg = xPL::Message->new(%p);
+      # don't think this can happen: return undef unless ($msg);
+    };
+    $self->argh("message error: $@") if ($@);
+  }
+  $msg;
 }
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
@@ -62,9 +76,9 @@ $client->print(pack 'n/a*', 'STATUS   : ONLINE');
 $client->print(pack 'n/a*', 'TIMELEFT :  31.0 Minutes');
 
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   ("mytestid-linev[voltage]=239.0\n".
+   ("mytestid-linev/voltage/239.0\n".
     "mytestid-status[status]=mains (ONLINE)\n".
-    "mytestid-timeleft[generic]=1860s\n"),
+    "mytestid-timeleft/generic/1860/s\n"),
    'log output');
 
 check_sent_msg({
@@ -126,9 +140,9 @@ $client->print(pack 'n/a*', 'STATUS   : ONBATT');
 $client->print(pack 'n/a*', 'TIMELEFT :  20.0 Minutes');
 
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   ("mytestid-linev[voltage]=240.0\n".
+   ("mytestid-linev/voltage/240.0\n".
     "mytestid-status[status]=battery (ONBATT)\n".
-    "mytestid-timeleft[generic]=1200s\n"),
+    "mytestid-timeleft/generic/1200/s\n"),
    'log output');
 
 check_sent_msg({
@@ -175,7 +189,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
    'log output - partial 2');
 $client->print($str);
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   "mytestid-linev[voltage]=241.0\n",
+   "mytestid-linev/voltage/241.0\n",
    'log output - remainder');
 
 check_sent_msg({

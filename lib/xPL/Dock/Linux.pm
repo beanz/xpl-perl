@@ -92,18 +92,7 @@ sub poll {
 #     $temp /= 1000;
 #     $zone =~ s/thermal_//;
 #     my $device = $self->xpl->instance_id."-".$zone;
-#     my $old = $self->{_state}->{$device.'-temp'};
-#     $self->{_state}->{$device.'-temp'} = $temp;
-#     my $type;
-#     if (!defined $old || $temp != $old) {
-#       $type = 'xpl-trig';
-#       $self->info("$device $temp\n");
-#     } else {
-#       $type = 'xpl-stat';
-#     }
-#     $self->xpl->send(message_type => $type, schema => 'sensor.basic',
-#                      body =>
-#                      [ device => $device, type => 'temp', current => $temp ]);
+#     $self->xpl->send_sensor_basic($device, 'temp', $temp);
 #   }
 
   my $p = '/sys/class/power_supply';
@@ -118,23 +107,7 @@ sub poll {
       next unless (defined $now && $now !~ /\D/);
       my $bat = sprintf "%.2f", $now*100/$full;
       my $device = $xpl->instance_id."-".(lc $dev);
-      my $old = $self->{_state}->{$device.'-battery'};
-      $self->{_state}->{$device.'-battery'} = $bat;
-      my $type;
-      if (!defined $old || $bat != $old) {
-        $type = 'xpl-trig';
-        $self->info("$device $bat%\n");
-      } else {
-        $type = 'xpl-stat';
-      }
-      $xpl->send(message_type => $type, schema => 'sensor.basic',
-                 body => [
-                          device => $device,
-                          type => 'battery',
-                          current => $bat,
-                          units => '%',
-                         ]
-                );
+      $self->xpl->send_sensor_basic($device, 'battery', $bat, '%');
     } elsif (is_file($f = $p.'/'.$dev.'/online')) {
       my $online = read_line($f);
       next unless (defined $online);

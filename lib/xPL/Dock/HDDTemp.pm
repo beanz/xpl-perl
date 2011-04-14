@@ -121,18 +121,7 @@ sub read {
 
     $device =~ s!/dev/!!;
     $device = $self->xpl->instance_id."-".$device;
-    my $old = $self->{_state}->{$device};
-    $self->{_state}->{$device} = $temp;
-    my $type;
-    if (!defined $old || $temp != $old) {
-      $type = 'xpl-trig';
-      $self->info("$device $temp $unit\n");
-    } else {
-      $type = 'xpl-stat';
-    }
-    $self->xpl->send(message_type => $type, schema => 'sensor.basic',
-                     body =>
-                     [ device => $device, type => 'temp', current => $temp ]);
+    $self->xpl->send_sensor_basic($device, temp => $temp);
   }
   return 1;
 }

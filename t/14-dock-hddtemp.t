@@ -21,6 +21,20 @@ sub xPL::Dock::send_aux {
   my $self = shift;
   my $sin = shift;
   push @msg, [@_];
+  my $msg;
+  if (scalar @_ == 1) {
+    $msg = shift;
+  } else {
+    eval {
+      my %p = @_;
+      $p{head}->{source} = $self->id if ($self->can('id') &&
+                                         !exists $p{head}->{source});
+      $msg = xPL::Message->new(%p);
+      # don't think this can happen: return undef unless ($msg);
+    };
+    $self->argh("message error: $@") if ($@);
+  }
+  $msg;
 }
 
 $ENV{XPL_HOSTNAME} = 'mytestid';

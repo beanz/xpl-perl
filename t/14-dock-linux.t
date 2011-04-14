@@ -17,6 +17,20 @@ sub xPL::Dock::send_aux {
   my $self = shift;
   my $sin = shift;
   push @msg, [@_];
+  my $msg;
+  if (scalar @_ == 1) {
+    $msg = shift;
+  } else {
+    eval {
+      my %p = @_;
+      $p{head}->{source} = $self->id if ($self->can('id') &&
+                                         !exists $p{head}->{source});
+      $msg = xPL::Message->new(%p);
+      # don't think this can happen: return undef unless ($msg);
+    };
+    $self->argh("message error: $@") if ($@);
+  }
+  $msg;
 }
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
@@ -52,7 +66,7 @@ open $f, '>'.$unreadable2 or
 close $f;
 chmod 0, $unreadable2;
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   "mytestid-ac mains (1)\nmytestid-bat0 98.13%\n", 'first output');
+   "mytestid-ac mains (1)\nmytestid-bat0/battery/98.13/%\n", 'first output');
 unlink $unreadable;
 unlink $unreadable2;
 rmdir $dir.'/AC2';
@@ -94,7 +108,7 @@ $xPL::Dock::Linux::FILE_PREFIX = 't/linux/3';
 use warnings;
 
 is(test_output(sub { $xpl->dispatch_timer('linux!'.$plugin); }, \*STDOUT),
-   "mytestid-ac battery (0)\nmytestid-bat0 8.33%\n", 'third output');
+   "mytestid-ac battery (0)\nmytestid-bat0/battery/8.33/%\n", 'third output');
 
 check_sent_msg({
                 message_type => 'xpl-trig',
