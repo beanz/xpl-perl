@@ -108,8 +108,8 @@ and sends appropriate C<sensor.basic> messages.
 sub read {
   my ($self, $cv, $dev, $rec) = @_;
   if ($cv->recv) { # error?
-    #print STDERR "Errors:\n", $rec->{error}, "\n";
-    #print STDERR "Output:\n", $rec->{output}, "\n";
+    print STDERR "Errors:\n", $rec->{error}, "\n";
+    print STDERR "Output:\n", $rec->{output}, "\n";
     %{$rec} = ();
     undef $rec;
     return;
