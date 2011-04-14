@@ -90,8 +90,8 @@ sub poll {
     next unless (/^sd.$/);
     my $dev = $root.'/'.$_;
     my %rec;
-    my $cv = $rec{cv} =
-      run_cmd [qw/smartctl -i -l scttempsts /, $dev],
+    my $cv =
+      run_cmd [qw/smartctl -i -l scttempsts/, $dev],
         '>' => \$rec{output}, '<' => '/dev/null', '2>', \$rec{error};
     $cv->cb(sub { $self->read($cv, $dev, \%rec); });
   }
@@ -107,7 +107,12 @@ and sends appropriate C<sensor.basic> messages.
 
 sub read {
   my ($self, $cv, $dev, $rec) = @_;
-  $cv->recv and return; # error?
+  if ($cv->recv) { # error?
+    print STDERR "Errors:\n", $rec->{error}, "\n";
+    print STDERR "Output:\n", $rec->{output}, "\n";
+    undef $rec;
+    return;
+  }
   foreach (split /\n/, $rec->{output}) {
     if (/^Serial Number:\s+(\S+)\s*$/) {
       $rec->{sn} = $1;
