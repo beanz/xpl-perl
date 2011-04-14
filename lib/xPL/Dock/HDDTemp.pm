@@ -2,7 +2,7 @@ package xPL::Dock::HDDTemp;
 
 =head1 NAME
 
-xPL::Dock::HDDTemp - xPL::Dock plugin for dawn and dusk reporting
+xPL::Dock::HDDTemp - xPL::Dock plugin for hard disk temperature reporting
 
 =head1 SYNOPSIS
 
@@ -12,7 +12,8 @@ xPL::Dock::HDDTemp - xPL::Dock plugin for dawn and dusk reporting
 
 =head1 DESCRIPTION
 
-This L<xPL::Dock> plugin adds dawn and dusk reporting.
+This L<xPL::Dock> plugin adds hard disk temperature reporting using
+hddtemp.
 
 =head1 METHODS
 
@@ -64,7 +65,7 @@ sub init {
   $self->SUPER::init($xpl, @_);
 
   # Add a timer to the xPL Client event loop to generate the
-  # "hddtemp.update" messages.  The negative interval causes the timer to
+  # "sensor.basic" messages.  The negative interval causes the timer to
   # trigger immediately rather than waiting for the first interval.
   $xpl->add_timer(id => 'hddtemp',
                   timeout => -$self->interval,
