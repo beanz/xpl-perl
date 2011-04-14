@@ -116,7 +116,7 @@ sub xpl_in {
     $self->{_io}->write(sprintf("f%d", $num));
   } elsif ($command eq "pulse") {
     $self->{_io}->write(sprintf("n%d", $num));
-    #select(undef,undef,undef,0.15);
+    select(undef,undef,undef,0.15); # TODO: use add_timer
     $self->{_io}->write(sprintf("f%d", $num));
   } elsif ($command eq "toggle") {
     $self->{_io}->write(sprintf("t%d", $num));
