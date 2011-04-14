@@ -122,7 +122,7 @@ sub read {
     }
   }
   return unless (exists $rec->{sn});
-  my $device = $self->xpl->instance_id.'-'.$rec->{sn};
+  my $device = $self->xpl->instance_id.'-disk-'.$rec->{sn};
   if (exists $rec->{C} && $rec->{C} !~ /[^\d\.]/) {
     my $temp = $rec->{C};
     my $unit = 'C';
