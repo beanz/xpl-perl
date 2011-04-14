@@ -9,7 +9,8 @@ Revision history for Perl extension xPL.
           upon.
         - Replace xPL::Message class/class_type fields with single
           schema field.
-        - Make xPL::Message body parameter take an array.
+        - Make xPL::Message body parameter take an array to reliably
+          preserve order without requiring external schema data.
         - Remove strictness/validation from xPL::Message (to get old
           behaviour set XPL_MESSAGE_VALIDATE environment variable to
           1).
