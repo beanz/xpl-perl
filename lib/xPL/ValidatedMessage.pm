@@ -729,16 +729,6 @@ sub make_body_field {
 1;
 __END__
 
-=head1 TODO
-
-There are some 'todo' items for this module:
-
-=over 4
-
-=item Support for additional developer fields in the header of xPL messages.
-
-=back
-
 =head2 EXPORT
 
 None by default.
