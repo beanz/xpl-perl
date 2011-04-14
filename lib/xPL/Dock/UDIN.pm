@@ -110,16 +110,16 @@ sub xpl_in {
   return 1 unless ($msg->field('device') =~ /^udin-r(\d+)$/);
   my $num = $LAST_PAREN_MATCH;
   my $command = lc $msg->field('current');
-  if ($command eq "high") {
-    $self->{_io}->write(sprintf("n%d", $num));
-  } elsif ($command eq "low") {
-    $self->{_io}->write(sprintf("f%d", $num));
-  } elsif ($command eq "pulse") {
-    $self->{_io}->write(sprintf("n%d", $num));
+  if ($command eq 'high') {
+    $self->{_io}->write(sprintf('n%d', $num));
+  } elsif ($command eq 'low') {
+    $self->{_io}->write(sprintf('f%d', $num));
+  } elsif ($command eq 'pulse') {
+    $self->{_io}->write(sprintf('n%d', $num));
     select(undef,undef,undef,0.15); # TODO: use add_timer
-    $self->{_io}->write(sprintf("f%d", $num));
-  } elsif ($command eq "toggle") {
-    $self->{_io}->write(sprintf("t%d", $num));
+    $self->{_io}->write(sprintf('f%d', $num));
+  } elsif ($command eq 'toggle') {
+    $self->{_io}->write(sprintf('t%d', $num));
   } else {
     warn "Unsupported setting: $command\n";
   }
