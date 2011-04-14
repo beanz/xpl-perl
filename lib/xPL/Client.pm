@@ -836,19 +836,6 @@ sub validate_param {
 1;
 __END__
 
-=head1 TODO
-
-There are some 'todo' items for this module:
-
-=over 4
-
-=item Callbacks
-
-The client should have callbacks for significant events like finding a
-hub.
-
-=back
-
 =head1 EXPORT
 
 None by default.
