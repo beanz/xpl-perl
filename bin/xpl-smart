@@ -1,0 +1,54 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use AnyEvent;
+use xPL::Dock qw/-run/;
+
+=head1 NAME
+
+xpl-smart - Perl script for an xPL hard disk SMART monitor
+
+=head1 SYNOPSIS
+
+  xpl-smart [flags] [options]
+  where valid flags are:
+    --help            - show this help text
+    --verbose         - verbose mode (for the xPL layer)
+    --smart-verbose   - verbose mode (for the SMART layer)
+  and valid options are (default shown in brackets):
+    --interface if0            - the interface for xPL messages (first
+                                 non-loopback or loopback)
+    --smart-poll-interval nn   - number of seconds between polling
+                                 the SMART status (120)
+
+  # start the SMART application with poll interval of 60 seconds
+  xpl-smart --smart-poll-interval 60
+
+  # start the SMART listening and broadcasting on first Ethernet
+  # interface in verbose mode using poll interval of 120 seconds
+  xpl-smart --interface eth0 --verbose --smart-verbose
+
+=head1 DESCRIPTION
+
+This script is an xPL client that polls the hard disk SMART status to
+check for temperature changes of hard disks.
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3), smartctl(8)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2006, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
