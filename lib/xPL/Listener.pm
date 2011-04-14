@@ -1252,21 +1252,6 @@ sub _anyevent_time_now {
 1;
 __END__
 
-=head1 TODO
-
-There are some 'todo' items for this module:
-
-=over 4
-
-=item Interface binding
-
-Support for binding to a named interface and using a simple heuristic
-to pick a sensible default.  Probably using Net::Ifconfig::Wrapper
-and, if it is not available, falling back to using ifconfig and/or "ip
-addr show" directly.
-
-=back
-
 =head1 EXPORT
 
 None by default.
