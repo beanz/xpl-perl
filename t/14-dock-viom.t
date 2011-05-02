@@ -17,6 +17,20 @@ sub xPL::Dock::send_aux {
   my $self = shift;
   my $sin = shift;
   push @msg, [@_];
+  my $msg;
+  if (scalar @_ == 1) {
+    $msg = shift;
+  } else {
+    eval {
+      my %p = @_;
+      $p{head}->{source} = $self->id if ($self->can('id') &&
+                                         !exists $p{head}->{source});
+      $msg = xPL::Message->new(%p);
+      # don't think this can happen: return undef unless ($msg);
+    };
+    $self->argh("message error: $@") if ($@);
+  }
+  $msg;
 }
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
@@ -128,7 +142,7 @@ is(test_output(sub {
                  wait_for_callback($xpl,
                                    input => $plugin->{_io}->input_handle)
                }, \*STDOUT),
-   "Sending i01 low\n0000000000000000\n",
+   "i01/input/low\n0000000000000000\n",
    'read response - input changed state');
 check_sent_msg({
                 message_type => 'xpl-trig',
@@ -138,6 +152,7 @@ check_sent_msg({
                }, 'i01 low');
 
 print $client "1000000000000000\r\n";
+$xpl->{_verbose} = 0;
 $plugin->{_verbose} = 0;
 is(test_output(sub {
                  wait_for_callback($xpl,

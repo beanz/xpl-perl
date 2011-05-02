@@ -175,7 +175,8 @@ sub process_line {
       my $change = $self->state_changed('i', $index+1,
                                         substr($line, $index, 1),
                                         $time) or next;
-      $self->send_xpl(@$change);
+      my ($device, $level) = @$change;
+      $self->xpl->send_sensor_basic($device, 'input', $level);
     }
   } elsif ($line =~ /^(Input|Output) (\d+) (Inactive|Active)$/) {
     return unless ($self->state_changed(lc $1, $2, $3, $time) ||
