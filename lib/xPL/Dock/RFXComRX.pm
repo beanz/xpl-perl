@@ -115,15 +115,8 @@ sub device_reader {
 
     } elsif ($m->type eq 'sensor') {
 
-      my @body;
-      push @body, device => $m->device;
-      push @body, type => $m->measurement;
-      push @body, current => $m->value;
-      push @body, units => $m->units if ($m->units);
-
-      print $xpl->send(message_type => 'xpl-trig',
-                       schema => 'sensor.basic',
-                       body => \@body)->summary,"\n";
+      $xpl->send_sensor_basic($m->device, $m->measurement,
+                              $m->value, $m->units);
 
     } elsif ($m->type eq 'security') {
 
