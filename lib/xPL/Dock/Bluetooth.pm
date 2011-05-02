@@ -67,7 +67,6 @@ sub init {
   $self->SUPER::init($xpl, @_);
 
   $self->{_watch} = [ map { uc } @{$self->{_addresses}} ];
-  $self->{_state} = {};
 
   $xpl->add_timer(id => 'poll-bluetooth',
                   timeout => -$self->{_interval},
@@ -84,22 +83,11 @@ for visible devices.
 
 sub poll_bluetooth {
   my $self = shift;
-  my $state = $self->{_state};
   my $xpl = $self->xpl;
   foreach my $addr (@{$self->{_watch}}) {
-    my $old = $state->{$addr}->{v} || 'low';
     my @sdp_array = sdp_search($addr, '0', '');
-    my $new = $state->{$addr}->{v} = $sdp_array[0] ? 'high' : 'low';
-    $self->info('sent ',
-                $xpl->send(message_type =>
-                             $old eq $new ? 'xpl-stat' : 'xpl-trig',
-                           schema => 'sensor.basic',
-                           body =>
-                           [
-                            device => 'bt.'.$addr,
-                            type => 'input',
-                            current => $new,
-                           ])->summary, "\n");
+    my $state = $sdp_array[0] ? 'high' : 'low';
+    $self->xpl->send_sensor_basic('bt.'.$addr, 'input', $state);
   }
   return 1;
 }
