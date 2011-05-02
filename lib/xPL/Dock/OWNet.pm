@@ -204,30 +204,6 @@ sub ownet_reader {
   return 1;
 }
 
-=head2 C<send_xpl( $message_type, $device, $type, $current )>
-
-This functions is used to send out sensor.basic xPL messages with
-the state of one-wire sensors.
-
-=cut
-
-sub send_xpl {
-  my ($self, $message_type, $device, $type, $current) = @_;
-  my %args =
-    (
-     message_type => $message_type,
-     schema => 'sensor.basic',
-     body =>
-     [
-      device => $device,
-      type => $type,
-      current => $current,
-     ],
-    );
-  $self->debug("Sending $device\[$type]=$current\n");
-  return $self->xpl->send(%args);
-}
-
 1;
 __END__
 
