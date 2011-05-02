@@ -112,30 +112,13 @@ sub device_reader {
       my $v = $msg->value($p);
       next unless (defined $v);
       my $dev = $device.($p ? '.'.$p : '');
-      my $xplmsg =
-        $xpl->send(message_type => 'xpl-trig',
-                   schema => 'sensor.basic',
-                   body =>
-                   [
-                    device => $dev,
-                    type => 'power',
-                    current => 0+$v,
-                    units => 'W',
-                   ]);
-      print $xplmsg->summary, "\n";
+      $xpl->send_sensor_basic($dev, 'power', 0+$v, 'W');
     }
   } else {
     warn "Sensor type: ", $msg->type, " not supported.  Message was:\n",
       $msg->message, "\n";
   }
-  print $xpl->send(message_type => 'xpl-trig',
-                   schema => 'sensor.basic',
-                   body =>
-                   [
-                    device => $device,
-                    type => 'temp',
-                    current => $msg->temperature,
-                   ])->summary, "\n";
+  $xpl->send_sensor_basic($device, 'temp', $msg->temperature);
   return 1;
 }
 

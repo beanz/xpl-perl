@@ -53,11 +53,11 @@ print $client q{
 };
 
 is(test_output(sub { wait_for_message($plugin); }, \*STDOUT),
-   q{xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0.1/power/2131/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0.2/power/0/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0.3/power/0/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0/power/2131/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0/temp/20.7
+   q{cc128.02371.0.1/power/2131/W
+cc128.02371.0.2/power/0/W
+cc128.02371.0.3/power/0/W
+cc128.02371.0/power/2131/W
+cc128.02371.0/temp/20.7
 },
    'read response - cc128');
 foreach my $rec (['cc128.02371.0.1', 'power', "2131\nunits=W"],
@@ -103,11 +103,11 @@ print $client q{
 };
 
 is(test_output(sub { wait_for_message($plugin); }, \*STDOUT),
-   q{xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1.1/power/345/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1.2/power/2151/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1.3/power/0/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1/power/2496/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.01234.1/temp/18.7
+   q{cc128.01234.1.1/power/345/W
+cc128.01234.1.2/power/2151/W
+cc128.01234.1.3/power/0/W
+cc128.01234.1/power/2496/W
+cc128.01234.1/temp/18.7
 },
    'read response - cc128');
 foreach my $rec (['cc128.01234.1.1', 'power', "345\nunits=W"],
@@ -203,7 +203,7 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDERR),
 </msg>
 },
    'new sensor type');
-check_sent_message('new sensor type' => qq!xpl-trig
+check_sent_message('new sensor type' => qq!xpl-stat
 {
 hop=1
 source=bnz-dingus.mytestid
@@ -225,15 +225,13 @@ is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT), '',
 check_sent_message('invalid tag ignored');
 
 print $client q{
-<msg><date><dsb>00001</dsb><hr>12</hr><min>17</min><sec>02</sec></date><src><name>CC02</name><id>02371</id><type>1</type><sver>1.06</sver></src><ch1><watts>02131</watts></ch1><ch2><watts>00000</watts></ch2><ch3><watts>00000</watts></ch3><tmpr>20.7</tmpr></msg>
+<msg><date><dsb>00001</dsb><hr>12</hr><min>17</min><sec>02</sec></date><src><name>CC02</name><id>02371</id><type>1</type><sver>1.06</sver></src><ch1><watts>02132</watts></ch1><ch2><watts>00000</watts></ch2><ch3><watts>00000</watts></ch3><tmpr>20.8</tmpr></msg>
 };
 
 is(test_output(sub { wait_for_message($plugin); }, \*STDOUT),
-   q{xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0.1/power/2131/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0.2/power/0/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0.3/power/0/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0/power/2131/W
-xpl-trig/sensor.basic: bnz-dingus.mytestid -> * cc128.02371.0/temp/20.7
+   q{cc128.02371.0.1/power/2132/W
+cc128.02371.0/power/2132/W
+cc128.02371.0/temp/20.8
 },
    'read response - cc128');
 
