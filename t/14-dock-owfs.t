@@ -17,6 +17,20 @@ sub xPL::Dock::send_aux {
   my $self = shift;
   my $sin = shift;
   push @msg, [@_];
+  my $msg;
+  if (scalar @_ == 1) {
+    $msg = shift;
+  } else {
+    eval {
+      my %p = @_;
+      $p{head}->{source} = $self->id if ($self->can('id') &&
+                                         !exists $p{head}->{source});
+      $msg = xPL::Message->new(%p);
+      # don't think this can happen: return undef unless ($msg);
+    };
+    $self->argh("message error: $@") if ($@);
+  }
+  $msg;
 }
 
 $ENV{XPL_HOSTNAME} = 'mytestid';
@@ -37,7 +51,9 @@ is(ref $plugin, 'xPL::Dock::Owfs', 'plugin has correct type');
 
 $plugin->owfs_write('28.FEFEFE000000/counters.A', 101);
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   'CRC8 error rate   0.01
+   '28.FEFEFE000000/temp/20.1
+28.FEFEFE000000.0/count/101
+CRC8 error rate   0.01
 CRC16 error rate   0.00
 1st try read success  99.99
 2nd try read success   0.01
@@ -114,7 +130,9 @@ ok($plugin, 'plugin exists');
 is(ref $plugin, 'xPL::Dock::Owfs', 'plugin has correct type');
 
 is(test_output(sub { $xpl->main_loop(1); }, \*STDOUT),
-   'CRC8 error rate   0.00
+   '26.ABABAB000000/temp/25.8438
+26.ABABAB000000/humidity/24.6653
+CRC8 error rate   0.00
 CRC16 error rate   0.00
 1st try read success 100.00
 2nd try read success   0.00

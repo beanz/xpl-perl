@@ -161,13 +161,10 @@ sub owfs_reader {
       my $value = read_ow_file($file);
       next unless (defined $value);
       $found++;
-      my $old = $self->{_state}->{$dev}->{$filebase};
-      my $message_type =
-        (defined $old && $value eq $old) ? "xpl-stat" : "xpl-trig";
-      $self->{_state}->{$dev}->{$filebase} = $value;
       my $id = $dev;
       $id =~ s!.*/!!;
-      $self->send_xpl( $message_type, $id, $type, $value, $index);
+      $self->xpl->send_sensor_basic((defined $index ? $id.'.'.$index : $id),
+                                    $type, $value);
     }
   }
 
@@ -205,30 +202,6 @@ sub owfs_reader {
     }
   }
   return 1;
-}
-
-=head2 C<send_xpl( $message_type, $device, $type, $current, $index )>
-
-This functions is used to send out sensor.basic xPL messages with
-the state of one-wire sensors.
-
-=cut
-
-sub send_xpl {
-  my ($self, $message_type, $device, $type, $current, $index) = @_;
-  my %args =
-    (
-     message_type => $message_type,
-     schema => 'sensor.basic',
-     body =>
-     [
-      device => (defined $index ? $device.'.'.$index : $device),
-      type => $type,
-      current => $current,
-     ],
-    );
-  $self->debug("Sending $device\[$type]=$current\n");
-  return $self->xpl->send(%args);
 }
 
 =head2 C<find_ow_devices( $ow_dir )>
