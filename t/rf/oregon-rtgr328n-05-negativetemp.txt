@@ -16,7 +16,7 @@ device=rtgr328n.4d
 type=temp
 current=-1.7
 }
-xpl-trig
+xpl-stat
 {
 hop=1
 source=bnz-rftest.default
@@ -29,7 +29,7 @@ type=humidity
 current=42
 string=comfortable
 }
-xpl-trig
+xpl-stat
 {
 hop=1
 source=bnz-rftest.default

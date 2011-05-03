@@ -17,7 +17,7 @@ type=uv
 current=12
 risk=dangerous
 }
-xpl-trig
+xpl-stat
 {
 hop=1
 source=bnz-rftest.default

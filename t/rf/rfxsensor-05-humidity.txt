@@ -4,7 +4,7 @@
 
 2 messages
 
-xpl-trig
+xpl-stat
 {
 hop=1
 source=bnz-rftest.default

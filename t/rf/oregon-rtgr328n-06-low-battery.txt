@@ -16,7 +16,7 @@ device=rtgr328n.4d
 type=temp
 current=22.3
 }
-xpl-trig
+xpl-stat
 {
 hop=1
 source=bnz-rftest.default

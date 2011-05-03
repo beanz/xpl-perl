@@ -26,7 +26,7 @@ x10.security
 command=disarm
 device=99
 }
-xpl-trig
+xpl-stat
 {
 hop=1
 source=bnz-rftest.default
