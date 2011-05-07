@@ -109,14 +109,16 @@ sub read {
     $sock->close;
   }
   if ($self->{_buf} =~ m!<div \s+ class="content"> \s*
-                         <h2>Encoder \s+ status</h2> \s*
+                         <h2>Encoder \s+ Status</h2> \s*
                          (Encoder.*?)</div>!imxs) {
     my $c = $1;
     my $count = 0;
     my $used = 0;
-    foreach my $s ($c =~ /(Encoder \d+ is \w+ on \S+ and is \w+)/img) {
-      my ($state) = ($s =~ /Encoder \d+ is \w+ on \S+ and is (\w+)/i);
-      #print STDERR $num, " ", $state, "\n";
+    foreach my $s ($c =~
+                   /(Encoder \d+ (?:\[.*?\] )?is \w+ on \S+ and is \w+)/img) {
+      my ($state) =
+        ($s =~ /Encoder \d+ (?:\[.*?\] )?is \w+ on \S+ and is (\w+)/i);
+      #print STDERR $count, " ", $state, "\n";
       $count++;
       $used++ if ($state ne "not");
     }
