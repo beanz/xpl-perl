@@ -77,7 +77,7 @@ $client->print(q{
     <h2>Encoder status</h2>
     Encoder 1 is local on backend1 and is recording: 'Lost' on C101.<br />
     Encoder 2 is local on backend1 and is recording: 'Found' on C102.<br />
-    Encoder 3 is local on backend1 and is not recording.<br />
+    Encoder 3 [ DVB : /dev/dvb/adapter0/frontend0 ] is local on backend1 and is not recording.<br />
   </div>
 });
 
