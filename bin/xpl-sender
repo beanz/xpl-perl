@@ -70,6 +70,7 @@ GetOptions('verbose+' => \$verbose,
            'man' => \$man,
            'message_type|m=s' => \$message_type,
            'class=s' => \$schema,
+           'schema=s' => \$schema,
            'source=s' => \$source,
            'target=s' => \$target,
            'wait=i' => \$wait,
@@ -80,8 +81,9 @@ $args{'interface'} = $interface if ($interface);
 $args{'verbose'} = $verbose if ($verbose);
 
 my %msg_args = ();
-defined $schema or pod2usage(-message => q{Requires '-c' schema parameter},
-                            -exitstatus => 1);
+defined $schema or
+  pod2usage(-message => q{Requires '--schema' schema parameter},
+            -exitstatus => 1);
 $msg_args{'-m'} = $message_type if (defined $message_type);
 $msg_args{'-c'} = $schema if (defined $schema);
 $msg_args{'-s'} = $source if (defined $source);
