@@ -83,17 +83,17 @@ This method is the timer callback that polls the linux system.
 sub poll {
   my $self = shift;
   my $xpl = $self->xpl;
-#   my $p = '/sys/class/thermal';
-#   foreach my $zone (@{dir_entries($p)}) {
-#     my $f = $p.'/'.$zone.'/temp';
-#     next unless (-f $f);
-#     my $temp = read_line($f);
-#     next unless (defined $temp && $temp !~ /\D/);
-#     $temp /= 1000;
-#     $zone =~ s/thermal_//;
-#     my $device = $self->xpl->instance_id."-".$zone;
-#     $self->xpl->send_sensor_basic($device, 'temp', $temp);
-#   }
+  my $p = '/sys/class/thermal';
+  foreach my $zone (@{dir_entries($p)}) {
+    my $f = $p.'/'.$zone.'/temp';
+    next unless (-f $f);
+    my $temp = read_line($f);
+    next unless (defined $temp && $temp !~ /\D/);
+    $temp /= 1000;
+    $zone =~ s/thermal_//;
+    my $device = $self->xpl->instance_id."-".$zone;
+    $self->xpl->send_sensor_basic($device, 'temp', $temp);
+  }
 
   my $p = '/sys/class/power_supply';
   foreach my $dev (@{dir_entries($p)}) {
