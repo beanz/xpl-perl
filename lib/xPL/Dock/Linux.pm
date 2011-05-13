@@ -95,7 +95,7 @@ sub poll {
     $self->xpl->send_sensor_basic($device, 'temp', $temp);
   }
 
-  my $p = '/sys/class/power_supply';
+  $p = '/sys/class/power_supply';
   foreach my $dev (@{dir_entries($p)}) {
     my $f;
     if (is_file($f = $p.'/'.$dev.'/charge_full') ||
