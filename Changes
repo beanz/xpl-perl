@@ -257,7 +257,7 @@ Revision history for Perl extension xPL.
 
 	- BIG CHANGE: Message schema are now encoded as YAML datafiles and
 	  not as Perl modules.  The YAML module is now required.  It is
-	  avaliable as a Debian package called libyaml-perl and (probably)
+	  available as a Debian package called libyaml-perl and (probably)
 	  an RPM package called perl-YAML.
 	- New tool: xpl-rrd-graphs to convert rrd files as produced by
 	  xpl-rrd into graphs under /var/www/rrd.
