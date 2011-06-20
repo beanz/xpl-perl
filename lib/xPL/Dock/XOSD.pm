@@ -2,7 +2,7 @@ package xPL::Dock::XOSD;
 
 =head1 NAME
 
-xPL::Dock::XOSD - xPL::Dock plugin for a virtual keyboard application
+xPL::Dock::XOSD - xPL::Dock plugin for an X OSD C<osd.basic> client.
 
 =head1 SYNOPSIS
 
@@ -12,7 +12,7 @@ xPL::Dock::XOSD - xPL::Dock plugin for a virtual keyboard application
 
 =head1 DESCRIPTION
 
-This L<xPL::Dock> plugin adds a X OSD C<osd.basic> client.
+This L<xPL::Dock> plugin adds an X OSD C<osd.basic> client.
 
 =head1 METHODS
 
