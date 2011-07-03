@@ -1,0 +1,49 @@
+#!/usr/bin/perl -w
+
+use xPL::Dock qw/-run/;
+
+=head1 NAME
+
+xpl-notifo - Perl script for an xPL Notifo notification client
+
+=head1 SYNOPSIS
+
+  xpl-notifo [flags] [options]
+  where valid flags are:
+    --help         - show this help text
+    --verbose      - verbose mode (for the xPL layer)
+    --notifo-verbose - verbose mode (for the X OSD layer)
+  and valid options are (default shown in brackets):
+    --interface if0       - the interface for xPL messages (first
+                            non-loopback or loopback)
+
+  # start the notify client on first Ethernet interface in verbose mode
+  xpl-notifo --verbose --notifo-verbose
+
+=head1 DESCRIPTION
+
+This script is an xPL client that sends xPL C<sendmsg.basic> messages
+via notifo.com when they have a C<to> field set to "C<notifo>".
+
+=head1 SEE ALSO
+
+xPL::Dock(3), xPL::Dock::Notifo(3), AnyEvent::WebService::Notifo(3),
+Protocol::Notifo(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+Notifo website: http://notifo.com/
+
+=head1 AUTHOR
+
+Mark Hindess, E<lt>soft-xpl-perl@temporalanomaly.comE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2011 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut
