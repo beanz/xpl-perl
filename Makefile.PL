@@ -30,6 +30,7 @@ WriteMakefile(
                   'Module::Pluggable' => 0,
                   'Date::Parse' => 0,
                   'AnyEvent' => 0,
+                  'Sub::Name' => 0,
                 },
                ) : ()),
              );
