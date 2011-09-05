@@ -103,11 +103,13 @@ sub new {
 
   foreach (qw/vendor_id device_id/) {
     exists $p{$_} or $self->argh("requires '$_' parameter");
-    $p{$_} =~ /^[A-Za-z0-9]{1,8}$/ or $self->argh("$_ invalid");
+    $p{$_} = lc $p{$_};
+    $p{$_} =~ /^[a-z0-9]{1,8}$/ or $self->argh("$_ invalid");
   }
 
   exists $p{instance_id} or
     $p{instance_id} = substr $ENV{XPL_HOSTNAME}||(uname)[1]||'default', 0, 16;
+  $p{instance_id} = lc $p{instance_id};
   $p{instance_id} =~ s/\..*$//; # strip domain if there is one
   $p{instance_id}=~/^[A-Za-z0-9]{1,16}$/ or
     $self->argh('instance_id, '.$p{instance_id}.", is invalid.\n".
