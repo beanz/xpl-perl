@@ -14,7 +14,7 @@ xpl-sender - Perl script for an xPL message sender application
   and valid options are (default shown in brackets):
     -i if0        - the interface for xPL messages
                     (first non-loopback or loopback)
-    -m xpl-type   - the xPL message type (xpl-cmnd, xpl-stat, or xpl-trig)
+    -m xpl-type   - the xPL message type (xpl-cmnd)
     -c class.type - the schema type
     -s source     - the source type
     -t target     - the target type
@@ -58,7 +58,7 @@ my $verbose;
 my $interface;
 my $help;
 my $man;
-my $message_type;
+my $message_type = 'xpl-perl';
 my $schema;
 my $source;
 my $target;
