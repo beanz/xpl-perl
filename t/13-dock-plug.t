@@ -3,7 +3,7 @@
 # Copyright (C) 2009 by Mark Hindess
 
 use strict;
-use Test::More tests => 21;
+use Test::More tests => 22;
 use t::Helpers qw/test_warn test_error test_output/;
 use lib 't/lib';
 $|=1;
@@ -43,6 +43,7 @@ my $xpl;
                 }, \*STDOUT);
   isnt($@, "EXIT\n", 'all found - did not die');
   is($output, '', 'all found - output');
+  is($xpl->vendor_id, 'acme', 'vendor_id overriden');
   my $plugin = ($xpl->plugins)[0];
   is($plugin->scalar, 'scalar', 'all found - scalar value');
   is_deeply($plugin->array, ['1','2'], 'all found - array value');

@@ -112,15 +112,17 @@ sub new {
     $name =~ s/.*xpl-//g; $name =~ s/-//g;
   }
 
+  my $vendor_id = 'bnz';
   my @getopts;
   my @plugin_instances;
   foreach my $module (@plugins) {
     my $instance = $module->new;
     push @plugin_instances, $instance;
     push @getopts, $instance->getopts;
+    $vendor_id = $instance->vendor_id if ($instance->can('vendor_id'));
   }
 
-  my %args = ( vendor_id => 'bnz', device_id => $name, );
+  my %args = ( vendor_id => $vendor_id, device_id => $name, );
   my %opt = ();
   my $verbose;
   my $interface;

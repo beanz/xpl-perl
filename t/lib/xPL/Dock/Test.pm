@@ -28,4 +28,8 @@ sub init {
                         'The -ana parameter is required', 0);
   return $self->SUPER::init($xpl, @_);
 }
+sub vendor_id {
+  'acme';
+}
+
 1;
