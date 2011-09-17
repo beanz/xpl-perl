@@ -34,6 +34,7 @@ my %depends =
    'xPL::Dock::FDNotify' => ['Net::DBus'],
    'xPL::Dock::GPower' => ['HTTP::Request'],
    'xPL::Dock::Jabber' => ['AnyEvent::XMPP'],
+   'xPL::Dock::Notifo' => ['AnyEvent::WebService::Notifo'],
    'xPL::Dock::OWNet' => ['AnyEvent::OWNet'],
    'xPL::Dock::RFXComRX' => ['AnyEvent::RFXCOM::RX'],
    'xPL::Dock::RFXComTX' => ['AnyEvent::RFXCOM::TX'],
