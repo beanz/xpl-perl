@@ -721,7 +721,11 @@ sub _anyevent_main_loop {
 
   if (defined $count) {
     while ($count > 0) {
-      AnyEvent->one_event;
+      if ($self->module_available('AnyEvent::Loop')) {
+        AnyEvent::Loop->one_event;
+      } else {
+        AnyEvent->one_event;
+      }
       $count--;
     }
   } else {
