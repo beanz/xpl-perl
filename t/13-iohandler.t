@@ -76,7 +76,7 @@ my $cb = $xpl->{input}->{callback};
 my $in = $xpl->{input}->{handle};
 $cb->($in, $io);
 
-is($read, 'test', 'read');
+is($read->str, 'test', 'read');
 is($io->{_buffer}, '123', 'buffer');
 is($count, 1, 'write_next called');
 
@@ -90,7 +90,7 @@ is($count, 1, 'write_next not called');
 $io->{_last_read} -= 10;
 is(test_output(sub { $cb->($in, $io); }, \*STDERR),
    "Discarding: 313233343536\n", 'discarding');
-is($read, '789', 'read');
+is($read->str, '789', 'read');
 is($io->{_buffer}, '', 'buffer');
 is($count, 1, 'write_next not called (again)');
 
