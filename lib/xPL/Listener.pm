@@ -720,6 +720,7 @@ sub _anyevent_main_loop {
   local $SIG{'TERM'} = $sub;
 
   if (defined $count) {
+    warnings::warnif('deprecated' => 'main_loop with count is deprecated.');
     while ($count > 0) {
       if ($self->module_available('AnyEvent::Loop')) {
         AnyEvent::Loop->one_event;
