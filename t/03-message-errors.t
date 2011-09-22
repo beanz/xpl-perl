@@ -10,7 +10,7 @@ use_ok("xPL::Message");
 
 my $msg;
 is(test_error(sub { $msg = xPL::Message->new(); }),
-   "xPL::Message->new: requires 'class' parameter",
+   "xPL::Message->new: requires 'schema' parameter",
    "xPL::Message missing class test");
 
 is(test_error(sub { $msg = xPL::Message->new(class => "remote.basic") }),

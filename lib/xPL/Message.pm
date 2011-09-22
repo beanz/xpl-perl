@@ -15,7 +15,7 @@ xPL::Message - Perl extension for xPL message base class
                                source => 'acme-lamp.livingroom',
                                target => '*',
                               },
-                              class => 'hbeat.app',
+                              schema => 'hbeat.app',
                               body =>
                               {
                                interval => 10,
@@ -30,7 +30,7 @@ xPL::Message - Perl extension for xPL message base class
                            {
                             source => 'acme-lamp.livingroom',
                            },
-                           class => 'hbeat.app',
+                           schema => 'hbeat.app',
                            body =>
                            {
                             remote_ip => '127.0.0.1',
@@ -121,19 +121,12 @@ are:
   'xpl-stat' and 'xpl-trig', for each of the three styles of xPL
   Message.
 
-=item class
+=item schema
 
-  The class or schema of the message.  This can either by just the
-  first part of the class, such as 'hbeat', (in which case the
-  'class_type' parameter must also be present) or it can be the
-  full schema name, such as 'hbeat.basic'.  This field is used
-  to determine the type of xPL Message object that will actually
-  be instantiated and returned to the caller.
-
-=item class_type
-
-  The type of the schema.  For the schema, 'hbeat.basic' the class
-  type is 'basic'.
+  The schema of the message.  This should be the full schema name,
+  such as 'hbeat.basic'.  This field is used to determine the type of
+  xPL Message object that will actually be instantiated and returned
+  to the caller.
 
 =back
 
@@ -149,8 +142,9 @@ sub new {
 
   my $class;
   my $class_type;
-  defined $p{class} or $pkg->argh(q{requires 'class' parameter});
-  if ($p{class} =~ /^([A-Z0-9]{1,8})\.([A-Z0-9]{1,8})$/i) {
+  $p{schema} = $p{class} if (defined $p{class});
+  defined $p{schema} or $pkg->argh(q{requires 'schema' parameter});
+  if ($p{schema} =~ /^([A-Z0-9]{1,8})\.([A-Z0-9]{1,8})$/i) {
     $class = $1;
     $class_type = $2;
   } elsif (!defined $p{class_type}) {
@@ -167,6 +161,7 @@ sub new {
     $pkg->argh("'class' parameter is invalid.\n".
                 'It must be 8 characters from A-Z, a-z and 0-9.');
   }
+  delete $p{schema};
   delete $p{class};
   delete $p{class_type};
 
@@ -259,7 +254,7 @@ sub new_from_payload {
     xPL::Message->argh("Invalid body: $body\n");
   }
   $r{body_content} = $2;
-  @r{qw/class class_type/} = split /\./, $1, 2;
+  $r{schema} = $1;
   return $_[0]->new(strict => 0, %r);
 }
 
@@ -500,7 +495,7 @@ sub body_string {
   if (defined $_[0]->{_body_content}) {
     $b .= $_[0]->{_body_content}.$LF;
   } else {
-    foreach ($_[0]->body_fields()) {
+    foreach ($_[0]->old_body_fields()) {
       my $v = $_[0]->{'_body'}->{$_};
       my $n = $_;
       $n =~ s/_/-/g;
@@ -618,6 +613,17 @@ sub target {
   return $self->{_target};
 }
 
+=head2 C<schema()>
+
+This method returns the message schema.
+
+=cut
+
+sub schema {
+  my $self = shift;
+  $self->class.'.'.$self->class_type
+}
+
 =head2 C<class()>
 
 This method returns the class.
@@ -649,6 +655,28 @@ sub valid_id {
     return 'Invalid instance id - maximum of 16 chars from A-Z, a-z, and 0-9.';
   }
   return 'valid';
+}
+
+=head2 C<field( $field )>
+
+This method returns the value of the field from the message body.
+
+=cut
+
+sub field {
+  my ($self, $field) = @_;
+  $self->can($field) ? $self->$field : $self->extra_field($field)
+}
+
+=head2 C<body_fields()>
+
+This method returns the fields that are in the body of this message.
+
+=cut
+
+sub body_fields {
+  my $self = shift;
+  ($self->old_body_fields, $self->extra_fields)
 }
 
 =head2 C<extra_field( $field, [ $value ] )>
@@ -701,14 +729,14 @@ sub extra_field_string {
   return $b;
 }
 
-=head2 C<body_fields()>
+=head2 C<old_body_fields()>
 
 This method returns the fields that are in the body of this message.
 
 =cut
 
-sub body_fields {
-  return;
+sub old_body_fields {
+  return ();
 }
 
 =head2 C<make_class($class, $class_type)>
@@ -772,7 +800,7 @@ sub make_body_fields {
     $_[0]->make_body_field($rec);
     push @f, $rec->{name};
   }
-  my $new = $_[0].'::body_fields';
+  my $new = $_[0].'::old_body_fields';
   return if (defined &{$new});
   #  print STDERR "  $new => make_body_fields, @f\n";
   no strict qw/refs/;
