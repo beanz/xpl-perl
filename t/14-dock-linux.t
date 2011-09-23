@@ -51,6 +51,7 @@ is(ref $plugin, 'xPL::Dock::Linux', 'plugin has correct type');
 no warnings;
 $xPL::Dock::Linux::FILE_PREFIX = 't/linux/1';
 use warnings;
+no warnings qw/deprecated/;
 
 my $dir = 't/linux/1/sys/class/power_supply';
 mkdir $dir.'/BAT4';

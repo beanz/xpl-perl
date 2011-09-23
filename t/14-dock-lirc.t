@@ -10,6 +10,7 @@ use Test::More tests => 15;
 use Time::HiRes;
 use Cwd;
 use t::Helpers qw/test_warn test_error test_output wait_for_callback/;
+no warnings qw/deprecated/;
 $|=1;
 
 use_ok('xPL::Dock','LIRC');

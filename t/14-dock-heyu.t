@@ -8,6 +8,7 @@ use IO::Select;
 use Socket;
 use Test::More tests => 27;
 use t::Helpers qw/test_warn test_error test_output/;
+no warnings qw/deprecated/;
 $|=1;
 
 $ENV{PATH} = 't/bin:blib/script:'.$ENV{PATH};

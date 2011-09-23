@@ -10,6 +10,7 @@ use IO::Socket;
 use POSIX qw/strftime/;
 use Test::More tests => 47;
 use t::Helpers qw/test_error test_warn wait_for_callback/;
+no warnings qw/deprecated/;
 
 $|=1;
 

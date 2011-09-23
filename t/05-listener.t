@@ -8,6 +8,7 @@ use t::Helpers qw/test_error test_warn test_output/;
 use File::Temp qw/tempfile/;
 use Socket;
 use Time::HiRes;
+no warnings qw/deprecated/;
 $|=1;
 
 my $timeout = 0.25;

@@ -10,6 +10,7 @@ use Test::More tests => 28;
 use Time::HiRes;
 use Cwd;
 use t::Helpers qw/test_warn test_error test_output/;
+no warnings qw/deprecated/;
 $|=1;
 
 use_ok('xPL::Dock','APCUPS');

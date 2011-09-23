@@ -7,6 +7,7 @@ use Socket;
 use Time::HiRes;
 use t::Helpers qw/test_error test_warn test_output/;
 use Test::More tests => 19;
+no warnings qw/deprecated/;
 $|=1;
 
 use_ok('xPL::Client');

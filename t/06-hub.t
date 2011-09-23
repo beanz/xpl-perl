@@ -7,6 +7,7 @@ use POSIX qw/uname/;
 use Socket;
 use Test::More tests => 70;
 use t::Helpers qw/test_error test_warn/;
+no warnings qw/deprecated/;
 $|=1;
 
 use_ok("xPL::Hub");

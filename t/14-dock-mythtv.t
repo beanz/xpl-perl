@@ -11,6 +11,7 @@ use Time::HiRes;
 use Cwd;
 use t::Helpers qw/test_warn test_error test_output wait_for_variable/;
 use lib 't/lib';
+no warnings qw/deprecated/;
 $|=1;
 
 $ENV{XPL_PLUGIN_TO_WRAP} = 'xPL::Dock::Mythtv';
