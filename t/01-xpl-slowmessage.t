@@ -6,6 +6,7 @@ use strict;
 use Test::More tests => 15;
 use Data::Dumper;
 use t::Helpers qw/test_warn test_error/;
+no warnings qw/deprecated/;
 
 $ENV{XPL_MESSAGE_VALIDATE} = 1;
 

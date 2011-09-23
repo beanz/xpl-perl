@@ -56,7 +56,7 @@ foreach my $r (['F020' => '4d26'], ['F041' => '41'], ['F02a' => '41']) {
   is((sysread $client, $buf, 64), length($recv)/2,
      'read is correct size - '.$recv);
   my $m = xPL::IORecord::Hex->new(raw => $buf);
-  is($m, lc $recv, 'content is correct - '.$recv);
+  is($m->str, lc $recv, 'content is correct - '.$recv);
 
   print $client pack 'H*', $send;
 

@@ -5,6 +5,7 @@
 use strict;
 use Test::More tests => 16;
 use t::Helpers qw/test_warn test_error/;
+no warnings qw/deprecated/;
 
 use_ok("xPL::Message");
 my $valid_msg = xPL::Message->new(message_type => 'xpl-cmnd',
@@ -14,15 +15,15 @@ ok($valid_msg, 'sample message to get message type');
 my $ref = ref $valid_msg;
 my $msg;
 is(test_error(sub { $msg = xPL::Message->new(); }),
-   $ref."->new: requires 'schema' parameter",
+   "xPL::ValidatedMessage->new: requires 'schema' parameter",
    "xPL::Message missing schema test");
 
 is(test_error(sub { $msg = xPL::Message->new(schema => "remote.basic") }),
-   $ref."->new: requires 'message_type' parameter",
+   "xPL::ValidatedMessage->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 
 is(test_error(sub { $msg = xPL::Message->new(schema => "unknown.basic") }),
-   $ref."->new: requires 'message_type' parameter",
+   "xPL::ValidatedMessage->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 
 is(test_error(sub { $msg = xPL::Message->new(schema => "fred.schema",

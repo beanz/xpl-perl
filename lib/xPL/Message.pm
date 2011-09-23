@@ -106,7 +106,7 @@ sub new {
   my $pkg = shift;
 
   my %p = @_;
-  if ($p{validate} || $ENV{XPL_MESSAGE_VALIDATE}) {
+  if ($p{validate} || $ENV{XPL_MESSAGE_VALIDATE} || !exists $p{message_type}) {
     require xPL::ValidatedMessage;
     import xPL::ValidatedMessage;
     return xPL::ValidatedMessage->new(@_);
@@ -130,14 +130,8 @@ sub new {
   defined $p{schema} or $pkg->argh(q{requires 'schema' parameter});
   $self->{_schema} = $p{schema};
 
-  exists $p{message_type} or do {
-    warnings::warnif('deprecated',
-                     'Reliance on default "message_type" is deprecated. '.
-                     'Set "message_type" explicity instead');
-    require xPL::ValidatedMessage;
-    import xPL::ValidatedMessage;
-    return xPL::ValidatedMessage->new(@_);
-  };
+  # next line isn't hit yet but will be after deprecation handling is removed
+  exists $p{message_type} or $pkg->argh(q{requires 'message_type' parameter});
   my $message_type = $p{message_type};
   exists $MESSAGE_TYPES{$message_type} or
     $pkg->argh("message type identifier, $message_type, is invalid.\n".

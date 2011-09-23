@@ -17,6 +17,7 @@ BEGIN {
 }
 use xPL::Message;
 use lib 't/lib';
+no warnings qw/deprecated/;
 
 my $msg = xPL::Message->new(schema => 'test.basic',
                             head => { source => 'bnz-test.default' });
