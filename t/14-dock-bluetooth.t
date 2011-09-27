@@ -1,4 +1,4 @@
-#!#!/usr/bin/perl -w
+#!/usr/bin/perl -w
 #
 # Copyright (C) 2009, 2010 by Mark Hindess
 
