@@ -10,3 +10,4 @@ types:
           type: IntegerRange
           min: 5
           max: 30
+      - name: version

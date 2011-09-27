@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2009 by Mark Hindess
+# Copyright (C) 2011 by Mark Hindess
 
 use strict;
-use Test::More tests => 22;
+use Test::More tests => 23;
 use t::Helpers qw/test_warn test_error test_output/;
 use lib 't/lib';
 $|=1;
@@ -44,6 +44,7 @@ my $xpl;
   isnt($@, "EXIT\n", 'all found - did not die');
   is($output, '', 'all found - output');
   is($xpl->vendor_id, 'acme', 'vendor_id overriden');
+  is($xpl->version, '0.01', 'version overriden');
   my $plugin = ($xpl->plugins)[0];
   is($plugin->scalar, 'scalar', 'all found - scalar value');
   is_deeply($plugin->array, ['1','2'], 'all found - array value');

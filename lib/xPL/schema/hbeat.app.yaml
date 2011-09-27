@@ -22,3 +22,4 @@ types:
         die: 1
         validation:
           type: IP
+      - name: version

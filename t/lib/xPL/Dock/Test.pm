@@ -31,5 +31,8 @@ sub init {
 sub vendor_id {
   'acme';
 }
+sub version {
+  '0.01';
+}
 
 1;

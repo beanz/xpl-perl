@@ -46,7 +46,7 @@ our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
 my @attributes =
-  qw/hbeat_mode vendor_id device_id
+  qw/hbeat_mode vendor_id device_id version
      hbeat_interval fast_hbeat_interval hopeful_hbeat_interval
      hub_response_timeout hbeat_count stealth/;
 foreach my $a (@attributes) {
@@ -125,7 +125,7 @@ sub new {
                   (@$_)[0,2,3,4]);
   }
 
-  foreach (qw/vendor_id device_id instance_id
+  foreach (qw/vendor_id device_id instance_id version
               hbeat_interval fast_hbeat_interval
               hopeful_hbeat_interval hub_response_timeout
               stealth/) {
@@ -175,6 +175,8 @@ sub new {
     push @{$xpl_message_args{body}}, port => $self->listen_port;
     push @{$xpl_message_args{body}}, remote_ip => $self->ip;
   }
+  push @{$xpl_message_args{body}}, version => $p{version}
+    if (exists $p{version});
 
   $self->{_hbeat_message} = xPL::Message->new(%xpl_message_args);
 

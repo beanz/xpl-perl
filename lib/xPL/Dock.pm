@@ -113,6 +113,7 @@ sub new {
   }
 
   my $vendor_id = 'bnz';
+  my $version;
   my @getopts;
   my @plugin_instances;
   foreach my $module (@plugins) {
@@ -120,6 +121,7 @@ sub new {
     push @plugin_instances, $instance;
     push @getopts, $instance->getopts;
     $vendor_id = $instance->vendor_id if ($instance->can('vendor_id'));
+    $version = $instance->version if ($instance->can('version'));
   }
 
   my %args = ( vendor_id => $vendor_id, device_id => $name, );
@@ -140,6 +142,7 @@ sub new {
   pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
   $args{'interface'} = $interface if ($interface);
   $args{'verbose'} = $verbose if ($verbose);
+  $args{'version'} = $version if (defined $version);
 
   # Create an xPL Client object (dies on error)
   my $self = $pkg->SUPER::new(%args, %opt,
