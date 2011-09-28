@@ -92,7 +92,7 @@ sub new_from_string {
   my $pkg = shift;
   my $timeout = shift;
 
-  if ($timeout =~ /^-?[0-9\.]+$/) {
+  if ($timeout =~ /^-?[0-9\.]+(?:[eE]-?[0-9]+)?$/) {
     return $pkg->new(type => 'simple', timeout => $timeout);
   } elsif ($timeout =~ /^(\w+) (.*)$/i) {
     return $pkg->new(type => $1, simple_tokenizer($2));

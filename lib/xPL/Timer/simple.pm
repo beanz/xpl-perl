@@ -53,7 +53,7 @@ sub init {
   my $p = shift;
   exists $p->{timeout} or $self->argh("requires 'timeout' parameter");
   my $timeout = $p->{timeout};
-  unless ($timeout =~ /^-?[0-9\.]+$/) {
+  unless ($timeout =~ /^-?[0-9\.]+(?:[eE]-?[0-9]+)?$/) {
     $self->argh("invalid 'timeout' parameter");
   }
   $self->{_timeout} = abs $timeout;
