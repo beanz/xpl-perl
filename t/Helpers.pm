@@ -31,9 +31,6 @@ use warnings;
 use English qw/-no_match_vars/;
 use File::Temp qw/tempfile/;
 use Test::More;
-use AnyEvent;
-use AnyEvent::Socket;
-use AnyEvent::Handle;
 use constant {
   DEBUG => $ENV{XPL_TEST_HELPERS_DEBUG}
 };
