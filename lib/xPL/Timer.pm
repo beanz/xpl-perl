@@ -58,10 +58,11 @@ sub new {
   my $module = $pkg.'::'.(lc $type);
 
   unless (exists $modules{$module}) {
-    eval "require $module; import $module;";
+    eval "require $module;";
     if ($EVAL_ERROR) {
       $pkg->argh("Failed to load $module: ".$EVAL_ERROR);
     } else {
+      import $module;
       $modules{$module} = $module;
     }
   }

@@ -80,9 +80,8 @@ __PACKAGE__->make_readonly_accessor(qw/ip broadcast interface
 
 our $EVENT_LOOP = (defined $AnyEvent::VERSION ? 'anyevent' : 'default');
 {
-  my $prefix =
-    __PACKAGE__.'::_'.$EVENT_LOOP.'_';
-  no strict qw/refs/;
+  my $prefix = __PACKAGE__.'::_'.$EVENT_LOOP.'_';
+  no strict qw/refs/; ## no critic
   foreach my $method (qw/main_loop time_now
                          add_input remove_input
                          timer_next remove_timer/) {

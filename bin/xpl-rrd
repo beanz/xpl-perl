@@ -68,9 +68,10 @@ my $rrd_dir =
 
 my $state_db = $rrd_dir.'/state.db';
 
-mkdir $rrd_dir, 0755 unless (-d $rrd_dir);
+mkdir $rrd_dir, 0755 unless (-d $rrd_dir); ## no critic
 my %state;
-my $tie_h = tie %state, 'DB_File', $state_db, O_CREAT|O_RDWR, 0666, $DB_HASH;
+my $tie_h = tie %state, 'DB_File', $state_db, O_CREAT|O_RDWR,
+  0666, $DB_HASH; ## no critic
 die "Failed to open $state_db file: $!\n" unless ($tie_h);
 
 my %map = ();

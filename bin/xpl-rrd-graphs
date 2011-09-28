@@ -35,7 +35,7 @@ if (@ARGV) {
   %$todo = map { $_ => 1 } @ARGV;
 }
 
-mkdir($graph_dir, 0755) unless (-d $graph_dir);
+mkdir($graph_dir, 0755) unless (-d $graph_dir); ## no critic
 
 my %rrds = ();
 
@@ -104,7 +104,7 @@ foreach my $dir (sort keys %rrds) {
 
   print "D: ", $dir, "\n";
   my $gd = $graph_dir."/".$dir;
-  mkpath($gd, 0, 0755) unless (-d $gd);
+  mkpath($gd, 0, 0755) unless (-d $gd); ## no critic
 
   foreach my $a (sort keys %{$rrds{$dir}}) {
 
@@ -112,7 +112,7 @@ foreach my $dir (sort keys %rrds) {
       print "  ", $a, " ";
       my $rrd = $rrds{$dir}->{$a}->{rrd};
       my $gb = $gd."/".$a;
-      mkpath($gb, 0, 0755) unless (-d $gb);
+      mkpath($gb, 0, 0755) unless (-d $gb); ## no critic
       my $sources = rrd_data_sources($rrd);
       foreach my $var (@$sources) {
         print $var, ": ";

@@ -392,7 +392,8 @@ sub _load_config {
   my %h;
   eval { require DB_File; import DB_File; };
   croak("DB_File module required to use xPL config.basic support.\n") if ($@);
-  my $res = tie %h, 'DB_File', $file, O_CREAT|O_RDWR, 0666, $DB_File::DB_HASH;
+  my $res = tie %h, 'DB_File', $file, O_CREAT|O_RDWR, 0666, ## no critic
+                $DB_File::DB_HASH;
   unless ($res) {
     croak("Failed to create configuration DB_File, $file: $!\n");
   }

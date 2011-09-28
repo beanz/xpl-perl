@@ -619,7 +619,7 @@ sub make_class {
     __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
   $modules{$parent} = $parent;
   my $isa = $parent.'::ISA';
-  no strict qw/refs/;
+  no strict qw/refs/; ## no critic
   *{$isa} = [qw/xPL::ValidatedMessage/];
   if (exists $spec->{default_message_type}) {
     my $dmt = $parent.'::default_message_type';
@@ -634,7 +634,7 @@ sub make_class {
     $mt =~ s/-//;
     my $module = $parent.$DOUBLE_COLON.$mt;
     my $isa = $module.'::ISA';
-    no strict qw/refs/;
+    no strict qw/refs/; ## no critic
     *{$isa} = [$parent];
     my $s = $module.'::spec';
     *{$s} =
@@ -711,7 +711,7 @@ sub make_body_field {
   my $new = $pkg.$DOUBLE_COLON.$name;
   return if (defined &{$new});
 #  print STDERR "  $new => body_field, ",$validation->summary,"\n";
-  no strict qw/refs/;
+  no strict qw/refs/; ## no critic
   *{$new} =
     sub {
       $_[0]->_parse_body() if ($_[0]->{_body_content});

@@ -88,7 +88,7 @@ sub new {
 
   my $module = $pkg.$DOUBLE_COLON.$type;
   unless (exists $modules{$module}) {
-    eval "require $module; import $module;";
+    eval "require $module";
     if ($EVAL_ERROR) {
       # default for unknown validation type - accepts all values
       $modules{$module} = $pkg.'::Any';
@@ -96,6 +96,7 @@ sub new {
         warn "Failed to load $module: ".$EVAL_ERROR;
       }
     } else {
+      import $module;
       $modules{$module} = $module;
     }
   }

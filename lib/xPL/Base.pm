@@ -280,7 +280,7 @@ sub make_collection_method {
   my $parent = $method_template;
   $parent =~ s/X/item/;
   #print STDERR "  $new => $parent\n";
-  no strict 'refs';
+  no strict 'refs'; ## no critic
   *{"$new"} =
     sub {
       shift->$parent($collection_type, @_);
@@ -313,7 +313,7 @@ sub make_item_attribute_method {
   my $new = $pkg.q{::}.$collection_type.q{_}.$attribute_name;
   return if (defined &{"$new"});
   #print STDERR "  $new => item_attrib\n";
-  no strict 'refs';
+  no strict 'refs'; ## no critic
   *{"$new"} =
     sub {
       shift->_item_attrib($collection_type, shift, $attribute_name, @_);
@@ -342,7 +342,7 @@ sub make_readonly_accessor {
     my $new = $pkg.q{::}.$attribute_name;
     return if (defined &{"$new"});
     #print STDERR "  $new => readonly_accessor\n";
-    no strict 'refs';
+    no strict 'refs'; ## no critic
     *{"$new"} =
       sub {
         $_[0]->ouch_named($attribute_name,
@@ -617,8 +617,15 @@ sub module_available {
   $file =~ s!::!/!g;
   $file .= '.pm';
   return $self->{_mod}->{$module} = 1 if (exists $INC{$file});
-  eval " require $module; import $module \@_; ";
-  return $self->{_mod}->{$module} = $EVAL_ERROR ? 0 : 1;
+  eval "require $module";
+  my $res;
+  if ($EVAL_ERROR) {
+    $self->{_mod}->{$module} = 0;
+  } else {
+    import $module @_;
+    $self->{_mod}->{$module} = 1;
+  }
+  return $self->{_mod}->{$module}
 }
 
 =head2 C<simple_tokenizer( $string )>

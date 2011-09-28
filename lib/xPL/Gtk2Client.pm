@@ -67,7 +67,7 @@ if (defined $AnyEvent::VERBOSE) {
 } else {
   # not using AnyEvent so we need to override some methods to make
   # xPL::Listener's own event loop work
-  no strict qw/refs/;
+  no strict qw/refs/; ## no critic
   *{__PACKAGE__."::add_timer"} = *{__PACKAGE__."::_gtk2_add_timer"};
   *{__PACKAGE__."::add_input"} = *{__PACKAGE__."::_gtk2_add_input"};
   *{__PACKAGE__."::remove_input"} = *{__PACKAGE__."::_gtk2_remove_input"};
