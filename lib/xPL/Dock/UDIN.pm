@@ -25,6 +25,7 @@ use warnings;
 use English qw/-no_match_vars/;
 use xPL::IOHandler;
 use xPL::Dock::Plug;
+use Time::HiRes;
 
 our @ISA = qw(xPL::Dock::Plug);
 our %EXPORT_TAGS = ( 'all' => [ qw() ] );
@@ -116,7 +117,7 @@ sub xpl_in {
     $self->{_io}->write(sprintf('f%d', $num));
   } elsif ($command eq 'pulse') {
     $self->{_io}->write(sprintf('n%d', $num));
-    select(undef,undef,undef,0.15); # TODO: use add_timer
+    Time::HiRes::sleep(0.15); # TODO: use add_timer
     $self->{_io}->write(sprintf('f%d', $num));
   } elsif ($command eq 'toggle') {
     $self->{_io}->write(sprintf('t%d', $num));
