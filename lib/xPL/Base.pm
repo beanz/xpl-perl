@@ -22,7 +22,7 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-use English qw/-no_match_vars/;
+use Class::Load;
 use Socket;
 use Text::Balanced qw/extract_quotelike/;
 use Time::HiRes;
@@ -612,20 +612,9 @@ when loading the module.
 sub module_available {
   my $self = shift;
   my $module = shift;
-  return $self->{_mod}->{$module} if (exists $self->{_mod}->{$module});
-  my $file = $module;
-  $file =~ s!::!/!g;
-  $file .= '.pm';
-  return $self->{_mod}->{$module} = 1 if (exists $INC{$file});
-  eval "require $module";
-  my $res;
-  if ($EVAL_ERROR) {
-    $self->{_mod}->{$module} = 0;
-  } else {
-    import $module @_;
-    $self->{_mod}->{$module} = 1;
-  }
-  return $self->{_mod}->{$module}
+  my ($res, $error) = Class::Load::try_load_class($module);
+  import $module if ($res);
+  $res;
 }
 
 =head2 C<simple_tokenizer( $string )>

@@ -135,7 +135,7 @@ is(test_error(sub {
     q{' failed: Connection refused}), 'connection refused');
 
 is(test_error(sub { xPL::IOHandler->new(input_record_type =>
-                                          'xPL::IORecord::NonExistent') }),
+                                        'xPL::IORecord::NonExistent') }),
    q{Can't locate xPL/IORecord/NonExistent.pm in @INC}, 'bad record type');
 
 

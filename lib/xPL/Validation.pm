@@ -40,7 +40,7 @@ of xPL messages.
 use 5.006;
 use strict;
 use warnings;
-use English qw/-no_match_vars/;
+use Class::Load;
 use xPL::Validation::Any;
 
 use xPL::Base;
@@ -88,16 +88,16 @@ sub new {
 
   my $module = $pkg.$DOUBLE_COLON.$type;
   unless (exists $modules{$module}) {
-    eval "require $module";
-    if ($EVAL_ERROR) {
+    my ($res, $error) = Class::Load::try_load_class($module);
+    if ($res) {
+      import $module;
+      $modules{$module} = $module;
+    } else {
       # default for unknown validation type - accepts all values
       $modules{$module} = $pkg.'::Any';
       if (exists $ENV{XPL_VALIDATION_WARN}) {
-        warn "Failed to load $module: ".$EVAL_ERROR;
+        warn "Failed to load $module: ".$error;
       }
-    } else {
-      import $module;
-      $modules{$module} = $module;
     }
   }
   $module = $modules{$module};

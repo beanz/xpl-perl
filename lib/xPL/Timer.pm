@@ -21,7 +21,7 @@ This module creates an xPL timer abstraction.
 use 5.006;
 use strict;
 use warnings;
-use English qw/-no_match_vars/;
+use Class::Load;
 use xPL::Validation;
 
 use xPL::Base qw/simple_tokenizer/;
@@ -58,12 +58,12 @@ sub new {
   my $module = $pkg.'::'.(lc $type);
 
   unless (exists $modules{$module}) {
-    eval "require $module;";
-    if ($EVAL_ERROR) {
-      $pkg->argh("Failed to load $module: ".$EVAL_ERROR);
-    } else {
+    my ($res, $error) = Class::Load::try_load_class($module);
+    if ($res) {
       import $module;
       $modules{$module} = $module;
+    } else {
+      $pkg->argh("Failed to load $module: ".$error);
     }
   }
   $module = $modules{$module};

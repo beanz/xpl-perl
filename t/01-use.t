@@ -3,14 +3,14 @@
 # Copyright (C) 2005, 2009 by Mark Hindess
 
 use strict;
-use English qw/-no_match_vars/;
+use Class::Load;
 my @modules;
 
 BEGIN {
-  open my $fh, '<', 'MANIFEST' or die 'Open of MANIFEST failed: '.$ERRNO;
+  open my $fh, '<', 'MANIFEST' or die 'Open of MANIFEST failed: '.$!;
   while(<$fh>) {
     next if (!/^lib\/(.*)\.pm/);
-    my $m = $LAST_PAREN_MATCH;
+    my $m = $1;
     $m =~ s!/!::!g;
     push @modules, $m;
   }
@@ -43,7 +43,6 @@ my %depends =
    'xPL::Dock::XOSD' => ['X::Osd'],
   );
 
-my %has;
 foreach my $m (@modules) {
  SKIP: {
     skip 'no database defined, see xPL::SQL', 1
@@ -51,7 +50,7 @@ foreach my $m (@modules) {
 
     my $missing;
     foreach my $dep (@{$depends{$m}||[]}) {
-      next if (has_module(\%has, $dep));
+      next if (Class::Load::try_load_class($dep));
       $missing = $dep;
       last;
     }
@@ -59,12 +58,5 @@ foreach my $m (@modules) {
 
     require_ok($m);
   }
-}
-
-sub has_module {
-  my ($cache, $module) = @_;
-  return $cache->{$module} if (exists $cache->{$module});
-  eval " require $module ";
-  $cache->{$module} = !$@;
 }
 

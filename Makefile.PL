@@ -31,6 +31,7 @@ WriteMakefile(
                   'Date::Parse' => 0,
                   'AnyEvent' => 0,
                   'Sub::Name' => 0,
+                  'Class::Load' => 0,
                 },
                ) : ()),
              );
