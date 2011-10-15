@@ -21,7 +21,6 @@ This module creates an xPL timer abstraction.
 use 5.006;
 use strict;
 use warnings;
-use Class::Load;
 use xPL::Validation;
 
 use xPL::Base qw/simple_tokenizer/;
@@ -56,17 +55,17 @@ sub new {
 
   my $type = $p{type};
   my $module = $pkg.'::'.(lc $type);
-
   unless (exists $modules{$module}) {
-    my ($res, $error) = Class::Load::try_load_class($module);
-    if ($res) {
-      import $module;
-      $modules{$module} = $module;
-    } else {
-      $pkg->argh("Failed to load $module: ".$error);
+    if ($type =~ /\W/) {
+      $pkg->argh("Invalid timer type: $type\n");
     }
+    my $file = $module;
+    $file =~ s!::!/!g;
+    $file .= '.pm';
+    eval { require $file; } or $pkg->argh("Failed to load $module: ".$@);
+    import $module;
+    $modules{$module}++;
   }
-  $module = $modules{$module};
 
   my $self = {};
   bless $self, $module;

@@ -40,7 +40,6 @@ of xPL messages.
 use 5.006;
 use strict;
 use warnings;
-use Class::Load;
 use xPL::Validation::Any;
 
 use xPL::Base;
@@ -53,7 +52,6 @@ our @EXPORT = qw();
 our $VERSION = qw/$Revision$/[1];
 
 our %modules = ();
-our $DOUBLE_COLON = q{::};
 
 __PACKAGE__->make_readonly_accessor(qw/type/);
 
@@ -86,18 +84,24 @@ sub new {
   my $type = $p{type};
   defined $type or $pkg->argh(q{requires 'type' parameter});
 
-  my $module = $pkg.$DOUBLE_COLON.$type;
+  my $module = $pkg.'::'.$type;
   unless (exists $modules{$module}) {
-    my ($res, $error) = Class::Load::try_load_class($module);
-    if ($res) {
-      import $module;
-      $modules{$module} = $module;
-    } else {
+    if ($type =~ /\W/) {
+      $pkg->argh("Invalid validation type: $type\n");
+    }
+    my $file = $module;
+    $file =~ s!::!/!g;
+    $file .= '.pm';
+    eval { require $file; };
+    if ($@) {
       # default for unknown validation type - accepts all values
       $modules{$module} = $pkg.'::Any';
       if (exists $ENV{XPL_VALIDATION_WARN}) {
-        warn "Failed to load $module: ".$error;
+        warn "Failed to load $module: ".$@;
       }
+    } else {
+      import $module;
+      $modules{$module} = $module;
     }
   }
   $module = $modules{$module};

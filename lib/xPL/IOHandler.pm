@@ -30,7 +30,6 @@ use 5.006;
 use strict;
 use warnings;
 
-use Class::Load;
 use Fcntl;
 use IO::Socket::INET;
 use Time::HiRes;
@@ -75,9 +74,7 @@ sub new {
   bless $self, $pkg;
   my $xpl = $self->{_xpl};
   foreach my $c ($self->{_input_record_type}, $self->{_output_record_type}) {
-    next if ($c->can('out'));
-    my ($res, $error) = Class::Load::try_load_class($c);
-    die $error unless ($res);
+    $c->can('out') or $self->module_available($c) or die $@;
   }
   $xpl->add_input(handle => $self->input_handle,
                   callback => sub {

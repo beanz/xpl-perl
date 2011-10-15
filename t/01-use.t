@@ -3,7 +3,6 @@
 # Copyright (C) 2005, 2009 by Mark Hindess
 
 use strict;
-use Class::Load;
 my @modules;
 
 BEGIN {
@@ -22,7 +21,7 @@ BEGIN {
 my %depends =
   (
    'xPL::RF::Oregon' => ['Date::Parse'],
-   'xPL::Timer::cron' => ['DateTime::Event::Cron'],
+   'xPL::Timer::cron' => ['DateTime::Event::Cron' ],
    'xPL::Timer::sunrise' => ['DateTime::Event::Sunrise'],
    'xPL::Timer::sunset' => ['DateTime::Event::Sunrise'],
    'xPL::Timer::recurrence' => ['DateTime::Event::Recurrence'],
@@ -50,7 +49,7 @@ foreach my $m (@modules) {
 
     my $missing;
     foreach my $dep (@{$depends{$m}||[]}) {
-      next if (Class::Load::try_load_class($dep));
+      next if (in_inc_path($dep));
       $missing = $dep;
       last;
     }
@@ -60,3 +59,10 @@ foreach my $m (@modules) {
   }
 }
 
+sub in_inc_path {
+  my $mod = shift;
+  $mod =~ s!::!/!g;
+  $mod .= '.pm';
+  eval { require $mod } or return;
+  return 1;
+}

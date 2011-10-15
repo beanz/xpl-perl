@@ -22,7 +22,6 @@ use 5.006;
 use strict;
 use warnings;
 use Carp;
-use Class::Load;
 use Socket;
 use Text::Balanced qw/extract_quotelike/;
 use Time::HiRes;
@@ -612,9 +611,23 @@ when loading the module.
 sub module_available {
   my $self = shift;
   my $module = shift;
-  my ($res, $error) = Class::Load::try_load_class($module);
-  import $module if ($res);
-  $res;
+  # this isn't really secure but it is only used in two code paths
+  # which should be safe.  I'd like to use Class::Load but it isn't
+  # in Debian stable and I like to support that
+  return $self->{_mod}->{$module} if (exists $self->{_mod}->{$module});
+  my $file = $module;
+  $file =~ s!::!/!g;
+  $file .= '.pm';
+  return $self->{_mod}->{$module} = 1 if (exists $INC{$file});
+  eval { require $file };
+  my $res;
+  if ($@) {
+    $self->{_mod}->{$module} = 0;
+  } else {
+    import $module @_;
+    $self->{_mod}->{$module} = 1;
+  }
+  return $self->{_mod}->{$module}
 }
 
 =head2 C<simple_tokenizer( $string )>
