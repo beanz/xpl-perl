@@ -11,7 +11,6 @@ bin/xpl-dg834
 bin/xpl-dmx
 bin/xpl-easydaq
 bin/xpl-fdnotify
-bin/xpl-gpower
 bin/xpl-hddtemp
 bin/xpl-heyu
 bin/xpl-heyu-helper
@@ -94,10 +93,6 @@ debian/xpl-easydaq-perl.postinst
 debian/xpl-easydaq-perl.postrm
 debian/xpl-easydaq-perl.prerm
 debian/xpl-easydaq-perl.README.Debian
-debian/xpl-gpower-perl.postinst
-debian/xpl-gpower-perl.postrm
-debian/xpl-gpower-perl.prerm
-debian/xpl-gpower-perl.README.Debian
 debian/xpl-hddtemp-perl.postinst
 debian/xpl-hddtemp-perl.postrm
 debian/xpl-hddtemp-perl.prerm
@@ -187,7 +182,6 @@ lib/xPL/Dock/DawnDusk.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
 lib/xPL/Dock/FDNotify.pm
-lib/xPL/Dock/GPower.pm
 lib/xPL/Dock/HDDTemp.pm
 lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/Jabber.pm
