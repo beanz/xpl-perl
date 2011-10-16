@@ -32,6 +32,7 @@ Revision history for Perl extension xPL.
         - New xpl-smart client: Like xpl-hddtemp but works for more
           drives and reports them by serial number rather than device
           name which might change over time.
+	- DEPRECATED: xpl-gpower, xpl-hddtemp
 
 0.11 Thu, 19 Aug 2010 16:40:03 +0100
 
