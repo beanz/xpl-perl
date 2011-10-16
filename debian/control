@@ -97,14 +97,6 @@ Description: xPL EasyDAQ USB Relay client
 #  This package sets up an xPL Desktop Notification application to run
 #  automatically.
 
-Package: xpl-gpower-perl
-Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
-  xpl-common-perl, libwww-perl
-Description: xPL Google PowerMeter update client
- This package sets up an xPL Google PowerMeter update client to run
- automatically.
-
 Package: xpl-hddtemp-perl
 Architecture: all
 Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
