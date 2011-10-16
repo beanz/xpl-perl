@@ -16,7 +16,7 @@ BEGIN {
   $ENV{PERL_ANYEVENT_MODEL} = 'Perl' unless ($ENV{PERL_ANYEVENT_MODEL});
   eval { require AnyEvent::RFXCOM::TX; import AnyEvent::RFXCOM::TX; };
   if ($@) {
-    import Test::More skip_all => 'No AnyEvent::RFXCOM::TX module: '.$@;
+    import Test::More skip_all => 'No AnyEvent::RFXCOM::TX module';
   }
   import Test::More tests => 71;
 }
