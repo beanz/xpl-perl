@@ -211,7 +211,8 @@ Description: xPL RFXCOM RF transmitter application
 
 # Package: xpl-rrd-perl
 # Architecture: all
-# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl, librrds-perl
+# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+#   xpl-common-perl, librrds-perl
 # Description: xPL application that logs data to rrd files
 #  This package sets up an xPL application that logs data to rrd files to run
 #  automatically.
@@ -225,13 +226,15 @@ Description: xPL SMART disk temperature reporting
 
 Package: xpl-sms-send-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl, libsms-send-perl
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libsms-send-perl
 Description: xPL SMS message sender
  This package sets up an xPL SMS message sender to run automatically.
 
 # Package: xpl-tcphelp-perl
 # Architecture: all
-# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
+# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+#   xpl-common-perl
 # Description: xPL TCP Helper
 #  This package sets up an xPL TCP Helper to run automatically.
 
@@ -253,18 +256,20 @@ Package: xpl-w800-perl
 Architecture: all
 Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
 Description: xPL W800 RF receiver application
-  This package sets up an xPL W800 RF receiver application to run
-  automatically.
+ This package sets up an xPL W800 RF receiver application to run
+ automatically.
 
 Package: xpl-xosd-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl, libx-osd-perl
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libx-osd-perl
 Description: xPL X OSD application
  This package sets up an xPL X OSD application to run automatically.
 
 Package: xpl-xvkbd-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl, xvkbd
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, xvkbd
 Description: xPL virtual keyboard application
  This package sets up an xPL virtual keyboard application to run
  automatically.
