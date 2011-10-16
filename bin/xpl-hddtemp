@@ -29,6 +29,8 @@ xpl-hddtemp - Perl script for an xPL hddtemp monitor
 
 =head1 DESCRIPTION
 
+DEPRECATED: This script is deprecated in favour of the xpl-smart.
+
 This script is an xPL client that polls the hddtemp daemon (listening
 on the loopback interface) to check for temperature changes of hard
 disks.

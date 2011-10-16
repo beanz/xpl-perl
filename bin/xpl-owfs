@@ -23,6 +23,8 @@ xpl-owfs - Perl script for an xPL interface to the one-wire filesystem
 
 =head1 DESCRIPTION
 
+DEPRECATED: This script is deprecated in favour of the xpl-ownet.
+
 This script is an xPL client that interfaces with the one-wire
 filesystem.  It supports the use of control.basic messages with
 current fields set to 'high', 'low' or 'pulse' of devices with PIO

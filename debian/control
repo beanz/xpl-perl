@@ -26,7 +26,8 @@ Description: Common configuration for all xPL clients built on xPL-Perl
 
 Package: xpl-hub-perl
 Architecture: all
-Depends: ${misc:Depends}, daemontools, runit | daemontools-run, adduser, libxpl-perl, xpl-common-perl
+Depends: ${misc:Depends}, daemontools, runit | daemontools-run, adduser,
+  libxpl-perl, xpl-common-perl
 Description: xPL Hub built on xPL-Perl
  This package sets up the xPL-Perl xPL Hub to start automatically.
 
@@ -38,7 +39,8 @@ Description: xPL APC UPS Daemon monitor
 
 Package: xpl-bluetooth-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl, libnet-bluetooth-perl
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libnet-bluetooth-perl
 Description: xPL bluetooth proximity monitor
  This package sets up an xPL bluetooth proximity monitor to run automatically.
 
@@ -50,7 +52,8 @@ Description: xPL CTX35 application
 
 Package: xpl-currentcost-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libanyevent-currentcost-perl
 Description: xPL Current Cost application
  This package sets up an xPL Current Cost application to run automatically.
 
@@ -62,13 +65,15 @@ Description: xPL datetime
 
 Package: xpl-dawndusk-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl, libdatetime-event-sunrise-perl
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libdatetime-event-sunrise-perl
 Description: xPL dawndusk application
  This package sets up an xPL dawndusk application to run automatically.
 
 # Package: xpl-dg834-perl
 # Architecture: all
-# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
+# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+#   xpl-common-perl
 # Description: xPL DG834 monitor
 #  This package sets up an xPL DG834 monitor to run automatically.
 
@@ -86,14 +91,16 @@ Description: xPL EasyDAQ USB Relay client
 
 # Package: xpl-fdnotify-perl
 # Architecture: all
-# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl, libnet-dbus-perl
+# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+#   xpl-common-perl, libnet-dbus-perl
 # Description: xPL Desktop Notification application
 #  This package sets up an xPL Desktop Notification application to run
 #  automatically.
 
 Package: xpl-gpower-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl, libwww-perl
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libwww-perl
 Description: xPL Google PowerMeter update client
  This package sets up an xPL Google PowerMeter update client to run
  automatically.
@@ -103,6 +110,9 @@ Architecture: all
 Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
 Suggests: hddtemp
 Description: xPL hddtemp monitor
+ DEPRECATED: This package is deprecated in favour of the
+ xpl-smart-perl package.
+ .
  This package sets up an xPL hddtemp monitor to run automatically.
 
 Package: xpl-heyu-perl
@@ -113,7 +123,8 @@ Description: xPL X10 application using heyu
 
 Package: xpl-jabber-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl, libnet-xmpp-perl (>= 1.23)
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libnet-xmpp-perl (>= 1.23)
 Description: xPL Jabber Instant Message client
  This package sets up an xPL Jabber Instant Message application.
 
@@ -125,13 +136,15 @@ Description: xPL LCDproc OSD application
 
 # Package: xpl-linux-perl
 # Architecture: all
-# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
+# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+#   xpl-common-perl
 # Description: xPL Linux monitor
 #  This package sets up an xPL Linux monitor to run automatically.
 
 # Package: xpl-linux-cpu-perl
 # Architecture: all
-# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
+# Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+#   xpl-common-perl
 # Description: xPL Linux CPU monitor
 #  This package sets up an xPL Linux CPU monitor to run automatically.
 
@@ -158,26 +171,40 @@ Package: xpl-owfs-perl
 Architecture: all
 Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
 Description: xPL interface to the one-wire filesystem
+ DEPRECATED: This package is deprecated in favour of the
+ xpl-ownet-perl package.
+ .
  This package sets up an xPL interface to the one-wire filesystem to
+ run automatically.
+
+Package: xpl-ownet-perl
+Architecture: all
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libanyevent-ownet-perl
+Description: xPL interface to the one-wire filesystem
+ This package sets up an xPL interface to the one-wire OWNET server to
  run automatically.
 
 Package: xpl-rfxcom-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libanyevent-rfxcom-perl
 Description: xPL RFXCOM RF receiver/transmitter application
  This package sets up an xPL RFXCOM RF receiver/transmitter
  application to run automatically.
 
 Package: xpl-rfxcom-rx-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libanyevent-rfxcom-perl
 Description: xPL RFXCOM RF receiver application
  This package sets up an xPL RFXCOM RF receiver application to run
  automatically.
 
 Package: xpl-rfxcom-tx-perl
 Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  xpl-common-perl, libanyevent-rfxcom-perl
 Description: xPL RFXCOM RF transmitter application
  This package sets up an xPL RFXCOM RF transmitter application to run
  automatically.
@@ -188,6 +215,13 @@ Description: xPL RFXCOM RF transmitter application
 # Description: xPL application that logs data to rrd files
 #  This package sets up an xPL application that logs data to rrd files to run
 #  automatically.
+
+Package: xpl-smart-perl
+Architecture: all
+Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl,
+  smartmontools, xpl-common-perl
+Description: xPL SMART disk temperature reporting
+ This package sets up an xPL SMART disk monitor to run automatically.
 
 Package: xpl-sms-send-perl
 Architecture: all
