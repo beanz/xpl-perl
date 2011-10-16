@@ -25,7 +25,6 @@ bin/xpl-logger
 bin/xpl-monitor
 bin/xpl-mpd
 bin/xpl-mythtv
-bin/xpl-notifo
 bin/xpl-owfs
 bin/xpl-ownet
 bin/xpl-packet-trace
@@ -196,7 +195,6 @@ lib/xPL/Dock/LCDproc.pm
 lib/xPL/Dock/Linux.pm
 lib/xPL/Dock/LIRC.pm
 lib/xPL/Dock/Mythtv.pm
-lib/xPL/Dock/Notifo.pm
 lib/xPL/Dock/Owfs.pm
 lib/xPL/Dock/OWNet.pm
 lib/xPL/Dock/Plug.pm
