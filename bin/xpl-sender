@@ -58,7 +58,7 @@ my $verbose;
 my $interface;
 my $help;
 my $man;
-my $message_type = 'xpl-perl';
+my $message_type = 'xpl-cmnd';
 my $schema;
 my $source;
 my $target;
