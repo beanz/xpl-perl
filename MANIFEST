@@ -217,6 +217,7 @@ lib/xPL/IORecord/ZeroSplitLine.pm
 lib/xPL/Listener.pm
 lib/xPL/Message.pm
 lib/xPL/Queue.pm
+lib/xPL/schema/ac.basic.yaml
 lib/xPL/schema/audio.basic.yaml
 lib/xPL/schema/audio.request.yaml
 lib/xPL/schema/cid.basic.yaml

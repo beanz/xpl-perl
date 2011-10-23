@@ -13,8 +13,8 @@ DIAFILES=$(wildcard *.diagram)
 EPSFILES=$(DIAFILES:.diagram=.eps)
 PNGFILES=$(DIAFILES:.diagram=.png)
 JPEGFILES=$(DIAFILES:.diagram=.jpeg)
-PMFILES=$(addprefix ../, \
-                    $(shell grep -e bin/ -e '\.pm' -e 't/*.t' ../MANIFEST) )
+PMFILES=$(addprefix ../, $(shell grep -e bin/ -e '\.pm' ../MANIFEST | \
+                                   grep -v '^t/') )
 
 dvi: $(DVI)
 

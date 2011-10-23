@@ -4,7 +4,7 @@ use xPL::Dock qw/-run/;
 
 =head1 NAME
 
-xpl-fdnotify - Perl script for an xPL X OSD application
+xpl-fdnotify - Perl script for an xPL desktop notification application
 
 =head1 SYNOPSIS
 
