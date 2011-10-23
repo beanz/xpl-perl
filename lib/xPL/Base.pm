@@ -275,16 +275,15 @@ sub make_collection_method {
   my $new = $method_template;
   $new =~ s/X/$collection_type/;
   $new = $pkg.q{::}.$new;
-  return if (defined &{"$new"});
+  return if (defined &{$new});
   my $parent = $method_template;
   $parent =~ s/X/item/;
   #print STDERR "  $new => $parent\n";
-  no strict 'refs'; ## no critic
-  *{"$new"} =
-    sub {
-      shift->$parent($collection_type, @_);
-    };
-  use strict 'refs';
+  my $m = sub { shift->$parent($collection_type, @_); };
+  {
+    no strict 'refs'; ## no critic
+    *{$new} = $m;
+  }
   return 1;
 }
 
@@ -310,14 +309,15 @@ sub make_item_attribute_method {
   my $collection_type = shift or $pkg->argh('BUG: missing collection type');
   my $attribute_name = shift or $pkg->argh('BUG: missing attribute name');
   my $new = $pkg.q{::}.$collection_type.q{_}.$attribute_name;
-  return if (defined &{"$new"});
+  return if (defined &{$new});
   #print STDERR "  $new => item_attrib\n";
-  no strict 'refs'; ## no critic
-  *{"$new"} =
-    sub {
-      shift->_item_attrib($collection_type, shift, $attribute_name, @_);
-    };
-  use strict 'refs';
+  my $m = sub {
+    shift->_item_attrib($collection_type, shift, $attribute_name, @_);
+  };
+  {
+    no strict 'refs'; ## no critic
+    *{$new} = $m;
+  }
   return 1;
 }
 
@@ -339,18 +339,21 @@ sub make_readonly_accessor {
   unless (@_) { $pkg->argh('BUG: missing attribute name'); }
   foreach my $attribute_name (@_) {
     my $new = $pkg.q{::}.$attribute_name;
-    return if (defined &{"$new"});
+    return if (defined &{$new});
     #print STDERR "  $new => readonly_accessor\n";
-    no strict 'refs'; ## no critic
-    *{"$new"} =
-      sub {
-        $_[0]->ouch_named($attribute_name,
-                          'called with an argument, but '.
-                            $attribute_name.' is readonly')
-          if (@_ > 1);
-        $_[0]->{'_'.$attribute_name};
-      };
+    my $m = sub {
+      $_[0]->ouch_named($attribute_name,
+                        'called with an argument, but '.
+                        $attribute_name.' is readonly')
+        if (@_ > 1);
+      $_[0]->{'_'.$attribute_name};
+    };
     use strict 'refs';
+
+    {
+      no strict 'refs'; ## no critic
+      *{"$new"} = $m;
+    }
   }
   return 1;
 }

@@ -619,36 +619,41 @@ sub make_class {
     __PACKAGE__.$DOUBLE_COLON.$class.$DOUBLE_COLON.$class_type;
   $modules{$parent} = $parent;
   my $isa = $parent.'::ISA';
-  no strict qw/refs/; ## no critic
-  *{$isa} = [qw/xPL::ValidatedMessage/];
+  {
+    no strict qw/refs/; ## no critic
+    *{$isa} = [qw/xPL::ValidatedMessage/];
+  }
   if (exists $spec->{default_message_type}) {
     my $dmt = $parent.'::default_message_type';
-    *{$dmt} =
-      sub {
-        $spec->{default_message_type};
-      };
+    my $m = sub { $spec->{default_message_type}; };
+    {
+      no strict qw/refs/; ## no critic
+      *{$dmt} = $m;
+    }
   }
-  use strict qw/refs/;
   foreach my $message_type (keys %{$spec->{types}}) {
     my $mt = $message_type;
     $mt =~ s/-//;
     my $module = $parent.$DOUBLE_COLON.$mt;
     my $isa = $module.'::ISA';
-    no strict qw/refs/; ## no critic
-    *{$isa} = [$parent];
+    {
+      no strict qw/refs/; ## no critic
+      *{$isa} = [$parent];
+    }
     my $s = $module.'::spec';
-    *{$s} =
-      sub {
-        $spec->{types}->{$message_type}
-      };
+    my $m = sub { $spec->{types}->{$message_type} };
+    {
+      no strict qw/refs/; ## no critic
+      *{$s} = $m;
+    }
     if (exists $spec->{types}->{$message_type}->{fields}) {
       my $fs = $module.'::field_spec';
-      *{$fs} =
-        sub {
-          $spec->{types}->{$message_type}->{fields}
-        };
+      my $m = sub { $spec->{types}->{$message_type}->{fields} };
+      {
+        no strict qw/refs/; ## no critic
+        *{$fs} = $m;
+      }
     }
-    use strict qw/refs/;
     $module->make_body_fields();
     $modules{$module} = $module;
   }
@@ -711,21 +716,22 @@ sub make_body_field {
   my $new = $pkg.$DOUBLE_COLON.$name;
   return if (defined &{$new});
 #  print STDERR "  $new => body_field, ",$validation->summary,"\n";
-  no strict qw/refs/; ## no critic
-  *{$new} =
-    sub {
-      $_[0]->_parse_body() if ($_[0]->{_body_content});
-      if (@_ > 1) {
-        if ($_[0]->{_strict} && !$validation->valid($_[1])) {
-          $_[0]->$error_handler($name,
-                                $name.$COMMA.$SPACE.$_[1].", is invalid.\n".
-                                $error_message);
-        }
-        $_[0]->{_body}->{$name} = $_[1];
+  my $m = sub {
+    $_[0]->_parse_body() if ($_[0]->{_body_content});
+    if (@_ > 1) {
+      if ($_[0]->{_strict} && !$validation->valid($_[1])) {
+        $_[0]->$error_handler($name,
+                              $name.$COMMA.$SPACE.$_[1].", is invalid.\n".
+                              $error_message);
       }
-      return $_[0]->{_body}->{$name};
-    };
-  use strict qw/refs/;
+      $_[0]->{_body}->{$name} = $_[1];
+    }
+    return $_[0]->{_body}->{$name};
+  };
+  {
+    no strict qw/refs/; ## no critic
+    *{$new} = $m;
+  }
   return 1;
 }
 
