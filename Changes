@@ -1,6 +1,6 @@
 Revision history for Perl extension xPL.
 
-{{$NEXT}}
+0.12 Sun, 23 Oct 2011 23:02:41 +0100
 
         - Major API changes.  Warns if deprecated functionality is
           use.  Setting XPL_MESSAGE_VALIDATE environment variable
