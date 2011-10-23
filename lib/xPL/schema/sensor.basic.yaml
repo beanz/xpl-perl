@@ -1,5 +1,5 @@
 ---
-doc: http://wiki.xplproject.org.uk/index.php/Schema_-_SENSOR.BASIC
+doc: http://xplproject.org.uk/wiki/index.php?title=Schema_-_SENSOR.BASIC
 types:
   xpl-trig:
     fields:

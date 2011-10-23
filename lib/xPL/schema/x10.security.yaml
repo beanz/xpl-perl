@@ -1,5 +1,5 @@
 ---
-doc: http://wiki.xplproject.org.uk/index.php/Schema_-_X10.SECURITY
+doc: http://xplproject.org.uk/wiki/index.php?title=Schema_-_X10.SECURITY
 default_message_type: xpl-trig
 types:
   xpl-trig:

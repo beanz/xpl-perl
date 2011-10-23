@@ -1,5 +1,5 @@
 ---
-doc: http://wiki.xplproject.org.uk/index.php/Schema_-_UPS.BASIC
+doc: http://xplproject.org.uk/wiki/index.php?title=Schema_-_UPS.BASIC
 default_message_type: xpl-trig
 types:
   xpl-trig:
