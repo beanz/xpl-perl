@@ -44,9 +44,13 @@ Example xPL clients are provided for:
   Wake-on LAN,
   X11 virtual keyboard for faking key presses,
   and more
-  
 
-INSTALLATION
+Further clients written and maintained by others are listed at:
+
+  https://github.com/beanz/xpl-perl/wiki/ThirdPartyClients
+
+
+Installation
 
 To install this module type the following:
 
@@ -59,17 +63,31 @@ To install this module type the following:
 a few tests to fail.  Try repeating the tests if you get failures.)
 
 
-DEPENDENCIES
+Dependencies
 
 Most of the required modules are distributed with recent versions
 of Perl.  Some of the more elaborate clients require additional
 modules from CPAN.
 
 
-DEBIAN PACKAGES
+Debian Packages
 
 The repository at http://debian.temporalanomaly.com/ contains
 Debian packages for xPL Perl.
+
+
+ArchLinux Packages
+
+Arch Linux packages are available at:
+
+  https://aur.archlinux.org/packages.php?ID=53033
+
+
+Mac OS X
+
+There are some instructions about installing on Mac OS X at:
+
+  http://www.xplproject.org.uk/wiki/index.php?title=Get_Started_on_Mac_Os
 
 
 MAILING LISTS
