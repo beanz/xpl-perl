@@ -138,19 +138,6 @@ sub new {
   my %p = @_;
   exists $p{strict} or $p{strict} = 1;
 
-  if (exists $p{class}) {
-    warnings::warnif('deprecated',
-        '"class" is deprecated. Set "schema" to "class.class_type" instead');
-    $p{schema} = $p{class};
-    delete $p{class};
-    if (exists $p{class_type}) {
-      warnings::warnif('deprecated',
-                       '"class_type" is deprecated. '.
-                       'Set "schema" to "class.class_type" instead');
-      $p{schema} .= '.'.$p{class_type};
-    }
-  }
-
   defined $p{schema} or $pkg->argh(q{requires 'schema' parameter});
   unless ($p{schema} =~ /^([A-Z0-9]{1,8})\.([A-Z0-9]{1,8})$/i) {
     $pkg->argh("'schema' parameter, ".$p{schema}.", is invalid.\n".

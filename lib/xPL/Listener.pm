@@ -495,12 +495,6 @@ sub add_xpl_callback {
   my %p = @_;
   exists $p{id} or $self->argh("requires 'id' argument");
   exists $p{self_skip} or $p{self_skip} = 1;
-  if (exists $p{targetted}) {
-    $p{targeted} = $p{targetted};
-    delete $p{targetted};
-    warnings::warnif('deprecated',
-                     '"targetted" is deprecated. Use "targeted" instead.');
-  }
   exists $p{targeted} or $p{targeted} = 1;
   if (exists $p{filter}) {
     my $filter = $p{filter};
