@@ -15,15 +15,15 @@ ok($valid_msg, 'sample message to get message type');
 my $ref = ref $valid_msg;
 my $msg;
 is(test_error(sub { $msg = xPL::Message->new(); }),
-   "xPL::ValidatedMessage->new: requires 'schema' parameter",
+   $ref."->new: requires 'schema' parameter",
    "xPL::Message missing schema test");
 
 is(test_error(sub { $msg = xPL::Message->new(schema => "remote.basic") }),
-   "xPL::ValidatedMessage->new: requires 'message_type' parameter",
+   $ref."->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 
 is(test_error(sub { $msg = xPL::Message->new(schema => "unknown.basic") }),
-   "xPL::ValidatedMessage->new: requires 'message_type' parameter",
+   $ref."->new: requires 'message_type' parameter",
    "xPL::Message missing message type test");
 
 is(test_error(sub { $msg = xPL::Message->new(schema => "fred.schema",

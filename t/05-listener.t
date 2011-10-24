@@ -396,7 +396,7 @@ ok($xpl->remove_input($handle), "remove input");
 
 is(test_error(sub { $xpl->send(invalid => 'messagedata'); }),
    "MY::Listener->send_aux: message error: ".
-     "xPL::ValidatedMessage->new: requires 'schema' parameter",
+     "xPL::Message->new: requires 'schema' parameter",
    "send with invalid message data");
 
 check_stats(0,0,6);
