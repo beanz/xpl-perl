@@ -1,9 +1,9 @@
 #!/usr/bin/perl -w
 #
-# Copyright (C) 2009 by Mark Hindess
+# Copyright (C) 2011 by Mark Hindess
 
 use strict;
-use Test::More tests => 34;
+use Test::More tests => 35;
 use FileHandle;
 use IO::Select;
 use IO::Socket::INET;
@@ -151,35 +151,19 @@ my $warn =
                                   xpl => $xpl);
             });
 
-like($warn, qr{MyIOH: Setting serial port with stty failed}, 'stty failure');
 like($warn, qr{MyIOH: open of '/dev/just-a-test' failed}, 'open failure');
-
-$warn =
-  test_warn(sub {
-              my $io = MyIOH->new(device => '/dev/null',
-                                  baud => 9600,
-                                  reader_callback => \&device_reader,
-                                  xpl => $xpl);
-            });
-
-like($warn, qr{MyIOH: Setting serial port with stty failed}, 'stty failure');
-unlike($warn, qr{MyIOH: open of '[^']*' failed}, 'open worked');
-
-$ENV{PATH} = 't/bin:'.$ENV{PATH};
-my $err;
-$warn =
-  test_warn(sub {
-              $err =
-                test_output(sub {
-                              my $io = MyIOH->new(device => '/dev/null',
-                                                  baud => 9600,
-                                                  reader_callback =>
-                                                    \&device_reader,
-                                                  xpl => $xpl);
-                            }, \*STDERR) });
-
-is($warn, undef, 'stty worked');
-is($err, "-F /dev/null ospeed 9600 pass8 raw -echo\n", 'stty called correctly');
+like($warn, qr{CALLED Device::SerialPort::TIEHANDLE: /dev/just-a-test},
+     'SerialPort call TIEHANDLE: /dev/just-a-test');
+like($warn, qr{CALLED Device::SerialPort::baudrate: 9600},
+     'SerialPort call baudrate: 9600');
+like($warn, qr{CALLED Device::SerialPort::databits: 8},
+     'SerialPort call databits: 8');
+like($warn, qr{CALLED Device::SerialPort::parity: none},
+     'SerialPort call parity: none');
+like($warn, qr{CALLED Device::SerialPort::stopbits: 1},
+     'SerialPort call stopbits: 1');
+like($warn, qr{CALLED Device::SerialPort::datatype: raw},
+     'SerialPort call datatype: raw');
 
 no warnings;
 *{IO::Socket::INET::new} = sub { my $self = shift; warn $self.': ',@_; };

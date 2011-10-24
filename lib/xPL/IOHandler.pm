@@ -103,13 +103,21 @@ sub device_open {
       $fh = IO::Socket::UNIX->new($dev)
         or $self->argh("Unix domain socket connect to '$dev' failed: $!\n");
     } else {
-      # TODO: use Device::SerialPort?
-      system("stty -F $dev ospeed $baud pass8 raw -echo >/dev/null") == 0 or
-        $self->argh("Setting serial port with stty failed: $!\n");
-      sysopen($fh, $dev,O_RDWR|O_NOCTTY|O_NDELAY)
+      require Symbol;
+      require Device::SerialPort;
+      import Device::SerialPort qw( :PARAM :STAT 0.07 );
+      $fh = Symbol::gensym();
+      my $sport = tie (*$fh, 'Device::SerialPort', $dev) or
+        $self->argh("Could not tie serial port to file handle: $!\n");
+      $sport->baudrate($baud);
+      $sport->databits(8);
+      $sport->parity("none");
+      $sport->stopbits(1);
+      $sport->datatype("raw");
+      $sport->write_settings();
+      sysopen($fh, $dev, O_RDWR|O_NOCTTY|O_NDELAY)
         or $self->argh("open of '$dev' failed: $!\n");
       $fh->autoflush(1);
-      binmode($fh);
     }
   } else {
     $dev .= ':'.($port||'10001') unless ($dev =~ /:/);
