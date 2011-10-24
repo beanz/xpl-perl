@@ -4,6 +4,7 @@ Revision history for Perl extension xPL.
 
         - Use Device::SerialPort for more portability - thanks to
           Lieven.
+        - Remove deprecated xpl-owfs client.
 
 0.12 Sun, 23 Oct 2011 23:23:50 +0100
 

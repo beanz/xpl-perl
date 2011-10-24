@@ -24,7 +24,6 @@ bin/xpl-logger
 bin/xpl-monitor
 bin/xpl-mpd
 bin/xpl-mythtv
-bin/xpl-owfs
 bin/xpl-ownet
 bin/xpl-packet-trace
 bin/xpl-perl-setup
@@ -124,10 +123,6 @@ debian/xpl-mythtv-perl.postinst
 debian/xpl-mythtv-perl.postrm
 debian/xpl-mythtv-perl.prerm
 debian/xpl-mythtv-perl.README.Debian
-debian/xpl-owfs-perl.postinst
-debian/xpl-owfs-perl.postrm
-debian/xpl-owfs-perl.prerm
-debian/xpl-owfs-perl.README.Debian
 debian/xpl-rfxcom-perl.postinst
 debian/xpl-rfxcom-perl.postrm
 debian/xpl-rfxcom-perl.prerm
@@ -188,7 +183,6 @@ lib/xPL/Dock/LCDproc.pm
 lib/xPL/Dock/Linux.pm
 lib/xPL/Dock/LIRC.pm
 lib/xPL/Dock/Mythtv.pm
-lib/xPL/Dock/Owfs.pm
 lib/xPL/Dock/OWNet.pm
 lib/xPL/Dock/Plug.pm
 lib/xPL/Dock.pm
@@ -336,7 +330,6 @@ t/14-dock-lcdproc.t
 t/14-dock-linux.t
 t/14-dock-lirc.t
 t/14-dock-mythtv.t
-t/14-dock-owfs.t
 t/14-dock-ownet.t
 t/14-dock-rfxcom-rx.t
 t/14-dock-rfxcom-tx.t
@@ -347,7 +340,6 @@ t/14-dock-wol.t
 t/14-dock-xosd.t
 t/14-dock-xvkbd.t
 t/bin/heyu
-t/bin/stty
 t/bin/sudo
 t/bin/xvkbd
 t/config/xPL/config/acme-config.yaml
