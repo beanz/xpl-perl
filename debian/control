@@ -10,7 +10,7 @@ Homepage: http://www.xpl-perl.org.uk/
 Package: libxpl-perl
 Architecture: all
 Depends: ${misc:Depends}, libyaml-syck-perl, libmodule-pluggable-perl
-Suggests: librrds-perl, libx-osd-perl, libgtk2-perl, libdatetime-event-sunrise-perl, libdatetime-event-recurrence-perl, libdatetime-event-cron-perl, libtimedate-perl, rrdtool, hddtemp, libwww-perl, libsms-send-perl
+Suggests: librrds-perl, libx-osd-perl, libgtk2-perl, libdatetime-event-sunrise-perl, libdatetime-event-recurrence-perl, libdatetime-event-cron-perl, libtimedate-perl, rrdtool, libwww-perl, libsms-send-perl
 Description: Perl extension for xPL Protocol
  These modules are intended to provide a framework for writing xPL
  applications (see http://wiki.xplproject.org.uk/) in Perl.  A number
@@ -97,16 +97,6 @@ Description: xPL EasyDAQ USB Relay client
 #  This package sets up an xPL Desktop Notification application to run
 #  automatically.
 
-Package: xpl-hddtemp-perl
-Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
-Suggests: hddtemp
-Description: xPL hddtemp monitor
- DEPRECATED: This package is deprecated in favour of the
- xpl-smart-perl package.
- .
- This package sets up an xPL hddtemp monitor to run automatically.
-
 Package: xpl-heyu-perl
 Architecture: all
 Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
@@ -158,16 +148,6 @@ Architecture: all
 Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
 Description: xPL mythtv monitor
  This package sets up an xPL mythtv monitor to run automatically.
-
-Package: xpl-owfs-perl
-Architecture: all
-Depends: ${misc:Depends}, runit | daemontools-run, libxpl-perl, xpl-common-perl
-Description: xPL interface to the one-wire filesystem
- DEPRECATED: This package is deprecated in favour of the
- xpl-ownet-perl package.
- .
- This package sets up an xPL interface to the one-wire filesystem to
- run automatically.
 
 Package: xpl-ownet-perl
 Architecture: all

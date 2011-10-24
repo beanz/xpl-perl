@@ -11,7 +11,6 @@ bin/xpl-dg834
 bin/xpl-dmx
 bin/xpl-easydaq
 bin/xpl-fdnotify
-bin/xpl-hddtemp
 bin/xpl-heyu
 bin/xpl-heyu-helper
 bin/xpl-hub
@@ -91,10 +90,6 @@ debian/xpl-easydaq-perl.postinst
 debian/xpl-easydaq-perl.postrm
 debian/xpl-easydaq-perl.prerm
 debian/xpl-easydaq-perl.README.Debian
-debian/xpl-hddtemp-perl.postinst
-debian/xpl-hddtemp-perl.postrm
-debian/xpl-hddtemp-perl.prerm
-debian/xpl-hddtemp-perl.README.Debian
 debian/xpl-heyu-perl.postinst
 debian/xpl-heyu-perl.postrm
 debian/xpl-heyu-perl.prerm
@@ -176,7 +171,6 @@ lib/xPL/Dock/DawnDusk.pm
 lib/xPL/Dock/DMX.pm
 lib/xPL/Dock/EasyDAQ.pm
 lib/xPL/Dock/FDNotify.pm
-lib/xPL/Dock/HDDTemp.pm
 lib/xPL/Dock/Heyu.pm
 lib/xPL/Dock/Jabber.pm
 lib/xPL/Dock/LCDproc.pm
@@ -324,13 +318,13 @@ t/14-dock-dawndusk.t
 t/14-dock-dmx.t
 t/14-dock-easydaq.t
 t/14-dock-fdnotify.t
-t/14-dock-hddtemp.t
 t/14-dock-heyu.t
 t/14-dock-lcdproc.t
 t/14-dock-linux.t
 t/14-dock-lirc.t
 t/14-dock-mythtv.t
 t/14-dock-ownet.t
+t/14-dock-smart.t
 t/14-dock-rfxcom-rx.t
 t/14-dock-rfxcom-tx.t
 t/14-dock-udin.t

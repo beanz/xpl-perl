@@ -1,2 +1,11 @@
 #!/bin/sh
-echo "executed: $0 $*"
+case "$1" in
+
+  */smartctl)
+    echo "Serial Number:    sda"
+    echo "194 Temperature_Celsius 0x0022 100 092 000 Old_age Always - 43"
+    ;;
+  *)
+    echo "executed: $0 $*"
+    ;;
+esac

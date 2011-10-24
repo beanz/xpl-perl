@@ -22,7 +22,6 @@ use 5.006;
 use strict;
 use warnings;
 
-use English qw/-no_match_vars/;
 use AnyEvent::Util;
 use xPL::Dock::Plug;
 
@@ -49,6 +48,7 @@ sub getopts {
     (
      'smart-verbose+' => \$self->{_verbose},
      'smart-poll-interval=i' => \$self->{_interval},
+     'smart-dev-root=s' => \$self->{_devroot},
     );
 }
 
