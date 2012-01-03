@@ -142,7 +142,8 @@ sub send_conf {
   my $error = shift;
   my %body = ( status => $status );
   $body{error} = $error if ($error);
-  return $xpl->send(schema => 'sendmsg.confirm', body => \%body);
+  return $xpl->send(message_type => 'xpl-trig',
+                    schema => 'sendmsg.confirm', body => \%body);
 }
 
 # send a "hbeat.end" message on exit
