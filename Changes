@@ -1,7 +1,7 @@
 Revision history for Perl extension xPL.
 
 {{$NEXT}}
-
+        - Fix xpl-sms-send so confirm messages are sent correctly.
         - Use Device::SerialPort for more portability - thanks to
           Lieven.
         - More tests for xpl-smart.
