@@ -1,0 +1,102 @@
+#!/usr/bin/env perl
+
+=head1 NAME
+
+xpl-uptime - Creates messages reporting the uptime of a host.
+ 
+=head1 SYNOPSIS
+
+  xpl-uptime [flags] [options]
+  where valid flags are:
+    -h - show this help text
+    -v - verbose mode
+  and valid options are (default shown in brackets):
+    -i if0 - the interface for xPL messages (first non-loopback or loopback)
+
+  # start the clock application with "tick" interval of 60 seconds
+  xpl-uptime 
+
+=head1 DESCRIPTION
+
+This script is an xPL client that periodically sends out
+"sensor.basic" messages.  It can be used to let other devices on the
+network know when a specific host is up.
+
+=cut
+
+use strict;
+use warnings;
+use Getopt::Long;
+use Pod::Usage;
+use Unix::Uptime;
+use xPL::Client;
+$|=1; # autoflush helps debugging
+
+my %args = ( vendor_id => 'hollie', device_id => 'uptime', );
+my %opt = ();
+my $verbose;
+my $interface;
+my $help;
+my $man;
+my $tick_interval = 10;
+my $time_format = '%Y%m%d%H%M%S';
+GetOptions('verbose+' => \$verbose,
+           'interface=s' => \$interface,
+           'define=s' => \%opt,
+           'help|?|h' => \$help,
+           'man' => \$man,
+          ) or pod2usage(2);
+pod2usage(1) if ($help);
+pod2usage(-exitstatus => 0, -verbose => 2) if ($man);
+
+$args{'interface'} = $interface if ($interface);
+$args{'verbose'} = $verbose if ($verbose);
+
+# Create an xPL Client object
+my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
+
+# Add a timer to the xPL Client event loop to generate the
+# "sensor.basic" messages.  The negative interval causes the timer to
+# trigger immediately rather than waiting for the first interval.
+$xpl->add_timer(id => 'tick',
+                timeout => -60,
+                callback => \&tick,
+                arguments => [$xpl]);
+
+$SIG{TERM} = \&end;
+$SIG{QUIT} = \&end;
+
+# Run the main loop
+$xpl->main_loop();
+
+# The callback to send the "clock.update" messages
+sub tick {
+  my %p = @_;
+  my $xpl = $p{arguments}->[0];
+  $xpl->send(message_type => 'xpl-trig', class => 'sensor.basic',
+             body => { device => 'uptime', type => 'generic', 'current' => Unix::Uptime->uptime() } );
+  return 1;
+};
+
+# send a "hbeat.end" message on exit
+sub end { defined $xpl && undef $xpl;exit; }
+
+=head1 SEE ALSO
+
+xPL::Client(3), xPL::Listener(3)
+
+Project website: http://www.xpl-perl.org.uk/
+
+=head1 AUTHOR
+
+Lieven Hollevoet, E<lt>hollie@lika.beE<gt>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2005, 2009 by Mark Hindess
+
+This library is free software; you can redistribute it and/or modify
+it under the same terms as Perl itself, either Perl version 5.8.7 or,
+at your option, any later version of Perl 5 you may have available.
+
+=cut

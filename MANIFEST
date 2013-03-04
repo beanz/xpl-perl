@@ -40,6 +40,7 @@ bin/xpl-sms-send
 bin/xpl-tcphelp
 bin/xpl-tty-tcp
 bin/xpl-udin
+bin/xpl-uptime
 bin/xpl-viom
 bin/xpl-w800
 bin/xpl-wol
