@@ -59,7 +59,7 @@ my $xpl = xPL::Client->new(%args, %opt) or die "Failed to create xPL::Client\n";
 # "sensor.basic" messages.  The negative interval causes the timer to
 # trigger immediately rather than waiting for the first interval.
 $xpl->add_timer(id => 'tick',
-                timeout => -60,
+                timeout => -$tick_interval,
                 callback => \&tick,
                 arguments => [$xpl]);
 
