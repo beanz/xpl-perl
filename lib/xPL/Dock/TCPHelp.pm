@@ -144,11 +144,11 @@ sub read_client {
          (\w+)\r?\n # Method
          (\d+)\r?\n # Lines
          (xpl-(?:cmnd|trig|stat))\r?\n # Message Type
-         {\r?\n # Standard xPL Message Body
+         \{\r?\n # Standard xPL Message Body
          ((?:[-_a-z0-9]+=.*?\r?\n)*)
          }\r?\n
          ([-_a-z0-9]+\.[-_a-z0-9]+)\r?\n # Schema
-         {\r?\n # Standard xPL Message Body
+         \{\r?\n # Standard xPL Message Body
          ((?:[-_a-z0-9]+=.*?\r?\n)*)
          }\r?\n
         )
