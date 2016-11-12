@@ -214,10 +214,9 @@ is($validation->error(), q{It can be any value.},
    'Unknown validation "error"');
 
 $ENV{XPL_VALIDATION_WARN} = 1;
-is(test_warn(sub { $validation=xPL::Validation->new(type => "Green",
+like(test_warn(sub { $validation=xPL::Validation->new(type => "Green",
                                                     verbose => 1); }),
-   q{Failed to load xPL::Validation::Green: }.
-     q{Can't locate xPL/Validation/Green.pm in @INC},
+   qr/^Failed to load xPL::Validation::Green:/,
    'Unknown validation created with warnings');
 ok($validation, 'Unknown validation with warnings');
 delete $ENV{XPL_VALIDATION_WARN};

@@ -163,7 +163,6 @@ SKIP: {
      'recurrence timer invalid frequency');
 }
 
-is(test_error(sub { $t = xPL::Timer->new(type => 'testing') }),
-   q{xPL::Timer->new: Failed to load xPL::Timer::testing: }.
-     q{Can't locate xPL/Timer/testing.pm in @INC},
+like(test_error(sub { $t = xPL::Timer->new(type => 'testing') }),
+   qr{^xPL::Timer->new: Failed to load xPL::Timer::testing:},
    'testing non-existent Timer type');
