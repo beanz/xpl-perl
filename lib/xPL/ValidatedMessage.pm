@@ -154,7 +154,7 @@ sub new {
   if (!exists $p{message_type}) {
     warnings::warnif('deprecated',
                      'Reliance on default "message_type" is deprecated. '.
-                     'Set "message_type" explicity instead');
+                     'Set "message_type" explicitly instead');
     my $default_message_type =
       $modules{$module} ? $module->default_message_type() :
         $pkg->default_message_type();
