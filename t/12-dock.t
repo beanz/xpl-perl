@@ -9,8 +9,8 @@ $|=1;
 
 use_ok('xPL::Dock');
 
-is(test_error(sub { xPL::Dock->import('invalid') }),
-   q{Failed loading plugin: Can't locate xPL/Dock/invalid.pm in @INC},
+like(test_error(sub { xPL::Dock->import('invalid') }),
+   qr{^Failed loading plugin: Can't locate xPL/Dock/invalid\.pm in \@INC},
    'plugin eval error');
 
 my @usage = split /\n/,

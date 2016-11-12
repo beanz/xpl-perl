@@ -134,9 +134,9 @@ is(test_error(sub {
    (q{MyIOH->device_open: TCP connect to '127.0.0.1:}.$port.
     q{' failed: Connection refused}), 'connection refused');
 
-is(test_error(sub { xPL::IOHandler->new(input_record_type =>
+like(test_error(sub { xPL::IOHandler->new(input_record_type =>
                                         'xPL::IORecord::NonExistent') }),
-   q{Can't locate xPL/IORecord/NonExistent.pm in @INC}, 'bad record type');
+   qr{^Can't locate xPL/IORecord/NonExistent\.pm in \@INC}, 'bad record type');
 
 
 no warnings;

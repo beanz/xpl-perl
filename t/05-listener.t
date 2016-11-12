@@ -165,9 +165,8 @@ is(test_error(sub { $xpl->add_timer(timeout => -1) }),
    ref($xpl)."->add_timer: requires 'id' parameter",
    "adding timer with no id");
 
-is(test_error(sub { $xpl->add_timer(id => 'null', timeout => 'tomorrow') }),
-   q{xPL::Timer->new: Failed to load xPL::Timer::tomorrow: }.
-     q{Can't locate xPL/Timer/tomorrow.pm in @INC},
+like(test_error(sub { $xpl->add_timer(id => 'null', timeout => 'tomorrow') }),
+   qr{^xPL::Timer->new: Failed to load xPL::Timer::tomorrow:},
    "adding timer with bad timeout");
 
 is(test_error(sub { $xpl->add_timer(id => 'null') }),
